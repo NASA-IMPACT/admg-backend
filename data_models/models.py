@@ -166,10 +166,10 @@ class Flight(models.Model):
 
     instruments = models.ManyToManyField(Instrument, related_name='flights')
 
-    short_name = models.CharField(max_lenght=256, blank=False, unique=True) # maybe change to flight_number?
+    # short_name = models.CharField(max_length=256, blank=False, unique=True) # maybe change to flight_number?
     
-    def __str__(self):
-        return self.short_name
+    # def __str__(self):
+    #     return self.short_name
 
 
 class Deployment(models.Model):
