@@ -115,14 +115,19 @@ class Campaign(models.Model):
     public = models.BooleanField()
     ongoing = models.BooleanField()
 
+
     def __str__(self):
         return self.short_name
 
+
     def number_deployments(self):
-        pass
+        # TODO: add function that counts number of deplyments from the associated table
+        return None
+
 
     def number_flights(self):
-        pass
+        # TODO: add function that counts number of flights from the associated table
+        return None
 
 
 class Instrument(models.Model):
@@ -133,7 +138,7 @@ class Instrument(models.Model):
     long_name = models.CharField(max_length=256)
     description = models.CharField(max_length=256)
     online_information = models.CharField(max_length=256)
-    
+
     def __str__(self):
         return self.short_name
 
@@ -150,7 +155,7 @@ class Platform(models.Model):
     online_information = models.CharField(max_length=256)
     tail_numbers = models.CharField(max_length=256)
     platform_model = models.CharField(max_length=256)
-    
+
     def __str__(self):
         return self.short_name
 
@@ -160,6 +165,8 @@ class Flight(models.Model):
     platform = models.ForeignKey(Platform, on_delete=models.CASCADE, related_name='flights')
 
     instruments = models.ManyToManyField(Instrument, related_name='flights')
+
+    short_name = models.CharField(max_lenght=256, blank=False, unique=True) # maybe change to flight_number?
     
     def __str__(self):
         return self.short_name
