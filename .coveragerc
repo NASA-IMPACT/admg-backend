@@ -1,0 +1,5 @@
+[run]
+include = admg_webapp/*
+omit = *migrations*, *tests*
+plugins =
+    django_coverage_plugin
