@@ -5,81 +5,38 @@ from django.db import models
 # Limited Fields #
 ##################
 
-class PlatformType(models.Model):
-
+class LimitedInfo(models.Model):
     short_name = models.CharField(max_length=256, blank=False, unique=True)
     long_name = models.CharField(max_length=256)
     description = models.CharField(max_length=256)
-    gcmd_translation = models.CharField(max_length=256)
+    gcmd_translation = models.CharField(max_length=256)  
 
     def __str__(self):
         return self.short_name
 
+    class Meta:
+        abstract = True
 
-class AircraftType(models.Model):
+class PlatformType(LimitedInfo):
+    pass
 
-    short_name = models.CharField(max_length=256, blank=False, unique=True)
-    long_name = models.CharField(max_length=256)
-    description = models.CharField(max_length=256)
-    gcmd_translation = models.CharField(max_length=256)
-    
-    def __str__(self):
-        return self.short_name
+class AircraftType(LimitedInfo):
+    pass
 
+class InstrumentType(LimitedInfo):
+    pass
 
-class InstrumentType(models.Model):
+class HomeBase(LimitedInfo):
+    pass
 
-    short_name = models.CharField(max_length=256, blank=False, unique=True)
-    long_name = models.CharField(max_length=256)
-    description = models.CharField(max_length=256)
-    gcmd_translation = models.CharField(max_length=256)
-    
-    def __str__(self):
-        return self.short_name
+class FocusArea(LimitedInfo):
+    pass
 
+class Season(LimitedInfo):
+    pass
 
-class HomeBase(models.Model):
-
-    short_name = models.CharField(max_length=256, blank=False, unique=True)
-    long_name = models.CharField(max_length=256)
-    description = models.CharField(max_length=256)
-    gcmd_translation = models.CharField(max_length=256)
-    
-    def __str__(self):
-        return self.short_name
-
-
-class FocusArea(models.Model):
-
-    short_name = models.CharField(max_length=256, blank=False, unique=True)
-    long_name = models.CharField(max_length=256)
-    description = models.CharField(max_length=256)
-    gcmd_translation = models.CharField(max_length=256)
-    
-    def __str__(self):
-        return self.short_name
-
-
-class Season(models.Model):
-
-    short_name = models.CharField(max_length=256, blank=False, unique=True)
-    long_name = models.CharField(max_length=256)
-    description = models.CharField(max_length=256)
-    gcmd_translation = models.CharField(max_length=256)
-    
-    def __str__(self):
-        return self.short_name
-
-
-class Repository(models.Model):
-
-    short_name = models.CharField(max_length=256, blank=False, unique=True)
-    long_name = models.CharField(max_length=256)
-    description = models.CharField(max_length=256)
-    gcmd_translation = models.CharField(max_length=256)
-
-    def __str__(self):
-        return self.short_name
+class Repository(LimitedInfo):
+    pass
 
 
 ############### 
@@ -132,7 +89,10 @@ class Campaign(models.Model):
 
 class Instrument(models.Model):
 
-    instrument_type = models.ForeignKey(InstrumentType, on_delete=models.SET_NULL, related_name='instruments', null=True)
+    instrument_type = models.ForeignKey(InstrumentType, 
+                                        on_delete=models.SET_NULL, 
+                                        related_name='instruments', 
+                                        null=True)
 
     short_name = models.CharField(max_length=256, blank=False, unique=True)
     long_name = models.CharField(max_length=256)
