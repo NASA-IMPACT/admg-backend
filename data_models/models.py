@@ -9,7 +9,7 @@ class LimitedInfo(models.Model):
     short_name = models.CharField(max_length=256, blank=False, unique=True)
     long_name = models.CharField(max_length=256)
     description = models.CharField(max_length=256)
-    gcmd_translation = models.CharField(max_length=256)  
+    gcmd_translation = models.CharField(max_length=256)
 
     def __str__(self):
         return self.short_name
@@ -17,29 +17,36 @@ class LimitedInfo(models.Model):
     class Meta:
         abstract = True
 
+
 class PlatformType(LimitedInfo):
     pass
+
 
 class AircraftType(LimitedInfo):
     pass
 
+
 class InstrumentType(LimitedInfo):
     pass
+
 
 class HomeBase(LimitedInfo):
     pass
 
+
 class FocusArea(LimitedInfo):
     pass
 
+
 class Season(LimitedInfo):
     pass
+
 
 class Repository(LimitedInfo):
     pass
 
 
-############### 
+###############
 # Core Models #
 ###############
 
@@ -72,15 +79,12 @@ class Campaign(models.Model):
     public = models.BooleanField()
     ongoing = models.BooleanField()
 
-
     def __str__(self):
         return self.short_name
-
 
     def number_deployments(self):
         # TODO: add function that counts number of deplyments from the associated table
         return None
-
 
     def number_flights(self):
         # TODO: add function that counts number of flights from the associated table
@@ -89,9 +93,9 @@ class Campaign(models.Model):
 
 class Instrument(models.Model):
 
-    instrument_type = models.ForeignKey(InstrumentType, 
-                                        on_delete=models.SET_NULL, 
-                                        related_name='instruments', 
+    instrument_type = models.ForeignKey(InstrumentType,
+                                        on_delete=models.SET_NULL,
+                                        related_name='instruments',
                                         null=True)
 
     short_name = models.CharField(max_length=256, blank=False, unique=True)
@@ -105,8 +109,10 @@ class Instrument(models.Model):
 
 class Platform(models.Model):
 
-    home_base = models.ForeignKey(HomeBase, on_delete=models.SET_NULL, related_name='platforms', null=True)
-    platform_type = models.ForeignKey(AircraftType, on_delete=models.SET_NULL, related_name='platforms', null=True)
+    home_base = models.ForeignKey(HomeBase, on_delete=models.SET_NULL,
+                                  related_name='platforms', null=True)
+    platform_type = models.ForeignKey(
+        AircraftType, on_delete=models.SET_NULL, related_name='platforms', null=True)
 
     short_name = models.CharField(max_length=256, blank=False, unique=True)
     long_name = models.CharField(max_length=256)
@@ -120,29 +126,30 @@ class Platform(models.Model):
         return self.short_name
 
 
-class Flight(models.Model):
-    
-    platform = models.ForeignKey(Platform, on_delete=models.CASCADE, related_name='flights')
-
-    instruments = models.ManyToManyField(Instrument, related_name='flights')
-
-    # short_name = models.CharField(max_length=256, blank=False, unique=True) # maybe change to flight_number?
-    
-    # def __str__(self):
-    #     return self.short_name
-
-
 class Deployment(models.Model):
-   
+
     campaign = models.ForeignKey(Campaign, on_delete=models.CASCADE, related_name='deployments')
 
-    platforms = models.ManyToManyField(Platform, related_name='campaigns')
+    # platforms = models.ManyToManyField(Platform, related_name='campaigns')
 
     short_name = models.CharField(max_length=256, blank=False, unique=True)
     long_name = models.CharField(max_length=256)
     description = models.CharField(max_length=256)
     start_date = models.DateField()
     end_date = models.DateField()
-    
+
     def __str__(self):
         return self.short_name
+
+
+class Flight(models.Model):
+
+    deployment = models.ForeignKey(Deployment, on_delete=models.CASCADE, related_name='flights')
+    platform = models.ForeignKey(Platform, on_delete=models.CASCADE, related_name='flights')
+
+    instruments = models.ManyToManyField(Instrument, related_name='flights')
+
+    # short_name = models.CharField(max_length=256, blank=False, unique=True) # maybe change to flight_number?
+
+    # def __str__(self):
+    #     return self.short_name
