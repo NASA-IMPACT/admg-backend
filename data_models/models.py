@@ -50,6 +50,10 @@ class MeasurementRegion(LimitedInfo):
     pass
 
 
+class MeasurementKeywords(LimitedInfo):
+    pass
+
+
 class GeographicalRegion(LimitedInfo):
     pass
 
@@ -65,7 +69,7 @@ class PartnerOrg(models.Model):
         return self.short_name
 
 
-class GCMD(model.Model):
+class GCMD(models.Model):
     # TODO: Put more work into this later
     short_name = models.CharField(max_length=256, blank=False, unique=True)
     long_name = models.CharField(max_length=256)
@@ -115,15 +119,15 @@ class Campaign(models.Model):
     technical_contact = models.CharField(max_length=256)
     non_aircraft_platforms = models.CharField(max_length=512)
     non_airborne_instruments = models.CharField(max_length=512)
-    total_flights = models.IntegerPositive()
+    total_flights = models.PositiveIntegerField()
     doi = models.CharField(max_length=1024)
     publication = models.CharField(max_length=1024)
     supported_nasa_mission = models.CharField(max_length=512)
-    number_of_published_data_products = models.IntegerPositive()
+    number_of_published_data_products = models.PositiveIntegerField()
     data_total_volume = models.CharField(max_length=256)
     project_data_repository_website = models.CharField(max_length=512)
     other_resources = models.CharField(max_length=2048)
-    is_ongoing = models.Boolean()
+    is_ongoing = models.BooleanField()
     notes_public = models.CharField(max_length=2048)
     notes_internal = models.CharField(max_length=2048)
 
@@ -131,7 +135,7 @@ class Campaign(models.Model):
     seasons = models.ManyToManyField(Season, related_name='campaigns')
     repositories = models.ManyToManyField(Repository, related_name='campaigns')
     platform_types = models.ManyToManyField(PlatformType, related_name='campaigns')
-    partner_orgs = models.ManyToManyField(PartnerOrgs, related_name='campaigns')
+    partner_orgs = models.ManyToManyField(PartnerOrg, related_name='campaigns')
     gcmd_phenomenas = models.ManyToManyField(GcmdPhenomena, related_name='campaigns')
     gcmd_project = models.ManyToManyField(GcmdProjects, related_name='campaigns')  # TODO: double check
 
@@ -185,31 +189,30 @@ class Platform(models.Model):
 
 
 class Instrument(models.Model):
-    short_name = models.CharField(max_length=80, blank=False, unique=True))
-    long_name=models.CharField(max_length = 256)
-    instrument_description=models.CharField(max_length = 256)
-    instrument_pi=models.CharField(max_length = 256)
-    instrument_technical_contact=models.CharField(max_length = 256)
-    facility_instrument_location=models.CharField(max_length = 256)
-    funding_source=models.CharField(max_length = 256)
-    spatial_resolution=models.CharField(max_length = 256)
-    temporal_resolution=models.CharField(max_length = 256)
-    radiometric_frequency=models.CharField(max_length = 256)
-    calibration_information=models.CharField(max_length = 1024)
-    initial_deployment_date=models.DateField()
-    dates_of_operation=models.CharField(max_length = 512)
-    typical_number_of_data_products_per_level=models.CharField(max_length = 256)
-    instrument_manufacturer=models.CharField(max_length = 512)
-    resource_urls=models.CharField(max_length = 2048)
-    instrument_doi=models.DOI(max_length = 1024)
-    notes_public=models.CharField(max_length = 2048)
+    short_name = models.CharField(max_length=80, blank=False, unique=True)
+    long_name = models.CharField(max_length=256)
+    instrument_description = models.CharField(max_length=256)
+    instrument_pi = models.CharField(max_length=256)
+    instrument_technical_contact = models.CharField(max_length=256)
+    facility_instrument_location = models.CharField(max_length=256)
+    funding_source = models.CharField(max_length=256)
+    spatial_resolution = models.CharField(max_length=256)
+    temporal_resolution = models.CharField(max_length=256)
+    radiometric_frequency = models.CharField(max_length=256)
+    calibration_information = models.CharField(max_length=1024)
+    initial_deployment_date = models.DateField()
+    dates_of_operation = models.CharField(max_length=512)
+    typical_number_of_data_products_per_level = models.CharField(max_length=256)
+    instrument_manufacturer = models.CharField(max_length=512)
+    resource_urls = models.CharField(max_length=2048)
+    instrument_doi = models.CharField(max_length=1024)
+    notes_public = models.CharField(max_length=2048)
 
-
-    gcmd_instruments=models.ManyToManyField(GcmdInstruments, related_name = 'instruments')
-    instrument_type=models.ManyToManyField(InstrumentType, related_name = 'instruments')
-    measurement_keywords=models.ManyToManyField(MeasurementKeywords, related_name = 'instruments')
-    measurement_regions=models.ManyToManyField(MeasurementRegion, related_name = 'instruments')
-    repositories=models.ManyToManyField(Repository, related_name = 'instruments')
+    gcmd_instruments = models.ManyToManyField(GcmdInstruments, related_name='instruments')
+    instrument_type = models.ManyToManyField(InstrumentType, related_name='instruments')
+    measurement_keywords = models.ManyToManyField(MeasurementKeywords, related_name='instruments')
+    measurement_regions = models.ManyToManyField(MeasurementRegion, related_name='instruments')
+    repositories = models.ManyToManyField(Repository, related_name='instruments')
 
     @property
     def campaigns(self):
@@ -227,31 +230,31 @@ class Instrument(models.Model):
 
 class Deployment(models.Model):
 
-    campaign=models.ForeignKey(Campaign, on_delete = models.CASCADE, related_name = 'deployments')
+    campaign = models.ForeignKey(Campaign, on_delete=models.CASCADE, related_name='deployments')
 
-    deployment_id=models.CharField(max_length = 80)
-    start_date=models.DateField()
-    end_date=models.DateField()
-    number_of_flights=models.IntegerPositive()
-    deployment_longname_=models.CharField(max_length = 512)
-    notes_public=models.CharField(max_length = 2048)
+    deployment_id = models.CharField(max_length=80)
+    start_date = models.DateField()
+    end_date = models.DateField()
+    number_of_flights = models.PositiveIntegerField()
+    deployment_long_name = models.CharField(max_length=512)
+    notes_public = models.CharField(max_length=2048)
 
-    geographical_regions=models.ManyToManyField(GeographicalRegion, related_name = 'deployments')
+    geographical_regions = models.ManyToManyField(GeographicalRegion, related_name='deployments')
 
 
 class IopSe(models.Model):
 
-    deployment=models.ForeignKey(Deployment, on_delete = models.CASCADE, related_name = 'iops')
+    deployment = models.ForeignKey(Deployment, on_delete=models.CASCADE, related_name='iops')
 
-    is_iop=models.BooleanField()
-    short_name=models.CharField(max_length = 80)
-    start_date=models.DateField()
-    end_date=models.DateField()
-    iop_description=models.CharField(max_length = 1024)
-    regional_description=models.CharField(max_length = 512)
-    published_list=models.CharField(max_length = 1024)
-    reports=models.CharField(max_length = 1024)
-    reference_file=models.CharField(max_length = 1024)
+    is_iop = models.BooleanField()
+    short_name = models.CharField(max_length=80)
+    start_date = models.DateField()
+    end_date = models.DateField()
+    iop_description = models.CharField(max_length=1024)
+    regional_description = models.CharField(max_length=512)
+    published_list = models.CharField(max_length=1024)
+    reports = models.CharField(max_length=1024)
+    reference_file = models.CharField(max_length=1024)
 
     def __str__(self):
         return self.short_name
@@ -259,16 +262,16 @@ class IopSe(models.Model):
 
 class Flight(models.Model):
 
-    deployment=models.ForeignKey(Deployment, on_delete = models.CASCADE, related_name = 'flights')
-    platform=models.ForeignKey(Platform, on_delete = models.CASCADE, related_name = 'flights')
+    deployment = models.ForeignKey(Deployment, on_delete=models.CASCADE, related_name='flights')
+    platform = models.ForeignKey(Platform, on_delete=models.CASCADE, related_name='flights')
 
-    asp_longname=models.CharField(max_length = 512)
-    info_from_asp=models.CharField(max_length = 80)
-    home_base=models.CharField(max_length = 256)
-    campaign_deployment_base=models.CharField(max_length = 256)
-    owner=models.CharField(max_length = 256)
-    technical_contact=models.CharField(max_length = 256)
-    deployment_instrument_information_source=models.CharField(max_length = 1024)
-    notes_public=models.CharField(max_length = 2048)
+    asp_longname = models.CharField(max_length=512)
+    info_from_asp = models.CharField(max_length=80)
+    home_base = models.CharField(max_length=256)
+    campaign_deployment_base = models.CharField(max_length=256)
+    owner = models.CharField(max_length=256)
+    technical_contact = models.CharField(max_length=256)
+    deployment_instrument_information_source = models.CharField(max_length=1024)
+    notes_public = models.CharField(max_length=2048)
 
-    instruments=models.ManyToManyField(Instrument, related_name = 'flights')
+    instruments = models.ManyToManyField(Instrument, related_name='flights')
