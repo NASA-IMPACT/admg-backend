@@ -1,9 +1,10 @@
 from django.db import models
-
+from django.contrib.gis.db import models as geomodels
 
 ##################
 # Limited Fields #
 ##################
+
 
 class LimitedInfo(models.Model):
     short_name = models.CharField(max_length=256, blank=False, unique=True)
@@ -109,7 +110,7 @@ class Campaign(models.Model):
     description = models.CharField(max_length=2048)
     scientific_objective_focus_phenomena = models.CharField(max_length=512)
     region_description = models.CharField(max_length=512)
-    # spatial_bounds = models.Lat/Lon # TODO: geostuff
+    spatial_bounds = geomodels.PolygonField(blank=True, null=True)
     start_date = models.DateField()
     end_date = models.DateField()
     significant_events = models.CharField(max_length=512)
@@ -137,25 +138,30 @@ class Campaign(models.Model):
     platform_types = models.ManyToManyField(PlatformType, related_name='campaigns')
     partner_orgs = models.ManyToManyField(PartnerOrg, related_name='campaigns')
     gcmd_phenomenas = models.ManyToManyField(GcmdPhenomena, related_name='campaigns')
-    gcmd_project = models.ManyToManyField(GcmdProject, related_name='campaigns')  # TODO: double check
+    gcmd_project = models.ManyToManyField(GcmdProject, related_name='campaigns')
 
     def __str__(self):
         return self.short_name
 
     @property
     def number_deployments(self):
-        # TODO: add function that counts number of deplyments from the associated table
-        return None
+        return self.deployments.count()
 
     @property
     def instruments(self):
-        # TODO: add function
-        return []
+        instruments = []
+        [[[instruments.append(inst) for inst in flight.instruments.all()]
+          for flight in dep.flights.all()] for dep in self.deployments.all()]
+        instruments = list(set(instruments))
+        return instruments
 
     @property
     def platforms(self):
-        # TODO: add function
-        return []
+        platforms = []
+        [[platforms.append(flight.platform) for flight in dep.flights.all()]
+         for dep in self.deployments.all()]
+        platforms = list(set(platforms))
+        return platforms
 
 
 class Platform(models.Model):
@@ -176,13 +182,15 @@ class Platform(models.Model):
 
     @property
     def campaigns(self):
-        # TODO: add function
-        return []
+        campaigns = list(set([flight.deployment.campaign for flight in plat.flights.all()]))
+        return campaigns
 
     @property
     def instruments(self):
-        # TODO: add function
-        return []
+        instruments = []
+        [[instruments.append(inst) for inst in flight.instruments.all()] for flight in plat.flights.all()]
+        instruments = list(set(instruments))
+        return instruments
 
     def __str__(self):
         return self.short_name
@@ -216,13 +224,11 @@ class Instrument(models.Model):
 
     @property
     def campaigns(self):
-        # TODO: add function
-        return []
+        return list(set([flight.deployment.campaign for flight in self.flights.all()]))
 
     @property
     def platforms(self):
-        # TODO: add function
-        return []
+        return list(set([flight.deployment.platform for flight in self.flights.all()]))
 
     def __str__(self):
         return self.short_name
@@ -243,6 +249,7 @@ class Deployment(models.Model):
 
     def vali_date(self):
         # TODO: validate the dates
+        # deployment date must be inside of parent campaign date
         return None
 
     def __str__(self):
