@@ -60,7 +60,7 @@ class GeographicalRegion(LimitedInfo):
 
 
 class GCMD(models.Model):
-    # TODO: Put more work into this later
+    # TODO: GCMD can be handled differently
     short_name = models.CharField(max_length=256, blank=False, unique=True)
     long_name = models.CharField(max_length=256)
     uuid = models.UUIDField()
@@ -182,13 +182,13 @@ class Platform(models.Model):
 
     @property
     def campaigns(self):
-        campaigns = list(set([flight.deployment.campaign for flight in plat.flights.all()]))
+        campaigns = list(set([flight.deployment.campaign for flight in self.flights.all()]))
         return campaigns
 
     @property
     def instruments(self):
         instruments = []
-        [[instruments.append(inst) for inst in flight.instruments.all()] for flight in plat.flights.all()]
+        [[instruments.append(inst) for inst in flight.instruments.all()] for flight in self.flights.all()]
         instruments = list(set(instruments))
         return instruments
 
@@ -246,11 +246,6 @@ class Deployment(models.Model):
     notes_public = models.CharField(max_length=2048)
 
     geographical_regions = models.ManyToManyField(GeographicalRegion, related_name='deployments')
-
-    def vali_date(self):
-        # TODO: validate the dates
-        # deployment date must be inside of parent campaign date
-        return None
 
     def __str__(self):
         return self.long_name
