@@ -1,0 +1,21 @@
+import requests
+
+{% if 'get-token' in request_url %}
+response = requests.{{ method|lower }}(
+    "{{request_url}}"{% if method == "GET" or method == "DELETE" %},
+    params=parameters{% elif method == "POST" or method == "PUT" %},
+    data={"username": "your_username_here", "password: "your_password_here"},
+    headers=headers {% endif %}
+)
+{% else %}
+headers = {'Authorization': 'Token {your_token_here}'}
+response = requests.{{ method|lower }}(
+    "{{request_url}}"{% if method == "GET" or method == "DELETE" %},
+    params=parameters{% elif method == "POST" or method == "PUT" %},
+    data=payload,
+    headers=headers {% endif %}
+)
+{% endif %}
+
+
+This file is used if 'redoc' is used instead of swaggerui
