@@ -19,3 +19,6 @@ coreapi==2.3.3  # https://github.com/core-api/python-client
 
 # Swagger API
 drf-yasg==1.17.1
+
+# Django oauth toolkit
+django-oauth-toolkit==1.3.0
