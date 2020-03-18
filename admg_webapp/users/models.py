@@ -6,6 +6,9 @@ from django.utils.translation import ugettext_lazy as _
 AVAILABLE_ROLES = ((1, 'Admin'), (2, 'Staff'))
 
 
+# TODO: Once the models are reviwed, use the roles part of the users to
+# validate with Authorization part.
+# See dummy api for implementaion using oauth scopes
 class User(AbstractUser):
     """
     user model for admg users
