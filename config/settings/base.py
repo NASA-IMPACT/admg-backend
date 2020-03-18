@@ -86,6 +86,7 @@ THIRD_PARTY_APPS = [
     "rest_framework",
     "rest_framework.authtoken",
     "drf_yasg",
+    'oauth2_provider'
 ]
 
 LOCAL_APPS = [
@@ -292,7 +293,7 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticated',
     ],
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.TokenAuthentication'
+        'oauth2_provider.contrib.rest_framework.OAuth2Authentication',
     ],
 }
 

@@ -15,7 +15,8 @@ urlpatterns = [
     # User management
     path("users/", include("admg_webapp.users.urls", namespace="users")),
     path("accounts/", include("allauth.urls")),
-    path('api/', include('api_app.urls'))
+    path("api/", include("api_app.urls")),
+    path("o/", include("oauth2_provider.urls"), name="oauth2_provider")
     # Your stuff: custom urls includes go here
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
