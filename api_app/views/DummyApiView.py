@@ -1,5 +1,5 @@
 from rest_framework.generics import RetrieveUpdateDestroyAPIView, ListCreateAPIView
-
+from oauth2_provider.contrib.rest_framework import TokenHasReadWriteScope
 from drf_yasg import openapi
 
 from ..serializers import DummyModel, DummySerializer
@@ -59,6 +59,8 @@ responses = {
 '''
 
 class DummyAPIListCreate(ListCreateAPIView):
+    permission_classes = [TokenHasReadWriteScope]
+    # required_scopes = []
     queryset = DummyModel.objects.all()
     serializer_class = DummySerializer
 
