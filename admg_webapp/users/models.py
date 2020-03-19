@@ -3,7 +3,10 @@ from django.db.models import CharField, IntegerField
 from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
 
-AVAILABLE_ROLES = ((1, 'Admin'), (2, 'Staff'))
+ADMIN = 'Admin'
+STAFF = 'Staff'
+
+AVAILABLE_ROLES = ((1, ADMIN), (2, STAFF))
 
 
 # TODO: Once the models are reviwed, use the roles part of the users to

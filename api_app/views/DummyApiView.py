@@ -1,11 +1,12 @@
+from rest_framework import permissions
 from rest_framework.generics import RetrieveUpdateDestroyAPIView, ListCreateAPIView
-from oauth2_provider.contrib.rest_framework import TokenHasReadWriteScope
-from drf_yasg import openapi
+from oauth2_provider.contrib.rest_framework import TokenHasScope
 
 from ..serializers import DummyModel, DummySerializer
 
 '''
 Custom request parameters to yasg
+from drf_yasg import openapi
 request_category_post = openapi.Schema(
     type=openapi.TYPE_OBJECT,
     required=['test1', 'test2'],
@@ -58,9 +59,10 @@ responses = {
 }
 '''
 
+
 class DummyAPIListCreate(ListCreateAPIView):
-    permission_classes = [TokenHasReadWriteScope]
-    # required_scopes = []
+    permission_classes = [permissions.IsAuthenticated, TokenHasScope]
+    required_scopes = ["Staff"]
     queryset = DummyModel.objects.all()
     serializer_class = DummySerializer
 

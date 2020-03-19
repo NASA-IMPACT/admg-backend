@@ -23,11 +23,11 @@ in the notebook, import your models file
 
 ## How to get the token
 
- - go to /o/applications/register
+ - go to /authenticate/applications/register
  - register the app  
   - Use Client Type: confidential, Authorization Grant Type: Resource owner password-based
  - get the `client_id` and `client_secret`
- - `curl -X POST -d "grant_type=password&username=<user_name>&password=<password>" -u"<client_id>:<client_secret>" http://domain/o/token/`
+ - `curl -X POST -d "grant_type=password&username=<user_name>&password=<password>" -u"<client_id>:<client_secret>" http://domain/authenticate/token/`
  - You will get something like
     - ```javascript
       {
@@ -41,5 +41,5 @@ in the notebook, import your models file
  - Use this `access_token` to hit on APIs
     - `curl -H "Authorization: Bearer <your_access_token>" http://localhost:8000/your_end_point_here`
  - To refresh your token
-    - `curl -X POST -d "grant_type=refresh_token&refresh_token=<your_refresh_token>&client_id=<your_client_id>&client_secret=<your_client_secret>" http://localhost:8000/o/token`
+    - `curl -X POST -d "grant_type=refresh_token&refresh_token=<your_refresh_token>&client_id=<your_client_id>&client_secret=<your_client_secret>" http://localhost:8000/authenticate/token`
  

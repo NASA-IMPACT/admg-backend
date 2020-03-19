@@ -50,10 +50,10 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'admg_db',
-        'USER':'postgres',
-        'PASSWORD': 'Pentax67',
-        'HOST':'localhost',
-        'PORT':'5432'
+        'USER': 'admg_user',
+        'PASSWORD': 'changeme',
+        'HOST': 'localhost',
+        'PORT': '5432'
     }
 }
 
@@ -78,6 +78,7 @@ DJANGO_APPS = [
     # "django.contrib.humanize", # Handy template tags
     "django.contrib.admin",
 ]
+
 THIRD_PARTY_APPS = [
     "crispy_forms",
     "allauth",
@@ -95,6 +96,7 @@ LOCAL_APPS = [
     "api_app",
     # Your stuff: custom apps go here
 ]
+
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
@@ -303,13 +305,22 @@ SWAGGER_SETTINGS = {
     'SUPPORTED_SUBMIT_METHODS': ['get', 'post', 'put', 'delete', 'patch'],
     'DEFAULT_AUTO_SCHEMA_CLASS': 'api_app.utils.XcodeAutoSchema',
     'SECURITY_DEFINITIONS': {
-        'Basic': {
-            'type': 'basic'
-        },
-        'Token (use as Token <token>)': {
-            'type': 'apiKey',
-            'name': 'Authorization',
-            'in': 'header'
+        # TODO: does not work right now. Need to make it work
+        'ADMG API - Swagger': {
+            'type': 'oauth2',
+            'authorizationUrl': '/authenticate/authorize',
+            'tokenUrl': '/authenticate/token/',
+            'flow': 'accessCode',
+            'scopes': {
+                'read:groups': 'read groups',
+            },
         }
+    },
+}
+
+OAUTH2_PROVIDER = {
+    'SCOPES': {
+        'read': 'Read scope',
+        'write': 'Write scope',
     }
 }
