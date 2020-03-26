@@ -24,6 +24,7 @@ in the notebook, import your models file
 ## How to get the token
 
  - go to /authenticate/applications/register
+ - create a user and verify the email address by clicking on the link that shows up in the terminal where you've done `python manage.py runserver`
  - register the app  
   - Use Client Type: confidential, Authorization Grant Type: Resource owner password-based
  - get the `client_id` and `client_secret`

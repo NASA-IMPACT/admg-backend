@@ -24,277 +24,277 @@ schema_view = get_schema_view(
 urlpatterns = [
 
     path(
-        "PlatformType",
+        "platform_type",
         GenericCreateGetAllView("PlatformType").as_view(),
         name="PlatformType_create_getall"
     ),
 
     path(
-        "PlatformType/<str:uuid>",
+        "platform_type/<str:uuid>",
         GenericPutPatchDeleteView("PlatformType").as_view(),
         name="PlatformType_put_delete"
     ),
 
     path(
-        "AircraftType",
+        "aircraft_type",
         GenericCreateGetAllView("AircraftType").as_view(),
         name="AircraftType_create_getall"
     ),
 
     path(
-        "AircraftType/<str:uuid>",
+        "aircraft_type/<str:uuid>",
         GenericPutPatchDeleteView("AircraftType").as_view(),
         name="AircraftType_put_delete"
     ),
 
     path(
-        "InstrumentType",
+        "instrument_type",
         GenericCreateGetAllView("InstrumentType").as_view(),
         name="InstrumentType_create_getall"
     ),
 
     path(
-        "InstrumentType/<str:uuid>",
+        "instrument_type/<str:uuid>",
         GenericPutPatchDeleteView("InstrumentType").as_view(),
         name="InstrumentType_put_delete"
     ),
 
     path(
-        "HomeBase",
+        "home_base",
         GenericCreateGetAllView("HomeBase").as_view(),
         name="HomeBase_create_getall"
     ),
 
     path(
-        "HomeBase/<str:uuid>",
+        "home_base/<str:uuid>",
         GenericPutPatchDeleteView("HomeBase").as_view(),
         name="HomeBase_put_delete"
     ),
 
     path(
-        "FocusArea",
+        "focus_area",
         GenericCreateGetAllView("FocusArea").as_view(),
         name="FocusArea_create_getall"
     ),
 
     path(
-        "FocusArea/<str:uuid>",
+        "focus_area/<str:uuid>",
         GenericPutPatchDeleteView("FocusArea").as_view(),
         name="FocusArea_put_delete"
     ),
 
     path(
-        "Season",
+        "season",
         GenericCreateGetAllView("Season").as_view(),
         name="Season_create_getall"
     ),
 
     path(
-        "Season/<str:uuid>",
+        "season/<str:uuid>",
         GenericPutPatchDeleteView("Season").as_view(),
         name="Season_put_delete"
     ),
 
     path(
-        "Repository",
+        "repository",
         GenericCreateGetAllView("Repository").as_view(),
         name="Repository_create_getall"
     ),
 
     path(
-        "Repository/<str:uuid>",
+        "repository/<str:uuid>",
         GenericPutPatchDeleteView("Repository").as_view(),
         name="Repository_put_delete"
     ),
 
     path(
-        "MeasurementRegion",
+        "measurement_region",
         GenericCreateGetAllView("MeasurementRegion").as_view(),
         name="MeasurementRegion_create_getall"
     ),
 
     path(
-        "MeasurementRegion/<str:uuid>",
+        "measurement_region/<str:uuid>",
         GenericPutPatchDeleteView("MeasurementRegion").as_view(),
         name="MeasurementRegion_put_delete"
     ),
 
     path(
-        "MeasurementKeyword",
+        "measurement_keyword",
         GenericCreateGetAllView("MeasurementKeyword").as_view(),
         name="MeasurementKeyword_create_getall"
     ),
 
     path(
-        "MeasurementKeyword/<str:uuid>",
+        "measurement_keyword/<str:uuid>",
         GenericPutPatchDeleteView("MeasurementKeyword").as_view(),
         name="MeasurementKeyword_put_delete"
     ),
 
     path(
-        "GeographicalRegion",
+        "geographical_region",
         GenericCreateGetAllView("GeographicalRegion").as_view(),
         name="GeographicalRegion_create_getall"
     ),
 
     path(
-        "GeographicalRegion/<str:uuid>",
+        "geographical_region/<str:uuid>",
         GenericPutPatchDeleteView("GeographicalRegion").as_view(),
         name="GeographicalRegion_put_delete"
     ),
 
     path(
-        "GeophysicalConcepts",
+        "geophysical_concepts",
         GenericCreateGetAllView("GeophysicalConcepts").as_view(),
         name="GeophysicalConcepts_create_getall"
     ),
 
     path(
-        "GeophysicalConcepts/<str:uuid>",
+        "geophysical_concepts/<str:uuid>",
         GenericPutPatchDeleteView("GeophysicalConcepts").as_view(),
         name="GeophysicalConcepts_put_delete"
     ),
 
     path(
-        "GcmdPhenomena",
+        "gcmd_phenomena",
         GenericCreateGetAllView("GcmdPhenomena").as_view(),
         name="GcmdPhenomena_create_getall"
     ),
 
     path(
-        "GcmdPhenomena/<str:uuid>",
+        "gcmd_phenomena/<str:uuid>",
         GenericPutPatchDeleteView("GcmdPhenomena").as_view(),
         name="GcmdPhenomena_put_delete"
     ),
 
     path(
-        "GcmdProject",
+        "gcmd_project",
         GenericCreateGetAllView("GcmdProject").as_view(),
         name="GcmdProject_create_getall"
     ),
 
     path(
-        "GcmdProject/<str:uuid>",
+        "gcmd_project/<str:uuid>",
         GenericPutPatchDeleteView("GcmdProject").as_view(),
         name="GcmdProject_put_delete"
     ),
 
     path(
-        "GcmdPlatform",
+        "gcmd_platform",
         GenericCreateGetAllView("GcmdPlatform").as_view(),
         name="GcmdPlatform_create_getall"
     ),
 
     path(
-        "GcmdPlatform/<str:uuid>",
+        "gcmd_platform/<str:uuid>",
         GenericPutPatchDeleteView("GcmdPlatform").as_view(),
         name="GcmdPlatform_put_delete"
     ),
 
     path(
-        "GcmdInstrument",
+        "gcmd_instrument",
         GenericCreateGetAllView("GcmdInstrument").as_view(),
         name="GcmdInstrument_create_getall"
     ),
 
     path(
-        "GcmdInstrument/<str:uuid>",
+        "gcmd_instrument/<str:uuid>",
         GenericPutPatchDeleteView("GcmdInstrument").as_view(),
         name="GcmdInstrument_put_delete"
     ),
 
     path(
-        "PartnerOrg",
+        "partner_org",
         GenericCreateGetAllView("PartnerOrg").as_view(),
         name="PartnerOrg_create_getall"
     ),
 
     path(
-        "PartnerOrg/<str:uuid>",
+        "partner_org/<str:uuid>",
         GenericPutPatchDeleteView("PartnerOrg").as_view(),
         name="PartnerOrg_put_delete"
     ),
 
     path(
-        "EventType",
+        "event_type",
         GenericCreateGetAllView("EventType").as_view(),
         name="EventType_create_getall"
     ),
 
     path(
-        "EventType/<str:uuid>",
+        "event_type/<str:uuid>",
         GenericPutPatchDeleteView("EventType").as_view(),
         name="EventType_put_delete"
     ),
 
     path(
-        "Campaign",
+        "campaign",
         GenericCreateGetAllView("Campaign").as_view(),
         name="Campaign_create_getall"
     ),
 
     path(
-        "Campaign/<str:uuid>",
+        "campaign/<str:uuid>",
         GenericPutPatchDeleteView("Campaign").as_view(),
         name="Campaign_put_delete"
     ),
 
     path(
-        "Platform",
+        "platform",
         GenericCreateGetAllView("Platform").as_view(),
         name="Platform_create_getall"
     ),
 
     path(
-        "Platform/<str:uuid>",
+        "platform/<str:uuid>",
         GenericPutPatchDeleteView("Platform").as_view(),
         name="Platform_put_delete"
     ),
 
     path(
-        "Instrument",
+        "instrument",
         GenericCreateGetAllView("Instrument").as_view(),
         name="Instrument_create_getall"
     ),
 
     path(
-        "Instrument/<str:uuid>",
+        "instrument/<str:uuid>",
         GenericPutPatchDeleteView("Instrument").as_view(),
         name="Instrument_put_delete"
     ),
 
     path(
-        "Deployment",
+        "deployment",
         GenericCreateGetAllView("Deployment").as_view(),
         name="Deployment_create_getall"
     ),
 
     path(
-        "Deployment/<str:uuid>",
+        "deployment/<str:uuid>",
         GenericPutPatchDeleteView("Deployment").as_view(),
         name="Deployment_put_delete"
     ),
 
     path(
-        "IopSe",
+        "iop_se",
         GenericCreateGetAllView("IopSe").as_view(),
         name="IopSe_create_getall"
     ),
 
     path(
-        "IopSe/<str:uuid>",
+        "iop_se/<str:uuid>",
         GenericPutPatchDeleteView("IopSe").as_view(),
         name="IopSe_put_delete"
     ),
 
     path(
-        "Flight",
+        "flight",
         GenericCreateGetAllView("Flight").as_view(),
         name="Flight_create_getall"
     ),
 
     path(
-        "Flight/<str:uuid>",
+        "flight/<str:uuid>",
         GenericPutPatchDeleteView("Flight").as_view(),
         name="Flight_put_delete"
     ),
