@@ -1,8 +1,17 @@
+import json
+
 from drf_yasg import openapi
 from drf_yasg.inspectors import SwaggerAutoSchema
 
-from django.template.loader import render_to_string
+from django.utils.decorators import method_decorator
+from django.views.decorators.debug import sensitive_post_parameters
+from django.http import HttpResponse
 
+from oauth2_provider.views.base import TokenView
+from oauth2_provider.models import get_access_token_model
+from oauth2_provider.signals import app_authorized
+
+from admg_webapp.users.models import ADMIN, STAFF
 
 ALL_STATUS_CODE = ["200", "201", "202", "203", "204"]
 
@@ -13,6 +22,7 @@ class XcodeAutoSchema(SwaggerAutoSchema):
         super().__init__(view, path, method, components, request, overrides)
 
     # used if redoc is used instead of swaggerui
+    # from django.template.loader import render_to_string
     # def get_operation(self, operation_keys=None):
     #     operation = super().get_operation(operation_keys)
 
@@ -25,18 +35,18 @@ class XcodeAutoSchema(SwaggerAutoSchema):
     #     }
     #     print(template_context)
     #     operation.update({
-    #         'x-code-samples': [
+    #         "x-code-samples": [
     #             {
     #                 "lang": "curl",
     #                 "source": render_to_string(
-    #                     'curl_sample.html',
+    #                     "curl_sample.html",
     #                     template_context
     #                 )
     #             },
     #             {
     #                 "lang": "python",
     #                 "source": render_to_string(
-    #                     'python_sample.html',
+    #                     "python_sample.html",
     #                     template_context
     #                 )
     #             }
@@ -79,3 +89,38 @@ class XcodeAutoSchema(SwaggerAutoSchema):
                     r[status_code]["schema"] = self._response_schema(r[status_code]["schema"])
 
         return r
+
+
+class CustomTokenView(TokenView):
+    """
+    used by /authenticate/token/
+    appends scopes to the token based on uer roles
+    """
+
+    @method_decorator(sensitive_post_parameters("password", "username"))
+    def post(self, request, *args, **kwargs):
+        _, headers, body, status = self.create_token_response(request)
+        if status == 200:
+            access_token = json.loads(body).get("access_token")
+            if access_token is not None:
+                token = get_access_token_model().objects.get(
+                    token=access_token
+                )
+
+                # add role based scope in the token
+                role = token.user.get_role_display()
+                scope = ["read", "write", role]
+                if role == ADMIN:
+                    scope.append(STAFF)
+                token.scope = " ".join(scope)
+                token.save()
+
+                app_authorized.send(
+                    sender=self, request=request,
+                    token=token
+                )
+        response = HttpResponse(content=body, status=status)
+
+        for k, v in headers.items():
+            response[k] = v
+        return response
