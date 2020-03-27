@@ -20,7 +20,8 @@ from .models import (
     Platform,
     Instrument,
     Deployment,
-    IopSe,
+    IOP,
+    SignificantEvent,
     Flight
 )
 
@@ -43,5 +44,6 @@ admin.site.register(Campaign)
 admin.site.register(Platform)
 admin.site.register(Instrument)
 admin.site.register(Deployment)
-admin.site.register(IopSe)
+admin.site.register(IOP)
+admin.site.register(SignificantEvent)
 admin.site.register(Flight)
