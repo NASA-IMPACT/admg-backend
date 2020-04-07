@@ -274,7 +274,7 @@ class IOPSE(DataModel):
     description = models.CharField(max_length=1024)
     region_description = models.CharField(max_length=512)
     published_list = models.CharField(max_length=1024)
-    reports = models.CharField(max_length=1024)
+    flight_reports = models.CharField(max_length=1024)
     reference_file = models.CharField(max_length=1024)
 
     def __str__(self):
