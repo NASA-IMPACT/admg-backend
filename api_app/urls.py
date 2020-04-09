@@ -291,17 +291,17 @@ urlpatterns = [
     path(
         "pending_change/<str:uuid>",
         ChangeListUpdateView.as_view(),
-        name="pending_change_list"
+        name="pending_change_list_update"
     ),
     path(
         f"pending_change/<str:uuid>/{APPROVE}",
         ChangeApproveRejectView(APPROVE),
-        name="pending_change_list"
+        name="pending_change_approve"
     ),
     path(
         f"pending_change/<str:uuid>/{REJECT}",
         ChangeApproveRejectView(REJECT),
-        name="pending_change_list"
+        name="pending_change_reject"
     ),
 
 
