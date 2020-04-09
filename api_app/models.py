@@ -11,10 +11,19 @@ CREATE = 'Create'
 UPDATE = 'Update'
 DELETE = 'Delete'
 
-PENDING, PENDING_CODE = "Pending", 1
-APPROVED, APPROVED_CODE = "Approved", 2
-REJECTED, REJECTED_CODE = "Rejected", 3
-AVAILABLE_STATUSES = ((PENDING_CODE, PENDING), (APPROVED_CODE, APPROVED), (REJECTED_CODE, REJECTED))
+
+# The change is in progress, can not be approved, but the user can update the change request
+IN_PROGRESS, IN_PROGRESS_CODE = "IN_PROGRESS", 1
+
+# Can be approved or rejected. Rejection sends it back to the in_progress state
+PENDING, PENDING_CODE = "Pending", 2
+
+# Once approved the changes in the change table is refected to the model
+# The state of the change object can not be changed from this state.
+APPROVED, APPROVED_CODE = "Approved", 3
+AVAILABLE_STATUSES = (
+    (PENDING_CODE, PENDING), (APPROVED_CODE, APPROVED), (IN_PROGRESS_CODE, IN_PROGRESS)
+)
 
 
 def false_success(message):
@@ -76,7 +85,7 @@ class Change(models.Model):
     appr_reject_date = models.DateTimeField(null=True)
 
     model_name = models.CharField(max_length=20, blank=False, null=False)
-    status = models.IntegerField(choices=AVAILABLE_STATUSES, default=PENDING_CODE)
+    status = models.IntegerField(choices=AVAILABLE_STATUSES, default=IN_PROGRESS_CODE)
     update = JSONField()
     model_instance_uuid = models.UUIDField(default=uuid4, blank=False, null=True)
 
@@ -157,7 +166,8 @@ class Change(models.Model):
     @handle_approve_reject
     def reject(self, admin_user, notes):
         """
-        Rejects a change. The change is reflected in the model.
+        Rejects a change. The change is not reflected in the model.
+        Instead the change object is pushed to in_progress state
         The user checks are taken care by the decorator
         Return is taken care of by the decorator
 
@@ -176,5 +186,5 @@ class Change(models.Model):
             }
         """
 
-        self.status = REJECTED_CODE  # rejected
+        self.status = IN_PROGRESS_CODE  # rejected
         return {"uuid": self.model_instance_uuid}
