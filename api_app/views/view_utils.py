@@ -9,7 +9,7 @@ from ..models import Change, UPDATE
 
 
 def requires_admin_approval(model_name, action=UPDATE):
-    def outer_wrapper(fn):
+    def outer_wrapper(function):
         def inner_wrapper(self, request, *args, **kwargs):
             change_object = Change(
                 model_name=model_name,
@@ -26,7 +26,7 @@ def requires_admin_approval(model_name, action=UPDATE):
     return outer_wrapper
 
 
-def handle_exception(fn):
+def handle_exception(function):
     """
     Decorator function for handing error and returning data in the required
     format
@@ -37,7 +37,7 @@ def handle_exception(fn):
         success = True
         
         # try:
-        res = fn(self, request, *args, **kwargs)
+        res = function(self, request, *args, **kwargs)
         if 300 >= res.status_code >= 200:
             data = res.data
         # except Exception as e:
