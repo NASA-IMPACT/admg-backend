@@ -87,6 +87,14 @@ class XcodeAutoSchema(SwaggerAutoSchema):
             if r.get(status_code):
                 if r[status_code].get("schema"):
                     r[status_code]["schema"] = self._response_schema(r[status_code]["schema"])
+                # this bit maps the description to the required format as well
+                elif r[status_code].get("description"):
+                    r[status_code]["schema"] = self._response_schema(
+                        openapi.Schema(
+                            type="string",
+                            description=r[status_code].get("description")
+                        ),
+                    )
 
         return r
 
