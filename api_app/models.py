@@ -11,10 +11,10 @@ CREATE = 'Create'
 UPDATE = 'Update'
 DELETE = 'Delete'
 
-PENDING = "Pending"
-APPROVED = "Approved"
-REJECTED = "Rejected"
-AVAILABLE_STATUSES = ((1, PENDING), (2, APPROVED), (3, REJECTED))
+PENDING, PENDING_CODE = "Pending", 1
+APPROVED, APPROVED_CODE = "Approved", 2
+REJECTED, REJECTED_CODE = "Rejected", 3
+AVAILABLE_STATUSES = ((PENDING_CODE, PENDING), (APPROVED_CODE, APPROVED), (REJECTED_CODE, REJECTED))
 
 
 def false_success(message):
@@ -73,7 +73,7 @@ class Change(models.Model):
     appr_reject_date = models.DateTimeField(null=True)
 
     model_name = models.CharField(max_length=20, blank=False, null=False)
-    status = models.IntegerField(choices=AVAILABLE_STATUSES, default=1)
+    status = models.IntegerField(choices=AVAILABLE_STATUSES, default=PENDING_CODE)
     update = JSONField()
     model_instance_uuid = models.UUIDField(default=uuid4, blank=False, null=True)
 
@@ -148,7 +148,7 @@ class Change(models.Model):
             model_instance.update(**self.update)
 
         # if everything goes well
-        self.status = 2  # approved
+        self.status = APPROVED_CODE  # approved
         return updated
 
     @handle_approve_reject
@@ -173,5 +173,5 @@ class Change(models.Model):
             }
         """
 
-        self.status = 3  # rejected
+        self.status = REJECTED_CODE  # rejected
         return {"uuid": self.model_instance_uuid}
