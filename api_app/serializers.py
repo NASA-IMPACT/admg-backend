@@ -13,7 +13,7 @@ class ChangeSerializer(serializers.ModelSerializer):
             "status",
             "update",
             "model_instance_uuid",
-            "first_change",
+            "action",
             "user",
             "appr_reject_by",
             "notes",
