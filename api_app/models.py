@@ -1,4 +1,4 @@
-import uuid
+from uuid import uuid4
 
 from django.apps import apps
 from django.contrib.postgres.fields import JSONField
@@ -7,9 +7,13 @@ from django.utils.timezone import now
 
 from admg_webapp.users.models import User, ADMIN
 
-PENDING = 'Pending'
-APPROVED = 'Approved'
-REJECTED = 'Rejected'
+CREATE = 'Create'
+UPDATE = 'Update'
+DELETE = 'Delete'
+
+PENDING = "Pending"
+APPROVED = "Approved"
+REJECTED = "Rejected"
 AVAILABLE_STATUSES = ((1, PENDING), (2, APPROVED), (3, REJECTED))
 
 
@@ -21,13 +25,12 @@ def false_success(message):
 
 
 def handle_approve_reject(function):
-    def wrapper(self, admin_user, notes, first_change):
+    def wrapper(self, admin_user, notes):
         """
         Decorator for handle or reject changes in the change table that
-        1.) handles model_instance check
-        2.) handles user role check
-        3.) adds timestamps, approved/rejected_by user, notes to the change model
-        4.) Saves the change model
+        1.) handles user role check
+        2.) adds timestamps, approved/rejected_by user, notes to the change model
+        3.) Saves the change model
 
         Args:
             function (function) : decorated function
@@ -41,57 +44,66 @@ def handle_approve_reject(function):
             }
         """
 
-        # if this is not the first change and there is no model_instance
-        if not first_change and not self.model_instance:
-            return false_success("The model name was not linked to any existing model")
-
         # approving user
         if admin_user.get_role_display() != ADMIN:
             return false_success("Only admin can approve a change")
 
         # raise error from used functions
-        function(self, admin_user)
+        updated = function(self, admin_user, notes)
 
         self.appr_reject_by = admin_user
         self.notes = notes
         self.appr_reject_date = now()
-        self.save()
+        self.save(post_save=True)
 
-        return {"success": True}
+        return {
+            "success": True,
+            "updated_model": self.model_name,
+            "action": self.action,
+            "uuid_changed": updated["uuid"],
+        }
 
     return wrapper
 
 
 class Change(models.Model):
-    uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    uuid = models.UUIDField(primary_key=True, default=uuid4, editable=False)
 
     added_date = models.DateTimeField(auto_now_add=True)
-    appr_reject_date = models.DateTimeField()
+    appr_reject_date = models.DateTimeField(null=True)
 
     model_name = models.CharField(max_length=20, blank=False, null=False)
-    status = models.IntegerField(choices=AVAILABLE_STATUSES, default=2)
+    status = models.IntegerField(choices=AVAILABLE_STATUSES, default=1)
     update = JSONField()
-    model_instance_uuid = models.UUIDField(blank=False, null=False)
-    model_instance = None
+    model_instance_uuid = models.UUIDField(default=uuid4, blank=False, null=True)
 
-    first_change = models.BooleanField(default=False)
-    # makes sense to set it null when the user is deleted, but doesn't make sense if it is null
+    action = models.CharField(
+        max_length=10,
+        choices=((CREATE, CREATE), (UPDATE, UPDATE), (DELETE, DELETE)),
+        default=UPDATE
+    )
     user = models.ForeignKey(
-        User, on_delete=models.PROTECT, related_name='changed_by', null=False
+        User, on_delete=models.SET_NULL, related_name="changed_by", null=True
     )
     appr_reject_by = models.ForeignKey(
-        User, on_delete=models.DO_NOTHING, related_name='approved_by', null=True
+        User, on_delete=models.DO_NOTHING, related_name="approved_by", null=True
     )
     notes = models.CharField(max_length=500, blank=True)
 
-    def save(self, *args, **kwargs):
-        if not self.model_instance:
-            # no try catch because want it to fail if something goes wrong
-            Model = apps.get_model('data_models', self.model_name)
-            if self.first_change:
-                self.model_instance = Model.create(**self.update)
-            else:
-                self.model_instance = Model.objects.get(uuid=model_instance_uuid)
+    def _check_model_and_uuid(self):
+        """
+        The method will raise loud errors if the model doesn't exist
+        or the uuid deosn't exist in case of edit/delete change
+        """
+        Model = apps.get_model("data_models", self.model_name)
+        if self.action != CREATE:
+            Model.objects.get(uuid=self.model_instance_uuid)
+
+    def save(self, *args, post_save=False, **kwargs):
+        # do not check it has been approved or rejected
+        # check only the first time
+        if not post_save:
+            self._check_model_and_uuid()
         return super().save(*args, **kwargs)
 
     @handle_approve_reject
@@ -116,11 +128,28 @@ class Change(models.Model):
             }
         """
 
-        # first try to change in the model
-        self.model_instance.update(**self.update)
+        Model = apps.get_model("data_models", self.model_name)
+        if self.action == CREATE:
+            created = Model.objects.create(**self.update)
+            self.status = 2  # approved
+            return {"uuid": created.uuid}
+
+        if not self.model_instance_uuid:
+            return false_success("UUID for the model was not found")
+
+        # filter because delete and update both work on filter, update doesn't work on get
+        model_instance = Model.objects.filter(uuid=self.model_instance_uuid)
+        updated = {"uuid": self.model_instance_uuid}
+
+        if self.action == DELETE:
+            model_instance.delete()
+        else:
+            # first try to change in the model
+            model_instance.update(**self.update)
 
         # if everything goes well
         self.status = 2  # approved
+        return updated
 
     @handle_approve_reject
     def reject(self, admin_user, notes):
@@ -145,3 +174,4 @@ class Change(models.Model):
         """
 
         self.status = 3  # rejected
+        return {"uuid": self.model_instance_uuid}
