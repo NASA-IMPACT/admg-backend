@@ -98,9 +98,9 @@ class Change(models.Model):
         The method will raise loud errors if the model doesn't exist
         or the uuid deosn't exist in case of edit/delete change
         """
-        Model = apps.get_model("data_models", self.model_name)
+        model = apps.get_model("data_models", self.model_name)
         if self.action != CREATE:
-            Model.objects.get(uuid=self.model_instance_uuid)
+            model.objects.get(uuid=self.model_instance_uuid)
 
     def save(self, *args, post_save=False, **kwargs):
         # do not check it has been approved or rejected
@@ -131,9 +131,9 @@ class Change(models.Model):
             }
         """
 
-        Model = apps.get_model("data_models", self.model_name)
+        model = apps.get_model("data_models", self.model_name)
         if self.action == CREATE:
-            created = Model.objects.create(**self.update)
+            created = model.objects.create(**self.update)
             self.status = 2  # approved
             return {"uuid": created.uuid}
 
@@ -141,7 +141,7 @@ class Change(models.Model):
             return false_success("UUID for the model was not found")
 
         # filter because delete and update both work on filter, update doesn't work on get
-        model_instance = Model.objects.filter(uuid=self.model_instance_uuid)
+        model_instance = model.objects.filter(uuid=self.model_instance_uuid)
         updated = {"uuid": self.model_instance_uuid}
 
         if self.action == DELETE:
