@@ -13,7 +13,7 @@ from oauth2_provider.contrib.rest_framework import TokenHasScope
 
 
 from admg_webapp.users.models import ADMIN, STAFF
-from ..models import Change, APPROVED, REJECTED
+from ..models import Change, PENDING
 from ..serializers import ChangeSerializer
 from .view_utils import handle_exception
 
@@ -50,8 +50,9 @@ class ChangeListUpdateView(RetrieveUpdateAPIView):
         instance = Change.objects.get(uuid=kwargs.get("uuid"))
         if instance.user.pk != request.user.pk:
             raise Exception("Only owner of the object can change it.")
-        if instance.get_status_text() == APPROVED:
-            raise Exception("This has already been approved.")
+        if instance.get_status_text() != PENDING:
+            raise Exception("Change is not in pending state.")
+
         return super().put(request, *args, **kwargs)
 
     @handle_exception
@@ -59,8 +60,9 @@ class ChangeListUpdateView(RetrieveUpdateAPIView):
         instance = Change.objects.get(uuid=kwargs.get("uuid"))
         if instance.user.pk != request.user.pk:
             raise Exception("Only owner of the object can change it.")
-        if instance.get_status_text() == APPROVED:
-            raise Exception("This has already been approved.")
+        if instance.get_status_text() != PENDING:
+            raise Exception("Change is not in pending state.")
+
         return super().patch(request, *args, **kwargs)
 
 
@@ -109,19 +111,16 @@ def ChangeApproveRejectView(approve_or_reject):
             uuid = kwargs.get("uuid")
             instance = Change.objects.get(uuid=uuid)
 
-            if approve_or_reject == APPROVE:
-                if instance.get_status_text() == APPROVED:
-                    raise Exception("This has already been approved.")
+            if instance.get_status_text() != PENDING:
+                raise Exception("Change is not in pending state.")
 
+            if approve_or_reject == APPROVE:
                 res = instance.approve(request.user, request.data.get("notes", "approved"))
                 return Response(data={
                     "action": approve_or_reject,
                     "action_info": res
                 })
             elif approve_or_reject == REJECT:
-                if instance.get_status_text() == REJECTED:
-                    raise Exception("This has already been rejected.")
-
                 res = instance.reject(request.user, request.data.get("notes", "rejected"))
                 return Response(data={
                     "action": approve_or_reject,

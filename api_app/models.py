@@ -48,6 +48,9 @@ def handle_approve_reject(function):
         if admin_user.get_role_display() != ADMIN:
             return false_success("Only admin can approve a change")
 
+        if self.status != PENDING_CODE:
+            return false_success("The change is not in pending state.")
+
         # raise error from used functions
         updated = function(self, admin_user, notes)
 
