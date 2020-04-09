@@ -41,28 +41,25 @@ class ChangeListUpdateView(RetrieveUpdateAPIView):
     queryset = Change.objects.all()
     serializer_class = ChangeSerializer
 
+    def _validate_update(self, request, uuid):
+        instance = Change.objects.get(uuid=uuid)
+        if instance.user.pk != request.user.pk:
+            raise Exception("Only owner of the object can change it.")
+        if instance.get_status_text() != PENDING:
+            raise Exception("Change is not in pending state.")
+
     @handle_exception
     def get(self, request, *args, **kwargs):
         return super().get(request, *args, **kwargs)
 
     @handle_exception
     def put(self, request, *args, **kwargs):
-        instance = Change.objects.get(uuid=kwargs.get("uuid"))
-        if instance.user.pk != request.user.pk:
-            raise Exception("Only owner of the object can change it.")
-        if instance.get_status_text() != PENDING:
-            raise Exception("Change is not in pending state.")
-
+        self._validate_update(request, kwargs.get("uuid"))
         return super().put(request, *args, **kwargs)
 
     @handle_exception
     def patch(self, request, *args, **kwargs):
-        instance = Change.objects.get(uuid=kwargs.get("uuid"))
-        if instance.user.pk != request.user.pk:
-            raise Exception("Only owner of the object can change it.")
-        if instance.get_status_text() != PENDING:
-            raise Exception("Change is not in pending state.")
-
+        self._validate_update(request, kwargs.get("uuid"))
         return super().patch(request, *args, **kwargs)
 
 
