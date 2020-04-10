@@ -86,7 +86,7 @@ class XcodeAutoSchema(SwaggerAutoSchema):
         for status_code in ALL_STATUS_CODE:
             if res.get(status_code):
                 if res[status_code].get("schema"):
-                    res[status_code]["schema"] = self._response_schema(r[status_code]["schema"])
+                    res[status_code]["schema"] = self._response_schema(res[status_code]["schema"])
                 # this bit maps the description to the required format as well
                 elif res[status_code].get("description"):
                     res[status_code]["schema"] = self._response_schema(
