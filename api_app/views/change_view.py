@@ -30,6 +30,9 @@ class ChangeListView(ListAPIView):
 
     @handle_exception
     def get(self, request, *args, **kwargs):
+        self.queryset = Change.objects.filter(
+            **request.query_params.dict()
+        )
         return super().get(request, *args, **kwargs)
 
 
