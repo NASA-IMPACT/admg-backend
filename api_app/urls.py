@@ -9,6 +9,7 @@ from .views.change_view import (
     ChangeListView,
     ChangeListUpdateView,
     ChangeApproveRejectView,
+    ChangePushView,
     APPROVE,
     REJECT
 )
@@ -284,26 +285,30 @@ urlpatterns = [
     ),
 
     path(
-        "pending_change",
+        "change_request",
         ChangeListView.as_view(),
-        name="pending_change_list"
+        name="change_request_list"
     ),
     path(
-        "pending_change/<str:uuid>",
+        "change_request/<str:uuid>",
         ChangeListUpdateView.as_view(),
-        name="pending_change_list_update"
+        name="change_request_list_update"
     ),
     path(
-        f"pending_change/<str:uuid>/{APPROVE}",
+        f"change_request/<str:uuid>/{APPROVE}",
         ChangeApproveRejectView(APPROVE),
-        name="pending_change_approve"
+        name="change_request_approve"
     ),
     path(
-        f"pending_change/<str:uuid>/{REJECT}",
+        f"change_request/<str:uuid>/{REJECT}",
         ChangeApproveRejectView(REJECT),
-        name="pending_change_reject"
+        name="change_request_reject"
     ),
-
+    path(
+        f"change_request/<str:uuid>/push",
+        ChangePushView.as_view(),
+        name="change_request_push"
+    ),
 
     path(
         "docs/",

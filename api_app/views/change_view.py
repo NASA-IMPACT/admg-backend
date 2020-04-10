@@ -21,6 +21,16 @@ APPROVE = 'approve'
 REJECT = 'reject'
 
 
+def _validate_update(request, uuid):
+    instance = Change.objects.get(uuid=uuid)
+    if request.user.get_role_display() != ADMIN and instance.user.pk != request.user.pk:
+        raise Exception("Only admin or the owner of the object can update the change request.")
+    # the change object can only be changed in pending or in_progress state
+    if instance.status == APPROVED_CODE:
+        raise Exception("Change has already been approved. Make a new change request")
+    return instance
+
+
 class ChangeListView(ListAPIView):
     permission_classes = [permissions.IsAuthenticated, TokenHasScope]
     required_scopes = [ADMIN]
@@ -44,26 +54,18 @@ class ChangeListUpdateView(RetrieveUpdateAPIView):
     queryset = Change.objects.all()
     serializer_class = ChangeSerializer
 
-    def _validate_update(self, request, uuid):
-        instance = Change.objects.get(uuid=uuid)
-        if request.user.get_role_display() != ADMIN and instance.user.pk != request.user.pk:
-            raise Exception("Only admin or the owner of the object can update the change request.")
-        # the change object can only be changed in pending or in_progress state
-        if instance.status == APPROVED_CODE:
-            raise Exception("Change has already been approved. Make a new change request")
-
     @handle_exception
     def get(self, request, *args, **kwargs):
         return super().get(request, *args, **kwargs)
 
     @handle_exception
     def put(self, request, *args, **kwargs):
-        self._validate_update(request, kwargs.get("uuid"))
+        _validate_update(request, kwargs.get("uuid"))
         return super().put(request, *args, **kwargs)
 
     @handle_exception
     def patch(self, request, *args, **kwargs):
-        self._validate_update(request, kwargs.get("uuid"))
+        _validate_update(request, kwargs.get("uuid"))
         return super().patch(request, *args, **kwargs)
 
 
@@ -126,10 +128,23 @@ def ChangeApproveRejectView(approve_or_reject):
                 notes = request.data.get("notes")
                 if not notes:
                     raise Exception("Notes required for rejection.")
-                res = instance.reject(request.user, )
+                res = instance.reject(request.user, notes)
                 return Response(data={
                     "action": approve_or_reject,
                     "action_info": res,
                 })
 
     return View.as_view()
+
+
+class ChangePushView(APIView):
+    permission_classes = [permissions.IsAuthenticated, TokenHasScope]
+    required_scopes = [STAFF]
+
+    @handle_exception
+    def post(self, request, *args, **kwargs):
+        uuid = kwargs.get("uuid")
+        instance = _validate_update(request, uuid)
+        instance.status = PENDING_CODE
+        instance.save()
+        return Response(f"Status for uuid: {uuid} changed to pending.")
