@@ -87,6 +87,7 @@ class Change(models.Model):
     model_name = models.CharField(max_length=20, blank=False, null=False)
     status = models.IntegerField(choices=AVAILABLE_STATUSES, default=IN_PROGRESS_CODE)
     update = JSONField()
+    previous = JSONField(default=dict)
     model_instance_uuid = models.UUIDField(default=uuid4, blank=False, null=True)
 
     action = models.CharField(
@@ -109,11 +110,13 @@ class Change(models.Model):
         """
         model = apps.get_model("data_models", self.model_name)
         if self.action != CREATE:
-            model.objects.get(uuid=self.model_instance_uuid)
+            instance = model.objects.get(uuid=self.model_instance_uuid)
+            if self.action == UPDATE:
+                self.previous = {key: getattr(instance, key, None) for key in self.update}
 
     def save(self, *args, post_save=False, **kwargs):
-        # do not check it has been approved or rejected
-        # check only the first time
+        # do not check for validity of model_name and uuid if it has been approved or rejected.
+        # Check is done for the first time only
         if not post_save:
             self._check_model_and_uuid()
         return super().save(*args, **kwargs)
@@ -156,7 +159,6 @@ class Change(models.Model):
         if self.action == DELETE:
             model_instance.delete()
         else:
-            # first try to change in the model
             model_instance.update(**self.update)
 
         # if everything goes well
