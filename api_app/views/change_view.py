@@ -46,7 +46,7 @@ class ChangeListUpdateView(RetrieveUpdateAPIView):
 
     def _validate_update(self, request, uuid):
         instance = Change.objects.get(uuid=uuid)
-        if request.user.get_role_display() != ADMIN or instance.user.pk != request.user.pk:
+        if request.user.get_role_display() != ADMIN and instance.user.pk != request.user.pk:
             raise Exception("Only admin or the owner of the object can update the change request.")
         # the change object can only be changed in pending or in_progress state
         if instance.status == APPROVED_CODE:
