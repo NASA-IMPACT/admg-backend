@@ -1,6 +1,6 @@
 from django.http import JsonResponse
 from rest_framework.response import Response
-from ..models import Change, UPDATE
+from ..models import Change, UPDATE, CREATE
 
 """
     Always use requires_admin_approval after handle_exception as it will catch the
@@ -10,7 +10,20 @@ from ..models import Change, UPDATE
 
 def requires_admin_approval(model_name, action=UPDATE):
     def outer_wrapper(function):
+        # unsed function variable because this adds request to the change model
         def inner_wrapper(self, request, *args, **kwargs):
+            # validate data before creating the change object.
+            # the drf implementation does these checks and creates the object from the same function
+            # hence it could not be reused properly
+            if action == CREATE:
+                serializer = self.get_serializer(data=request.data)
+                serializer.is_valid(raise_exception=True)
+            elif action == UPDATE:
+                partial = kwargs.pop('partial', False)
+                instance = self.get_object()
+                serializer = self.get_serializer(instance, data=request.data, partial=partial)
+                serializer.is_valid(raise_exception=True)
+
             change_object = Change(
                 model_name=model_name,
                 update=request.data,
@@ -35,15 +48,15 @@ def handle_exception(function):
         data = []
         message = ""
         success = True
-        
-        # try:
-        res = function(self, request, *args, **kwargs)
-        if 300 >= res.status_code >= 200:
-            data = res.data
-        # except Exception as e:
-        #     success = False
-        #     print()
-        #     message = str(e)
+
+        try:
+            res = function(self, request, *args, **kwargs)
+            if 300 >= res.status_code >= 200:
+                data = res.data
+        # TODO: change this to some custom exception
+        except Exception as e:
+            success = False
+            message = str(e)
 
         return JsonResponse({
             "success": success,
