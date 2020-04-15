@@ -178,25 +178,28 @@ class Campaign(DataModel):
 
     @property
     def instruments(self):
-        instruments = []
-        [[[instruments.append(inst) for inst in flight.instruments.all()]
-          for flight in dep.flights.all()] for dep in self.deployments.all()]
+        instruments =  [
+            inst 
+                for dep in self.deployments.all()
+                    for flight in dep.flights.all()
+                        for inst in flight.instruments.all()  
+        ]
         instruments = list(set(instruments))
         return instruments
 
     @property
     def platforms(self):
-        platforms = []
-        [[platforms.append(flight.platform) for flight in dep.flights.all()]
-         for dep in self.deployments.all()]
+        platforms =  [
+            flight.platform 
+                for dep in self.deployments.all()
+                    for flight in dep.flights.all()
+        ]
         platforms = list(set(platforms))
         return platforms
 
 
 class Platform(DataModel):
 
-    # home_base = models.ForeignKey(HomeBase, on_delete=models.SET_NULL,
-    #                               related_name='platforms', null=True)
     platform_type = models.ForeignKey(
         AircraftType, on_delete=models.SET_NULL, related_name='platforms', null=True)
 
@@ -209,12 +212,16 @@ class Platform(DataModel):
 
     @property
     def campaigns(self):
-        campaigns = list(set([flight.deployment.campaign for flight in self.flights.all()]))
+        campaigns = list(set(flight.deployment.campaign for flight in self.flights.all()))
         return campaigns
 
     @property
     def instruments(self):
-        instruments = []
+        instruments = [
+            inst
+                for flight in self.flights.all()
+                    for inst in flight.instruments.all()
+        ]
         [[instruments.append(inst) for inst in flight.instruments.all()] for flight in self.flights.all()]
         instruments = list(set(instruments))
         return instruments
@@ -249,11 +256,11 @@ class Instrument(DataModel):
 
     @property
     def campaigns(self):
-        return list(set([flight.deployment.campaign for flight in self.flights.all()]))
+        return list(set(flight.deployment.campaign for flight in self.flights.all()))
 
     @property
     def platforms(self):
-        return list(set([flight.deployment.platform for flight in self.flights.all()]))
+        return list(set(flight.deployment.platform for flight in self.flights.all()))
 
     def __str__(self):
         return self.short_name
