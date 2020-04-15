@@ -274,7 +274,11 @@ class Deployment(DataModel):
     end_date = models.DateField()
     number_flights = models.PositiveIntegerField(null=True, blank=True)
 
-    geographical_regions = models.ManyToManyField(GeographicalRegion, related_name='deployments', default='', blank=True)
+    geographical_regions = models.ManyToManyField(
+        GeographicalRegion, 
+        related_name='deployments', 
+        default='', blank=True
+        )
 
     def __str__(self):
         return self.long_name
