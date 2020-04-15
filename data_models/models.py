@@ -287,7 +287,6 @@ class Deployment(DataModel):
 class IopSe(DataModel):
 
     deployment = models.ForeignKey(Deployment, on_delete=models.CASCADE, related_name='iops')
-    event_type = models.ForeignKey(EventType, on_delete=models.CASCADE, related_name='iops') 
     
     short_name = models.CharField(max_length=128)
     start_date = models.DateField()
@@ -305,11 +304,11 @@ class IopSe(DataModel):
         abstract = True 
 
 
-class IOP(IOPSE):
+class IOP(IopSe):
     deployment = models.ForeignKey(Deployment, on_delete=models.CASCADE, related_name='iops')
     
 
-class SignificantEvent(IOPSE):
+class SignificantEvent(IopSe):
     deployment = models.ForeignKey(Deployment, on_delete=models.CASCADE, related_name='significant_events')
     iop = models.ForeignKey(IOP, on_delete=models.CASCADE, related_name='significant_events', null=True) 
     
