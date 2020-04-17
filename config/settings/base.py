@@ -50,10 +50,10 @@ DATABASES = {
     'default': {
         # 'ENGINE': 'django.db.backends.postgresql',
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'NAME': 'admg_db_2',
+        'NAME': 'postgres',
         'USER': 'postgres',
-        'PASSWORD': 'Pentax67',
-        'HOST': 'localhost',
+        'PASSWORD': 'postgres',
+        'HOST': 'db',
         'PORT': '5432'
     }
 }
