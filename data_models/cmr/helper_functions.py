@@ -151,3 +151,31 @@ def date_filter(metadata, dep_start, dep_end):
             filtered_metadata.append(reference)
         
     return filtered_metadata
+
+
+def project_filter(metadata, short_name):
+    # might not be necessary
+    filtered_metadata = []
+    for reference in metadata:
+        projects = reference['metadata'].get('Projects',[])
+        print(projects)
+        print()
+        for project in projects:
+            project_short_name = project.get('ShortName','')
+            if short_name.lower() == project_short_name.lower():
+                filtered_metadata.append(reference)
+                break
+
+    return filtered_metadata   
+
+def general_extractor(metadata, field):
+    data = []
+    for reference in campaign_metadata:
+        value = reference['metadata'].get(field,'')
+        if value:
+            data.append(value)
+    return data    
+
+def combine_spatial_extents(spatial_extents):
+    # TODO: this should combine multiple spatial extents into a total coverage 
+    pass
