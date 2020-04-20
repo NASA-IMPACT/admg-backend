@@ -7,7 +7,7 @@ from datetime import datetime
 from collections import namedtuple
 
 def custom_print(obj=None):
-    """Print wrapper that can be used for optional print functionality. Note
+    """Debugging print wrapper that can be used for optional print functionality. Note
     that this functions takes in the global variable PRINT_ON from the config
     file.
 
