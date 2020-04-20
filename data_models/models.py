@@ -19,7 +19,7 @@ class BaseModel(models.Model):
 class LimitedInfo(BaseModel):
     short_name = models.CharField(max_length=256, blank=False, unique=True)
     long_name = models.CharField(max_length=512)
-    notes_public = models.CharField(max_length=256)
+    notes_public = models.CharField(max_length=2048)
 
     def __str__(self):
         return self.short_name
@@ -116,8 +116,8 @@ class GcmdPhenomena(BaseModel):
 class DataModel(BaseModel):
     short_name = models.CharField(max_length=256, blank=False, unique=True)
     long_name = models.CharField(max_length=512)
-    notes_internal = models.CharField(max_length=256, default = '', blank=True)
-    notes_public = models.CharField(max_length=256, default = '', blank=True)
+    notes_internal = models.CharField(max_length=2048, default = '', blank=True)
+    notes_public = models.CharField(max_length=2048, default = '', blank=True)
 
     def __str__(self):
         return self.short_name
@@ -153,6 +153,7 @@ class Campaign(DataModel):
     other_resources = models.CharField(max_length=2048, default='', blank=True) # other urls
 
     is_ongoing = models.BooleanField()
+    nasa_led = models.BooleanField()
 
     focus_areas = models.ManyToManyField(FocusArea, related_name='campaigns')
     seasons = models.ManyToManyField(Season, related_name='campaigns')
@@ -265,7 +266,7 @@ class Instrument(DataModel):
     def __str__(self):
         return self.short_name
 
-
+The 
 class Deployment(DataModel):
 
     campaign = models.ForeignKey(Campaign, on_delete=models.CASCADE, related_name='deployments')
