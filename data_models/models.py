@@ -71,40 +71,69 @@ class GeophysicalConcepts(LimitedInfo):
     pass
 
 
-class GcmdProject(LimitedInfo):
+class PartnerOrg(BaseModel):
+    website = models.CharField(max_length=256)
+
+
+class GcmdProject(BaseModel):
+    short_name = models.CharField(max_length=256, blank=False, unique=True)
+    long_name = models.CharField(max_length=512, blank=True, default = '')
     bucket = models.CharField(max_length=256)
     gcmd_uuid = models.UUIDField()
 
+    def __str__(self):
+        return self.short_name
 
-class GcmdInstrument(LimitedInfo):
-    instrument_category = models.CharField(max_length=256)
-    instrument_class = models.CharField(max_length=256)
-    instrument_type = models.CharField(max_length=256)
-    instrument_subtype = models.CharField(max_length=256)
+
+class GcmdInstrument(BaseModel):
+    short_name = models.CharField(max_length=256, blank=False, unique=True)
+    long_name = models.CharField(max_length=512, blank=True, default = '')
+    instrument_category = models.CharField(max_length=256, blank=True, default = '')
+    instrument_class = models.CharField(max_length=256, blank=True, default = '')
+    instrument_type = models.CharField(max_length=256, blank=True, default = '')
+    instrument_subtype = models.CharField(max_length=256, blank=True, default = '')
     gcmd_uuid = models.UUIDField()
 
+    def __str__(self):
+        return self.short_name
 
-class GcmdPlatform(LimitedInfo):
+
+class GcmdPlatform(BaseModel):
+    short_name = models.CharField(max_length=256, blank=False, unique=True)
+    long_name = models.CharField(max_length=512, blank=True, default = '')
     category = models.CharField(max_length=256)
     series_entry = models.CharField(max_length=256)
     description = models.CharField(max_length=256)
-    gcmd_version = models.CharField(max_length=256)
-    source_link = models.CharField(max_length=256)
     gcmd_uuid = models.UUIDField()
 
-
-class PartnerOrg(LimitedInfo):
-    website = models.CharField(max_length=256)
+    def __str__(self):
+        return self.short_name
 
 
 class GcmdPhenomena(BaseModel):
     category = models.CharField(max_length=256)
-    topic = models.CharField(max_length=256)
-    term = models.CharField(max_length=256)
-    variable_1 = models.CharField(max_length=256)
-    variable_2 = models.CharField(max_length=256)
-    variable_3 = models.CharField(max_length=256)
+    topic = models.CharField(max_length=256, blank=True, default = '')
+    term = models.CharField(max_length=256, blank=True, default = '')
+    variable_1 = models.CharField(max_length=256, blank=True, default = '')
+    variable_2 = models.CharField(max_length=256, blank=True, default = '')
+    variable_3 = models.CharField(max_length=256, blank=True, default = '')
     gcmd_uuid = models.UUIDField()
+
+    def __str__(self):
+        # TODO: is there a cleaner way to do this?
+        # display the most specific category which has a value
+        if self.variable_3:
+            return self.variable_3
+        elif self.variable_2:
+            return self.variable_2
+        elif self.variable_1:
+            return self.variable_1
+        elif self.term:
+            return self.term
+        elif self.topic:
+            return self.topic
+        else:
+            return self.category
 
 
 ###############
