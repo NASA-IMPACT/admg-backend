@@ -18,8 +18,8 @@ class BaseModel(models.Model):
 
 class LimitedInfo(BaseModel):
     short_name = models.CharField(max_length=256, blank=False, unique=True)
-    long_name = models.CharField(max_length=512)
-    notes_public = models.CharField(max_length=2048)
+    long_name = models.CharField(max_length=512, blank=True, default = '')
+    notes_public = models.CharField(max_length=2048, blank=True, default = '')
 
     def __str__(self):
         return self.short_name
@@ -27,6 +27,9 @@ class LimitedInfo(BaseModel):
     class Meta:
         abstract = True
 
+
+class NasaMission(LimitedInfo):
+    pass
 
 class PlatformType(LimitedInfo):
     example = models.CharField(max_length=256)
@@ -137,13 +140,12 @@ class Campaign(DataModel):
     funding_agency = models.CharField(max_length=256)
     funding_program = models.CharField(max_length=256, default='', blank=True)
     funding_program_lead = models.CharField(max_length=256, default='', blank=True)
-    project_lead = models.CharField(max_length=256)
+    lead_investigator = models.CharField(max_length=256)
     technical_contact = models.CharField(max_length=256, default='', blank=True)
     nonaircraft_platforms = models.CharField(max_length=1024, default='', blank=True)
     nonaircraft_instruments = models.CharField(max_length=1024, default='', blank=True)
     number_flights = models.PositiveIntegerField()
     doi = models.CharField(max_length=1024, default='', blank=True)
-    nasa_mission = models.CharField(max_length=512, default='', blank=True)
     number_data_products = models.PositiveIntegerField(null=True, blank=True)
     data_volume = models.CharField(max_length=256, null=True, blank=True)
 
@@ -155,6 +157,7 @@ class Campaign(DataModel):
     is_ongoing = models.BooleanField()
     nasa_led = models.BooleanField()
 
+    nasa_mission = models.CharField(PartnerOrg, related_name='campaigns', default='', blank=True)
     focus_areas = models.ManyToManyField(FocusArea, related_name='campaigns')
     seasons = models.ManyToManyField(Season, related_name='campaigns')
     repositories = models.ManyToManyField(Repository, related_name='campaigns')
