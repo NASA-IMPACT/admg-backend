@@ -63,10 +63,6 @@ class MeasurementRegion(LimitedInfo):
     pass
 
 
-class MeasurementKeyword(LimitedInfo):
-    pass
-
-
 class GeographicalRegion(LimitedInfo):
     pass
 
@@ -253,7 +249,7 @@ class Instrument(DataModel):
 
     gcmd_instruments = models.ManyToManyField(GcmdInstrument, related_name='instruments', default='', blank=True)
     instrument_types = models.ManyToManyField(InstrumentType, related_name='instruments')
-    measurement_keywords = models.ManyToManyField(MeasurementKeyword, related_name='instruments')
+    gcmd_phenomenas = models.ManyToManyField(GcmdPhenomena, related_name='instruments')
     measurement_regions = models.ManyToManyField(MeasurementRegion, related_name='instruments')
     repositories = models.ManyToManyField(Repository, related_name='instruments', default='', blank=True)
     geophysical_concepts = models.ManyToManyField(GeophysicalConcepts, related_name='instruments')
