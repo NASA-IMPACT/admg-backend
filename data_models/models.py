@@ -190,8 +190,8 @@ class Campaign(DataModel):
     partner_orgs = models.ManyToManyField(PartnerOrg, related_name='campaigns', default='', blank=True)
     gcmd_phenomenas = models.ManyToManyField(GcmdPhenomena, related_name='campaigns')
     gcmd_project = models.ManyToManyField(GcmdProject, related_name='campaigns', default='', blank=True)
-    geophysical_concepts = models.ManyToManyField(GeophysicalConcepts, related_name='instruments')
-    
+    geophysical_concepts = models.ManyToManyField(GeophysicalConcepts, related_name='campaigns')
+
     def __str__(self):
         return self.short_name
 
