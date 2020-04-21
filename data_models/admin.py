@@ -9,7 +9,6 @@ from .models import (
     Season,
     Repository,
     MeasurementRegion,
-    MeasurementKeyword,
     GeographicalRegion,
     PartnerOrg,
     GcmdPhenomena,
@@ -33,7 +32,6 @@ admin.site.register(FocusArea)
 admin.site.register(Season)
 admin.site.register(Repository)
 admin.site.register(MeasurementRegion)
-admin.site.register(MeasurementKeyword)
 admin.site.register(GeographicalRegion)
 admin.site.register(PartnerOrg)
 admin.site.register(GcmdPhenomena)
