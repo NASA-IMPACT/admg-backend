@@ -182,7 +182,7 @@ class Campaign(DataModel):
     is_ongoing = models.BooleanField()
     nasa_led = models.BooleanField()
 
-    nasa_mission = models.CharField(NasaMission, related_name='campaigns', default='', blank=True)
+    nasa_mission = models.ManyToManyField(NasaMission, related_name='campaigns', default='', blank=True)
     focus_areas = models.ManyToManyField(FocusArea, related_name='campaigns')
     seasons = models.ManyToManyField(Season, related_name='campaigns')
     repositories = models.ManyToManyField(Repository, related_name='campaigns')
