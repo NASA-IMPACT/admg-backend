@@ -203,10 +203,9 @@ class Platform(DataModel):
     platform_type = models.ForeignKey(
         AircraftType, on_delete=models.SET_NULL, related_name='platforms', null=True)
 
-    platform_model = models.CharField(max_length=256)  # TODO: should we even be tracking this?
+    # platform_model = models.CharField(max_length=256)  # TODO: should we even be tracking this?
     desciption = models.CharField(max_length=256)
     online_information = models.CharField(max_length=512, default='', blank=True)
-    image_url = models.CharField(max_length=256)
 
     gcmd_platform = models.ManyToManyField(GcmdPlatform, related_name='platforms', default='', blank=True)  # TODO: double check
 
