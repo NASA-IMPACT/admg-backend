@@ -294,7 +294,7 @@ class Instrument(DataModel):
     def __str__(self):
         return self.short_name
 
-The 
+ 
 class Deployment(DataModel):
 
     campaign = models.ForeignKey(Campaign, on_delete=models.CASCADE, related_name='deployments')
