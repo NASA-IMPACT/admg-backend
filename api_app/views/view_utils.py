@@ -16,7 +16,8 @@ def requires_admin_approval(model_name, action=UPDATE):
             # the drf implementation does these checks and creates the object from the same function
             # hence it could not be reused properly
             if action == CREATE:
-                serializer = self.get_serializer(data=request.data)
+                # the user should still be able to add in few partial fields
+                serializer = self.get_serializer(data=request.data, partial=True)
                 serializer.is_valid(raise_exception=True)
             elif action == UPDATE:
                 partial = action == PATCH or kwargs.pop('partial', False)
