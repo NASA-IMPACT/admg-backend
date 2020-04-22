@@ -81,14 +81,22 @@ class XcodeAutoSchema(SwaggerAutoSchema):
         }
         """
 
-        r = super().get_responses()
+        res = super().get_responses()
 
         for status_code in ALL_STATUS_CODE:
-            if r.get(status_code):
-                if r[status_code].get("schema"):
-                    r[status_code]["schema"] = self._response_schema(r[status_code]["schema"])
+            if res.get(status_code):
+                if res[status_code].get("schema"):
+                    res[status_code]["schema"] = self._response_schema(res[status_code]["schema"])
+                # this bit maps the description to the required format as well
+                elif res[status_code].get("description"):
+                    res[status_code]["schema"] = self._response_schema(
+                        openapi.Schema(
+                            type="string",
+                            description=res[status_code].get("description")
+                        ),
+                    )
 
-        return r
+        return res
 
 
 class CustomTokenView(TokenView):

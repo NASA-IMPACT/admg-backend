@@ -1,36 +1,16 @@
 from django.apps import apps
-from django.http import JsonResponse
 
 from rest_framework import permissions
-from rest_framework.generics import RetrieveUpdateDestroyAPIView, ListCreateAPIView
+from rest_framework.generics import (
+    RetrieveUpdateDestroyAPIView,
+    ListCreateAPIView,
+)
+
 from oauth2_provider.contrib.rest_framework import TokenHasScope
-
-import data_models.serializers as sz
-
-
-def handle_exception(fn):
-    """
-    Decorator function for handing error and returning data in the required
-    format
-    """
-    def wrapper(self, request, *args, **kwargs):
-        data = []
-        message = ""
-        success = True
-        try:
-            res = fn(self, request, *args, **kwargs)
-            if 300 >= res.status_code >= 200:
-                data = res.data
-        except Exception as e:
-            success = False
-            message = str(e)
-
-        return JsonResponse({
-            "success": success,
-            "message": message,
-            "data": data
-        })
-    return wrapper
+from data_models import serializers as sz
+from admg_webapp.users.models import STAFF
+from .view_utils import handle_exception, requires_admin_approval
+from ..models import CREATE, DELETE
 
 
 def GenericCreateGetAllView(model_name):
@@ -45,7 +25,7 @@ def GenericCreateGetAllView(model_name):
     """
     class View(ListCreateAPIView):
         permission_classes = [permissions.IsAuthenticated, TokenHasScope]
-        required_scopes = ["Staff"]
+        required_scopes = [STAFF]
 
         Model = apps.get_model('data_models', model_name)
         queryset = Model.objects.all()
@@ -60,10 +40,11 @@ def GenericCreateGetAllView(model_name):
             return res
 
         @handle_exception
+        @requires_admin_approval(model_name=model_name, action=CREATE)
         def post(self, request, *args, **kwargs):
             return super().post(request, *args, **kwargs)
 
-    return View
+    return View.as_view()
 
 
 def GenericPutPatchDeleteView(model_name):
@@ -78,22 +59,29 @@ def GenericPutPatchDeleteView(model_name):
     """
     class View(RetrieveUpdateDestroyAPIView):
         permission_classes = [permissions.IsAuthenticated, TokenHasScope]
-        required_scopes = ["Staff"]
+        required_scopes = [STAFF]
         Model = apps.get_model('data_models', model_name)
         lookup_field = "uuid"
         queryset = Model.objects.all()
         serializer_class = getattr(sz, f"{model_name}Serializer")
 
         @handle_exception
+        def get(self, request, *args, **kwargs):
+            return super().get(request, *args, **kwargs)
+
+        @handle_exception
+        @requires_admin_approval(model_name=model_name)
         def put(self, request, *args, **kwargs):
             return super().put(request, *args, **kwargs)
 
         @handle_exception
+        @requires_admin_approval(model_name=model_name)
         def patch(self, request, *args, **kwargs):
             return super().patch(request, *args, **kwargs)
 
         @handle_exception
+        @requires_admin_approval(model_name=model_name, action=DELETE)
         def delete(self, request, *args, **kwargs):
             return super().delete(request, *args, **kwargs)
 
-    return View
+    return View.as_view()

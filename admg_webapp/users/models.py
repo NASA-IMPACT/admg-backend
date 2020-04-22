@@ -6,12 +6,11 @@ from django.utils.translation import ugettext_lazy as _
 ADMIN = 'Admin'
 STAFF = 'Staff'
 
-AVAILABLE_ROLES = ((1, ADMIN), (2, STAFF))
+ADMIN_CODE = 1
+STAFF_CODE = 2
+AVAILABLE_ROLES = ((ADMIN_CODE, ADMIN), (STAFF_CODE, STAFF))
 
 
-# TODO: Once the models are reviwed, use the roles part of the users to
-# validate with Authorization part.
-# See dummy api for implementaion using oauth scopes
 class User(AbstractUser):
     """
     user model for admg users
@@ -24,3 +23,8 @@ class User(AbstractUser):
 
     def get_absolute_url(self):
         return reverse("users:detail", kwargs={"username": self.username})
+    
+    def save(self, *args, **kwargs):
+        if self.is_superuser:
+            self.role = ADMIN_CODE
+        super().save(*args, **kwargs)

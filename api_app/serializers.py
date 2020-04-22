@@ -1,8 +1,9 @@
 from rest_framework import serializers
-from .models import DummyModel
+from .models import Change
 
 
-class DummySerializer(serializers.ModelSerializer):
+class ChangeSerializer(serializers.ModelSerializer):
     class Meta:
-        model = DummyModel
-        fields = ('test1', 'test2', 'test3')
+        model = Change
+        fields = "__all__"
+        read_only_fields = ["appr_reject_date", "appr_reject_by", "status"]
