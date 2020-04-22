@@ -348,7 +348,7 @@ class Flight(BaseModel):
     platform = models.ForeignKey(Platform, on_delete=models.CASCADE, related_name='flights')
 
     asp_long_name = models.CharField(max_length=512, default='', blank=True)
-    tail_number = models.CharField(max_length=128, default='', blank=True)
+    platform_identifier = models.CharField(max_length=128, default='', blank=True)
     home_base = models.CharField(max_length=256, default='', blank=True)
     campaign_deployment_base = models.CharField(max_length=256, default='', blank=True)
     platform_owner = models.CharField(max_length=256, default='', blank=True)
