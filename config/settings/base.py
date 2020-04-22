@@ -47,13 +47,13 @@ LOCALE_PATHS = [ROOT_DIR.path("locale")]
 # }
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'admg_db',
-        'USER': 'admg_user',
-        'PASSWORD': 'changeme',
-        'HOST': 'localhost',
-        'PORT': '5432'
+    "default": {
+        "ENGINE": "django.contrib.gis.db.backends.postgis",
+        "NAME": env("DB_NAME"),
+        "USER": env("DB_USER"),
+        "PASSWORD": env("DB_PASSWORD"),
+        "HOST": "localhost",
+        "PORT": "5432"
     }
 }
 
@@ -77,9 +77,11 @@ DJANGO_APPS = [
     "django.contrib.staticfiles",
     # "django.contrib.humanize", # Handy template tags
     "django.contrib.admin",
+    "django.contrib.gis",  # add this line
 ]
 
 THIRD_PARTY_APPS = [
+    # "django_extensions",
     "crispy_forms",
     "allauth",
     "allauth.account",
