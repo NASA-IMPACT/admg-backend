@@ -41,7 +41,7 @@ urlpatterns = [
         GenericPutPatchDeleteView("PlatformType"),
         name="PlatformType_put_delete"
     ),
-    
+
     path(
         "aircraft_type",
         GenericCreateGetAllView("AircraftType"),
@@ -207,16 +207,6 @@ urlpatterns = [
         name="PartnerOrg_put_delete"
     ),
 
-    path(
-        "event_type",
-        GenericCreateGetAllView("EventType"),
-        name="EventType_create_getall"
-    ),
-    path(
-        "event_type/<str:uuid>",
-        GenericPutPatchDeleteView("EventType"),
-        name="EventType_put_delete"
-    ),
 
     path(
         "campaign",
@@ -263,14 +253,25 @@ urlpatterns = [
     ),
 
     path(
-        "iop_se",
-        GenericCreateGetAllView("IopSe"),
-        name="IopSe_create_getall"
+        "iop",
+        GenericCreateGetAllView("IOP"),
+        name="IOP_create_getall"
     ),
     path(
-        "iop_se/<str:uuid>",
-        GenericPutPatchDeleteView("IopSe"),
-        name="IopSe_put_delete"
+        "iop/<str:uuid>",
+        GenericPutPatchDeleteView("IOP"),
+        name="IOP_put_delete"
+    ),
+
+    path(
+        "significant_event",
+        GenericCreateGetAllView("SignificantEvent"),
+        name="SignificantEvent_create_getall"
+    ),
+    path(
+        "significant_event/<str:uuid>",
+        GenericPutPatchDeleteView("SignificantEvent"),
+        name="SignificantEvent_put_delete"
     ),
 
     path(

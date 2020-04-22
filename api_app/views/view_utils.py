@@ -1,6 +1,6 @@
 from django.http import JsonResponse
 from rest_framework.response import Response
-from ..models import Change, UPDATE, CREATE
+from ..models import Change, UPDATE, CREATE, PATCH
 
 """
     Always use requires_admin_approval after handle_exception as it will catch the
@@ -19,7 +19,7 @@ def requires_admin_approval(model_name, action=UPDATE):
                 serializer = self.get_serializer(data=request.data)
                 serializer.is_valid(raise_exception=True)
             elif action == UPDATE:
-                partial = kwargs.pop('partial', False)
+                partial = action == PATCH or kwargs.pop('partial', False)
                 instance = self.get_object()
                 serializer = self.get_serializer(instance, data=request.data, partial=partial)
                 serializer.is_valid(raise_exception=True)

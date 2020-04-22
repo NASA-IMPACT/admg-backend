@@ -10,7 +10,7 @@ from oauth2_provider.contrib.rest_framework import TokenHasScope
 from data_models import serializers as sz
 from admg_webapp.users.models import STAFF
 from .view_utils import handle_exception, requires_admin_approval
-from ..models import CREATE, DELETE
+from ..models import CREATE, DELETE, PATCH
 
 
 def GenericCreateGetAllView(model_name):
@@ -75,7 +75,7 @@ def GenericPutPatchDeleteView(model_name):
             return super().put(request, *args, **kwargs)
 
         @handle_exception
-        @requires_admin_approval(model_name=model_name)
+        @requires_admin_approval(model_name=model_name, action=PATCH)
         def patch(self, request, *args, **kwargs):
             return super().patch(request, *args, **kwargs)
 

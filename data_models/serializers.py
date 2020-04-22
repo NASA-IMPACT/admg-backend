@@ -98,12 +98,6 @@ class PartnerOrgSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class EventTypeSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = apps.get_model("data_models", "EventType")
-        fields = "__all__"
-
-
 class CampaignSerializer(serializers.ModelSerializer):
     class Meta:
         model = apps.get_model("data_models", "Campaign")
@@ -128,9 +122,15 @@ class DeploymentSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class IopSeSerializer(serializers.ModelSerializer):
+class IOPSerializer(serializers.ModelSerializer):
     class Meta:
-        model = apps.get_model("data_models", "IopSe")
+        model = apps.get_model("data_models", "IOP")
+        fields = "__all__"
+
+
+class SignificantEventSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = apps.get_model("data_models", "SignificantEvent")
         fields = "__all__"
 
 

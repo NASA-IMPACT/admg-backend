@@ -10,6 +10,7 @@ from admg_webapp.users.models import User, ADMIN
 CREATE = 'Create'
 UPDATE = 'Update'
 DELETE = 'Delete'
+PATCH = 'Patch'
 
 
 # The change is in progress, can not be approved, but the user can update the change request
