@@ -36,7 +36,7 @@ def false_success(message):
 def handle_approve_reject(function):
     def wrapper(self, admin_user, notes):
         """
-        Decorator for handle or reject changes in the change table that
+        Decorator to handle or reject changes in the change table that
         1.) handles user role check
         2.) adds timestamps, approved/rejected_by user, notes to the change model
         3.) Saves the change model
