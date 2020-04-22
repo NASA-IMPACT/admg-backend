@@ -78,7 +78,7 @@ for url in urls:
         path(
             f"{snake_case_url}/<str:uuid>",
             GenericPutPatchDeleteView("PlatformType"),
-            name="PlatformType_put_delete"
+            name=f"{url}_put_delete"
         ),
     )
 
