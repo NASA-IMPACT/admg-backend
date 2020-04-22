@@ -11,9 +11,6 @@ STAFF_CODE = 2
 AVAILABLE_ROLES = ((ADMIN_CODE, ADMIN), (STAFF_CODE, STAFF))
 
 
-# TODO: Once the models are reviwed, use the roles part of the users to
-# validate with Authorization part.
-# See dummy api for implementaion using oauth scopes
 class User(AbstractUser):
     """
     user model for admg users
