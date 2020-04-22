@@ -6,7 +6,9 @@ from django.utils.translation import ugettext_lazy as _
 ADMIN = 'Admin'
 STAFF = 'Staff'
 
-AVAILABLE_ROLES = ((1, ADMIN), (2, STAFF))
+ADMIN_CODE = 1
+STAFF_CODE = 2
+AVAILABLE_ROLES = ((ADMIN_CODE, ADMIN), (STAFF_CODE, STAFF))
 
 
 # TODO: Once the models are reviwed, use the roles part of the users to
@@ -27,5 +29,5 @@ class User(AbstractUser):
     
     def save(self, *args, **kwargs):
         if self.is_superuser:
-            self.role = 1
+            self.role = ADMIN_CODE
         super().save(*args, **kwargs)
