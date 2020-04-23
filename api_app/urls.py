@@ -77,7 +77,7 @@ for url in urls:
     urlpatterns.append(
         path(
             f"{snake_case_url}/<str:uuid>",
-            GenericPutPatchDeleteView("PlatformType"),
+            GenericPutPatchDeleteView(url),
             name=f"{url}_put_delete"
         ),
     )
