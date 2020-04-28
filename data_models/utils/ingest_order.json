@@ -1,0 +1,46 @@
+[
+    "platform_type",
+    "aircraft_type",
+    "instrument_type",
+    "home_base",
+    "repository",
+    "focus_area",
+    "season",
+    "measurement_region",
+    "geographical_region",
+    "geophysical_concept",
+    "gcmd_phenomena",
+    "gcmd_instrument",
+    "gcmd_platform",
+    "gcmd_project",
+    "partner_org",
+    [
+        "instrument",
+        "instrument_to_gcmd_instrument",
+        "instrument_to_measurement_keywords_uuid",
+        "instrument_to_geophysical_concept",
+        "instrument_to_repository",
+        "instrument_to_measurement_region",
+        "instrument_to_instrument_type"
+    ],
+    [
+        "platform",
+        "platform_to_gcmd_platform_uuid"
+    ],
+    "flight",
+    [
+        "deployment",
+        "deployment_to_geographical_region",
+        "deployment_to_platform"
+    ],
+    [
+        "campaign",
+        "campaign_to_platform_type",
+        "campaign_to_focus_area",
+        "campaign_to_season",
+        "campaign_to_gcmd_phenomenas_uuid",
+        "campaign_to_repository",
+        "campaign_to_partner_org",
+        "campaign_to_gcmd_project"
+]
+]
