@@ -1,0 +1,98 @@
+{
+    "platform_type":{
+    "Ingest Label":"ignore_ingest_label",
+    "short_name":"short_name",
+    "long_name":"long_name",
+    "description":"ignore_description",
+    "gcmd_translation":"ignore_gcmd_translation",
+    "examples":"example",
+    "notes":"notes_public" 
+  },
+  "aircraft_type":{
+    "Ingest Label":"ignore_ingest_label",
+    "short_name":"short_name",
+    "long_name":"long_name",
+    "description":"ignore_description",
+    "gcmd_translation":"gcmd_translation",
+    "examples":"notes_public",
+    "notes":"ignore_TODO" 
+
+  },
+  "instrument_type":{
+    "Ingest Label":"ignore_ingest_label",
+    "short_name":"short_name",
+    "long_name":"long_name",
+    "description":"ignore_description",
+    "gcmd_translation":"gcmd_translation",
+    "examples":"notes_public",
+    "notes":"ignore_TODO" 
+
+  },
+  "home_base":{
+    "Ingest Label":"ignore_ingest_label",
+    "short_name":"short_name",
+    "long_name":"long_name",
+    "description":"ignore_description",
+    "gcmd_translation":"gcmd_translation",
+    "examples":"notes_public",
+    "notes":"ignore_TODO" 
+
+  },
+  "repository":{
+    "Ingest Label":"ignore_ingest_label",
+    "short_name":"short_name",
+    "long_name":"long_name",
+    "description":"ignore_description",
+    "gcmd_translation":"gcmd_translation",
+    "examples":"notes_public",
+    "notes":"ignore_TODO" 
+
+  },
+  "focus_area":{
+    "Ingest Label":"ignore_ingest_label",
+    "short_name":"short_name",
+    "long_name":"long_name",
+    "description":"ignore_description",
+    "gcmd_translation":"ignore_gcmd_translation",
+    "examples":"notes_public",
+    "notes":"ignore_TODO" 
+
+  },
+  "season":{
+    "Ingest Label":"ignore_ingest_label",
+    "short_name":"short_name",
+    "long_name":"long_name",
+    "description":"ignore_description",
+    "gcmd_translation":"ignore_gcmd_translation",
+    "examples":"notes_public",
+    "notes":"ignore_TODO" 
+  }, 
+  "measurement_region":{
+    "Ingest Label":"ignore_ingest_label",
+    "short_name":"short_name",
+    "long_name":"long_name",
+    "description":"ignore_description",
+    "gcmd_translation":"ignore_gcmd_translation",
+    "examples":"notes_public",
+    "notes":"ignore_TODO" 
+  }, 
+  "geographical_region":{
+    "Ingest Label":"ignore_ingest_label",
+    "short_name":"short_name",
+    "long_name":"long_name",
+    "description":"ignore_description",
+    "gcmd_translation":"ignore_gcmd_translation",
+    "examples":"notes_public",
+    "notes":"ignore_TODO" 
+  },
+  "geophysical_concept":{
+    "Ingest Label":"ignore_ingest_label",
+    "short_name":"short_name",
+    "long_name":"long_name",
+    "description":"ignore_description",
+    "gcmd_translation":"ignore_gcmd_translation",
+    "examples":"notes_public",
+    "notes":"ignore_TODO" 
+  }
+
+}
