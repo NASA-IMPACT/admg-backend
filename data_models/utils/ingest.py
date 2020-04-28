@@ -4,6 +4,11 @@ import validate
 from general import many_to_many, many_cols
 import ingest
 
+def rename_columns(db, table_name, remap_dict):
+    table = db[table_name]
+    table.rename(mapper=remap_dict[table_name], axis='columns', inplace=True)
+    return table
+
 
 def sheet(excel_data, remap_dict, sheet_name, remap_name, header_row, data_row):
 
