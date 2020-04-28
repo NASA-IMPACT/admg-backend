@@ -5,7 +5,7 @@ from django.db import models
 
 
 class BaseModel(models.Model):
-    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    uuid = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False, unique=True)
 
     class Meta:
         abstract = True 
