@@ -11,7 +11,7 @@ APPS_DIR = ROOT_DIR.path("admg_webapp")
 
 env = environ.Env()
 
-READ_DOT_ENV_FILE = env.bool("DJANGO_READ_DOT_ENV_FILE", default=False)
+READ_DOT_ENV_FILE = env.bool("DJANGO_READ_DOT_ENV_FILE", default=True)
 if READ_DOT_ENV_FILE:
     # OS environment variables take precedence over variables from .env
     env.read_env(str(ROOT_DIR.path(".env")))
@@ -42,19 +42,41 @@ LOCALE_PATHS = [ROOT_DIR.path("locale")]
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#databases
 
+# old settings (delete)
 # DATABASES = {
 #     "default": env.db("DATABASE_URL", default="postgres://localhost/admg_webapp")
 # }
 
+# DATABASES = {
+# <<<<<<< HEAD
+#     'default': {
+#         # 'ENGINE': 'django.db.backends.postgresql',
+#         'ENGINE': 'django.contrib.gis.db.backends.postgis',
+#         'NAME': 'postgres',
+#         'USER': 'postgres',
+#         'PASSWORD': 'postgres',
+#         'HOST': 'db',
+#         'PORT': '5432'
+# =======
+#     "default": {
+#         "ENGINE": "django.contrib.gis.db.backends.postgis",
+#         "NAME": env("DB_NAME"),
+#         "USER": env("DB_USER"),
+#         "PASSWORD": env("DB_PASSWORD"),
+#         "HOST": "localhost",
+#         "PORT": "5432"
+# >>>>>>> dev
+#     }
+# }
+
 DATABASES = {
-    'default': {
-        # 'ENGINE': 'django.db.backends.postgresql',
-        'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'NAME': 'postgres',
-        'USER': 'postgres',
-        'PASSWORD': 'postgres',
-        'HOST': 'db',
-        'PORT': '5432'
+    "default": {
+        "ENGINE": env("DB_ENGINE"),
+        "NAME": env("DB_NAME"),
+        "USER": env("DB_USER"),
+        "PASSWORD": env("DB_PASSWORD"),
+        "HOST": env("DB_HOST"),
+        "PORT": env("DB_PORT"),
     }
 }
 
@@ -80,6 +102,7 @@ DJANGO_APPS = [
     "django.contrib.admin",
     "django.contrib.gis",  # add this line
 ]
+
 THIRD_PARTY_APPS = [
     # "django_extensions",
     "crispy_forms",
@@ -87,13 +110,18 @@ THIRD_PARTY_APPS = [
     "allauth.account",
     "allauth.socialaccount",
     "rest_framework",
+    "rest_framework.authtoken",
+    "drf_yasg",
+    'oauth2_provider'
 ]
 
 LOCAL_APPS = [
     "admg_webapp.users.apps.UsersConfig",
     "data_models.apps.DataModelsConfig",
+    "api_app",
     # Your stuff: custom apps go here
 ]
+
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
@@ -280,3 +308,44 @@ SOCIALACCOUNT_ADAPTER = "admg_webapp.users.adapters.SocialAccountAdapter"
 
 # Your stuff...
 # ------------------------------------------------------------------------------
+
+REST_FRAMEWORK = {
+    'DEFAULT_RENDERER_CLASSES': [
+        'rest_framework.renderers.JSONRenderer',
+    ],
+    'DEFAULT_PARSER_CLASSES': [
+        'rest_framework.parsers.JSONParser',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'oauth2_provider.contrib.rest_framework.OAuth2Authentication',
+    ],
+}
+
+SWAGGER_SETTINGS = {
+    'JSON_EDITOR': True,
+    'DEFAULT_INFO': 'api_app.urls.info',
+    'SUPPORTED_SUBMIT_METHODS': ['get', 'post', 'put', 'delete', 'patch'],
+    'DEFAULT_AUTO_SCHEMA_CLASS': 'api_app.utils.XcodeAutoSchema',
+    'SECURITY_DEFINITIONS': {
+        # TODO: does not work right now. Need to make it work
+        'ADMG API - Swagger': {
+            'type': 'oauth2',
+            'authorizationUrl': '/authenticate/authorize',
+            'tokenUrl': '/authenticate/token/',
+            'flow': 'accessCode',
+            'scopes': {
+                'read:groups': 'read groups',
+            },
+        }
+    },
+}
+
+OAUTH2_PROVIDER = {
+    'SCOPES': {
+        'read': 'Read scope',
+        'write': 'Write scope',
+    }
+}
