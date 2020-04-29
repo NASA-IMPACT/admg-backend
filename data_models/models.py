@@ -5,7 +5,7 @@ from django.db import models
 
 
 class BaseModel(models.Model):
-    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    uuid = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False, unique=True)
 
     class Meta:
         abstract = True 
@@ -28,16 +28,15 @@ class LimitedInfo(BaseModel):
         abstract = True
 
 
-class NasaMission(LimitedInfo):
-    pass
-
 class PlatformType(LimitedInfo):
+    parent = models.ForeignKey(PlatformType, on_delete=models.CASCADE, related_name='sub_types')
+    
+    gcmd_translation = models.UUIDField()
     example = models.CharField(max_length=256)
 
 
-class AircraftType(LimitedInfo):
-    gcmd_translation = models.UUIDField()
-    
+class NasaMission(LimitedInfo):
+    pass
 
 class InstrumentType(LimitedInfo):
     gcmd_translation = models.UUIDField()
