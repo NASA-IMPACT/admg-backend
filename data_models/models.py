@@ -236,6 +236,8 @@ class Platform(DataModel):
     # platform_model = models.CharField(max_length=256)  # TODO: should we even be tracking this?
     desciption = models.CharField(max_length=256)
     online_information = models.CharField(max_length=512, default='', blank=True)
+    is_moving = models.BooleanField()
+
 
     gcmd_platform = models.ManyToManyField(GcmdPlatform, related_name='platforms', default='', blank=True)  # TODO: double check
 
