@@ -29,10 +29,10 @@ class LimitedInfo(BaseModel):
 
 
 class PlatformType(LimitedInfo):
-    parent = models.ForeignKey(PlatformType, on_delete=models.CASCADE, related_name='sub_types')
+    parent = models.ForeignKey('PlatformType', on_delete=models.CASCADE, related_name='sub_types', null=True, blank=True)
     
-    gcmd_translation = models.UUIDField()
-    example = models.CharField(max_length=256)
+    gcmd_translation = models.UUIDField(null=True, blank=True)
+    example = models.CharField(max_length=256, blank=True, default = '')
 
 
 class NasaMission(LimitedInfo):
@@ -229,8 +229,7 @@ class Campaign(DataModel):
 
 class Platform(DataModel):
 
-    platform_type = models.ForeignKey(
-        AircraftType, on_delete=models.SET_NULL, related_name='platforms', null=True)
+    platform_type = models.ForeignKey(PlatformType, on_delete=models.SET_NULL, related_name='platforms', null=True)
 
     # platform_model = models.CharField(max_length=256)  # TODO: should we even be tracking this?
     desciption = models.CharField(max_length=256)
