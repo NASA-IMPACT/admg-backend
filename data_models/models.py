@@ -8,6 +8,9 @@ from django.db import models
 class BaseModel(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False, unique=True)
 
+    def __str__(self):
+        return self.short_name
+
     class Meta:
         abstract = True 
 
@@ -21,9 +24,6 @@ class LimitedInfo(BaseModel):
     short_name = models.CharField(max_length=256, blank=False, unique=True)
     long_name = models.CharField(max_length=512, blank=True, default = '')
     notes_public = models.CharField(max_length=2048, blank=True, default = '')
-
-    def __str__(self):
-        return self.short_name
 
     class Meta:
         abstract = True
@@ -71,17 +71,14 @@ class GeophysicalConcepts(LimitedInfo):
     pass
 
 
+class PartnerOrg(LimitedInfo):
+    website = models.CharField(max_length=256)
+
+
 class PlatformAlias(BaseModel):
     short_name = models.CharField(max_length=256, blank=False, unique=True)
     long_name = models.CharField(max_length=512, blank=True, default = '')
     source = models.CharField(max_length=2048, blank=True, default = '')
-
-    def __str__(self):
-        return self.short_name
-
-
-class PartnerOrg(BaseModel):
-    website = models.CharField(max_length=256)
 
 
 class GcmdProject(BaseModel):
@@ -89,9 +86,6 @@ class GcmdProject(BaseModel):
     long_name = models.CharField(max_length=512, blank=True, default = '')
     bucket = models.CharField(max_length=256)
     gcmd_uuid = models.UUIDField()
-
-    def __str__(self):
-        return self.short_name
 
 
 class GcmdInstrument(BaseModel):
@@ -103,9 +97,6 @@ class GcmdInstrument(BaseModel):
     instrument_subtype = models.CharField(max_length=256, blank=True, default = '')
     gcmd_uuid = models.UUIDField()
 
-    def __str__(self):
-        return self.short_name
-
 
 class GcmdPlatform(BaseModel):
     short_name = models.CharField(max_length=256, blank=False, unique=True)
@@ -114,9 +105,6 @@ class GcmdPlatform(BaseModel):
     series_entry = models.CharField(max_length=256)
     description = models.CharField(max_length=256)
     gcmd_uuid = models.UUIDField()
-
-    def __str__(self):
-        return self.short_name
 
 
 class GcmdPhenomena(BaseModel):
@@ -151,13 +139,10 @@ class GcmdPhenomena(BaseModel):
 
 
 class DataModel(BaseModel):
-    short_name = models.CharField(max_length=256, blank=False, unique=True)
-    long_name = models.CharField(max_length=512)
+    short_name = models.CharField(max_length=256)
+    long_name = models.CharField(max_length=512, blank=False, unique=True)
     notes_internal = models.CharField(max_length=2048, default = '', blank=True)
     notes_public = models.CharField(max_length=2048, default = '', blank=True)
-
-    def __str__(self):
-        return self.short_name
 
     class Meta:
         abstract = True
@@ -202,10 +187,6 @@ class Campaign(DataModel):
     gcmd_project = models.ManyToManyField(GcmdProject, related_name='campaigns', default='', blank=True)
     geophysical_concepts = models.ManyToManyField(GeophysicalConcepts, related_name='campaigns')
 
-    def __str__(self):
-        return self.short_name
-
-
     @property
     def significant_events(self):
         # TODO
@@ -247,7 +228,6 @@ class Platform(DataModel):
     online_information = models.CharField(max_length=512, default='', blank=True)
     is_moving = models.BooleanField()
 
-
     gcmd_platform = models.ManyToManyField(GcmdPlatform, related_name='platforms', default='', blank=True)  # TODO: double check
 
     @property
@@ -265,9 +245,6 @@ class Platform(DataModel):
         [[instruments.append(inst) for inst in flight.instruments.all()] for flight in self.flights.all()]
         instruments = list(set(instruments))
         return instruments
-
-    def __str__(self):
-        return self.short_name
 
 
 class Instrument(DataModel):
@@ -302,9 +279,6 @@ class Instrument(DataModel):
     def platforms(self):
         return list(set(flight.deployment.platform for flight in self.flights.all()))
 
-    def __str__(self):
-        return self.short_name
-
  
 class Deployment(DataModel):
 
@@ -324,11 +298,11 @@ class Deployment(DataModel):
         return self.long_name
 
 
-class IopSe(DataModel):
+class IopSe(BaseModel):
 
     deployment = models.ForeignKey(Deployment, on_delete=models.CASCADE, related_name='iops')
     
-    short_name = models.CharField(max_length=128)
+    short_name = models.CharField(max_length=256)
     start_date = models.DateField()
     end_date = models.DateField()
     description = models.CharField(max_length=1024)
@@ -336,9 +310,6 @@ class IopSe(DataModel):
     published_list = models.CharField(max_length=1024, default='', blank=True)
     reports = models.CharField(max_length=1024, default='', blank=True)
     reference_file = models.CharField(max_length=1024, default='', blank=True)
-
-    def __str__(self):
-        return self.short_name
 
     class Meta:
         abstract = True 
