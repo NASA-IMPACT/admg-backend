@@ -1,5 +1,6 @@
 import uuid
 
+from django.contrib.postgres.fields import JSONField
 from django.contrib.gis.db import models as geomodels
 from django.db import models
 
@@ -172,6 +173,7 @@ class Campaign(DataModel):
     doi = models.CharField(max_length=1024, default='', blank=True)
     number_data_products = models.PositiveIntegerField(null=True, blank=True)
     data_volume = models.CharField(max_length=256, null=True, blank=True)
+    cmr_metadata = JSONField(null=True, blank=True)
 
     repository_website = models.CharField(max_length=512, default='', blank=True) # repository homepage
     project_website = models.CharField(max_length=512, default='', blank=True) # dedicated homepage
