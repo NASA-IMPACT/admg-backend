@@ -1,0 +1,106 @@
+- hosts: all
+  remote_user: ubuntu
+  become: true
+  vars:
+    create_containers: 4
+    default_container_name: docker
+    default_container_image: ubuntu
+    default_container_command: sleep 1d
+    git_repo: https://github.com/NASA-IMPACT/admg_webapp.git
+    project_src: /home/ubuntu/admg_webapp/
+
+  tasks:
+    # - name: Install aptitude using apt
+    #   apt: name=aptitude state=latest update_cache=yes force_apt_get=yes
+
+    # - name: Install required system packages
+    #   apt: name={{ item }} state=latest update_cache=yes
+    #   loop: [ 'apt-transport-https', 'ca-certificates', 'curl', 'software-properties-common', 'python3-pip', 'virtualenv', 'python3-setuptools']
+
+    # - name: Add Docker GPG apt Key
+    #   apt_key:
+    #     url: https://download.docker.com/linux/ubuntu/gpg
+    #     state: present
+
+    # - name: Add Docker Repository
+    #   apt_repository:
+    #     repo: deb https://download.docker.com/linux/ubuntu bionic stable
+    #     state: present
+
+    # - name: Update apt and install docker-ce
+    #   apt: update_cache=yes name=docker-ce state=latest
+
+    # - name: Install Docker Module for Pythonad
+    #   pip:
+    #     name: docker
+
+    - name: Link to the github
+      git:
+        repo: "{{ git_repo }}"
+        dest: "{{ project_src }}"
+      
+
+    - name: Tear down existing services
+      docker_compose:
+        project_src: "{{ project_src }}"
+        state: absent
+  
+    - name: Create and start services
+      docker_compose:
+        project_src: "{{ project_src }}"
+      register: output
+  
+    - debug:
+        var: output
+  
+    - name: Run `docker-compose up` again
+      docker_compose:
+        project_src: "{{ project_src }}"
+        build: no
+      register: output
+  
+    - debug:
+        var: output
+  
+    - assert:
+        that: "not output.changed "
+  
+    - name: Stop all services
+      docker_compose:
+        project_src: "{{ project_src }}"
+        build: no
+        stopped: yes
+      register: output
+  
+    - debug:
+        var: output
+  
+      # - assert:
+      #     that:
+      #       - "not web.admg_web_1.state.running"
+      #       - "not db.flask_db_1.state.running"
+  
+    - name: Restart services
+      docker_compose:
+        project_src: "{{ project_src }}"
+        build: no
+        restarted: yes
+      register: output
+  
+    - debug:
+        var: output
+  
+      # - assert:
+      #     that:
+      #       - "web.flask_web_1.state.running"
+      #       - "db.flask_db_1.state.running"  
+
+    # # Creates the number of containers defined by the variable create_containers, using values from vars file
+    # - name: Create default containers
+    #   docker_container:
+    #     name: "{{ default_container_name }}{{ item }}"
+    #     image: "{{ default_container_image }}"
+    #     command: "{{ default_container_command }}"
+    #     state: present
+    #   with_sequence: count={{ create_containers }}
+
