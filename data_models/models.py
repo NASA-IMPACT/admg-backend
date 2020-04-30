@@ -71,6 +71,15 @@ class GeophysicalConcepts(LimitedInfo):
     pass
 
 
+class PlatformAlias(BaseModel):
+    short_name = models.CharField(max_length=256, blank=False, unique=True)
+    long_name = models.CharField(max_length=512, blank=True, default = '')
+    source = models.CharField(max_length=2048, blank=True, default = '')
+
+    def __str__(self):
+        return self.short_name
+
+
 class PartnerOrg(BaseModel):
     website = models.CharField(max_length=256)
 
