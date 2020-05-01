@@ -22,7 +22,7 @@ from .models import (
     Deployment,
     IOP,
     SignificantEvent,
-    Flight,
+    CollectionPeriod,
 )
 
 admin.site.register(PlatformType)
@@ -46,4 +46,4 @@ admin.site.register(Instrument)
 admin.site.register(Deployment)
 admin.site.register(IOP)
 admin.site.register(SignificantEvent)
-admin.site.register(Flight)
+admin.site.register(CollectionPeriod)
