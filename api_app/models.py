@@ -157,7 +157,6 @@ class Change(models.Model):
         if self.action == CREATE:
             serializer = serializer_class(data=self.update)
             if serializer.is_valid():
-                self.status = 2  # approved
                 created = serializer.save()
                 return {"uuid": created.uuid, "status": APPROVED_CODE}
             return false_success(serializer.errors)
