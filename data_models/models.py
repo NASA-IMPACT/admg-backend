@@ -174,7 +174,7 @@ class Campaign(DataModel):
     publication_links = models.CharField(max_length=2048, default='', blank=True)
     other_resources = models.CharField(max_length=2048, default='', blank=True) # other urls
 
-    is_ongoing = models.BooleanField()
+    ongoing = models.BooleanField()
     nasa_led = models.BooleanField()
 
     nasa_mission = models.ManyToManyField(NasaMission, related_name='campaigns', default='', blank=True)
@@ -226,7 +226,7 @@ class Platform(DataModel):
     # platform_model = models.CharField(max_length=256)  # TODO: should we even be tracking this?
     desciption = models.CharField(max_length=256)
     online_information = models.CharField(max_length=512, default='', blank=True)
-    is_moving = models.BooleanField()
+    staionary = models.BooleanField()
 
     gcmd_platform = models.ManyToManyField(GcmdPlatform, related_name='platforms', default='', blank=True)  # TODO: double check
 
@@ -324,7 +324,7 @@ class SignificantEvent(IopSe):
     iop = models.ForeignKey(IOP, on_delete=models.CASCADE, related_name='significant_events', null=True) 
     
 
-class Flight(BaseModel):
+class CollectionPeriod(BaseModel):
 
     deployment = models.ForeignKey(Deployment, on_delete=models.CASCADE, related_name='flights')
     platform = models.ForeignKey(Platform, on_delete=models.CASCADE, related_name='flights')
@@ -339,4 +339,11 @@ class Flight(BaseModel):
     notes_internal = models.CharField(max_length=2048, default='', blank=True)
     notes_public = models.CharField(max_length=2048, default='', blank=True)
 
+    num_ventures = models.PositiveIntegerField(null=True, blank=True)
+    auto_generated = models.BooleanField()
+
     instruments = models.ManyToManyField(Instrument, related_name='flights')
+
+    def __str__(self):
+        # TODO: maybe come up with something better? dep_plat_uuid?
+        return self.uuid
