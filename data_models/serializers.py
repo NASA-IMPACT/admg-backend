@@ -9,7 +9,7 @@ def get_geojson_from_bb(bb_data):
     get a geojson input from the bounding box data
 
     Args:
-        bb_data (string) : n, s, e, w (lat/lng)
+        bb_data (string) : comma separated values for bounding box "n, s, e, w" [ (lat/lng) ]
 
     Returns:
         string : geojson format for the bounding box
