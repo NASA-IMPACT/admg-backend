@@ -230,6 +230,7 @@ class Platform(DataModel):
     staionary = models.BooleanField()
 
     gcmd_platform = models.ManyToManyField(GcmdPlatform, related_name='platforms', default='', blank=True)  # TODO: double check
+    platform_alias = models.ManyToManyField(PlatformAlias, related_name='platforms', default='', blank=True)
 
     @property
     def campaigns(self):
