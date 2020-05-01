@@ -5,6 +5,7 @@ from django.contrib.postgres.fields import JSONField
 from django.db import models
 from django.utils.timezone import now
 
+from data_models import serializers as sz
 from admg_webapp.users.models import User, ADMIN
 
 CREATE = 'Create'
@@ -64,6 +65,11 @@ def handle_approve_reject(function):
         # raise error from used functions
         updated = function(self, admin_user, notes)
 
+        # a false success might be triggered, and using not doesn't rule out None
+        if updated.get("success") == False:
+            return updated
+
+        self.status = updated["status"]  # approved/rejected
         self.appr_reject_by = admin_user
         self.notes = notes
         self.appr_reject_date = now()
@@ -74,6 +80,7 @@ def handle_approve_reject(function):
             "updated_model": self.model_name,
             "action": self.action,
             "uuid_changed": updated["uuid"],
+            "status": self.get_status_display()
         }
 
     return wrapper
@@ -111,9 +118,11 @@ class Change(models.Model):
         """
         model = apps.get_model("data_models", self.model_name)
         if self.action != CREATE:
+            serializer_class = getattr(sz, f"{self.model_name}Serializer")
             instance = model.objects.get(uuid=self.model_instance_uuid)
             if self.action == UPDATE:
-                self.previous = {key: getattr(instance, key, None) for key in self.update}
+                serializer = serializer_class(instance)
+                self.previous = {key: getattr(serializer.data, key, None) for key in self.update}
 
     def save(self, *args, post_save=False, **kwargs):
         # do not check for validity of model_name and uuid if it has been approved or rejected.
@@ -143,28 +152,29 @@ class Change(models.Model):
                 message: "In case success is False"
             }
         """
-
+        serializer_class = getattr(sz, f"{self.model_name}Serializer")
         model = apps.get_model("data_models", self.model_name)
         if self.action == CREATE:
-            created = model.objects.create(**self.update)
-            self.status = 2  # approved
-            return {"uuid": created.uuid}
+            serializer = serializer_class(data=self.update)
+            if serializer.is_valid():
+                self.status = 2  # approved
+                created = serializer.save()
+                return {"uuid": created.uuid, "status": APPROVED_CODE}
+            return false_success(serializer.errors)
 
         if not self.model_instance_uuid:
             return false_success("UUID for the model was not found")
 
         # filter because delete and update both work on filter, update doesn't work on get
-        model_instance = model.objects.filter(uuid=self.model_instance_uuid)
-        updated = {"uuid": self.model_instance_uuid}
-
+        model_instance = model.objects.get(uuid=self.model_instance_uuid)
         if self.action == DELETE:
             model_instance.delete()
         else:
-            model_instance.update(**self.update)
-
-        # if everything goes well
-        self.status = APPROVED_CODE  # approved
-        return updated
+            # if not create or delete it is update, allow partial updates by default
+            serializer = serializer_class(model_instance, data=self.update, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+        return {"uuid": self.model_instance_uuid, "status": APPROVED_CODE}
 
     @handle_approve_reject
     def reject(self, admin_user, notes):
@@ -189,5 +199,4 @@ class Change(models.Model):
             }
         """
 
-        self.status = IN_PROGRESS_CODE  # rejected
-        return {"uuid": self.model_instance_uuid}
+        return {"uuid": self.model_instance_uuid, "status": IN_PROGRESS_CODE}
