@@ -8,4 +8,4 @@ RUN pip install -r local.txt
 RUN pip install -r production.txt
 COPY . /code/
 COPY entrypoint.sh /code/
-# ENTRYPOINT ["/code/entrypoint.sh"]
+ENTRYPOINT ["/code/entrypoint.sh"]
