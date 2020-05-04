@@ -60,8 +60,8 @@ def sheet_names(df):
     error = False
     expected_sheet_names = ['Limited Fields', 
                             'NASA Campaigns', 
-                            'Aircraft', 
-                            'Instrument List',
+                            'Platforms', 
+                            'Instruments',
                             'Deployments',
                             'IOPSE',
                             'Partner Orgs',
