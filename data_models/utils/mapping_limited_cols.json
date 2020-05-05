@@ -8,16 +8,6 @@
     "examples":"example",
     "notes":"notes_public" 
   },
-  "aircraft_type":{
-    "Ingest Label":"ignore_ingest_label",
-    "short_name":"short_name",
-    "long_name":"long_name",
-    "description":"ignore_description",
-    "gcmd_translation":"gcmd_translation",
-    "examples":"notes_public",
-    "notes":"ignore_TODO" 
-
-  },
   "instrument_type":{
     "Ingest Label":"ignore_ingest_label",
     "short_name":"short_name",
