@@ -81,7 +81,7 @@ class PartnerOrg(LimitedInfo):
 class Alias(BaseModel):
     
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
-    object_id = models.PositiveIntegerField()
+    object_id = models.UUIDField()
     parent_fk = GenericForeignKey('content_type', 'object_id')
 
     short_name = models.CharField(max_length=256, blank=False, unique=True)
