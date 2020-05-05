@@ -266,8 +266,6 @@ class Instrument(DataModel):
     temporal_resolution = models.CharField(max_length=256)
     radiometric_frequency = models.CharField(max_length=256)
     calibration_information = models.CharField(max_length=1024, default='', blank=True)
-    deployment_date = models.DateField(null=True, blank=True)
-    dates_of_operation = models.CharField(max_length=512, default='', blank=True)
     data_products_per_level = models.CharField(max_length=256, default='', blank=True)
     instrument_manufacturer = models.CharField(max_length=512, default='', blank=True)
     online_information = models.CharField(max_length=2048, default='', blank=True)
