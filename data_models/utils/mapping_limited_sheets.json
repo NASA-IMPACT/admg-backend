@@ -2,9 +2,6 @@
   "platform_type": {
     "sheet_name": "Platform Type"
   },
-  "aircraft_type": {
-    "sheet_name": "Aircraft Type"
-  },
   "home_base": {
     "sheet_name": "Aircraft Home Base"
   },
