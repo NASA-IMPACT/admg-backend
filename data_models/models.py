@@ -1,6 +1,8 @@
 
 import uuid
 
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
 from django.contrib.gis.db import models as geomodels
 from django.contrib.postgres.fields import JSONField
 from django.db import models
@@ -76,7 +78,12 @@ class PartnerOrg(LimitedInfo):
     website = models.CharField(max_length=256)
 
 
-class PlatformAlias(BaseModel):
+class Alias(BaseModel):
+    
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    parent_fk = GenericForeignKey('content_type', 'object_id')
+
     short_name = models.CharField(max_length=256, blank=False, unique=True)
     long_name = models.CharField(max_length=512, blank=True, default = '')
     source = models.CharField(max_length=2048, blank=True, default = '')
@@ -172,6 +179,7 @@ class Campaign(DataModel):
 
     repository_website = models.CharField(max_length=512, default='', blank=True) # repository homepage
     project_website = models.CharField(max_length=512, default='', blank=True) # dedicated homepage
+    tertiary_website = models.CharField(max_length=512, default='', blank=True) # dedicated homepage
     publication_links = models.CharField(max_length=2048, default='', blank=True)
     other_resources = models.CharField(max_length=2048, default='', blank=True) # other urls
 
