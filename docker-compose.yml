@@ -30,7 +30,7 @@ services:
       - .:/code
       - ./staticfiles:/code/staticfiles
     env_file:
-      - env.dev
+      - .env
     expose:
       - 8000
     depends_on:
