@@ -88,6 +88,10 @@ class Alias(BaseModel):
     long_name = models.CharField(max_length=512, blank=True, default = '')
     source = models.CharField(max_length=2048, blank=True, default = '')
 
+    class Meta:
+        verbose_name_plural='Aliases'
+
+
 
 class GcmdProject(BaseModel):
     short_name = models.CharField(max_length=256, blank=False, unique=True)
@@ -179,7 +183,7 @@ class Campaign(DataModel):
 
     repository_website = models.CharField(max_length=512, default='', blank=True) # repository homepage
     project_website = models.CharField(max_length=512, default='', blank=True) # dedicated homepage
-    tertiary_website = models.CharField(max_length=512, default='', blank=True) # dedicated homepage
+    tertiary_website = models.CharField(max_length=512, default='', blank=True) 
     publication_links = models.CharField(max_length=2048, default='', blank=True)
     other_resources = models.CharField(max_length=2048, default='', blank=True) # other urls
 
