@@ -6,13 +6,13 @@
     "data_row": 3
   },
   "platform": {
-    "sheet_name": "Aircraft",
+    "sheet_name": "Platforms",
     "remap_name": "platform",
     "header_row": 1,
     "data_row": 2
   },
   "instrument": {
-    "sheet_name": "Instrument List",
+    "sheet_name": "Instruments",
     "remap_name": "instrument",
     "header_row": 0,
     "data_row": 2
