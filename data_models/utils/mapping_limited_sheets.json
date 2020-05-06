@@ -1,29 +1,29 @@
 {
   "platform_type": {
-    "sheet_name": "Platform Type"
+    "ingest_label": "Platform Type"
   },
   "home_base": {
-    "sheet_name": "Home Base"
+    "ingest_label": "Home Base"
   },
   "repository": {
-    "sheet_name": "Archive Repository"
+    "ingest_label": "Archive Repository"
   },
   "focus_area": {
-    "sheet_name": "Focus Area"
+    "ingest_label": "Focus Area"
   },
   "season": {
-    "sheet_name": "Season"
+    "ingest_label": "Season"
   },
   "instrument_type": {
-    "sheet_name": "Instrument Type"
+    "ingest_label": "Instrument Type"
   },
   "measurement_region": {
-    "sheet_name": "measurement region"
+    "ingest_label": "measurement region"
   },
   "geographical_region": {
-    "sheet_name": "geographical region"
+    "ingest_label": "geographical region"
   },
   "geophysical_concept": {
-    "sheet_name": "geophysical concept"
+    "ingest_label": "geophysical concept"
   }
 }
