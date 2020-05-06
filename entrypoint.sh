@@ -1,6 +1,4 @@
 #!/bin/sh
-echo "printing stuff"​
-echo $DB_NAME
 if [ "$DB_NAME" = "postgres" ]
 then
     echo "Waiting for postgres..."
