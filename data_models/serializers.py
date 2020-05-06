@@ -4,115 +4,115 @@ from rest_framework import serializers
 
 class PlatformTypeSerializer(serializers.ModelSerializer):
     class Meta:
-        model = apps.get_model("platform_type", "PlatformType")
+        model = apps.get_model("data_models", "PlatformType")
         fields = "__all__"
 
 class NasaMissionSerializer(serializers.ModelSerializer):
     class Meta:
-        model = apps.get_model("nasa_mission", "NasaMission")
+        model = apps.get_model("data_models", "NasaMission")
         fields = "__all__"
 
 class InstrumentTypeSerializer(serializers.ModelSerializer):
     class Meta:
-        model = apps.get_model("instrument_type", "InstrumentType")
+        model = apps.get_model("data_models", "InstrumentType")
         fields = "__all__"
 
 class HomeBaseSerializer(serializers.ModelSerializer):
     class Meta:
-        model = apps.get_model("home_base", "HomeBase")
+        model = apps.get_model("data_models", "HomeBase")
         fields = "__all__"
 
 class FocusAreaSerializer(serializers.ModelSerializer):
     class Meta:
-        model = apps.get_model("focus_area", "FocusArea")
+        model = apps.get_model("data_models", "FocusArea")
         fields = "__all__"
 
 class SeasonSerializer(serializers.ModelSerializer):
     class Meta:
-        model = apps.get_model("season", "Season")
+        model = apps.get_model("data_models", "Season")
         fields = "__all__"
 
 class RepositorySerializer(serializers.ModelSerializer):
     class Meta:
-        model = apps.get_model("repository", "Repository")
+        model = apps.get_model("data_models", "Repository")
         fields = "__all__"
 
 class MeasurementRegionSerializer(serializers.ModelSerializer):
     class Meta:
-        model = apps.get_model("measurement_region", "MeasurementRegion")
+        model = apps.get_model("data_models", "MeasurementRegion")
         fields = "__all__"
 
 class GeographicalRegionSerializer(serializers.ModelSerializer):
     class Meta:
-        model = apps.get_model("geographical_region", "GeographicalRegion")
+        model = apps.get_model("data_models", "GeographicalRegion")
         fields = "__all__"
 
 class GeophysicalConceptsSerializer(serializers.ModelSerializer):
     class Meta:
-        model = apps.get_model("geophysical_concepts", "GeophysicalConcepts")
+        model = apps.get_model("data_models", "GeophysicalConcepts")
         fields = "__all__"
 
 class PartnerOrgSerializer(serializers.ModelSerializer):
     class Meta:
-        model = apps.get_model("partner_org", "PartnerOrg")
+        model = apps.get_model("data_models", "PartnerOrg")
         fields = "__all__"
 
 class AliasSerializer(serializers.ModelSerializer):
     class Meta:
-        model = apps.get_model("alias", "Alias")
+        model = apps.get_model("data_models", "Alias")
         fields = "__all__"
 
 class GcmdProjectSerializer(serializers.ModelSerializer):
     class Meta:
-        model = apps.get_model("gcmd_project", "GcmdProject")
+        model = apps.get_model("data_models", "GcmdProject")
         fields = "__all__"
 
 class GcmdInstrumentSerializer(serializers.ModelSerializer):
     class Meta:
-        model = apps.get_model("gcmd_instrument", "GcmdInstrument")
+        model = apps.get_model("data_models", "GcmdInstrument")
         fields = "__all__"
 
 class GcmdPlatformSerializer(serializers.ModelSerializer):
     class Meta:
-        model = apps.get_model("gcmd_platform", "GcmdPlatform")
+        model = apps.get_model("data_models", "GcmdPlatform")
         fields = "__all__"
 
 class GcmdPhenomenaSerializer(serializers.ModelSerializer):
     class Meta:
-        model = apps.get_model("gcmd_phenomena", "GcmdPhenomena")
+        model = apps.get_model("data_models", "GcmdPhenomena")
         fields = "__all__"
 
 class CampaignSerializer(serializers.ModelSerializer):
     class Meta:
-        model = apps.get_model("campaign", "Campaign")
+        model = apps.get_model("data_models", "Campaign")
         fields = "__all__"
 
 class PlatformSerializer(serializers.ModelSerializer):
     class Meta:
-        model = apps.get_model("platform", "Platform")
+        model = apps.get_model("data_models", "Platform")
         fields = "__all__"
 
 class InstrumentSerializer(serializers.ModelSerializer):
     class Meta:
-        model = apps.get_model("instrument", "Instrument")
+        model = apps.get_model("data_models", "Instrument")
         fields = "__all__"
 
 class DeploymentSerializer(serializers.ModelSerializer):
     class Meta:
-        model = apps.get_model("deployment", "Deployment")
+        model = apps.get_model("data_models", "Deployment")
         fields = "__all__"
 
 class IOPSerializer(serializers.ModelSerializer):
     class Meta:
-        model = apps.get_model("iop", "IOP")
+        model = apps.get_model("data_models", "IOP")
         fields = "__all__"
 
 class SignificantEventSerializer(serializers.ModelSerializer):
     class Meta:
-        model = apps.get_model("significant_event", "SignificantEvent")
+        model = apps.get_model("data_models", "SignificantEvent")
         fields = "__all__"
 
 class CollectionPeriodSerializer(serializers.ModelSerializer):
     class Meta:
-        model = apps.get_model("collection_period", "CollectionPeriod")
+        model = apps.get_model("data_models", "CollectionPeriod")
         fields = "__all__"
