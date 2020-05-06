@@ -283,5 +283,4 @@ pip-selfcheck.json
 admg_webapp/media/
 
 .pytest_cache/
-
-
+hosts

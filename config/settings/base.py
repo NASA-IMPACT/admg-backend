@@ -42,33 +42,6 @@ LOCALE_PATHS = [ROOT_DIR.path("locale")]
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#databases
 
-# old settings (delete)
-# DATABASES = {
-#     "default": env.db("DATABASE_URL", default="postgres://localhost/admg_webapp")
-# }
-
-# DATABASES = {
-# <<<<<<< HEAD
-#     'default': {
-#         # 'ENGINE': 'django.db.backends.postgresql',
-#         'ENGINE': 'django.contrib.gis.db.backends.postgis',
-#         'NAME': 'postgres',
-#         'USER': 'postgres',
-#         'PASSWORD': 'postgres',
-#         'HOST': 'db',
-#         'PORT': '5432'
-# =======
-#     "default": {
-#         "ENGINE": "django.contrib.gis.db.backends.postgis",
-#         "NAME": env("DB_NAME"),
-#         "USER": env("DB_USER"),
-#         "PASSWORD": env("DB_PASSWORD"),
-#         "HOST": "localhost",
-#         "PORT": "5432"
-# >>>>>>> dev
-#     }
-# }
-
 DATABASES = {
     "default": {
         "ENGINE": env("DB_ENGINE"),
