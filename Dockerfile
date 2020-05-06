@@ -7,5 +7,7 @@ COPY requirements/ /code/
 RUN pip install -r local.txt
 RUN pip install -r production.txt
 COPY . /code/
+
+RUN chmod +x entrypoint.sh
 COPY entrypoint.sh /code/
 ENTRYPOINT ["/code/entrypoint.sh"]
