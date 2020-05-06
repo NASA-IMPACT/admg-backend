@@ -8,11 +8,6 @@ class PlatformTypeSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class AircraftTypeSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = apps.get_model("data_models", "AircraftType")
-        fields = "__all__"
-
 
 class InstrumentTypeSerializer(serializers.ModelSerializer):
     class Meta:

@@ -33,7 +33,6 @@ schema_view = get_schema_view(
 
 urls = [
     "PlatformType",
-    "AircraftType",
     "InstrumentType",
     "HomeBase",
     "FocusArea",
