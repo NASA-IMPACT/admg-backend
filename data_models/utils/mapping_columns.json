@@ -94,8 +94,8 @@
     "Who filled in": "ignore_collector"
   },
   "deployment": {
-    "campaign_shortname": "foriegn_campaign_short_name",
-    "deployment_id": "deployment_id",
+    "campaign shortname": "foriegn_campaign_short_name",
+    "ADMG deployment name": "deployment_id",
     "start_date": "start_date",
     "end_date": "end_date",
     "number flights": "number_flights",
@@ -121,17 +121,18 @@
     "Specific file to reference": "reference_file"
   },
   "linking": {
-    "campaign short_name": "foriegn_campaign_short_name",
-    "Deployments": "foriegn_deployment",
-    "ADMG aircraft short_name": "platform",
+    "Campaign Shortname": "foriegn_campaign_short_name",
+    "ADMG Deployment Name": "foriegn_deployment",
+    "Platform Shortname": "platform",
     "Aircraft ASP Longname(s)": "asp_long_name",
-    "Tail Number from ASP - if avail": "tail_number",
-    "Aircraft Home Base - if avail": "home_base",
-    "Aircraft Campaign Deployment Base  - if avail": "campaign_deployment_base",
-    "Aircraft Owner/Organization - if avail": "platform_owner",
-    "Aircraft Technical Contact": "platform_technical_contact",
-    "Instrument Shortname(s)": "table_instrument",
-    "Instrument Information Source(s)": "instrument_information_source",
+    "Platform Identifier": "platform_identifier",
+    "Platform Home Base - if avail": "home_base",
+    "Platform Deployment Base  - if avail": "campaign_deployment_base",
+    "Platform Owner/Organization": "platform_owner",
+    "Platform Technical Contact": "platform_technical_contact",
+    "ADMG Instrument Shortname(s)": "table_instrument",
+    "Instrument Package Information Source(s)": "instrument_information_source",
+    "Stationary/Fixed platform Locations Info (link/URL, if available)":"location_info",
     "Notes": "notes_internal"
   },
   "gcmd_phenomena": {
