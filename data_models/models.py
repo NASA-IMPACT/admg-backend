@@ -197,7 +197,7 @@ class Campaign(DataModel):
     platform_types = models.ManyToManyField(PlatformType, related_name='campaigns')
     partner_orgs = models.ManyToManyField(PartnerOrg, related_name='campaigns', default='', blank=True)
     gcmd_phenomenas = models.ManyToManyField(GcmdPhenomena, related_name='campaigns')
-    gcmd_project = models.ManyToManyField(GcmdProject, related_name='campaigns', default='', blank=True)
+    gcmd_projects = models.ManyToManyField(GcmdProject, related_name='campaigns', default='', blank=True)
     geophysical_concepts = models.ManyToManyField(GeophysicalConcept, related_name='campaigns')
 
     @property
@@ -240,7 +240,7 @@ class Platform(DataModel):
     online_information = models.CharField(max_length=512, default='', blank=True)
     staionary = models.BooleanField()
 
-    gcmd_platform = models.ManyToManyField(GcmdPlatform, related_name='platforms', default='', blank=True)
+    gcmd_platforms = models.ManyToManyField(GcmdPlatform, related_name='platforms', default='', blank=True)
 
     @property
     def campaigns(self):
