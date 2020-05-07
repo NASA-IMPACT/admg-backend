@@ -4,7 +4,7 @@
     "short_name":"short_name",
     "long_name":"long_name",
     "description":"ignore_gcmd_translation",
-    "gcmd_translation":"gcmd_translation",
+    "gcmd_translation":"gcmd_uuid",
     "examples":"example",
     "notes":"notes_public",
     "parent":"parent"
@@ -14,7 +14,7 @@
     "short_name":"short_name",
     "long_name":"long_name",
     "description":"ignore_gcmd_translation",
-    "gcmd_translation":"gcmd_translation",
+    "gcmd_translation":"gcmd_uuid",
     "examples":"example",
     "notes":"notes_public",
     "parent":"parent"
@@ -34,7 +34,7 @@
     "short_name":"short_name",
     "long_name":"long_name",
     "description":"ignore_gcmd_translation",
-    "gcmd_translation":"gcmd_translation",
+    "gcmd_translation":"gcmd_uuid",
     "examples":"ignore_blank",
     "notes":"notes_public",
     "parent":"ignore_parent"
@@ -64,7 +64,7 @@
     "short_name":"short_name",
     "long_name":"long_name",
     "description":"ignore_gcmd_translation",
-    "gcmd_translation":"gcmd_translation",
+    "gcmd_translation":"gcmd_uuid",
     "examples":"example",
     "notes":"notes_public",
     "parent":"ignore_parent"
@@ -74,7 +74,7 @@
     "short_name":"short_name",
     "long_name":"long_name",
     "description":"ignore_gcmd_translation",
-    "gcmd_translation":"gcmd_translation",
+    "gcmd_translation":"gcmd_uuid",
     "examples":"example",
     "notes":"notes_public",
     "parent":"ignore_parent"
@@ -84,7 +84,7 @@
     "short_name":"short_name",
     "long_name":"long_name",
     "description":"ignore_gcmd_translation",
-    "gcmd_translation":"gcmd_translation",
+    "gcmd_translation":"gcmd_uuid",
     "examples":"example",
     "notes":"notes_public",
     "parent":"ignore_parent"
