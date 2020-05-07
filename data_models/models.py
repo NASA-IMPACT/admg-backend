@@ -175,7 +175,7 @@ class Campaign(DataModel):
     technical_contact = models.CharField(max_length=256, default='', blank=True)
     # nonaircraft_platforms = models.CharField(max_length=1024, default='', blank=True)
     # nonaircraft_instruments = models.CharField(max_length=1024, default='', blank=True)
-    number_flights = models.PositiveIntegerField()
+    number_collection_periods = models.PositiveIntegerField()
     doi = models.CharField(max_length=1024, default='', blank=True)
     number_data_products = models.PositiveIntegerField(null=True, blank=True)
     data_volume = models.CharField(max_length=256, null=True, blank=True)
