@@ -70,7 +70,7 @@ class GeographicalRegion(LimitedInfo):
     pass
 
 
-class GeophysicalConcepts(LimitedInfo):
+class GeophysicalConcept(LimitedInfo):
     pass
 
 
@@ -198,7 +198,7 @@ class Campaign(DataModel):
     partner_orgs = models.ManyToManyField(PartnerOrg, related_name='campaigns', default='', blank=True)
     gcmd_phenomenas = models.ManyToManyField(GcmdPhenomena, related_name='campaigns')
     gcmd_project = models.ManyToManyField(GcmdProject, related_name='campaigns', default='', blank=True)
-    geophysical_concepts = models.ManyToManyField(GeophysicalConcepts, related_name='campaigns')
+    geophysical_concepts = models.ManyToManyField(GeophysicalConcept, related_name='campaigns')
 
     @property
     def significant_events(self):
@@ -279,7 +279,7 @@ class Instrument(DataModel):
     gcmd_phenomenas = models.ManyToManyField(GcmdPhenomena, related_name='instruments')
     measurement_regions = models.ManyToManyField(MeasurementRegion, related_name='instruments')
     repositories = models.ManyToManyField(Repository, related_name='instruments', default='', blank=True)
-    geophysical_concepts = models.ManyToManyField(GeophysicalConcepts, related_name='instruments')
+    geophysical_concepts = models.ManyToManyField(GeophysicalConcept, related_name='instruments')
 
     @property
     def campaigns(self):
