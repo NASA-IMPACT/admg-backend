@@ -10,7 +10,7 @@ from .models import (
     Repository,
     MeasurementRegion,
     GeographicalRegion,
-    GeophysicalConcepts,
+    GeophysicalConcept,
     PartnerOrg,
     GcmdProject,
     GcmdInstrument,
@@ -35,7 +35,7 @@ admin.site.register(Season)
 admin.site.register(Repository)
 admin.site.register(MeasurementRegion)
 admin.site.register(GeographicalRegion)
-admin.site.register(GeophysicalConcepts)
+admin.site.register(GeophysicalConcept)
 admin.site.register(PartnerOrg)
 admin.site.register(GcmdProject)
 admin.site.register(GcmdInstrument)
