@@ -103,9 +103,9 @@ class GcmdProject(BaseModel):
 class GcmdInstrument(BaseModel):
     short_name = models.CharField(max_length=256, blank=False, unique=True)
     long_name = models.CharField(max_length=512, blank=True, default = '')
-    instrument_category = models.CharField(max_length=256, blank=True, default = '')
-    instrument_class = models.CharField(max_length=256, blank=True, default = '')
-    instrument_type = models.CharField(max_length=256, blank=True, default = '')
+    instrument_category = models.CharField(max_length=256, blank=True, default = '') # these make more sense without 'instrument'
+    instrument_class = models.CharField(max_length=256, blank=True, default = '') # however class and type are default variables
+    instrument_type = models.CharField(max_length=256, blank=True, default = '') # so instrument was added to all 4 for consistency
     instrument_subtype = models.CharField(max_length=256, blank=True, default = '')
     gcmd_uuid = models.UUIDField()
 
