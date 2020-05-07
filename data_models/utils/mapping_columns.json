@@ -61,7 +61,7 @@
     "ADMG's Platform Shortname": "short_name",
     "ADMG's Platform Longname": "long_name",
     "Platform Aliases":"table_aliases",
-    "Platform Type": "foreign_aircraft_type",
+    "Platform Type": "foreign_platform_type",
     "Platform CAN Move?":"staionary",
     "Platform Description": "description",
     "Campaigns": "ignore_campaigns",
@@ -124,7 +124,7 @@
     "aircraft flown": "table_platform",
     "notes": "notes_public",
     "Study Region Bounds/Map": "ignore_study_map",
-    "Field/Gound Site Map": "ignore_field_map",
+    "Field/Ground Site Map": "ignore_field_map",
     "Flight Track(s)": "ignore_flight_tracks"
   },
   "iopse": {
@@ -156,7 +156,7 @@
     "Notes": "notes_internal"
   },
   "gcmd_phenomena": {
-    "Internal 4-digit code": "code",
+    "Internal 4-digit code": "table_code",
     "Category": "category",
     "Topic": "topic",
     "Term": "term",
