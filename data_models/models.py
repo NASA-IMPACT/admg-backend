@@ -63,11 +63,11 @@ class Season(LimitedInfo):
 
 
 class Repository(LimitedInfo):
-    gcmd_uuid = models.UUIDField()
+    gcmd_uuid = models.UUIDField(null=True, blank=True)
     
 
 class MeasurementRegion(LimitedInfo):
-    pass
+    gcmd_uuid = models.UUIDField(null=True, blank=True)
 
 
 class GeographicalRegion(LimitedInfo):
