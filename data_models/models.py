@@ -236,7 +236,7 @@ class Platform(DataModel):
 
     platform_type = models.ForeignKey(PlatformType, on_delete=models.SET_NULL, related_name='platforms', null=True)
 
-    desciption = models.CharField(max_length=256)
+    description = models.CharField(max_length=256)
     online_information = models.CharField(max_length=512, default='', blank=True)
     staionary = models.BooleanField()
 
