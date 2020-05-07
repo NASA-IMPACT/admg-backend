@@ -68,14 +68,17 @@ class Repository(LimitedInfo):
 
 class MeasurementRegion(LimitedInfo):
     gcmd_uuid = models.UUIDField(null=True, blank=True)
+    example = models.CharField(max_length=256, blank=True, default = '')
 
 
 class GeographicalRegion(LimitedInfo):
-    pass
+    gcmd_uuid = models.UUIDField(null=True, blank=True)
+    example = models.CharField(max_length=256, blank=True, default = '')
 
 
 class GeophysicalConcept(LimitedInfo):
-    pass
+    gcmd_uuid = models.UUIDField(null=True, blank=True)
+    example = models.CharField(max_length=256, blank=True, default = '')
 
 
 class PartnerOrg(LimitedInfo):
