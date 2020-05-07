@@ -35,7 +35,7 @@ class LimitedInfo(BaseModel):
 class PlatformType(LimitedInfo):
     parent = models.ForeignKey('PlatformType', on_delete=models.CASCADE, related_name='sub_types', null=True, blank=True)
     
-    gcmd_translation = models.UUIDField(null=True, blank=True)
+    gcmd_uuid = models.UUIDField(null=True, blank=True)
     example = models.CharField(max_length=256, blank=True, default = '')
 
 
@@ -43,23 +43,23 @@ class NasaMission(LimitedInfo):
     pass
 
 class InstrumentType(LimitedInfo):
-    gcmd_translation = models.UUIDField()
+    gcmd_uuid = models.UUIDField()
     
 
 class HomeBase(LimitedInfo):
-    gcmd_translation = models.UUIDField()
+    gcmd_uuid = models.UUIDField()
     
 
 class FocusArea(LimitedInfo):
     url = models.CharField(max_length=256, blank=True, default = '')
-    
+
 
 class Season(LimitedInfo):
     pass
 
 
 class Repository(LimitedInfo):
-    gcmd_translation = models.UUIDField()
+    gcmd_uuid = models.UUIDField()
     
 
 class MeasurementRegion(LimitedInfo):
