@@ -1,8 +1,8 @@
-import pandas as pd
 import json
+import pandas as pd
 import validate
+
 from general import many_to_many, many_cols
-import ingest
 
 
 def rename_columns(db, table_name, remap_dict):
