@@ -41,7 +41,7 @@ urls = [
     "Repository",
     "MeasurementRegion",
     "GeographicalRegion",
-    "GeophysicalConcepts",
+    "GeophysicalConcept",
     "PartnerOrg",
     "Alias",
     "GcmdProject",

@@ -47,9 +47,9 @@ class GeographicalRegionSerializer(serializers.ModelSerializer):
         model = apps.get_model("data_models", "GeographicalRegion")
         fields = "__all__"
 
-class GeophysicalConceptsSerializer(serializers.ModelSerializer):
+class GeophysicalConceptSerializer(serializers.ModelSerializer):
     class Meta:
-        model = apps.get_model("data_models", "GeophysicalConcepts")
+        model = apps.get_model("data_models", "GeophysicalConcept")
         fields = "__all__"
 
 class PartnerOrgSerializer(serializers.ModelSerializer):

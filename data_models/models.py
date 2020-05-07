@@ -35,7 +35,7 @@ class LimitedInfo(BaseModel):
 class PlatformType(LimitedInfo):
     parent = models.ForeignKey('PlatformType', on_delete=models.CASCADE, related_name='sub_types', null=True, blank=True)
     
-    gcmd_translation = models.UUIDField(null=True, blank=True)
+    gcmd_uuid = models.UUIDField(null=True, blank=True)
     example = models.CharField(max_length=256, blank=True, default = '')
 
 
@@ -43,15 +43,15 @@ class NasaMission(LimitedInfo):
     pass
 
 class InstrumentType(LimitedInfo):
-    gcmd_translation = models.UUIDField()
+    gcmd_uuid = models.UUIDField()
     
 
 class HomeBase(LimitedInfo):
-    gcmd_translation = models.UUIDField()
+    gcmd_uuid = models.UUIDField()
     
 
 class FocusArea(LimitedInfo):
-    pass
+    url = models.CharField(max_length=256, blank=True, default = '')
 
 
 class Season(LimitedInfo):
@@ -59,7 +59,7 @@ class Season(LimitedInfo):
 
 
 class Repository(LimitedInfo):
-    gcmd_translation = models.UUIDField()
+    gcmd_uuid = models.UUIDField()
     
 
 class MeasurementRegion(LimitedInfo):
@@ -70,7 +70,7 @@ class GeographicalRegion(LimitedInfo):
     pass
 
 
-class GeophysicalConcepts(LimitedInfo):
+class GeophysicalConcept(LimitedInfo):
     pass
 
 
@@ -103,9 +103,9 @@ class GcmdProject(BaseModel):
 class GcmdInstrument(BaseModel):
     short_name = models.CharField(max_length=256, blank=False, unique=True)
     long_name = models.CharField(max_length=512, blank=True, default = '')
-    instrument_category = models.CharField(max_length=256, blank=True, default = '')
-    instrument_class = models.CharField(max_length=256, blank=True, default = '')
-    instrument_type = models.CharField(max_length=256, blank=True, default = '')
+    instrument_category = models.CharField(max_length=256, blank=True, default = '') # these make more sense without 'instrument'
+    instrument_class = models.CharField(max_length=256, blank=True, default = '') # however class and type are default variables
+    instrument_type = models.CharField(max_length=256, blank=True, default = '') # so instrument was added to all 4 for consistency
     instrument_subtype = models.CharField(max_length=256, blank=True, default = '')
     gcmd_uuid = models.UUIDField()
 
@@ -173,9 +173,9 @@ class Campaign(DataModel):
     funding_program_lead = models.CharField(max_length=256, default='', blank=True)
     lead_investigator = models.CharField(max_length=256)
     technical_contact = models.CharField(max_length=256, default='', blank=True)
-    nonaircraft_platforms = models.CharField(max_length=1024, default='', blank=True)
-    nonaircraft_instruments = models.CharField(max_length=1024, default='', blank=True)
-    number_flights = models.PositiveIntegerField()
+    # nonaircraft_platforms = models.CharField(max_length=1024, default='', blank=True)
+    # nonaircraft_instruments = models.CharField(max_length=1024, default='', blank=True)
+    number_collection_periods = models.PositiveIntegerField()
     doi = models.CharField(max_length=1024, default='', blank=True)
     number_data_products = models.PositiveIntegerField(null=True, blank=True)
     data_volume = models.CharField(max_length=256, null=True, blank=True)
@@ -197,8 +197,8 @@ class Campaign(DataModel):
     platform_types = models.ManyToManyField(PlatformType, related_name='campaigns')
     partner_orgs = models.ManyToManyField(PartnerOrg, related_name='campaigns', default='', blank=True)
     gcmd_phenomenas = models.ManyToManyField(GcmdPhenomena, related_name='campaigns')
-    gcmd_project = models.ManyToManyField(GcmdProject, related_name='campaigns', default='', blank=True)
-    geophysical_concepts = models.ManyToManyField(GeophysicalConcepts, related_name='campaigns')
+    gcmd_projects = models.ManyToManyField(GcmdProject, related_name='campaigns', default='', blank=True)
+    geophysical_concepts = models.ManyToManyField(GeophysicalConcept, related_name='campaigns')
 
     @property
     def significant_events(self):
@@ -240,7 +240,7 @@ class Platform(DataModel):
     online_information = models.CharField(max_length=512, default='', blank=True)
     staionary = models.BooleanField()
 
-    gcmd_platform = models.ManyToManyField(GcmdPlatform, related_name='platforms', default='', blank=True)
+    gcmd_platforms = models.ManyToManyField(GcmdPlatform, related_name='platforms', default='', blank=True)
 
     @property
     def campaigns(self):
@@ -279,7 +279,7 @@ class Instrument(DataModel):
     gcmd_phenomenas = models.ManyToManyField(GcmdPhenomena, related_name='instruments')
     measurement_regions = models.ManyToManyField(MeasurementRegion, related_name='instruments')
     repositories = models.ManyToManyField(Repository, related_name='instruments', default='', blank=True)
-    geophysical_concepts = models.ManyToManyField(GeophysicalConcepts, related_name='instruments')
+    geophysical_concepts = models.ManyToManyField(GeophysicalConcept, related_name='instruments')
 
     @property
     def campaigns(self):
