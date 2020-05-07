@@ -43,7 +43,10 @@ class NasaMission(LimitedInfo):
     pass
 
 class InstrumentType(LimitedInfo):
-    gcmd_uuid = models.UUIDField()
+    parent = models.ForeignKey('InstrumentType', on_delete=models.CASCADE, related_name='sub_types', null=True, blank=True)
+    
+    gcmd_uuid = models.UUIDField(null=True, blank=True)
+    example = models.CharField(max_length=256, blank=True, default = '')
     
 
 class HomeBase(LimitedInfo):
