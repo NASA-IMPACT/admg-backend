@@ -47,7 +47,8 @@ class InstrumentType(LimitedInfo):
     
 
 class HomeBase(LimitedInfo):
-    gcmd_uuid = models.UUIDField()
+    location = models.CharField(max_length=512, blank=True, default = '')
+    additional_info = models.CharField(max_length=2048, blank=True, default = '')
     
 
 class FocusArea(LimitedInfo):
