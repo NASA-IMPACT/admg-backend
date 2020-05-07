@@ -19,6 +19,7 @@ def many_cols(col_names):
 
 
 def many_to_many(db, table_name, many_col, keep_all=False):
+    name = many_col.split('-')[1]
 
     if keep_all:
         df = db[table_name].copy()
@@ -33,6 +34,6 @@ def many_to_many(db, table_name, many_col, keep_all=False):
            for col in df.columns.drop(many_col)}
         ).assign(**{many_col:np.concatenate(df[many_col].values)})[df.columns]
     
-    result.rename(columns={'short_name':table_name, many_col:many_col.replace('table_','')}, inplace=True)    
+    result.rename(columns={'short_name':table_name, many_col:name}, inplace=True)    
     
     return result
