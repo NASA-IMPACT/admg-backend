@@ -51,8 +51,8 @@ class HomeBase(LimitedInfo):
     
 
 class FocusArea(LimitedInfo):
-    pass
-
+    url = models.CharField(max_length=256, blank=True, default = '')
+    
 
 class Season(LimitedInfo):
     pass
