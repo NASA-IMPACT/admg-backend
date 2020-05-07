@@ -43,11 +43,15 @@ class NasaMission(LimitedInfo):
     pass
 
 class InstrumentType(LimitedInfo):
-    gcmd_uuid = models.UUIDField()
+    parent = models.ForeignKey('InstrumentType', on_delete=models.CASCADE, related_name='sub_types', null=True, blank=True)
+    
+    gcmd_uuid = models.UUIDField(null=True, blank=True)
+    example = models.CharField(max_length=256, blank=True, default = '')
     
 
 class HomeBase(LimitedInfo):
-    gcmd_uuid = models.UUIDField()
+    location = models.CharField(max_length=512, blank=True, default = '')
+    additional_info = models.CharField(max_length=2048, blank=True, default = '')
     
 
 class FocusArea(LimitedInfo):
@@ -59,11 +63,11 @@ class Season(LimitedInfo):
 
 
 class Repository(LimitedInfo):
-    gcmd_uuid = models.UUIDField()
+    gcmd_uuid = models.UUIDField(null=True, blank=True)
     
 
 class MeasurementRegion(LimitedInfo):
-    pass
+    gcmd_uuid = models.UUIDField(null=True, blank=True)
 
 
 class GeographicalRegion(LimitedInfo):
@@ -236,7 +240,7 @@ class Platform(DataModel):
 
     platform_type = models.ForeignKey(PlatformType, on_delete=models.SET_NULL, related_name='platforms', null=True)
 
-    desciption = models.CharField(max_length=256)
+    description = models.CharField(max_length=256)
     online_information = models.CharField(max_length=512, default='', blank=True)
     staionary = models.BooleanField()
 
@@ -269,7 +273,6 @@ class Instrument(DataModel):
     temporal_resolution = models.CharField(max_length=256)
     radiometric_frequency = models.CharField(max_length=256)
     calibration_information = models.CharField(max_length=1024, default='', blank=True)
-    data_products_per_level = models.CharField(max_length=256, default='', blank=True)
     instrument_manufacturer = models.CharField(max_length=512, default='', blank=True)
     online_information = models.CharField(max_length=2048, default='', blank=True)
     instrument_doi = models.CharField(max_length=1024, default='', blank=True)
