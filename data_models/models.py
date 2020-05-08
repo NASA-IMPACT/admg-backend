@@ -35,7 +35,7 @@ class LimitedInfo(BaseModel):
 class PlatformType(LimitedInfo):
     parent = models.ForeignKey('PlatformType', on_delete=models.CASCADE, related_name='sub_types', null=True, blank=True)
     
-    gcmd_uuid = models.UUIDField(null=True, blank=True)
+    gcmd_uuid = models.TextField(max_length=2048, null=True, blank=True)
     example = models.CharField(max_length=256, blank=True, default = '')
 
 
@@ -45,7 +45,7 @@ class NasaMission(LimitedInfo):
 class InstrumentType(LimitedInfo):
     parent = models.ForeignKey('InstrumentType', on_delete=models.CASCADE, related_name='sub_types', null=True, blank=True)
     
-    gcmd_uuid = models.UUIDField(null=True, blank=True)
+    gcmd_uuid = models.TextField(max_length=2048, null=True, blank=True)
     example = models.CharField(max_length=256, blank=True, default = '')
     
 
@@ -63,27 +63,27 @@ class Season(LimitedInfo):
 
 
 class Repository(LimitedInfo):
-    gcmd_uuid = models.UUIDField(null=True, blank=True)
+    gcmd_uuid = models.TextField(max_length=2048, null=True, blank=True)
     
 
 class MeasurementRegion(LimitedInfo):
-    gcmd_uuid = models.UUIDField(null=True, blank=True)
+    gcmd_uuid = models.TextField(max_length=2048, null=True, blank=True)
     example = models.CharField(max_length=256, blank=True, default = '')
 
 
 class GeographicalRegion(LimitedInfo):
-    gcmd_uuid = models.UUIDField(null=True, blank=True)
+    gcmd_uuid = models.TextField(max_length=2048, null=True, blank=True)
     example = models.CharField(max_length=256, blank=True, default = '')
 
 
 class GeophysicalConcept(LimitedInfo):
-    gcmd_uuid = models.UUIDField(null=True, blank=True)
+    gcmd_uuid = models.TextField(max_length=2048, null=True, blank=True)
     example = models.CharField(max_length=256, blank=True, default = '')
 
 
 class PartnerOrg(LimitedInfo):
     website = models.CharField(max_length=256)
-
+    other_resources = models.TextField(max_length=2048, null=True, blank=True)
 
 class Alias(BaseModel):
     
@@ -104,7 +104,7 @@ class GcmdProject(BaseModel):
     short_name = models.CharField(max_length=256, blank=False, unique=True)
     long_name = models.CharField(max_length=512, blank=True, default = '')
     bucket = models.CharField(max_length=256)
-    gcmd_uuid = models.UUIDField()
+    gcmd_uuid = models.TextField(max_length=2048, null=True, blank=True)
 
 
 class GcmdInstrument(BaseModel):
@@ -114,7 +114,7 @@ class GcmdInstrument(BaseModel):
     instrument_class = models.CharField(max_length=256, blank=True, default = '') # however class and type are default variables
     instrument_type = models.CharField(max_length=256, blank=True, default = '') # so instrument was added to all 4 for consistency
     instrument_subtype = models.CharField(max_length=256, blank=True, default = '')
-    gcmd_uuid = models.UUIDField()
+    gcmd_uuid = models.TextField(max_length=2048, null=True, blank=True)
 
 
 class GcmdPlatform(BaseModel):
@@ -123,7 +123,7 @@ class GcmdPlatform(BaseModel):
     category = models.CharField(max_length=256)
     series_entry = models.CharField(max_length=256)
     description = models.CharField(max_length=256)
-    gcmd_uuid = models.UUIDField()
+    gcmd_uuid = models.TextField(max_length=2048, null=True, blank=True)
 
 
 class GcmdPhenomena(BaseModel):
@@ -133,7 +133,7 @@ class GcmdPhenomena(BaseModel):
     variable_1 = models.CharField(max_length=256, blank=True, default = '')
     variable_2 = models.CharField(max_length=256, blank=True, default = '')
     variable_3 = models.CharField(max_length=256, blank=True, default = '')
-    gcmd_uuid = models.UUIDField()
+    gcmd_uuid = models.TextField(max_length=2048, null=True, blank=True)
 
     def __str__(self):
         # TODO: is there a cleaner way to do this?
@@ -281,11 +281,11 @@ class Instrument(DataModel):
     instrument_doi = models.CharField(max_length=1024, default='', blank=True)
 
     gcmd_instruments = models.ManyToManyField(GcmdInstrument, related_name='instruments', default='', blank=True)
-    instrument_types = models.ManyToManyField(InstrumentType, related_name='instruments')
-    gcmd_phenomenas = models.ManyToManyField(GcmdPhenomena, related_name='instruments')
-    measurement_regions = models.ManyToManyField(MeasurementRegion, related_name='instruments')
+    instrument_types = models.ManyToManyField(InstrumentType, related_name='instruments', default='', blank=True)
+    gcmd_phenomenas = models.ManyToManyField(GcmdPhenomena, related_name='instruments', default='', blank=True)
+    measurement_regions = models.ManyToManyField(MeasurementRegion, related_name='instruments', default='', blank=True)
     repositories = models.ManyToManyField(Repository, related_name='instruments', default='', blank=True)
-    geophysical_concepts = models.ManyToManyField(GeophysicalConcept, related_name='instruments')
+    geophysical_concepts = models.ManyToManyField(GeophysicalConcept, related_name='instruments', default='', blank=True)
 
     @property
     def campaigns(self):
