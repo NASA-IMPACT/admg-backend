@@ -7,7 +7,7 @@
     "gcmd_translation":"gcmd_uuid",
     "examples":"example",
     "notes":"notes_public",
-    "parent":"parent"
+    "parent":"foreign-platform_type-short_name"
   },
   "instrument_type":{
     "Ingest Label":"ignore_ingest_label",
@@ -17,7 +17,7 @@
     "gcmd_translation":"gcmd_uuid",
     "examples":"example",
     "notes":"notes_public",
-    "parent":"parent"
+    "parent":"foreign-platform_type-short_name"
   },
   "home_base":{
     "Ingest Label":"ignore_ingest_label",
