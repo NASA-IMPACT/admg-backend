@@ -285,3 +285,4 @@ admg_webapp/media/
 .pytest_cache/
 .ipynb_checkpoints/
 
+hosts
