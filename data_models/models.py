@@ -358,7 +358,7 @@ class CollectionPeriod(BaseModel):
     num_ventures = models.PositiveIntegerField(null=True, blank=True)
     auto_generated = models.BooleanField(default=True, blank=True)
 
-    instruments = models.ManyToManyField(Instrument, related_name='flights', default='', blank=True, null=True)
+    instruments = models.ManyToManyField(Instrument, related_name='flights', default='', blank=True)
 
     def __str__(self):
         # TODO: maybe come up with something better? dep_plat_uuid?
