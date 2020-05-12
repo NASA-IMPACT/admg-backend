@@ -50,96 +50,80 @@ class PlatformTypeSerializer(serializers.ModelSerializer):
         model = models.PlatformType
         fields = "__all__"
 
-
-class AircraftTypeSerializer(serializers.ModelSerializer):
+class NasaMissionSerializer(serializers.ModelSerializer):
     class Meta:
-        model = models.AircraftType
+        model = models.NasaMission
         fields = "__all__"
-
 
 class InstrumentTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.InstrumentType
         fields = "__all__"
 
-
 class HomeBaseSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.HomeBase
         fields = "__all__"
-
 
 class FocusAreaSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.FocusArea
         fields = "__all__"
 
-
 class SeasonSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Season
         fields = "__all__"
-
 
 class RepositorySerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Repository
         fields = "__all__"
 
-
 class MeasurementRegionSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.MeasurementRegion
         fields = "__all__"
-
-
-class MeasurementKeywordSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = models.MeasurementKeyword
-        fields = "__all__"
-
 
 class GeographicalRegionSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.GeographicalRegion
         fields = "__all__"
 
-
-class GeophysicalConceptsSerializer(serializers.ModelSerializer):
+class GeophysicalConceptSerializer(serializers.ModelSerializer):
     class Meta:
-        model = models.GeophysicalConcepts
+        model = models.GeophysicalConcept
         fields = "__all__"
-
-
-class GcmdPhenomenaSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = models.GcmdPhenomena
-        fields = "__all__"
-
-
-class GcmdProjectSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = models.GcmdProject
-        fields = "__all__"
-
-
-class GcmdPlatformSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = models.GcmdPlatform
-        fields = "__all__"
-
-
-class GcmdInstrumentSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = models.GcmdInstrument
-        fields = "__all__"
-
 
 class PartnerOrgSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.PartnerOrg
         fields = "__all__"
 
+class AliasSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Alias
+        fields = "__all__"
+
+class GcmdProjectSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.GcmdProject
+        fields = "__all__"
+
+class GcmdInstrumentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.GcmdInstrument
+        fields = "__all__"
+
+class GcmdPlatformSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.GcmdPlatform
+        fields = "__all__"
+
+class GcmdPhenomenaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.GcmdPhenomena
+        fields = "__all__"
 
 class CampaignSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
@@ -154,38 +138,32 @@ class CampaignSerializer(serializers.ModelSerializer):
         model = models.Campaign
         fields = "__all__"
 
-
 class PlatformSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Platform
         fields = "__all__"
-
 
 class InstrumentSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Instrument
         fields = "__all__"
 
-
 class DeploymentSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Deployment
         fields = "__all__"
-
 
 class IOPSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.IOP
         fields = "__all__"
 
-
 class SignificantEventSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.SignificantEvent
         fields = "__all__"
 
-
-class FlightSerializer(serializers.ModelSerializer):
+class CollectionPeriodSerializer(serializers.ModelSerializer):
     class Meta:
-        model = models.Flight
+        model = models.CollectionPeriod
         fields = "__all__"
