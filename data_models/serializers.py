@@ -1,6 +1,48 @@
-from django.apps import apps
+import json
 from rest_framework import serializers
+from django.contrib.gis.geos import GEOSGeometry
 from data_models import models
+
+
+def get_geojson_from_bb(bb_data):
+    """
+    get a geojson input from the bounding box data
+
+    Args:
+        bb_data (string) : comma separated values for bounding box "n, s, e, w" [ (lat/lng) ]
+
+    Returns:
+        string : geojson format for the bounding box
+    """
+    n, s, e, w = [float(coord) for coord in bb_data.split(',')]
+    retval = {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [e, n], [e, s], [w, s], [w, n], [e, n],
+            ]
+        ]
+    }
+    return json.dumps(retval)
+
+
+def change_bbox_to_polygon(validated_data, key="spatial_bounds"):
+    """
+    change the key to geojson polygon field
+
+    Args:
+        validated_data (dict) : the incoming data
+        key (string) : the key that is to be changed
+
+    Returns:
+        dict : dictionary of the changed validated data
+    """
+    bb_data = validated_data.get(key)
+    if bb_data:
+        geojson = get_geojson_from_bb(bb_data)
+        polygon = GEOSGeometry(geojson)
+        validated_data[key] = polygon
+    return validated_data
 
 
 class PlatformTypeSerializer(serializers.ModelSerializer):
@@ -84,6 +126,14 @@ class GcmdPhenomenaSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 class CampaignSerializer(serializers.ModelSerializer):
+    def create(self, validated_data):
+        validated_data = change_bbox_to_polygon(validated_data)
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data, **kwargs):
+        validated_data = change_bbox_to_polygon(validated_data)
+        return super().update(instance, validated_data, **kwargs)
+
     class Meta:
         model = models.Campaign
         fields = "__all__"
