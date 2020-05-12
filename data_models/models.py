@@ -158,8 +158,8 @@ class GcmdPhenomena(BaseModel):
 
 
 class DataModel(BaseModel):
-    short_name = models.CharField(max_length=256)
-    long_name = models.CharField(max_length=512, blank=False, unique=True)
+    short_name = models.CharField(max_length=256, blank=False, unique=True)
+    long_name = models.CharField(max_length=512)
     notes_internal = models.CharField(max_length=16384, default='', blank=True)
     notes_public = models.CharField(max_length=16384, default='', blank=True)
 
