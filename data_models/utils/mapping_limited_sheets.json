@@ -1,0 +1,29 @@
+{
+  "platform_type": {
+    "ingest_label": "Platform Type"
+  },
+  "home_base": {
+    "ingest_label": "Home Base"
+  },
+  "repository": {
+    "ingest_label": "Archive Repository"
+  },
+  "focus_area": {
+    "ingest_label": "Focus Area"
+  },
+  "season": {
+    "ingest_label": "Season"
+  },
+  "instrument_type": {
+    "ingest_label": "Instrument Type"
+  },
+  "measurement_region": {
+    "ingest_label": "measurement region"
+  },
+  "geographical_region": {
+    "ingest_label": "geographical region"
+  },
+  "geophysical_concept": {
+    "ingest_label": "geophysical concept"
+  }
+}
