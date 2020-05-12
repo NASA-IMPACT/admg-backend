@@ -52,7 +52,7 @@ class PlatformTypeSerializer(serializers.ModelSerializer):
 
 class NasaMissionSerializer(serializers.ModelSerializer):
     class Meta:
-        model = apps.get_model("data_models", "NasaMission")
+        model = models.NasaMission
         fields = "__all__"
 
 class InstrumentTypeSerializer(serializers.ModelSerializer):
@@ -92,22 +92,22 @@ class GeographicalRegionSerializer(serializers.ModelSerializer):
 
 class GeophysicalConceptSerializer(serializers.ModelSerializer):
     class Meta:
-        model = apps.get_model("data_models", "GeophysicalConcept")
+        model = models.GeophysicalConcept
         fields = "__all__"
 
 class PartnerOrgSerializer(serializers.ModelSerializer):
     class Meta:
-        model = apps.get_model("data_models", "PartnerOrg")
+        model = models.PartnerOrg
         fields = "__all__"
 
 class AliasSerializer(serializers.ModelSerializer):
     class Meta:
-        model = apps.get_model("data_models", "Alias")
+        model = models.Alias
         fields = "__all__"
 
 class GcmdProjectSerializer(serializers.ModelSerializer):
     class Meta:
-        model = apps.get_model("data_models", "GcmdProject")
+        model = models.GcmdProject
         fields = "__all__"
 
 class GcmdInstrumentSerializer(serializers.ModelSerializer):
@@ -117,12 +117,12 @@ class GcmdInstrumentSerializer(serializers.ModelSerializer):
 
 class GcmdPlatformSerializer(serializers.ModelSerializer):
     class Meta:
-        model = apps.get_model("data_models", "GcmdPlatform")
+        model = models.GcmdPlatform
         fields = "__all__"
 
 class GcmdPhenomenaSerializer(serializers.ModelSerializer):
     class Meta:
-        model = apps.get_model("data_models", "GcmdPhenomena")
+        model = models.GcmdPhenomena
         fields = "__all__"
 
 class CampaignSerializer(serializers.ModelSerializer):
@@ -165,5 +165,5 @@ class SignificantEventSerializer(serializers.ModelSerializer):
 
 class CollectionPeriodSerializer(serializers.ModelSerializer):
     class Meta:
-        model = apps.get_model("data_models", "CollectionPeriod")
+        model = models.CollectionPeriod
         fields = "__all__"
