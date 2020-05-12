@@ -26,7 +26,7 @@ class BaseModel(models.Model):
 class LimitedInfo(BaseModel):
     short_name = models.CharField(max_length=256, blank=False, unique=True)
     long_name = models.CharField(max_length=512, blank=True, default = '')
-    notes_public = models.CharField(max_length=2048, blank=True, default = '')
+    notes_public = models.CharField(max_length=16384, blank=True, default = '')
 
     class Meta:
         abstract = True
@@ -122,7 +122,7 @@ class GcmdPlatform(BaseModel):
     long_name = models.CharField(max_length=512, blank=True, default = '')
     category = models.CharField(max_length=256)
     series_entry = models.CharField(max_length=256)
-    description = models.CharField(max_length=256)
+    description = models.CharField(max_length=16384)
     gcmd_uuid = models.UUIDField()
 
 
@@ -160,18 +160,18 @@ class GcmdPhenomena(BaseModel):
 class DataModel(BaseModel):
     short_name = models.CharField(max_length=256)
     long_name = models.CharField(max_length=512, blank=False, unique=True)
-    notes_internal = models.CharField(max_length=2048, default = '', blank=True)
-    notes_public = models.CharField(max_length=2048, default = '', blank=True)
+    notes_internal = models.CharField(max_length=16384, default = '', blank=True)
+    notes_public = models.CharField(max_length=16384, default = '', blank=True)
 
     class Meta:
         abstract = True
 
 
 class Campaign(DataModel):
-    description_short = models.CharField(max_length=2048, default = '', blank=True)
-    description_long = models.CharField(max_length=2048, default = '', blank=True)
+    description_short = models.CharField(max_length=16384, default = '', blank=True)
+    description_long = models.CharField(max_length=16384, default = '', blank=True)
     focus_phenomena = models.CharField(max_length=1024)
-    region_description = models.CharField(max_length=1024)
+    region_description = models.CharField(max_length=16384)
     spatial_bounds = geomodels.PolygonField(blank=True, null=True)
     start_date = models.DateField()
     end_date = models.DateField(blank=True, null=True)
@@ -243,7 +243,7 @@ class Platform(DataModel):
 
     platform_type = models.ForeignKey(PlatformType, on_delete=models.SET_NULL, related_name='platforms', null=True)
 
-    description = models.CharField(max_length=256)
+    description = models.CharField(max_length=16384)
     online_information = models.CharField(max_length=512, default='', blank=True)
     stationary = models.BooleanField()
 
@@ -267,7 +267,7 @@ class Platform(DataModel):
 
 
 class Instrument(DataModel):
-    description = models.CharField(max_length=256)
+    description = models.CharField(max_length=16384)
     lead_investigator = models.CharField(max_length=256, default='', blank=True)
     technical_contact = models.CharField(max_length=256)
     facility = models.CharField(max_length=256, default='', blank=True)
@@ -321,8 +321,8 @@ class IopSe(BaseModel):
     short_name = models.CharField(max_length=256)
     start_date = models.DateField()
     end_date = models.DateField()
-    description = models.CharField(max_length=1024)
-    region_description = models.CharField(max_length=512)
+    description = models.CharField(max_length=16384)
+    region_description = models.CharField(max_length=16384)
     published_list = models.CharField(max_length=1024, default='', blank=True)
     reports = models.CharField(max_length=1024, default='', blank=True)
     reference_file = models.CharField(max_length=1024, default='', blank=True)
@@ -352,8 +352,8 @@ class CollectionPeriod(BaseModel):
     platform_owner = models.CharField(max_length=256, default='', blank=True)
     platform_technical_contact = models.CharField(max_length=256, default='', blank=True)
     instrument_information_source = models.CharField(max_length=1024, default='', blank=True)
-    notes_internal = models.CharField(max_length=2048, default='', blank=True)
-    notes_public = models.CharField(max_length=2048, default='', blank=True)
+    notes_internal = models.CharField(max_length=16384, default='', blank=True)
+    notes_public = models.CharField(max_length=16384, default='', blank=True)
 
     num_ventures = models.PositiveIntegerField(null=True, blank=True)
     auto_generated = models.BooleanField()
