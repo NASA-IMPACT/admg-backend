@@ -145,7 +145,7 @@
   "linking": {
     "Campaign Shortname": "foreign-campaign-short_name",
     "ADMG Deployment Name": "foreign-deployment-short_name",
-    "Platform Shortname": "platform",
+    "Platform Shortname": "foreign-platform-short_name",
     "Number of Continuous Data Collection Periods (CDCPs)": "number_collection_periods",
     "Aircraft ASP Longname(s)": "asp_long_name",
     "Platform Identifier": "platform_identifier",
