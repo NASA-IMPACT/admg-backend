@@ -245,7 +245,7 @@ class Platform(DataModel):
 
     description = models.CharField(max_length=256)
     online_information = models.CharField(max_length=512, default='', blank=True)
-    staionary = models.BooleanField()
+    stationary = models.BooleanField()
 
     gcmd_platforms = models.ManyToManyField(GcmdPlatform, related_name='platforms', default='', blank=True)
 
