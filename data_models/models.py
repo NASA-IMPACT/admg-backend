@@ -222,8 +222,8 @@ class Campaign(DataModel):
         instruments =  [
             inst 
                 for dep in self.deployments.all()
-                    for flight in dep.flights.all()
-                        for inst in flight.instruments.all()  
+                    for collection_period in dep.collection_periods.all()
+                        for inst in collection_period.instruments.all()  
         ]
         instruments = list(set(instruments))
         return instruments
@@ -231,9 +231,9 @@ class Campaign(DataModel):
     @property
     def platforms(self):
         platforms =  [
-            flight.platform 
+            collection_period.platform 
                 for dep in self.deployments.all()
-                    for flight in dep.flights.all()
+                    for collection_period in dep.collection_periods.all()
         ]
         platforms = list(set(platforms))
         return platforms
@@ -251,17 +251,17 @@ class Platform(DataModel):
 
     @property
     def campaigns(self):
-        campaigns = list(set(flight.deployment.campaign for flight in self.flights.all()))
+        campaigns = list(set(collection_period.deployment.campaign for collection_period in self.collection_periods.all()))
         return campaigns
 
     @property
     def instruments(self):
         instruments = [
             inst
-                for flight in self.flights.all()
-                    for inst in flight.instruments.all()
+                for collection_period in self.collection_periods.all()
+                    for inst in collection_period.instruments.all()
         ]
-        [[instruments.append(inst) for inst in flight.instruments.all()] for flight in self.flights.all()]
+        [[instruments.append(inst) for inst in collection_period.instruments.all()] for collection_period in self.collection_periods.all()]
         instruments = list(set(instruments))
         return instruments
 
@@ -289,11 +289,11 @@ class Instrument(DataModel):
 
     @property
     def campaigns(self):
-        return list(set(flight.deployment.campaign for flight in self.flights.all()))
+        return list(set(collection_period.deployment.campaign for collection_period in self.collection_periods.all()))
 
     @property
     def platforms(self):
-        return list(set(flight.deployment.platform for flight in self.flights.all()))
+        return list(set(collection_period.deployment.platform for collection_period in self.collection_periods.all()))
 
  
 class Deployment(DataModel):
@@ -302,7 +302,7 @@ class Deployment(DataModel):
 
     start_date = models.DateField()
     end_date = models.DateField()
-    number_flights = models.PositiveIntegerField(null=True, blank=True)
+    number_collection_periods = models.PositiveIntegerField(null=True, blank=True)
 
     geographical_regions = models.ManyToManyField(
         GeographicalRegion, 
@@ -342,8 +342,8 @@ class SignificantEvent(IopSe):
 
 class CollectionPeriod(BaseModel):
 
-    deployment = models.ForeignKey(Deployment, on_delete=models.CASCADE, related_name='flights')
-    platform = models.ForeignKey(Platform, on_delete=models.CASCADE, related_name='flights')
+    deployment = models.ForeignKey(Deployment, on_delete=models.CASCADE, related_name='collection_periods')
+    platform = models.ForeignKey(Platform, on_delete=models.CASCADE, related_name='collection_periods')
 
     asp_long_name = models.CharField(max_length=512, default='', blank=True)
     platform_identifier = models.CharField(max_length=128, default='', blank=True)
@@ -358,7 +358,7 @@ class CollectionPeriod(BaseModel):
     num_ventures = models.PositiveIntegerField(null=True, blank=True)
     auto_generated = models.BooleanField()
 
-    instruments = models.ManyToManyField(Instrument, related_name='flights')
+    instruments = models.ManyToManyField(Instrument, related_name='collection_periods')
 
     def __str__(self):
         # TODO: maybe come up with something better? dep_plat_uuid?
