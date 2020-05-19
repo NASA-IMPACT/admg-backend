@@ -362,4 +362,4 @@ class CollectionPeriod(BaseModel):
 
     def __str__(self):
         # TODO: maybe come up with something better? dep_plat_uuid?
-        return self.uuid
+        return str(self.uuid)
