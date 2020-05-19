@@ -311,7 +311,7 @@ class Deployment(DataModel):
         )
 
     def __str__(self):
-        return self.long_name
+        return self.short_name
 
 
 class IopSe(BaseModel):
