@@ -222,8 +222,8 @@ class Campaign(DataModel):
         instruments =  [
             inst 
                 for dep in self.deployments.all()
-                    for flight in dep.flights.all()
-                        for inst in flight.instruments.all()  
+                    for collection_period in dep.collection_periods.all()
+                        for inst in collection_period.instruments.all()  
         ]
         instruments = list(set(instruments))
         return instruments
@@ -231,9 +231,9 @@ class Campaign(DataModel):
     @property
     def platforms(self):
         platforms =  [
-            flight.platform 
+            collection_period.platform 
                 for dep in self.deployments.all()
-                    for flight in dep.flights.all()
+                    for collection_period in dep.collection_periods.all()
         ]
         platforms = list(set(platforms))
         return platforms
@@ -245,23 +245,23 @@ class Platform(DataModel):
 
     description = models.CharField(max_length=65535, default="", blank=True)
     online_information = models.CharField(max_length=512, default='', blank=True)
-    staionary = models.BooleanField()
+    stationary = models.BooleanField()
 
     gcmd_platforms = models.ManyToManyField(GcmdPlatform, related_name='platforms', default='', blank=True)
 
     @property
     def campaigns(self):
-        campaigns = list(set(flight.deployment.campaign for flight in self.flights.all()))
+        campaigns = list(set(collection_period.deployment.campaign for collection_period in self.collection_periods.all()))
         return campaigns
 
     @property
     def instruments(self):
         instruments = [
             inst
-                for flight in self.flights.all()
-                    for inst in flight.instruments.all()
+                for collection_period in self.collection_periods.all()
+                    for inst in collection_period.instruments.all()
         ]
-        [[instruments.append(inst) for inst in flight.instruments.all()] for flight in self.flights.all()]
+        [[instruments.append(inst) for inst in collection_period.instruments.all()] for collection_period in self.collection_periods.all()]
         instruments = list(set(instruments))
         return instruments
 
@@ -306,12 +306,12 @@ class Deployment(DataModel):
 
     geographical_regions = models.ManyToManyField(
         GeographicalRegion, 
-        related_name='deployments', 
+        related_name='deployments',
         default='', blank=True
         )
 
     def __str__(self):
-        return self.long_name
+        return self.short_name
 
 
 class IopSe(BaseModel):
@@ -342,8 +342,8 @@ class SignificantEvent(IopSe):
 
 class CollectionPeriod(BaseModel):
 
-    deployment = models.ForeignKey(Deployment, on_delete=models.CASCADE, related_name='flights', default='', blank=True, null=True)
-    platform = models.ForeignKey(Platform, on_delete=models.CASCADE, related_name='flights', default='', blank=True, null=True)
+    deployment = models.ForeignKey(Deployment, on_delete=models.CASCADE, related_name='collection_periods', default='', blank=True, null=True)
+    platform = models.ForeignKey(Platform, on_delete=models.CASCADE, related_name='collection_periods', default='', blank=True, null=True)
 
     asp_long_name = models.CharField(max_length=512, default='', blank=True)
     platform_identifier = models.CharField(max_length=128, default='', blank=True)
@@ -358,7 +358,7 @@ class CollectionPeriod(BaseModel):
     num_ventures = models.PositiveIntegerField(null=True, blank=True)
     auto_generated = models.BooleanField(default=True, blank=True)
 
-    instruments = models.ManyToManyField(Instrument, related_name='flights', default='', blank=True, null=True)
+    instruments = models.ManyToManyField(Instrument, related_name='collection_periods', default='', blank=True, null=True)
 
     def __str__(self):
         # TODO: maybe come up with something better? dep_plat_uuid?
