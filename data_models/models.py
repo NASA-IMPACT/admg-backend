@@ -209,9 +209,23 @@ class Campaign(DataModel):
 
     @property
     def significant_events(self):
-        # TODO
-        # significant_events = models.CharField(max_length=512)
-        pass
+        events = [
+            event.uuid
+                for dep in self.deployments.all()
+                    for event in dep.significant_events.all()
+        ]
+        events = list(set(events))
+        return events
+
+    @property
+    def iops(self):
+        iops = [
+            iop.uuid
+                for dep in self.deployments.all()
+                    for iop in dep.iops.all()
+        ]
+        iops = list(set(iops))
+        return iops
 
     @property
     def number_deployments(self):
@@ -219,8 +233,8 @@ class Campaign(DataModel):
 
     @property
     def instruments(self):
-        instruments =  [
-            inst 
+        instruments = [
+            inst.uuid
                 for dep in self.deployments.all()
                     for collection_period in dep.collection_periods.all()
                         for inst in collection_period.instruments.all()  
@@ -230,8 +244,8 @@ class Campaign(DataModel):
 
     @property
     def platforms(self):
-        platforms =  [
-            collection_period.platform 
+        platforms = [
+            collection_period.platform.uuid
                 for dep in self.deployments.all()
                     for collection_period in dep.collection_periods.all()
         ]
@@ -251,17 +265,16 @@ class Platform(DataModel):
 
     @property
     def campaigns(self):
-        campaigns = list(set(collection_period.deployment.campaign for collection_period in self.collection_periods.all()))
+        campaigns = list(set(collection_period.deployment.campaign.uuid for collection_period in self.collection_periods.all()))
         return campaigns
 
     @property
     def instruments(self):
         instruments = [
-            inst
+            inst.uuid
                 for collection_period in self.collection_periods.all()
                     for inst in collection_period.instruments.all()
         ]
-        [[instruments.append(inst) for inst in collection_period.instruments.all()] for collection_period in self.collection_periods.all()]
         instruments = list(set(instruments))
         return instruments
 
@@ -289,11 +302,11 @@ class Instrument(DataModel):
 
     @property
     def campaigns(self):
-        return list(set(collection_period.deployment.campaign for collection_period in self.collection_periods.all()))
+        return list(set(collection_period.deployment.campaign.uuid for collection_period in self.collection_periods.all()))
 
     @property
     def platforms(self):
-        return list(set(collection_period.deployment.platform for collection_period in self.collection_periods.all()))
+        return list(set(collection_period.deployment.platform.uuid for collection_period in self.collection_periods.all()))
 
  
 class Deployment(DataModel):
@@ -305,7 +318,7 @@ class Deployment(DataModel):
     number_collection_periods = models.PositiveIntegerField(null=True, blank=True)
 
     geographical_regions = models.ManyToManyField(
-        GeographicalRegion, 
+        GeographicalRegion,
         related_name='deployments', 
         default='', blank=True
         )
