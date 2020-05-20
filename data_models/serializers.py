@@ -125,28 +125,7 @@ class GcmdPhenomenaSerializer(serializers.ModelSerializer):
         model = models.GcmdPhenomena
         fields = "__all__"
 
-class CampaignSerializer(serializers.ModelSerializer):
-    def create(self, validated_data):
-        validated_data = change_bbox_to_polygon(validated_data)
-        return super().create(validated_data)
 
-    def update(self, instance, validated_data, **kwargs):
-        validated_data = change_bbox_to_polygon(validated_data)
-        return super().update(instance, validated_data, **kwargs)
-
-    class Meta:
-        model = models.Campaign
-        fields = "__all__"
-
-class PlatformSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = models.Platform
-        fields = "__all__"
-
-class InstrumentSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = models.Instrument
-        fields = "__all__"
 
 class DeploymentSerializer(serializers.ModelSerializer):
     class Meta:
@@ -166,4 +145,67 @@ class SignificantEventSerializer(serializers.ModelSerializer):
 class CollectionPeriodSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.CollectionPeriod
+        fields = "__all__"
+
+class PlatformSerializer(serializers.ModelSerializer):
+    instruments = serializers.ListField(read_only=True)
+    campaigns = serializers.ListField(read_only=True)
+    
+    def get_instruments(self, obj):
+        return obj.instruments
+
+    def get_campaigns(self, obj):
+        return obj.campaigns
+
+    class Meta:
+        model = models.Platform
+        fields = "__all__"
+
+class InstrumentSerializer(serializers.ModelSerializer):
+    platforms = serializers.ListField(read_only=True)
+    campaigns = serializers.ListField(read_only=True)
+    
+    def get_platforms(self, obj):
+        return obj.platforms
+
+    def get_campaigns(self, obj):
+        return obj.campaigns
+    class Meta:
+        model = models.Instrument
+        fields = "__all__"
+
+class CampaignSerializer(serializers.ModelSerializer):
+    
+    significant_events = serializers.ListField(read_only=True)
+    iops = serializers.ListField(read_only=True)
+    number_deployments = serializers.IntegerField(read_only=True)
+    instruments = serializers.ListField(read_only=True)
+    platforms = serializers.ListField(read_only=True)
+
+    def get_significant_events(self, obj):
+        return obj.significant_events
+
+    def get_iops(self, obj):
+        return obj.iops
+
+    def get_number_deployments(self, obj):
+        return obj.number_deployments
+
+    def get_instruments(self, obj):
+        return obj.instruments
+
+    def get_platforms(self, obj):
+        return obj.platforms
+
+    def create(self, validated_data):
+        validated_data = change_bbox_to_polygon(validated_data)
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data, **kwargs):
+        validated_data = change_bbox_to_polygon(validated_data)
+        return super().update(instance, validated_data, **kwargs)
+
+
+    class Meta:
+        model = models.Campaign
         fields = "__all__"

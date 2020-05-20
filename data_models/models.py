@@ -25,8 +25,8 @@ class BaseModel(models.Model):
 
 class LimitedInfo(BaseModel):
     short_name = models.CharField(max_length=256, blank=False, unique=True)
-    long_name = models.CharField(max_length=512, blank=True, default = '')
-    notes_public = models.CharField(max_length=2048, blank=True, default = '')
+    long_name = models.CharField(max_length=512, blank=True, default='')
+    notes_public = models.CharField(max_length=16384, blank=True, default='')
 
     class Meta:
         abstract = True
@@ -36,7 +36,7 @@ class PlatformType(LimitedInfo):
     parent = models.ForeignKey('PlatformType', on_delete=models.CASCADE, related_name='sub_types', null=True, blank=True)
     
     gcmd_uuid = models.TextField(max_length=2048, null=True, blank=True)
-    example = models.CharField(max_length=256, blank=True, default = '')
+    example = models.CharField(max_length=256, blank=True, default='')
 
 
 class NasaMission(LimitedInfo):
@@ -46,16 +46,16 @@ class InstrumentType(LimitedInfo):
     parent = models.ForeignKey('InstrumentType', on_delete=models.CASCADE, related_name='sub_types', null=True, blank=True)
     
     gcmd_uuid = models.TextField(max_length=2048, null=True, blank=True)
-    example = models.CharField(max_length=256, blank=True, default = '')
+    example = models.CharField(max_length=256, blank=True, default='')
     
 
 class HomeBase(LimitedInfo):
-    location = models.CharField(max_length=512, blank=True, default = '')
-    additional_info = models.CharField(max_length=2048, blank=True, default = '')
+    location = models.CharField(max_length=512, blank=True, default='')
+    additional_info = models.CharField(max_length=2048, blank=True, default='')
     
 
 class FocusArea(LimitedInfo):
-    url = models.CharField(max_length=256, blank=True, default = '')
+    url = models.CharField(max_length=256, blank=True, default='')
 
 
 class Season(LimitedInfo):
@@ -68,17 +68,17 @@ class Repository(LimitedInfo):
 
 class MeasurementRegion(LimitedInfo):
     gcmd_uuid = models.TextField(max_length=2048, null=True, blank=True)
-    example = models.CharField(max_length=256, blank=True, default = '')
+    example = models.CharField(max_length=256, blank=True, default='')
 
 
 class GeographicalRegion(LimitedInfo):
     gcmd_uuid = models.TextField(max_length=2048, null=True, blank=True)
-    example = models.CharField(max_length=256, blank=True, default = '')
+    example = models.CharField(max_length=256, blank=True, default='')
 
 
 class GeophysicalConcept(LimitedInfo):
     gcmd_uuid = models.TextField(max_length=2048, null=True, blank=True)
-    example = models.CharField(max_length=256, blank=True, default = '')
+    example = models.CharField(max_length=256, blank=True, default='')
 
 
 class PartnerOrg(LimitedInfo):
@@ -92,8 +92,8 @@ class Alias(BaseModel):
     parent_fk = GenericForeignKey('content_type', 'object_id')
 
     short_name = models.CharField(max_length=256, blank=False, unique=True)
-    long_name = models.CharField(max_length=512, blank=True, default = '')
-    source = models.CharField(max_length=2048, blank=True, default = '')
+    long_name = models.CharField(max_length=512, blank=True, default='')
+    source = models.CharField(max_length=2048, blank=True, default='')
 
     class Meta:
         verbose_name_plural='Aliases'
@@ -102,24 +102,24 @@ class Alias(BaseModel):
 
 class GcmdProject(BaseModel):
     short_name = models.CharField(max_length=256, blank=False, unique=True)
-    long_name = models.CharField(max_length=512, blank=True, default = '')
+    long_name = models.CharField(max_length=512, blank=True, default='')
     bucket = models.CharField(max_length=256, default="", blank=True)
     gcmd_uuid = models.TextField(max_length=2048, null=True, blank=True)
 
 
 class GcmdInstrument(BaseModel):
     short_name = models.CharField(max_length=256, blank=True, default='')
-    long_name = models.CharField(max_length=512, blank=True, default = '')
-    instrument_category = models.CharField(max_length=256, blank=True, default = '') # these make more sense without 'instrument'
-    instrument_class = models.CharField(max_length=256, blank=True, default = '') # however class and type are default variables
-    instrument_type = models.CharField(max_length=256, blank=True, default = '') # so instrument was added to all 4 for consistency
-    instrument_subtype = models.CharField(max_length=256, blank=True, default = '')
+    long_name = models.CharField(max_length=512, blank=True, default='')
+    instrument_category = models.CharField(max_length=256, blank=True, default='') # these make more sense without 'instrument'
+    instrument_class = models.CharField(max_length=256, blank=True, default='') # however class and type are default variables
+    instrument_type = models.CharField(max_length=256, blank=True, default='') # so instrument was added to all 4 for consistency
+    instrument_subtype = models.CharField(max_length=256, blank=True, default='')
     gcmd_uuid = models.TextField(max_length=2048, null=True, blank=True)
 
 
 class GcmdPlatform(BaseModel):
     short_name = models.CharField(max_length=256, blank=True, default='')
-    long_name = models.CharField(max_length=512, blank=True, default = '')
+    long_name = models.CharField(max_length=512, blank=True, default='')
     category = models.CharField(max_length=256, default="", blank=True)
     series_entry = models.CharField(max_length=256, default="", blank=True)
     description = models.CharField(max_length=65535, default="", blank=True)
@@ -128,11 +128,11 @@ class GcmdPlatform(BaseModel):
 
 class GcmdPhenomena(BaseModel):
     category = models.CharField(max_length=256, default="", blank=True)
-    topic = models.CharField(max_length=256, blank=True, default = '')
-    term = models.CharField(max_length=256, blank=True, default = '')
-    variable_1 = models.CharField(max_length=256, blank=True, default = '')
-    variable_2 = models.CharField(max_length=256, blank=True, default = '')
-    variable_3 = models.CharField(max_length=256, blank=True, default = '')
+    topic = models.CharField(max_length=256, blank=True, default='')
+    term = models.CharField(max_length=256, blank=True, default='')
+    variable_1 = models.CharField(max_length=256, blank=True, default='')
+    variable_2 = models.CharField(max_length=256, blank=True, default='')
+    variable_3 = models.CharField(max_length=256, blank=True, default='')
     gcmd_uuid = models.TextField(max_length=2048, null=True, blank=True)
 
     def __str__(self):
@@ -159,17 +159,17 @@ class GcmdPhenomena(BaseModel):
 
 class DataModel(BaseModel):
     short_name = models.CharField(max_length=256)
-    long_name = models.CharField(max_length=512, default = '', blank=True)
-    notes_internal = models.CharField(max_length=2048, default = '', blank=True)
-    notes_public = models.CharField(max_length=2048, default = '', blank=True)
+    long_name = models.CharField(max_length=512, default='', blank=True)
+    notes_internal = models.CharField(max_length=2048, default='', blank=True)
+    notes_public = models.CharField(max_length=2048, default='', blank=True)
 
     class Meta:
         abstract = True
 
 
 class Campaign(DataModel):
-    description_short = models.CharField(max_length=2048, default = '', blank=True)
-    description_long = models.CharField(max_length=2048, default = '', blank=True)
+    description_short = models.CharField(max_length=16384, default='', blank=True)
+    description_long = models.CharField(max_length=16384, default='', blank=True)
     focus_phenomena = models.CharField(max_length=1024)
     region_description = models.CharField(max_length=65535)
     spatial_bounds = geomodels.PolygonField(blank=True, null=True)
@@ -209,9 +209,23 @@ class Campaign(DataModel):
 
     @property
     def significant_events(self):
-        # TODO
-        # significant_events = models.CharField(max_length=512)
-        pass
+        events = [
+            event.uuid
+                for dep in self.deployments.all()
+                    for event in dep.significant_events.all()
+        ]
+        events = list(set(events))
+        return events
+
+    @property
+    def iops(self):
+        iops = [
+            iop.uuid
+                for dep in self.deployments.all()
+                    for iop in dep.iops.all()
+        ]
+        iops = list(set(iops))
+        return iops
 
     @property
     def number_deployments(self):
@@ -219,8 +233,8 @@ class Campaign(DataModel):
 
     @property
     def instruments(self):
-        instruments =  [
-            inst 
+        instruments = [
+            inst.uuid
                 for dep in self.deployments.all()
                     for collection_period in dep.collection_periods.all()
                         for inst in collection_period.instruments.all()  
@@ -230,8 +244,8 @@ class Campaign(DataModel):
 
     @property
     def platforms(self):
-        platforms =  [
-            collection_period.platform 
+        platforms = [
+            collection_period.platform.uuid
                 for dep in self.deployments.all()
                     for collection_period in dep.collection_periods.all()
         ]
@@ -251,17 +265,16 @@ class Platform(DataModel):
 
     @property
     def campaigns(self):
-        campaigns = list(set(collection_period.deployment.campaign for collection_period in self.collection_periods.all()))
+        campaigns = list(set(collection_period.deployment.campaign.uuid for collection_period in self.collection_periods.all()))
         return campaigns
 
     @property
     def instruments(self):
         instruments = [
-            inst
+            inst.uuid
                 for collection_period in self.collection_periods.all()
                     for inst in collection_period.instruments.all()
         ]
-        [[instruments.append(inst) for inst in collection_period.instruments.all()] for collection_period in self.collection_periods.all()]
         instruments = list(set(instruments))
         return instruments
 
@@ -289,11 +302,11 @@ class Instrument(DataModel):
 
     @property
     def campaigns(self):
-        return list(set(flight.deployment.campaign for flight in self.flights.all()))
+        return list(set(collection_period.deployment.campaign.uuid for collection_period in self.collection_periods.all()))
 
     @property
     def platforms(self):
-        return list(set(flight.deployment.platform for flight in self.flights.all()))
+        return list(set(collection_period.deployment.platform.uuid for collection_period in self.collection_periods.all()))
 
  
 class Deployment(DataModel):
@@ -302,11 +315,11 @@ class Deployment(DataModel):
 
     start_date = models.DateField()
     end_date = models.DateField()
-    number_flights = models.PositiveIntegerField(null=True, blank=True)
+    number_collection_periods = models.PositiveIntegerField(null=True, blank=True)
 
     geographical_regions = models.ManyToManyField(
-        GeographicalRegion, 
-        related_name='deployments',
+        GeographicalRegion,
+        related_name='deployments', 
         default='', blank=True
         )
 
@@ -342,8 +355,8 @@ class SignificantEvent(IopSe):
 
 class CollectionPeriod(BaseModel):
 
-    deployment = models.ForeignKey(Deployment, on_delete=models.CASCADE, related_name='collection_periods', default='', blank=True, null=True)
-    platform = models.ForeignKey(Platform, on_delete=models.CASCADE, related_name='collection_periods', default='', blank=True, null=True)
+    deployment = models.ForeignKey(Deployment, on_delete=models.CASCADE, related_name='collection_periods')
+    platform = models.ForeignKey(Platform, on_delete=models.CASCADE, related_name='collection_periods')
 
     asp_long_name = models.CharField(max_length=512, default='', blank=True)
     platform_identifier = models.CharField(max_length=128, default='', blank=True)
@@ -352,13 +365,13 @@ class CollectionPeriod(BaseModel):
     platform_owner = models.CharField(max_length=256, default='', blank=True)
     platform_technical_contact = models.CharField(max_length=256, default='', blank=True)
     instrument_information_source = models.CharField(max_length=1024, default='', blank=True)
-    notes_internal = models.CharField(max_length=2048, default='', blank=True)
-    notes_public = models.CharField(max_length=2048, default='', blank=True)
+    notes_internal = models.CharField(max_length=16384, default='', blank=True)
+    notes_public = models.CharField(max_length=16384, default='', blank=True)
 
     num_ventures = models.PositiveIntegerField(null=True, blank=True)
     auto_generated = models.BooleanField(default=True, blank=True)
 
-    instruments = models.ManyToManyField(Instrument, related_name='collection_periods', default='', blank=True, null=True)
+    instruments = models.ManyToManyField(Instrument, related_name='collection_periods')
 
     def __str__(self):
         # TODO: maybe come up with something better? dep_plat_uuid?
