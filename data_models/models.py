@@ -306,7 +306,7 @@ class Instrument(DataModel):
 
     @property
     def platforms(self):
-        return list(set(collection_period.deployment.platform.uuid for collection_period in self.collection_periods.all()))
+        return list(set(collection_period.platform.uuid for collection_period in self.collection_periods.all()))
 
  
 class Deployment(DataModel):
@@ -325,6 +325,10 @@ class Deployment(DataModel):
 
     def __str__(self):
         return self.short_name
+
+    @property
+    def platforms(self):
+        return list(set(collection_period.platform.uuid for collection_period in self.collection_periods.all()))
 
 
 class IopSe(BaseModel):
