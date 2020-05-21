@@ -18,6 +18,5 @@
     "campaign",
     "deployment",
     "iop",
-    "significant_event",
-    "collection_period"
+    "significant_event"
 ]
