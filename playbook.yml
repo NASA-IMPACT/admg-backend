@@ -88,7 +88,6 @@
     - assert:
         that:
           - "not web.admg_webapp_web_1.state.running"
-          - "not db.admg_webapp_db_1.state.running"
           - "not nginx.dev_nginx.state.running"
   
     - name: Restart services
@@ -104,5 +103,4 @@
     - assert:
         that:
           - "web.admg_webapp_web_1.state.running"
-          - "db.admg_webapp_db_1.state.running"
           - "nginx.dev_nginx.state.running"
