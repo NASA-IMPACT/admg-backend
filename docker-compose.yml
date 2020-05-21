@@ -12,14 +12,6 @@ services:
        - 443:443
     depends_on:
        - web
-  db:
-    image: kartoza/postgis
-    environment:
-      POSTGRES_PASS: ${DB_PASSWORD}
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_DBNAME: ${DB_NAME}
-    volumes:
-       - ./postgres_data:/var/lib/postgresql/data/
   web:
     build: .
     command: gunicorn config.wsgi:application --bind 0.0.0.0:8000
@@ -30,5 +22,3 @@ services:
       - ./staticfiles:/code/staticfiles
     expose:
       - 8000
-    depends_on:
-      - db
