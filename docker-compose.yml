@@ -12,26 +12,13 @@ services:
        - 443:443
     depends_on:
        - web
-  db:
-    image: kartoza/postgis
-    environment:
-      POSTGRES_PASS: postgres
-      POSTGRES_USER: postgres
-      POSTGRES_DBNAME: postgres
-    volumes:
-       - ./postgres_data:/var/lib/postgresql/data/
   web:
     build: .
     command: gunicorn config.wsgi:application --bind 0.0.0.0:8000
-    environment:
-      DJANGO_SECRET_KEY: "%a3k0!5=@^c)s93sv-v@2vmk6l!6u))pu679+m)gj5*y9iwp2&"
-      DJANGO_SETTINGS_MODULE: config.settings.local
+    env_file:
+      - .env
     volumes:
       - .:/code
       - ./staticfiles:/code/staticfiles
-    env_file:
-      - .env
     expose:
       - 8000
-    depends_on:
-      - db

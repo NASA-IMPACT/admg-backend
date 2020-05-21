@@ -1,5 +1,5 @@
 #!/bin/sh
-if [ "$DB_NAME" = "postgres" ]
+if [ ! -z "$DB_NAME" ]
 then
     echo "Waiting for postgres..."
     while ! nc -z $DB_HOST $DB_PORT; do

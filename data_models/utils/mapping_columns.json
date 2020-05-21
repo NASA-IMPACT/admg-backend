@@ -62,7 +62,7 @@
     "ADMG's Platform Longname": "long_name",
     "Platform Aliases":"ignore_alias",
     "Platform Type": "foreign-platform_type-short_name",
-    "Platform CAN Move?":"staionary",
+    "Platform CAN Move?":"stationary",
     "Platform Description": "description",
     "Campaigns": "ignore_campaigns",
     "GCMD Platform Shortname(s)": "ignore_gcmd_short_names",
@@ -130,7 +130,7 @@
   "iopse": {
     "IOP": "iopse_id",
     "TYPE (IOP or SE)": "type",
-    "ADMG Deployment Name":"deployment",
+    "ADMG Deployment Name":"ignore_deployment",
     "Sig Event?": "event_type",
     "Campaign shortname": "foreign-campaign-short_name",
     "Deployment_id -??": "foreign-deployment-short_name",

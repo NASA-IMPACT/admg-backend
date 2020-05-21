@@ -44,15 +44,14 @@ def main(file_path):
 
     # initial cleaning
     limited = excel_data['Limited Fields'][3:].copy()
-    limited.columns = ['Ingest Label', 
-                        'short_name', 
-                        'long_name', 
-                        'description', 
-                        'gcmd_translation', 
-                        'examples', 
+    limited.columns = ['Ingest Label',
+                        'short_name',
+                        'long_name',
+                        'description',
+                        'gcmd_translation',
+                        'examples',
                         'notes',
-                        'parent',
-                        'ignore_empty']
+                        'parent',]
 
     limited.fillna(value='Information Not Available', inplace=True)                        
     
