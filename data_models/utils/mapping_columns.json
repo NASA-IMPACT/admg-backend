@@ -62,7 +62,7 @@
     "ADMG's Platform Longname": "long_name",
     "Platform Aliases":"ignore_alias",
     "Platform Type": "foreign-platform_type-short_name",
-    "Platform CAN Move?":"staionary",
+    "Platform CAN Move?":"stationary",
     "Platform Description": "description",
     "Campaigns": "ignore_campaigns",
     "GCMD Platform Shortname(s)": "ignore_gcmd_short_names",
