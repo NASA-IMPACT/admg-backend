@@ -239,7 +239,7 @@ class DeploymentSerializer(serializers.ModelSerializer):
 class IOPSerializer(serializers.ModelSerializer):
     significant_events = serializers.SerializerMethodField(read_only=True)
 
-    def get_significant_event(self, obj):
+    def get_significant_events(self, obj):
         return get_uuids(obj.significant_events)
 
     class Meta:
