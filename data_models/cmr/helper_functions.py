@@ -6,6 +6,7 @@ from config import print_on as PRINT_ON
 from datetime import datetime
 from collections import namedtuple
 
+
 def custom_print(obj=None):
     """Debugging print wrapper that can be used for optional print functionality. Note
     that this functions takes in the global variable PRINT_ON from the config
@@ -48,49 +49,57 @@ def ingest_json(url):
     return data
 
 
-def ingest_campaign(short_name, page_num=1, page_size=2000):
-    # page_size can be as high as 2000
-
-    # TODO: handle a page_num that is too large
+def ingest_campaign(short_name):
     # TODO: handle a short_name that has no results
 
-    # retrieve search results
-    url = f'https://cmr.earthdata.nasa.gov/search/collections?project={short_name}&page_size={page_size}'
-    campaign_tree = ingest_xml(url)
+    # set initial variables
+    page_num = 1
+    page_size = 100
+    campaign_trees = []
+    finished = False
 
-    # calculate hits and returned
-    num_hits = int(campaign_tree.find('hits').text)
-    num_returned = calculate_num_returned(num_hits, page_size, page_num)
+    while finished == False:  
+        # make inital query and append results
+        url = f'https://cmr.earthdata.nasa.gov/search/collections?'+\
+            f'project={short_name}&'+\
+            f'page_size={page_size}&'+\
+            f'page_num={page_num}'
+        campaign_tree = ingest_xml(url)
+        campaign_trees.append(campaign_tree)
+        
+        # calculate num returned and iterate if needed
+        num_hits = int(campaign_tree.find('hits').text)
+        num_returned_naive = page_num*page_size
+        if num_returned_naive < num_hits:
+            page_num += 1
+        else:
+            finished = True
 
-    custom_print(f'    Search for campaign {short_name} returned {num_hits} hits.')
-    custom_print(f'    {num_returned} results returned.')
-    if num_hits > 2000:
-        print('OHHHHNOOOOOOO')
-
-    return campaign_tree
+    return campaign_trees
 
 
-def campaign_xlm_json(campaign_tree):
+def campaign_xlm_json(campaign_trees):
 
     campaign_metadata = []
 
-    for references in campaign_tree.findall('references'):
-        for reference in references:
+    for campaign_tree in campaign_trees:
+        for references in campaign_tree.findall('references'):
+            for reference in references:
 
-            name = reference.find('name').text
-            concept_id = reference.find('id').text
+                name = reference.find('name').text
+                concept_id = reference.find('id').text
 
-            url = f'https://cmr.earthdata.nasa.gov/search/concepts/{concept_id}.umm-json'
+                url = f'https://cmr.earthdata.nasa.gov/search/concepts/{concept_id}.umm-json'
 
-            metadata = ingest_json(url)
+                metadata = ingest_json(url)
 
-            campaign_metadata.append({'name': name,
-                                      'concept_id': concept_id,
-                                      'metadata': metadata})
+                campaign_metadata.append({'name': name,
+                                        'concept_id': concept_id,
+                                        'metadata': metadata})
 
-            custom_print(f'name: {name}')
-            custom_print(f'    concept_id: {concept_id}')
-            custom_print()
+                custom_print(f'name: {name}')
+                custom_print(f'    concept_id: {concept_id}')
+                custom_print()
     return campaign_metadata
 
 
