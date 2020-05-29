@@ -1,10 +1,12 @@
-import requests
 import json
+import requests
+
+from collections import namedtuple
+from datetime import datetime
 from io import BytesIO
 from lxml import etree
+
 from config import print_on as PRINT_ON
-from datetime import datetime
-from collections import namedtuple
 
 
 def custom_print(obj=None):
