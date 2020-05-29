@@ -112,8 +112,8 @@ def extract_inst_plat(campaign_metadata):
 
         for platform_info in data_product['metadata']['Platforms']:
             platform_short_name = platform_info['ShortName']
-            platforms[platform_short_name] = platforms.get(platform_short_name,[])
-            
+            platforms[platform_short_name] = platforms.get(platform_short_name, [])
+
             # many satellites don't have instrument metadata
             if 'Instruments' in platform_info.keys():
                 for instrument_info in platform_info['Instruments']:
@@ -123,16 +123,16 @@ def extract_inst_plat(campaign_metadata):
                 pass
                 # print(f'{platform_short_name} has no instruments')
                 # print()
-    
+
     for platform_name in platforms.keys():
-        platforms[platform_name]=set(platforms[platform_name])
+        platforms[platform_name] = set(platforms[platform_name])
 
 
     return platforms
 
 
 def date_overlap(cmr_start, cmr_end, dep_start, dep_end):
-    
+
     Range = namedtuple('Range', ['start', 'end'])
 
     cmr_range = Range(start=cmr_start, end=cmr_end,)
@@ -140,10 +140,10 @@ def date_overlap(cmr_start, cmr_end, dep_start, dep_end):
 
     latest_start = max(cmr_range.start, dep_range.start)
     earliest_end = min(cmr_range.end, dep_range.end)
-    
+
     delta = (earliest_end - latest_start).days + 1
     overlap = max(0, delta)
-    
+
     return overlap
 
 
@@ -151,16 +151,16 @@ def date_filter(metadata, dep_start, dep_end):
     filtered_metadata = []
     for reference in metadata:
         TemporalExtents = reference['metadata'].get('TemporalExtents',[{}])[0]
-        cmr_start = TemporalExtents.get('RangeDateTimes',[{}])[0].get('BeginningDateTime','error')
-        cmr_end = TemporalExtents.get('RangeDateTimes',[{}])[0].get('EndingDateTime','error')
-        
+        cmr_start = TemporalExtents.get('RangeDateTimes',[{}])[0].get('BeginningDateTime', 'error')
+        cmr_end = TemporalExtents.get('RangeDateTimes',[{}])[0].get('EndingDateTime', 'error')
+
         cmr_start = datetime.strptime(cmr_start, '%Y-%m-%dT%H:%M:%S.%fZ')
         cmr_end = datetime.strptime(cmr_end, '%Y-%m-%dT%H:%M:%S.%fZ')
-        
+
         days_overlapping = date_overlap(cmr_start, cmr_end, dep_start, dep_end)
         if days_overlapping > 0:
             filtered_metadata.append(reference)
-        
+
     return filtered_metadata
 
 
@@ -168,24 +168,26 @@ def project_filter(metadata, short_name):
     # might not be necessary
     filtered_metadata = []
     for reference in metadata:
-        projects = reference['metadata'].get('Projects',[])
+        projects = reference['metadata'].get('Projects', [])
         print(projects)
         print()
         for project in projects:
-            project_short_name = project.get('ShortName','')
+            project_short_name = project.get('ShortName', '')
             if short_name.lower() == project_short_name.lower():
                 filtered_metadata.append(reference)
                 break
 
-    return filtered_metadata   
+    return filtered_metadata
 
-def general_extractor(metadata, field):
+
+def general_extractor(campaign_metadata, field):
     data = []
     for reference in campaign_metadata:
-        value = reference['metadata'].get(field,'')
+        value = reference['metadata'].get(field, '')
         if value:
             data.append(value)
-    return data    
+    return data
+
 
 def combine_spatial_extents(spatial_extents):
     # TODO: this should combine multiple spatial extents into a total coverage 
