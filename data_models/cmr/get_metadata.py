@@ -17,9 +17,12 @@ def query_api(short_name):
     campaign_trees = ingest_campaign(short_name)
     campaign_metadata = campaign_xlm_to_json(campaign_trees)
 
+    # TODO: replace this with the final location in the db we decide on
+    pickle.dump(campaign_metadata, open(f'cmr_data-{short_name}','wb'))    
+
     return campaign_metadata
 
-def get_campaign(campaign_metadata):
+def get_campaign(short_name):
 
 
 def get_deployment(campaign_metadata, dep_start, dep_end):
