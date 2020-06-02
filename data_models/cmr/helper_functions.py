@@ -94,9 +94,11 @@ def campaign_xlm_json(campaign_trees):
 
                 metadata = ingest_json(url)
 
-                campaign_metadata.append({'name': name,
-                                        'concept_id': concept_id,
-                                        'metadata': metadata})
+                campaign_metadata.append({
+                    'name': name,
+                    'concept_id': concept_id,
+                    'metadata': metadata
+                })
 
                 custom_print(f'name: {name}')
                 custom_print(f'    concept_id: {concept_id}')
@@ -124,8 +126,8 @@ def extract_collection_periods(campaign_metadata):
             platform_long_name = platform_info.get('LongName', '')
 
             platform_chars = campaign_metadata[1]['metadata']['Platforms'][0].get('Characteristics', [])
-            platform_identifiers = [char.get('Value', '') for char in platform_chars if char.get('Name')=='AircraftID'] 
-            
+            platform_identifiers = [char.get('Value', '') for char in platform_chars if char.get('Name') == 'AircraftID']
+
             platform_reference = '_&_'.join([platform_short_name, platform_long_name] + platform_identifiers)
 
             # get instruments
@@ -133,8 +135,8 @@ def extract_collection_periods(campaign_metadata):
             if platform_info.get('Instruments'):
                 for instrument_info in platform_info.get('Instruments', []):
                     instrument_short_name = instrument_info.get('ShortName', '')
-                    instrument_long_name = instrument_info.get('LongName', '') 
-                    instrument_reference = '_&_'.join([instrument_short_name, instrument_long_name])    
+                    instrument_long_name = instrument_info.get('LongName', '')
+                    instrument_reference = '_&_'.join([instrument_short_name, instrument_long_name])
 
                     instruments[instrument_reference] = {
                         'short_name': instrument_short_name,
@@ -142,13 +144,15 @@ def extract_collection_periods(campaign_metadata):
                     }
 
             if platforms.get(platform_reference):
-                platforms[platform_reference]['instruments'] = {**platforms[platform_reference]['instruments'], **instruments}
+                platforms[platform_reference]['instruments'] = {
+                    **platforms[platform_reference]['instruments'],
+                    **instruments}
                 platforms[platform_reference]['dois'].append(data_product.get('DOI'))
 
             else:
-                platforms[platform_reference]= {
+                platforms[platform_reference] = {
                     'platform_names': {
-                        'short_name': platform_short_name, 
+                        'short_name': platform_short_name,
                         'long_name': platform_long_name},
                     'platform_identifiers': platform_identifiers,
                     'instrument_information_source': 'cmr_api',
@@ -156,7 +160,7 @@ def extract_collection_periods(campaign_metadata):
                     'instruments': instruments,
                     'dois': [data_product.get('DOI')]
                 }
-    
+
     return platforms
 
 
@@ -179,9 +183,9 @@ def date_overlap(cmr_start, cmr_end, dep_start, dep_end):
 def date_filter(metadata, dep_start, dep_end):
     filtered_metadata = []
     for reference in metadata:
-        TemporalExtents = reference['metadata'].get('TemporalExtents',[{}])[0]
-        cmr_start = TemporalExtents.get('RangeDateTimes',[{}])[0].get('BeginningDateTime', 'error')
-        cmr_end = TemporalExtents.get('RangeDateTimes',[{}])[0].get('EndingDateTime', 'error')
+        TemporalExtents = reference['metadata'].get('TemporalExtents', [{}])[0]
+        cmr_start = TemporalExtents.get('RangeDateTimes', [{}])[0].get('BeginningDateTime', 'error')
+        cmr_end = TemporalExtents.get('RangeDateTimes', [{}])[0].get('EndingDateTime', 'error')
 
         cmr_start = datetime.strptime(cmr_start, '%Y-%m-%dT%H:%M:%S.%fZ')
         cmr_end = datetime.strptime(cmr_end, '%Y-%m-%dT%H:%M:%S.%fZ')
