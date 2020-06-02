@@ -126,6 +126,30 @@ def general_extractor(campaign_metadata, field):
     return data
 
 
+def extract_daacs(campaign_metadata):
+    """Extracts and aggregates all the daacs from a single campaign.
+
+    Args:
+        campaign_metadata ([type]): [description]
+
+    Returns:
+        list: list of daac names
+    """
+
+    # TODO: inventory team should specify which role they are most concerned with
+    role_filter=['ARCHIVER', 'DISTRIBUTOR', 'PROCESSOR', 'ORIGINATOR']
+
+    mega_daac_list=general_extractor(campaign_metadata, 'DataCenters')
+    daacs = [
+        daac['ShortName']
+            for daac_list in mega_daac_list
+                for daac in daac_list
+                    if daac['Roles'][0] in role_filter
+            ]    
+
+    return daacs
+
+
 def extract_region_description(campaign_metadata):
     """Extracts the GCMD LocationKeywords from the metadata. These will be
     used as a proxy for region_description at the campaign level. 
@@ -134,20 +158,19 @@ def extract_region_description(campaign_metadata):
         campaign_metadata ([type]): [description]
 
     Returns:
-        list: [{'Category': value, 'Type': value, 'Subregion1': value, 'Subregion2': value}] 
+        list: [{'Category': value, 'Type': value, 'Subregion1': value, 'Subregion2': value}]
     """
-
 
     nested_regions = general_extractor(campaign_metadata, 'LocationKeywords')
 
     # json.dumps allows us to take the set of the dictionaries
     # the list comprehension is unpacking the nested entries
     regions_json = set([json.dumps(region) 
-                    for region_list in nested_regions 
+                    for region_list in nested_regions
                         for region in region_list])
     regions_dict = [json.loads(region) for region in regions_json]
 
-    db['campaign']['gcmd_region'] = regions_dict
+
 
     return regions_dict
 
