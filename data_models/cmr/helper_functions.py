@@ -63,7 +63,7 @@ def ingest_campaign(short_name):
     campaign_trees = []
     finished = False
 
-    while finished == False:  
+    while not finished:  
         # make inital query and append results
         url = f'https://cmr.earthdata.nasa.gov/search/collections?'+\
             f'project={short_name}&'+\
@@ -83,7 +83,7 @@ def ingest_campaign(short_name):
     return campaign_trees
 
 
-def campaign_xlm_to_json(campaign_trees):
+def campaign_xml_to_json(campaign_trees):
 
     campaign_metadata = []
     for campaign_tree in campaign_trees:
@@ -102,10 +102,6 @@ def campaign_xlm_to_json(campaign_trees):
                     'concept_id': concept_id,
                     'metadata': metadata
                 })
-
-                custom_print(f'name: {name}')
-                custom_print(f'    concept_id: {concept_id}')
-                custom_print()
 
     return campaign_metadata
 
