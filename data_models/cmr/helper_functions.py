@@ -6,26 +6,21 @@ from datetime import datetime
 from io import BytesIO
 from lxml import etree
 
-from config import print_on as PRINT_ON
-
-
-def custom_print(obj=None):
-    """Debugging print wrapper that can be used for optional print functionality. Note
-    that this functions takes in the global variable PRINT_ON from the config
-    file.
-
-    Args:
-        obj (obj): Any printable Python object
-    """
-
-    if PRINT_ON:
-        if obj:
-            print(obj)
-        else:
-            print()
-
 
 def calculate_num_returned(num_hits, page_size, page_num):
+    """Calculates number of hits returned in the current CMR page
+
+    Args:
+        num_hits (int): num hits from api call metadata
+        page_size (int): page size from user query
+        page_num (int): page number from user query
+
+    Returns:
+        int: number of results on current page
+    """
+
+    # this function is no longer used, but it seemed like a waste to delete it
+ 
     naive = page_size*page_num
     if naive < num_hits:
         num_returned = naive
@@ -52,7 +47,15 @@ def ingest_json(url):
 
 
 def ingest_campaign(short_name):
-    # TODO: handle a short_name that has no results
+    """Queries CMR for a specific campaign/project short_name and aggergates
+    all the granule metadata.
+
+    Args:
+        short_name (str): capaign/project short_name
+
+    Returns:
+        list: list of xml_trees
+    """
 
     # set initial variables
     page_num = 1
@@ -169,8 +172,6 @@ def extract_region_description(campaign_metadata):
                     for region_list in nested_regions
                         for region in region_list])
     regions_dict = [json.loads(region) for region in regions_json]
-
-
 
     return regions_dict
 
