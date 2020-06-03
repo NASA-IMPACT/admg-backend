@@ -1,13 +1,24 @@
-from helper_functions import (
-    campaign_xlm_to_json,
-    date_filter,
-    extract_collection_periods,
-    extract_daacs,
-    extract_region_description,
-    general_extractor,
-    ingest_campaign,
-) 
-from datetime import datetime
+try:
+    from .helper_functions import (
+        campaign_xml_to_json,
+        date_filter,
+        extract_collection_periods,
+        extract_daacs,
+        extract_region_description,
+        general_extractor,
+        ingest_campaign,
+    )
+except:
+    from helper_functions import (
+        campaign_xml_to_json,
+        date_filter,
+        extract_collection_periods,
+        extract_daacs,
+        extract_region_description,
+        general_extractor,
+        ingest_campaign,
+    ) 
+
 import pickle
 
 
