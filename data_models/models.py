@@ -186,7 +186,6 @@ class Campaign(DataModel):
     doi = models.CharField(max_length=1024, default='', blank=True)
     number_data_products = models.PositiveIntegerField(null=True, blank=True)
     data_volume = models.CharField(max_length=256, null=True, blank=True)
-    cmr_metadata = JSONField(null=True, blank=True)
 
     repository_website = models.CharField(max_length=512, default='', blank=True) # repository homepage
     project_website = models.CharField(max_length=512, default='', blank=True) # dedicated homepage
@@ -380,3 +379,10 @@ class CollectionPeriod(BaseModel):
     def __str__(self):
         # TODO: maybe come up with something better? dep_plat_uuid?
         return str(self.uuid)
+
+
+class Reccomendation(BaseModel):
+    short_name = models.CharField(max_length=256, blank=False, unique=True)
+    source = models.CharField(max_length=256, blank=False, unique=True)
+    metadata = JSONField()
+
