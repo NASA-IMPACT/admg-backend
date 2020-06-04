@@ -381,9 +381,8 @@ class CollectionPeriod(BaseModel):
         return str(self.uuid)
 
 
-class Reccomendation(BaseModel):
+class Recommendation(BaseModel):
     short_name = models.CharField(max_length=256, blank=False, unique=True)
     queried_at = models.DateTimeField(auto_now_add=True)
     source = models.CharField(max_length=256, blank=False, unique=True)
     metadata = JSONField()
-
