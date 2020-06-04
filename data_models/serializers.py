@@ -306,8 +306,8 @@ class CampaignSerializer(serializers.ModelSerializer):
         model = models.Campaign
         fields = "__all__"
 
-class RecommendationSerializer(serializers.ModelSerializer):
+class ExternalMetadataSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = models.Recommendation
+        model = models.ExternalMetadata
         fields = "__all__"

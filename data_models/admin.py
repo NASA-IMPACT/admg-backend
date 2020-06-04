@@ -23,7 +23,8 @@ from .models import (
     IOP,
     SignificantEvent,
     CollectionPeriod,
-    Alias
+    Alias,
+    ExternalMetadata,
 )
 
 admin.site.register(PlatformType)
@@ -49,3 +50,4 @@ admin.site.register(IOP)
 admin.site.register(SignificantEvent)
 admin.site.register(CollectionPeriod)
 admin.site.register(Alias)
+admin.site.register(ExternalMetadata)
