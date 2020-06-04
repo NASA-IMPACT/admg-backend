@@ -1,4 +1,3 @@
-
 import uuid
 
 from django.contrib.contenttypes.fields import GenericForeignKey
@@ -381,8 +380,8 @@ class CollectionPeriod(BaseModel):
         return str(self.uuid)
 
 
-class Recommendation(BaseModel):
+class ExternalMetadata(BaseModel):
     short_name = models.CharField(max_length=256, blank=False, unique=True)
-    queried_at = models.DateTimeField(auto_now_add=True)
+    download_date = models.DateTimeField(auto_now_add=True)
     source = models.CharField(max_length=256, blank=False, unique=True)
     metadata = JSONField()
