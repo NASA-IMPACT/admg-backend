@@ -44,3 +44,10 @@ in the notebook, import your models file
  - To refresh your token
     - `curl -X POST -d "grant_type=refresh_token&refresh_token=<your_refresh_token>&client_id=<your_client_id>&client_secret=<your_client_secret>" http://localhost:8000/authenticate/token`
  
+
+ ## Automatic deployment
+
+ - Change the webserver IP in the hosts file. If no hosts file exists, create one [see hosts.sample file]
+ - Run the command `ansible-playbook --private-key private_key_file.pem -i hosts playbook.yml -v [-e 'branch=<your_branch_here>']`
+     - `private_key_file.pem` is the private key for the webserver
+     - `[-e 'branch=<your_branch_here>']` part is optional and can be used in case some another branch is desired
