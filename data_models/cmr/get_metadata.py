@@ -23,7 +23,7 @@ import pickle
 
 
 def query_api(short_name):
-    """Queries the CMR api for a project short name, aggregates all the data from 
+    """Queries the CMR api for a project short name, aggregates all the data from
     the associated granules, and saves the raw output to the database.
 
     Args:
@@ -34,10 +34,10 @@ def query_api(short_name):
     """
 
     campaign_trees = ingest_campaign(short_name)
-    campaign_metadata = campaign_xlm_to_json(campaign_trees)
+    campaign_metadata = campaign_xml_to_json(campaign_trees)
 
     # TODO: replace this with the final location in the db we decide on
-    pickle.dump(campaign_metadata, open(f'cmr_data-{short_name}', 'wb'))    
+    pickle.dump(campaign_metadata, open(f'cmr_data-{short_name}', 'wb'))
 
     return campaign_metadata
 
@@ -57,19 +57,15 @@ def get_campaign(campaign_short_name):
     # TODO: replace this with the final location in the db we decide on
     campaign_metadata = pickle.load(open(f'cmr_data-{campaign_short_name}', 'rb'))
 
-    db = {'campaign':{}}
-
-    db['campaign']['short_name'] = campaign_short_name
-
-    db['campaign']['gcmd_region'] = extract_region_description(campaign_metadata)
-
-    db['campaign']['repositories'] = extract_daacs(campaign_metadata)
-
-    db['campaign']['spatial_bounds'] = general_extractor(campaign_metadata, 'SpatialExtent')
-
-    db['campaign']['gcmd_phenomena'] = general_extractor(campaign_metadata, 'ScienceKeywords')
-
-    db['campaign']['other_resources'] = general_extractor(campaign_metadata, 'RelatedUrls')    
+    db = {'campaign':{
+            'short_name': campaign_short_name,
+            'gcmd_region': extract_region_description(campaign_metadata),
+            'repositories': extract_daacs(campaign_metadata),
+            'spatial_bounds': general_extractor(campaign_metadata, 'SpatialExtent'),
+            'gcmd_phenomena': general_extractor(campaign_metadata, 'ScienceKeywords'),
+            'other_resources': general_extractor(campaign_metadata, 'RelatedUrls'),
+            }
+        }
 
     return db
 
@@ -92,15 +88,17 @@ def get_deployment_and_cp(campaign_short_name, dep_start, dep_end):
     # TODO: replace this with the final location in the db we decide on
     campaign_metadata = pickle.load(open(f'cmr_data-{campaign_short_name}', 'rb'))
 
-    db = {'deployment': {}}
-    db['deployment']['short_name'] = '_&_'.join([campaign_short_name, str(dep_start), str(dep_end)])
-    db['deployment']['foreign-campaign-short_name'] = campaign_short_name
-    db['deployment']['start_date'] = dep_start
-    db['deployment']['end_date'] = dep_end
+    db = {'deployment': {
+            'short_name': '_&_'.join([campaign_short_name, str(dep_start), str(dep_end)]),
+            'foreign-campaign-short_name': campaign_short_name,
+            'start_date': dep_start,
+            'end_date': dep_end,
+            }
+        }
 
     deployment_metadata = date_filter(campaign_metadata, dep_start, dep_end)
 
-    db['collection_period'] = extract_collection_periods(deployment_metadata)
+    db['collection_period']['platforms'] = extract_collection_periods(deployment_metadata)
     db['collection_period']['foreign-deployment-short_name'] = db['deployment']['short_name']
 
     return db
