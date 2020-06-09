@@ -1,4 +1,3 @@
-
 import uuid
 
 from django.contrib.contenttypes.fields import GenericForeignKey
@@ -99,7 +98,6 @@ class Alias(BaseModel):
         verbose_name_plural='Aliases'
 
 
-
 class GcmdProject(BaseModel):
     short_name = models.CharField(max_length=256, blank=False, unique=True)
     long_name = models.CharField(max_length=512, blank=True, default='')
@@ -186,7 +184,6 @@ class Campaign(DataModel):
     doi = models.CharField(max_length=1024, default='', blank=True)
     number_data_products = models.PositiveIntegerField(null=True, blank=True)
     data_volume = models.CharField(max_length=256, null=True, blank=True)
-    cmr_metadata = JSONField(null=True, blank=True)
 
     repository_website = models.CharField(max_length=512, default='', blank=True) # repository homepage
     project_website = models.CharField(max_length=512, default='', blank=True) # dedicated homepage
@@ -209,9 +206,19 @@ class Campaign(DataModel):
 
     @property
     def significant_events(self):
-        # TODO
-        # significant_events = models.CharField(max_length=512)
-        pass
+        return list(set([
+            event.uuid
+                for dep in self.deployments.all()
+                    for event in dep.significant_events.all()
+        ]))
+
+    @property
+    def iops(self):
+        return list(set([
+            iop.uuid
+                for dep in self.deployments.all()
+                    for iop in dep.iops.all()
+        ]))
 
     @property
     def number_deployments(self):
@@ -219,24 +226,20 @@ class Campaign(DataModel):
 
     @property
     def instruments(self):
-        instruments =  [
-            inst 
+        return list(set([
+            inst.uuid
                 for dep in self.deployments.all()
-                    for flight in dep.flights.all()
-                        for inst in flight.instruments.all()  
-        ]
-        instruments = list(set(instruments))
-        return instruments
+                    for collection_period in dep.collection_periods.all()
+                        for inst in collection_period.instruments.all()  
+        ]))
 
     @property
     def platforms(self):
-        platforms =  [
-            flight.platform 
+        return list(set([
+            collection_period.platform.uuid
                 for dep in self.deployments.all()
-                    for flight in dep.flights.all()
-        ]
-        platforms = list(set(platforms))
-        return platforms
+                    for collection_period in dep.collection_periods.all()
+        ]))
 
 
 class Platform(DataModel):
@@ -251,19 +254,23 @@ class Platform(DataModel):
 
     @property
     def campaigns(self):
-        campaigns = list(set(flight.deployment.campaign for flight in self.flights.all()))
-        return campaigns
+        return list(set(collection_period.deployment.campaign.uuid for collection_period in self.collection_periods.all()))
 
     @property
     def instruments(self):
-        instruments = [
-            inst
-                for flight in self.flights.all()
-                    for inst in flight.instruments.all()
-        ]
-        [[instruments.append(inst) for inst in flight.instruments.all()] for flight in self.flights.all()]
-        instruments = list(set(instruments))
-        return instruments
+        return list(set(
+            inst.uuid
+                for collection_period in self.collection_periods.all()
+                    for inst in collection_period.instruments.all()
+        ))     
+
+    @property
+    def instruments(self):
+        return list(set([
+            inst.uuid
+                for collection_period in self.collection_periods.all()
+                    for inst in collection_period.instruments.all()
+        ]))
 
 
 class Instrument(DataModel):
@@ -289,11 +296,11 @@ class Instrument(DataModel):
 
     @property
     def campaigns(self):
-        return list(set(flight.deployment.campaign for flight in self.flights.all()))
+        return list(set(collection_period.deployment.campaign.uuid for collection_period in self.collection_periods.all()))
 
     @property
     def platforms(self):
-        return list(set(flight.deployment.platform for flight in self.flights.all()))
+        return list(set(collection_period.platform.uuid for collection_period in self.collection_periods.all()))
 
  
 class Deployment(DataModel):
@@ -302,16 +309,20 @@ class Deployment(DataModel):
 
     start_date = models.DateField()
     end_date = models.DateField()
-    number_flights = models.PositiveIntegerField(null=True, blank=True)
+    number_collection_periods = models.PositiveIntegerField(null=True, blank=True)
 
     geographical_regions = models.ManyToManyField(
-        GeographicalRegion, 
+        GeographicalRegion,
         related_name='deployments', 
         default='', blank=True
         )
 
     def __str__(self):
-        return self.long_name
+        return self.short_name
+
+    @property
+    def platforms(self):
+        return list(set(collection_period.platform.uuid for collection_period in self.collection_periods.all()))
 
 
 class IopSe(BaseModel):
@@ -342,8 +353,8 @@ class SignificantEvent(IopSe):
 
 class CollectionPeriod(BaseModel):
 
-    deployment = models.ForeignKey(Deployment, on_delete=models.CASCADE, related_name='flights')
-    platform = models.ForeignKey(Platform, on_delete=models.CASCADE, related_name='flights')
+    deployment = models.ForeignKey(Deployment, on_delete=models.CASCADE, related_name='collection_periods')
+    platform = models.ForeignKey(Platform, on_delete=models.CASCADE, related_name='collection_periods')
 
     asp_long_name = models.CharField(max_length=512, default='', blank=True)
     platform_identifier = models.CharField(max_length=128, default='', blank=True)
@@ -358,8 +369,15 @@ class CollectionPeriod(BaseModel):
     num_ventures = models.PositiveIntegerField(null=True, blank=True)
     auto_generated = models.BooleanField()
 
-    instruments = models.ManyToManyField(Instrument, related_name='flights')
+    instruments = models.ManyToManyField(Instrument, related_name='collection_periods')
 
     def __str__(self):
         # TODO: maybe come up with something better? dep_plat_uuid?
-        return self.uuid
+        return str(self.uuid)
+
+
+class ExternalMetadata(BaseModel):
+    short_name = models.CharField(max_length=256, blank=False, unique=True)
+    download_date = models.DateTimeField(auto_now_add=True)
+    source = models.CharField(max_length=256, blank=False, unique=True)
+    metadata = JSONField()
