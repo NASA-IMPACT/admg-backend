@@ -98,7 +98,6 @@ class Alias(BaseModel):
         verbose_name_plural='Aliases'
 
 
-
 class GcmdProject(BaseModel):
     short_name = models.CharField(max_length=256, blank=False, unique=True)
     long_name = models.CharField(max_length=512, blank=True, default='')
@@ -207,23 +206,19 @@ class Campaign(DataModel):
 
     @property
     def significant_events(self):
-        events = [
+        return list(set([
             event.uuid
                 for dep in self.deployments.all()
                     for event in dep.significant_events.all()
-        ]
-        events = list(set(events))
-        return events
+        ]))
 
     @property
     def iops(self):
-        iops = [
+        return list(set([
             iop.uuid
                 for dep in self.deployments.all()
                     for iop in dep.iops.all()
-        ]
-        iops = list(set(iops))
-        return iops
+        ]))
 
     @property
     def number_deployments(self):
@@ -231,24 +226,20 @@ class Campaign(DataModel):
 
     @property
     def instruments(self):
-        instruments = [
+        return list(set([
             inst.uuid
                 for dep in self.deployments.all()
                     for collection_period in dep.collection_periods.all()
                         for inst in collection_period.instruments.all()  
-        ]
-        instruments = list(set(instruments))
-        return instruments
+        ]))
 
     @property
     def platforms(self):
-        platforms = [
+        return list(set([
             collection_period.platform.uuid
                 for dep in self.deployments.all()
                     for collection_period in dep.collection_periods.all()
-        ]
-        platforms = list(set(platforms))
-        return platforms
+        ]))
 
 
 class Platform(DataModel):
@@ -263,18 +254,23 @@ class Platform(DataModel):
 
     @property
     def campaigns(self):
-        campaigns = list(set(collection_period.deployment.campaign.uuid for collection_period in self.collection_periods.all()))
-        return campaigns
+        return list(set(collection_period.deployment.campaign.uuid for collection_period in self.collection_periods.all()))
 
     @property
     def instruments(self):
-        instruments = [
+        return list(set(
             inst.uuid
                 for collection_period in self.collection_periods.all()
                     for inst in collection_period.instruments.all()
-        ]
-        instruments = list(set(instruments))
-        return instruments
+        ))     
+
+    @property
+    def instruments(self):
+        return list(set([
+            inst.uuid
+                for collection_period in self.collection_periods.all()
+                    for inst in collection_period.instruments.all()
+        ]))
 
 
 class Instrument(DataModel):
