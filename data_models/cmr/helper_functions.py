@@ -243,7 +243,7 @@ def date_overlap(cmr_start, cmr_end, dep_start, dep_end):
 
     Range = namedtuple('Range', ['start', 'end'])
 
-    cmr_range = Range(start=cmr_start, end=cmr_end,)
+    cmr_range = Range(start=cmr_start, end=cmr_end)
     dep_range = Range(start=dep_start, end=dep_end)
 
     latest_start = max(cmr_range.start, dep_range.start)
@@ -269,14 +269,16 @@ def date_filter(campaign_metadata, dep_start, dep_end):
         dict: This is a filtered version of the original metadata given to the function.
     """
 
+    date_format = '%Y-%m-%dT%H:%M:%S.%fZ'
+
     filtered_metadata = []
     for reference in campaign_metadata:
         TemporalExtents = reference['metadata'].get('TemporalExtents', [{}])[0]
         cmr_start = TemporalExtents.get('RangeDateTimes', [{}])[0].get('BeginningDateTime', 'error')
         cmr_end = TemporalExtents.get('RangeDateTimes', [{}])[0].get('EndingDateTime', 'error')
 
-        cmr_start = datetime.strptime(cmr_start, '%Y-%m-%dT%H:%M:%S.%fZ')
-        cmr_end = datetime.strptime(cmr_end, '%Y-%m-%dT%H:%M:%S.%fZ')
+        cmr_start = datetime.strptime(cmr_start, date_format)
+        cmr_end = datetime.strptime(cmr_end, date_format)
 
         days_overlapping = date_overlap(cmr_start, cmr_end, dep_start, dep_end)
         if days_overlapping > 0:
