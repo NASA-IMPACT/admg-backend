@@ -27,8 +27,9 @@ def calculate_num_returned(num_hits, page_size, page_num):
 
     return num_returned
 
+
 def ingest_xml(url):
-    response = requests.get(url)  # , headers={'Connection': 'close'})
+    response = requests.get(url)
     rdf_file = BytesIO(response.content)
     tree = etree.parse(rdf_file)  # could fail for a lot of reasons
     return tree
@@ -210,7 +211,7 @@ def extract_collection_periods(campaign_metadata):
                 platforms[platform_reference]['instruments'] = {
                     **platforms[platform_reference]['instruments'],
                     **instruments}
-                platforms[platform_reference]['dois'].append(data_product.get('DOI'))
+                platforms[platform_reference]['dois'].append(data_product.get('metadata',{}).get('DOI'))
 
             else:
                 platforms[platform_reference] = {
@@ -221,7 +222,7 @@ def extract_collection_periods(campaign_metadata):
                     'instrument_information_source': 'cmr_api',
                     'auto_generated': True,
                     'instruments': instruments,
-                    'dois': [data_product.get('DOI')]
+                    'dois': [data_product.get('metadata',{}).get('DOI')]
                 }
 
     return platforms
