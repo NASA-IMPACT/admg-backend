@@ -12,7 +12,7 @@ SECRET_KEY = env(
     default="cu9ijHERZU27nR8Jis7nD09TLuR9uzUXy6ch0GI5B1mfkmFIJAzJh0ZwJ4yisGxu",
 )
 # https://docs.djangoproject.com/en/dev/ref/settings/#allowed-hosts
-ALLOWED_HOSTS = ["localhost", "0.0.0.0", "127.0.0.1", "admg.nasa-impact.net"]
+ALLOWED_HOSTS = ["localhost", "0.0.0.0", "127.0.0.1"]
 
 # CACHES
 # ------------------------------------------------------------------------------

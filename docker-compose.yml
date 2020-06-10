@@ -22,3 +22,4 @@ services:
       - ./staticfiles:/code/staticfiles
     expose:
       - 8000
+
