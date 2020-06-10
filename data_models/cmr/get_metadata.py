@@ -8,7 +8,7 @@ try:
         general_extractor,
         ingest_campaign,
     )
-except:
+except ImportError:
     from helper_functions import (
         campaign_xml_to_json,
         date_filter,
