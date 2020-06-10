@@ -98,6 +98,7 @@ def get_deployment_and_cp(campaign_short_name, dep_start, dep_end):
 
     deployment_metadata = date_filter(campaign_metadata, dep_start, dep_end)
 
+    db['collection_period'] = {}
     db['collection_period']['platforms'] = extract_collection_periods(deployment_metadata)
     db['collection_period']['foreign-deployment-short_name'] = db['deployment']['short_name']
 
