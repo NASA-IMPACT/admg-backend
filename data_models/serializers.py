@@ -305,3 +305,9 @@ class CampaignSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Campaign
         fields = "__all__"
+
+class ExternalMetadataSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = models.ExternalMetadata
+        fields = "__all__"
