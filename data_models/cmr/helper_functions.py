@@ -298,7 +298,7 @@ def project_filter(campaign_metadata, short_name):
     Returns:
         dict: This is a filtered version of the original metadata given to the function.
     """
-
+    # TODO: does it make sense to use any()?
     filtered_metadata = []
     for reference in campaign_metadata:
         projects = reference['metadata'].get('Projects', [])
@@ -307,16 +307,7 @@ def project_filter(campaign_metadata, short_name):
             if short_name.lower() == project_short_name.lower():
                 filtered_metadata.append(reference)
                 break
-
     return filtered_metadata
-
-
-    filtered_metadata = [reference for reference in campaign_metadata if has_project_with_short_name(reference, short_name)]
-
-    def has_project_with_short_name(reference, short_name):
-        return any(short_name.lower() == project.get('ShortName', '').lower() for project in reference['metadata'].get('Projects', []))
-
-
 
 
 def combine_spatial_extents(spatial_extents):
