@@ -21,14 +21,11 @@ def calculate_num_returned(num_hits, page_size, page_num):
 
     # this function is no longer used, but it seemed like a waste to delete it
  
-    naive = page_size*page_num
-    if naive < num_hits:
-        num_returned = naive
-    else:
-        num_returned = num_hits % naive
+    num_returned = page_size * page_num
+    if num_returned < num_hits:
+        num_returned = num_hits % num_returned
 
     return num_returned
-
 
 def ingest_xml(url):
     response = requests.get(url)  # , headers={'Connection': 'close'})
