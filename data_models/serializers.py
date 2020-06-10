@@ -4,7 +4,7 @@ from django.contrib.gis.geos import GEOSGeometry
 from data_models import models
 
 def get_uuids(database_entries):
-    return [item.uuid for item in database_entries.all()]
+    return list(database_entries.values_list('uuid', flat=True))
 
 def get_geojson_from_bb(bb_data):
     """
