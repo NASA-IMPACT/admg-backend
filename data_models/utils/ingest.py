@@ -1,8 +1,14 @@
-import pandas as pd
 import json
+import pandas as pd
 import validate
+
 from general import many_to_many, many_cols
-import ingest
+
+
+def rename_columns(db, table_name, remap_dict):
+    table = db[table_name]
+    table.rename(mapper=remap_dict[table_name], axis='columns', inplace=True)
+    return table
 
 
 def sheet(excel_data, remap_dict, sheet_name, remap_name, header_row, data_row):
@@ -18,43 +24,71 @@ def sheet(excel_data, remap_dict, sheet_name, remap_name, header_row, data_row):
     return df  
 
 
-def main():
-    excel_data = pd.read_excel('ADMG Airborne Campaign Inventory.xlsx', sheet_name = None)
+def main(file_path):
     
-    column_mapping = json.load(open('column_mapping.json', 'r'))
-    ingest_mapping = json.load(open('ingest_mapping.json', 'r'))
-    limited_mapping = json.load(open('limited_mapping.json', 'r'))
-    
-    validate.sheet_names(excel_data)
-    
-
-    ### LIMITED FIELDS ###
-    # initial cleaning
-    limited = excel_data['Limited Fields'][2:].copy()
-    limited.columns = ['Ingest Label', 
-                            'short_name', 
-                            'long_name', 
-                            'description', 
-                            'gcmd_translation', 
-                            'examples', 
-                            'notes']
-    limited.fillna(value='Information Not Available', inplace=True)
-    
+    # this dict will hold all the database tables
     db = {}
 
-    # ingest all the limited fields 
-    for table_name in limited_mapping.keys():
-            db[table_name] = limited[limited['Ingest Label'] == limited_mapping[table_name]['sheet_name']].copy()
+    excel_data = pd.read_excel(file_path, sheet_name = None)
     
+    mapping_columns = json.load(open('mapping_columns.json', 'r'))
+    mapping_ingest = json.load(open('mapping_ingest.json', 'r'))
+    mapping_limited_sheets = json.load(open('mapping_limited_sheets.json', 'r'))
+    mapping_limited_cols = json.load(open('mapping_limited_cols.json', 'r'))
+
+    validate.sheet_names(excel_data)
+
+    ######################
+    ### LIMITED FIELDS ###
+    ######################
+
+    # initial cleaning
+    limited = excel_data['Limited Fields'][3:].copy()
+    limited.columns = ['Ingest Label',
+                        'short_name',
+                        'long_name',
+                        'description',
+                        'gcmd_translation',
+                        'examples',
+                        'notes',
+                        'parent',]
+
+    limited.fillna(value='Information Not Available', inplace=True)                        
+    
+    # ingest all the limited fields 
+    for table_name in mapping_limited_sheets.keys():
+            db[table_name] = limited[limited['Ingest Label'] == mapping_limited_sheets[table_name]['ingest_label']].copy()
+    
+    # remap limited fields
+    # TODO: consider moving this list to a dedicated file
+    tables_to_remap = [
+        'platform_type',
+        'instrument_type',
+        'home_base',
+        'repository',
+        'focus_area',
+        'season',
+        'measurement_region',
+        'geographical_region',
+        'geophysical_concept',
+    ]
+
+    for table_name in tables_to_remap:
+        db[table_name] = rename_columns(db, table_name, mapping_limited_cols)
+
+
+    ###################
     ### DATA FIELDS ###
+    ###################
+
     # ingest all the data_fields
-    for table_name in ingest_mapping.keys():
+    for table_name in mapping_ingest.keys():
             db[table_name] = sheet(excel_data=excel_data, 
-                                    remap_dict=column_mapping,
-                                    sheet_name=ingest_mapping[table_name]['sheet_name'],
-                                    remap_name=ingest_mapping[table_name]['remap_name'],
-                                    header_row=ingest_mapping[table_name]['header_row'], 
-                                    data_row=ingest_mapping[table_name]['data_row'])
+                                    remap_dict=mapping_columns,
+                                    sheet_name=mapping_ingest[table_name]['sheet_name'],
+                                    remap_name=mapping_ingest[table_name]['remap_name'],
+                                    header_row=mapping_ingest[table_name]['header_row'], 
+                                    data_row=mapping_ingest[table_name]['data_row'])
     
     return {'excel_data':excel_data, 'database':db}
 
