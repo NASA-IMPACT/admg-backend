@@ -4,6 +4,7 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.gis.db import models as geomodels
 from django.contrib.postgres.fields import JSONField
+from django.contrib.postgres.search import SearchQuery, SearchVector
 from django.db import models
 
 
@@ -14,7 +15,7 @@ class BaseModel(models.Model):
         return self.short_name
 
     class Meta:
-        abstract = True 
+        abstract = True
 
 
 ##################
@@ -33,7 +34,7 @@ class LimitedInfo(BaseModel):
 
 class PlatformType(LimitedInfo):
     parent = models.ForeignKey('PlatformType', on_delete=models.CASCADE, related_name='sub_types', null=True, blank=True)
-    
+
     gcmd_uuid = models.UUIDField(null=True, blank=True)
     example = models.CharField(max_length=256, blank=True, default='')
 
@@ -43,15 +44,15 @@ class NasaMission(LimitedInfo):
 
 class InstrumentType(LimitedInfo):
     parent = models.ForeignKey('InstrumentType', on_delete=models.CASCADE, related_name='sub_types', null=True, blank=True)
-    
+
     gcmd_uuid = models.UUIDField(null=True, blank=True)
     example = models.CharField(max_length=256, blank=True, default='')
-    
+
 
 class HomeBase(LimitedInfo):
     location = models.CharField(max_length=512, blank=True, default='')
     additional_info = models.CharField(max_length=2048, blank=True, default='')
-    
+
 
 class FocusArea(LimitedInfo):
     url = models.CharField(max_length=256, blank=True, default='')
@@ -63,7 +64,7 @@ class Season(LimitedInfo):
 
 class Repository(LimitedInfo):
     gcmd_uuid = models.UUIDField(null=True, blank=True)
-    
+
 
 class MeasurementRegion(LimitedInfo):
     gcmd_uuid = models.UUIDField(null=True, blank=True)
@@ -85,7 +86,7 @@ class PartnerOrg(LimitedInfo):
 
 
 class Alias(BaseModel):
-    
+
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.UUIDField()
     parent_fk = GenericForeignKey('content_type', 'object_id')
@@ -187,7 +188,7 @@ class Campaign(DataModel):
 
     repository_website = models.CharField(max_length=512, default='', blank=True) # repository homepage
     project_website = models.CharField(max_length=512, default='', blank=True) # dedicated homepage
-    tertiary_website = models.CharField(max_length=512, default='', blank=True) 
+    tertiary_website = models.CharField(max_length=512, default='', blank=True)
     publication_links = models.CharField(max_length=2048, default='', blank=True)
     other_resources = models.CharField(max_length=2048, default='', blank=True) # other urls
 
@@ -230,7 +231,7 @@ class Campaign(DataModel):
             inst.uuid
                 for dep in self.deployments.all()
                     for collection_period in dep.collection_periods.all()
-                        for inst in collection_period.instruments.all()  
+                        for inst in collection_period.instruments.all()
         ]))
 
     @property
@@ -240,6 +241,32 @@ class Campaign(DataModel):
                 for dep in self.deployments.all()
                     for collection_period in dep.collection_periods.all()
         ]))
+
+    @classmethod
+    def search(self, params):
+        if "search_type" in params:
+            search_type = params['search_type']
+            del params['search_type']
+        else:
+            search_type = 'plain'
+        if "search" in params:
+            search = params['search']
+            del params['search']
+            vector = (
+                SearchVector('short_name') +
+                SearchVector('long_name') +
+                SearchVector('description_short') +
+                SearchVector('description_long') +
+                SearchVector('focus_phenomena')
+            )
+            qs = self.objects.annotate(
+                search=vector
+            ).filter(
+                search=SearchQuery(search, search_type=search_type)
+            )
+        else:
+            qs = self.objects.all()
+        return qs.filter(**params)
 
 
 class Platform(DataModel):
@@ -262,7 +289,7 @@ class Platform(DataModel):
             inst.uuid
                 for collection_period in self.collection_periods.all()
                     for inst in collection_period.instruments.all()
-        ))     
+        ))
 
     @property
     def instruments(self):
@@ -302,7 +329,7 @@ class Instrument(DataModel):
     def platforms(self):
         return list(set(collection_period.platform.uuid for collection_period in self.collection_periods.all()))
 
- 
+
 class Deployment(DataModel):
 
     campaign = models.ForeignKey(Campaign, on_delete=models.CASCADE, related_name='deployments')
@@ -313,7 +340,7 @@ class Deployment(DataModel):
 
     geographical_regions = models.ManyToManyField(
         GeographicalRegion,
-        related_name='deployments', 
+        related_name='deployments',
         default='', blank=True
         )
 
@@ -328,7 +355,7 @@ class Deployment(DataModel):
 class IopSe(BaseModel):
 
     deployment = models.ForeignKey(Deployment, on_delete=models.CASCADE, related_name='iops')
-    
+
     short_name = models.CharField(max_length=256)
     start_date = models.DateField()
     end_date = models.DateField()
@@ -339,17 +366,17 @@ class IopSe(BaseModel):
     reference_file = models.CharField(max_length=1024, default='', blank=True)
 
     class Meta:
-        abstract = True 
+        abstract = True
 
 
 class IOP(IopSe):
     deployment = models.ForeignKey(Deployment, on_delete=models.CASCADE, related_name='iops')
-    
+
 
 class SignificantEvent(IopSe):
     deployment = models.ForeignKey(Deployment, on_delete=models.CASCADE, related_name='significant_events')
-    iop = models.ForeignKey(IOP, on_delete=models.CASCADE, related_name='significant_events', null=True) 
-    
+    iop = models.ForeignKey(IOP, on_delete=models.CASCADE, related_name='significant_events', null=True)
+
 
 class CollectionPeriod(BaseModel):
 

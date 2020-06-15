@@ -1,6 +1,7 @@
 from django.apps import apps
 
 from rest_framework import permissions
+from rest_framework import filters
 from rest_framework.generics import (
     RetrieveUpdateDestroyAPIView,
     ListCreateAPIView,
@@ -36,6 +37,15 @@ def GenericCreateGetAllView(model_name):
             self.queryset = self.Model.objects.filter(
                 **request.query_params.dict()
             )
+            params = request.query_params.dict()
+￼            try:
+￼                self.queryset = self.Model.search(
+￼                    params
+￼                )
+￼            except NotImplementedError:
+￼                self.queryset = self.queryset.filter(
+￼                    **params
+￼                )
             res = super().get(request, *args, **kwargs)
             return res
 
