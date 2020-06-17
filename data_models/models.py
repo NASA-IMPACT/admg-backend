@@ -22,6 +22,12 @@ class BaseModel(models.Model):
 ##################
 
 
+class Image(BaseModel):
+    short_name = models.CharField(max_length=512, default='', blank=True)
+    owner = models.CharField(max_length=512, default='', blank=True)
+    url = models.URLField(max_length=2048, null=True, blank=True)     
+
+
 class LimitedInfo(BaseModel):
     short_name = models.CharField(max_length=256, blank=False, unique=True)
     long_name = models.CharField(max_length=512, blank=True, default='')
@@ -249,14 +255,11 @@ class Campaign(DataModel):
 class Platform(DataModel):
 
     platform_type = models.ForeignKey(PlatformType, on_delete=models.SET_NULL, related_name='platforms', null=True)
+    image = models.ForeignKey(Image, on_delete=models.CASCADE, null=True)   
 
     description = models.TextField()
     online_information = models.CharField(max_length=512, default='', blank=True)
     stationary = models.BooleanField()
-
-    image_name = models.CharField(max_length=512, default='', blank=True)
-    image_owner = models.CharField(max_length=512, default='', blank=True)
-    image_url = models.URLField(max_length=2048, null=True, blank=True)    
 
     gcmd_platforms = models.ManyToManyField(GcmdPlatform, related_name='platforms', default='', blank=True)
 
@@ -282,6 +285,8 @@ class Platform(DataModel):
 
 
 class Instrument(DataModel):
+    image = models.ForeignKey(Image, on_delete=models.CASCADE, null=True)
+
     description = models.TextField()
     lead_investigator = models.CharField(max_length=256, default='', blank=True)
     technical_contact = models.CharField(max_length=256)
@@ -294,10 +299,6 @@ class Instrument(DataModel):
     instrument_manufacturer = models.CharField(max_length=512, default='', blank=True)
     online_information = models.CharField(max_length=2048, default='', blank=True)
     instrument_doi = models.CharField(max_length=1024, default='', blank=True)
-
-    image_name = models.CharField(max_length=512, default='', blank=True)
-    image_owner = models.CharField(max_length=512, default='', blank=True)
-    image_url = models.URLField(max_length=2048, null=True, blank=True) 
 
     gcmd_instruments = models.ManyToManyField(GcmdInstrument, related_name='instruments', default='', blank=True)
     instrument_types = models.ManyToManyField(InstrumentType, related_name='instruments')
@@ -314,27 +315,16 @@ class Instrument(DataModel):
     def platforms(self):
         return list(set(collection_period.platform.uuid for collection_period in self.collection_periods.all()))
 
- 
-class Deployment(DataModel):
 
+class Deployment(DataModel):
     campaign = models.ForeignKey(Campaign, on_delete=models.CASCADE, related_name='deployments')
+    study_region_map = models.ForeignKey(Image, on_delete=models.CASCADE, null=True)
+    ground_sites_map = models.ForeignKey(Image, on_delete=models.CASCADE, null=True)
+    flight_tracks = models.ForeignKey(Image, on_delete=models.CASCADE, null=True)
 
     start_date = models.DateField()
     end_date = models.DateField()
     number_collection_periods = models.PositiveIntegerField(null=True, blank=True)
-
-    # TODO: ADGM requirements specifiy an image for the following data. Is it the best option?
-    study_region_map_name = models.CharField(max_length=512, default='', blank=True)
-    study_region_map_owner = models.CharField(max_length=512, default='', blank=True)
-    study_region_map_url = models.URLField(max_length=2048, null=True, blank=True) 
-
-    ground_sites_map_name = models.CharField(max_length=512, default='', blank=True)
-    ground_sites_map_owner = models.CharField(max_length=512, default='', blank=True)
-    ground_sites_map_url = models.URLField(max_length=2048, null=True, blank=True) 
-
-    flight_tracks_name = models.CharField(max_length=512, default='', blank=True)
-    flight_tracks_owner = models.CharField(max_length=512, default='', blank=True)
-    flight_tracks_url = models.URLField(max_length=2048, null=True, blank=True) 
 
     geographical_regions = models.ManyToManyField(
         GeographicalRegion,
