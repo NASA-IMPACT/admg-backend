@@ -22,6 +22,12 @@ class BaseModel(models.Model):
 ##################
 
 
+class Image(BaseModel):
+    url = models.URLField(max_length=2048)   
+    short_name = models.CharField(max_length=512, default='', blank=True)
+    owner = models.CharField(max_length=512, default='', blank=True)
+
+
 class LimitedInfo(BaseModel):
     short_name = models.CharField(max_length=256, blank=False, unique=True)
     long_name = models.CharField(max_length=512, blank=True, default='')
@@ -166,6 +172,8 @@ class DataModel(BaseModel):
 
 
 class Campaign(DataModel):
+    logo = models.ForeignKey(Image, on_delete=models.CASCADE, null=True)
+
     description_short = models.TextField(default='', blank=True)
     description_long = models.TextField(default='', blank=True)
     focus_phenomena = models.CharField(max_length=1024)
@@ -245,6 +253,7 @@ class Campaign(DataModel):
 class Platform(DataModel):
 
     platform_type = models.ForeignKey(PlatformType, on_delete=models.SET_NULL, related_name='platforms', null=True)
+    image = models.ForeignKey(Image, on_delete=models.CASCADE, null=True)   
 
     description = models.TextField()
     online_information = models.CharField(max_length=512, default='', blank=True)
@@ -274,6 +283,8 @@ class Platform(DataModel):
 
 
 class Instrument(DataModel):
+    image = models.ForeignKey(Image, on_delete=models.CASCADE, null=True)
+
     description = models.TextField()
     lead_investigator = models.CharField(max_length=256, default='', blank=True)
     technical_contact = models.CharField(max_length=256)
@@ -302,10 +313,12 @@ class Instrument(DataModel):
     def platforms(self):
         return list(set(collection_period.platform.uuid for collection_period in self.collection_periods.all()))
 
- 
-class Deployment(DataModel):
 
+class Deployment(DataModel):
     campaign = models.ForeignKey(Campaign, on_delete=models.CASCADE, related_name='deployments')
+    study_region_map = models.ForeignKey(Image, on_delete=models.CASCADE, null=True)
+    ground_sites_map = models.ForeignKey(Image, on_delete=models.CASCADE, null=True)
+    flight_tracks = models.ForeignKey(Image, on_delete=models.CASCADE, null=True)
 
     start_date = models.DateField()
     end_date = models.DateField()
