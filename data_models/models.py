@@ -23,9 +23,9 @@ class BaseModel(models.Model):
 
 
 class Image(BaseModel):
+    url = models.URLField(max_length=2048)   
     short_name = models.CharField(max_length=512, default='', blank=True)
     owner = models.CharField(max_length=512, default='', blank=True)
-    url = models.URLField(max_length=2048, null=True, blank=True)     
 
 
 class LimitedInfo(BaseModel):
