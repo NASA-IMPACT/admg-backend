@@ -194,6 +194,10 @@ class Campaign(DataModel):
     ongoing = models.BooleanField()
     nasa_led = models.BooleanField()
 
+    logo_name = models.CharField(max_length=512, default='', blank=True)
+    logo_owner = models.CharField(max_length=512, default='', blank=True)
+    logo_url = models.URLField(max_length=2048, null=True, blank=True)
+
     nasa_missions = models.ManyToManyField(NasaMission, related_name='campaigns', default='', blank=True)
     focus_areas = models.ManyToManyField(FocusArea, related_name='campaigns')
     seasons = models.ManyToManyField(Season, related_name='campaigns')
@@ -250,6 +254,10 @@ class Platform(DataModel):
     online_information = models.CharField(max_length=512, default='', blank=True)
     stationary = models.BooleanField()
 
+    image_name = models.CharField(max_length=512, default='', blank=True)
+    image_owner = models.CharField(max_length=512, default='', blank=True)
+    image_url = models.URLField(max_length=2048, null=True, blank=True)    
+
     gcmd_platforms = models.ManyToManyField(GcmdPlatform, related_name='platforms', default='', blank=True)
 
     @property
@@ -287,6 +295,10 @@ class Instrument(DataModel):
     online_information = models.CharField(max_length=2048, default='', blank=True)
     instrument_doi = models.CharField(max_length=1024, default='', blank=True)
 
+    image_name = models.CharField(max_length=512, default='', blank=True)
+    image_owner = models.CharField(max_length=512, default='', blank=True)
+    image_url = models.URLField(max_length=2048, null=True, blank=True) 
+
     gcmd_instruments = models.ManyToManyField(GcmdInstrument, related_name='instruments', default='', blank=True)
     instrument_types = models.ManyToManyField(InstrumentType, related_name='instruments')
     gcmd_phenomenas = models.ManyToManyField(GcmdPhenomena, related_name='instruments')
@@ -310,6 +322,19 @@ class Deployment(DataModel):
     start_date = models.DateField()
     end_date = models.DateField()
     number_collection_periods = models.PositiveIntegerField(null=True, blank=True)
+
+    # TODO: ADGM requirements specifiy an image for the following data. Is it the best option?
+    study_region_map_name = models.CharField(max_length=512, default='', blank=True)
+    study_region_map_owner = models.CharField(max_length=512, default='', blank=True)
+    study_region_map_url = models.URLField(max_length=2048, null=True, blank=True) 
+
+    ground_sites_map_name = models.CharField(max_length=512, default='', blank=True)
+    ground_sites_map_owner = models.CharField(max_length=512, default='', blank=True)
+    ground_sites_map_url = models.URLField(max_length=2048, null=True, blank=True) 
+
+    flight_tracks_name = models.CharField(max_length=512, default='', blank=True)
+    flight_tracks_owner = models.CharField(max_length=512, default='', blank=True)
+    flight_tracks_url = models.URLField(max_length=2048, null=True, blank=True) 
 
     geographical_regions = models.ManyToManyField(
         GeographicalRegion,
