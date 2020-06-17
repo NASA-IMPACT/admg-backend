@@ -172,6 +172,8 @@ class DataModel(BaseModel):
 
 
 class Campaign(DataModel):
+    logo = models.ForeignKey(Image, on_delete=models.CASCADE, null=True)
+
     description_short = models.TextField(default='', blank=True)
     description_long = models.TextField(default='', blank=True)
     focus_phenomena = models.CharField(max_length=1024)
@@ -199,10 +201,6 @@ class Campaign(DataModel):
 
     ongoing = models.BooleanField()
     nasa_led = models.BooleanField()
-
-    logo_name = models.CharField(max_length=512, default='', blank=True)
-    logo_owner = models.CharField(max_length=512, default='', blank=True)
-    logo_url = models.URLField(max_length=2048, null=True, blank=True)
 
     nasa_missions = models.ManyToManyField(NasaMission, related_name='campaigns', default='', blank=True)
     focus_areas = models.ManyToManyField(FocusArea, related_name='campaigns')
