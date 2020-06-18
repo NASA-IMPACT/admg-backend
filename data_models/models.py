@@ -316,9 +316,9 @@ class Instrument(DataModel):
 
 class Deployment(DataModel):
     campaign = models.ForeignKey(Campaign, on_delete=models.CASCADE, related_name='deployments')
-    study_region_map = models.ForeignKey(Image, on_delete=models.CASCADE, null=True)
-    ground_sites_map = models.ForeignKey(Image, on_delete=models.CASCADE, null=True)
-    flight_tracks = models.ForeignKey(Image, on_delete=models.CASCADE, null=True)
+    study_region_map = models.ForeignKey(Image, on_delete=models.CASCADE, null=True, related_name='deployments_study')
+    ground_sites_map = models.ForeignKey(Image, on_delete=models.CASCADE, null=True, related_name='deployments_ground')
+    flight_tracks = models.ForeignKey(Image, on_delete=models.CASCADE, null=True, related_name='deployments_flight')
 
     start_date = models.DateField()
     end_date = models.DateField()
