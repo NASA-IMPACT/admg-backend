@@ -24,9 +24,6 @@ def GenericCreateGetAllView(model_name):
         View(class) : view class for LIST and CREATE API views
     """
     class View(ListCreateAPIView):
-        permission_classes = [permissions.IsAuthenticated, TokenHasScope]
-        required_scopes = [STAFF]
-
         Model = apps.get_model('data_models', model_name)
         queryset = Model.objects.all()
         serializer_class = getattr(sz, f"{model_name}Serializer")
@@ -44,6 +41,14 @@ def GenericCreateGetAllView(model_name):
         def post(self, request, *args, **kwargs):
             return super().post(request, *args, **kwargs)
 
+        def get_permissions(self):
+            if self.request.method == 'GET':
+                self.permission_classes = [permissions.IsAuthenticatedOrReadOnly,]
+            else:
+                self.permission_classes = [permissions.IsAuthenticated, TokenHasScope]
+                self.required_scopes = [STAFF]
+            return super().get_permissions()
+
     return View.as_view()
 
 
@@ -58,8 +63,6 @@ def GenericPutPatchDeleteView(model_name):
         View(class) : view class for PUT, PATCH and DELETE API views
     """
     class View(RetrieveUpdateDestroyAPIView):
-        permission_classes = [permissions.IsAuthenticated, TokenHasScope]
-        required_scopes = [STAFF]
         Model = apps.get_model('data_models', model_name)
         lookup_field = "uuid"
         queryset = Model.objects.all()
@@ -83,5 +86,13 @@ def GenericPutPatchDeleteView(model_name):
         @requires_admin_approval(model_name=model_name, action=DELETE)
         def delete(self, request, *args, **kwargs):
             return super().delete(request, *args, **kwargs)
+
+        def get_permissions(self):
+            if self.request.method == 'GET':
+                self.permission_classes = [permissions.IsAuthenticatedOrReadOnly,]
+            else:
+                self.permission_classes = [permissions.IsAuthenticated, TokenHasScope]
+                self.required_scopes = [STAFF]
+            return super().get_permissions()
 
     return View.as_view()
