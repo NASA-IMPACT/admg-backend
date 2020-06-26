@@ -85,7 +85,8 @@ THIRD_PARTY_APPS = [
     "rest_framework",
     "rest_framework.authtoken",
     "drf_yasg",
-    'oauth2_provider'
+    'oauth2_provider',
+    'storages',
 ]
 
 LOCAL_APPS = [
@@ -288,6 +289,7 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_PARSER_CLASSES': [
         'rest_framework.parsers.JSONParser',
+        'rest_framework.parsers.MultiPartParser',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
@@ -322,3 +324,14 @@ OAUTH2_PROVIDER = {
         'write': 'Write scope',
     }
 }
+
+# AWS Configuration
+
+DEFAULT_FILE_STORAGE=env('DEFAULT_FILE_STORAGE')
+
+AWS_STORAGE_BUCKET_NAME=env('AWS_STORAGE_BUCKET_NAME')
+AWS_S3_REGION_NAME=env('AWS_S3_REGION_NAME')
+AWS_ACCESS_KEY_ID=env('AWS_ACCESS_KEY_ID')
+AWS_SECRET_ACCESS_KEY=env('AWS_SECRET_ACCESS_KEY')
+
+AWS_DEFAULT_ACL = None

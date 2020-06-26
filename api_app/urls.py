@@ -6,6 +6,8 @@ from rest_framework import permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 
+
+from api_app.views.upload_view import FileUploadView
 from .views.change_view import (
     ChangeListView,
     ChangeListUpdateView,
@@ -16,6 +18,7 @@ from .views.change_view import (
 )
 
 from .views.generic_views import GenericCreateGetAllView, GenericPutPatchDeleteView
+
 
 info = openapi.Info(
     title="ADMG API",
@@ -112,8 +115,14 @@ urlpatterns += [
     ),
 
     path(
+        "image/",
+        FileUploadView.as_view(),
+        name="image_upload"
+    ),
+
+    path(
         "docs/",
         schema_view.with_ui("swagger", cache_timeout=0),
         name="schema-swagger-ui"
-    ),
+    ),  
 ]
