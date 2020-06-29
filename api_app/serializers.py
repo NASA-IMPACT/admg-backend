@@ -11,8 +11,7 @@ class ChangeSerializer(serializers.ModelSerializer):
         read_only_fields = ["appr_reject_date", "appr_reject_by", "status"]
 
 
-class FileSerializer(serializers.ModelSerializer):
-
+class ImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Image
         fields = "__all__"

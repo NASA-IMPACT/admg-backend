@@ -7,7 +7,7 @@ from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 
 
-from api_app.views.upload_view import FileUploadView
+from api_app.views.upload_view import ImageUploadView
 from .views.change_view import (
     ChangeListView,
     ChangeListUpdateView,
@@ -116,7 +116,7 @@ urlpatterns += [
 
     path(
         "image/",
-        FileUploadView.as_view(),
+        ImageUploadView.as_view(),
         name="image_upload"
     ),
 
