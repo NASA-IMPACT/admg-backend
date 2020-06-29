@@ -1,3 +1,4 @@
+import os
 import uuid
 
 from django.contrib.contenttypes.fields import GenericForeignKey
@@ -21,11 +22,16 @@ class BaseModel(models.Model):
 # Limited Fields #
 ##################
 
+def get_file_path(instance, path):
+    return f'{instance.uuid}{os.path.splitext(path)[1]}'
 
 class Image(BaseModel):
-    url = models.URLField(max_length=2048)   
+    photo = models.FileField(upload_to=get_file_path, null=True, blank=True)
     short_name = models.CharField(max_length=512, default='', blank=True)
     owner = models.CharField(max_length=512, default='', blank=True)
+    
+    def __str__(self):
+        return self.short_name or self.photo.name
 
 
 class LimitedInfo(BaseModel):
