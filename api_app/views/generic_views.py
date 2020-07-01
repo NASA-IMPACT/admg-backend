@@ -33,7 +33,7 @@ def GenericCreateGetAllView(model_name):
     Returns:
         View(class) : view class for LIST and CREATE API views
     """
-    class View(ListCreateAPIView, GetPermissionsMixin):
+    class View(GetPermissionsMixin, ListCreateAPIView):
         Model = apps.get_model('data_models', model_name)
         queryset = Model.objects.all()
         serializer_class = getattr(sz, f"{model_name}Serializer")
@@ -64,7 +64,7 @@ def GenericPutPatchDeleteView(model_name):
     Returns:
         View(class) : view class for PUT, PATCH and DELETE API views
     """
-    class View(RetrieveUpdateDestroyAPIView, GetPermissionsMixin):
+    class View(GetPermissionsMixin, RetrieveUpdateDestroyAPIView):
         Model = apps.get_model('data_models', model_name)
         lookup_field = "uuid"
         queryset = Model.objects.all()
