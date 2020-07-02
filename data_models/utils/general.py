@@ -108,6 +108,6 @@ def log_short_names(db, table_name):
         table_name (str): name of the table from which the short_names will be logged
     """
 
-    with open(f'{table_name}_short_names.log', 'w') as f:
+    with open(f'short_names-{table_name}.log', 'w') as f:
         f.write(f'this file contains the short_names of every {table_name} in the pre-ingested database\n')
-        f.writelines(f'{item}\n' for item in db[table_name]['short_name'].values)    
+        f.writelines(f'{item}\n' for item in db[table_name]['short_name'].values)
