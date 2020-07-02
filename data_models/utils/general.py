@@ -73,7 +73,6 @@ def filter_campaigns(db, campaign_list):
 
     # campaigns
     db['campaign'] = db['campaign'][db['campaign']['short_name'].apply(lambda x: x in campaign_list)]
-    assert set(campaign_list) == set(db['campaign']['short_name'])
 
     # deployments
     db['deployment'] = db['deployment'][db['deployment']['foreign-campaign-short_name'].apply(lambda short: short in campaign_list)]
@@ -90,13 +89,25 @@ def filter_campaigns(db, campaign_list):
     # platforms
     platform_filter = list(set(list(db['collection_period']['foreign-platform-short_name'])))
     db['platform'] = db['platform'][db['platform']['short_name'].apply(lambda short: short in platform_filter)]
-    print('\ncopy these platforms into a file for inventory folks\n')
-    [print(thing) for thing in platform_filter]
 
     # instruments
     instrument_filter = list(set(list(db['collection_period']['instrument'])))
     db['instrument'] = db['instrument'][db['instrument']['short_name'].apply(lambda short: short in instrument_filter)]
-    print('\ncopy these instruments into a file for inventory folks\n')
-    [print(thing) for thing in instrument_filter]
 
     return db
+
+
+def log_short_names(db, table_name):
+    """Saves a log file containing the short_names from a specified table. This functionality is designed
+    primarily for use with instruments and platforms so that the Inventory Team can more easily identify
+    which objects are linked to which campaigns. Typically the input database will have been filtered on 
+    some criteria.
+
+    Args:
+        db (dict): Dictionary of dataframes, where each key is the name of the database table
+        table_name (str): name of the table from which the short_names will be logged
+    """
+
+    with open(f'{table_name}_short_names.log', 'w') as f:
+        f.write(f'this file contains the short_names of every {table_name} in the pre-ingested database\n')
+        f.writelines(f'{item}\n' for item in db[table_name]['short_name'].values)    
