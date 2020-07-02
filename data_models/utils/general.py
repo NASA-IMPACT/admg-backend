@@ -37,3 +37,20 @@ def many_to_many(db, table_name, many_col, keep_all=False):
     result.rename(columns={'short_name':table_name, many_col:name}, inplace=True)    
     
     return result
+
+
+def correct_values(db, table_name, column, wrong_value, correct_value):
+    """Simple find and replace to correct values prior to import
+
+    Args:
+        db (dict): Dictionary of dataframes, where each key is the name of the intended
+            table
+        table_name (str): name of the table inside of which the values will be replaced
+        column (str): name of the column (field) where the values will be replaced
+        wrong_value (str): str value of the incorrect value
+        correct_value (str): str value of the correct value
+    """
+
+    db[table_name][column] = db[table_name][column].apply(lambda x: x if x != wrong_value else correct_value)
+
+    return db
