@@ -123,8 +123,8 @@
     "Geographical Region Type(s)": "table-geographical_region-short_name",
     "aircraft flown": "table-platform-short_name",
     "notes": "notes_public",
-    "Study Region Bounds/Map": "ignore_study_map",
-    "Field/Ground Site Map": "ignore_field_map",
+    "Study Region Bounds/Map": "ignore_study_region_map",
+    "Field/Ground Site Map": "ignore_ground_sites_map",
     "Flight Track(s)": "ignore_flight_tracks"
   },
   "iopse": {
