@@ -26,12 +26,12 @@ def get_file_path(instance, path):
     return f'{instance.uuid}{os.path.splitext(path)[1]}'
 
 class Image(BaseModel):
-    photo = models.ImageField(upload_to=get_file_path, null=True, blank=True)
+    image = models.ImageField(upload_to=get_file_path, null=True, blank=True)
     short_name = models.CharField(max_length=512, default='', blank=True)
     owner = models.CharField(max_length=512, default='', blank=True)
 
     def __str__(self):
-        return self.short_name or self.photo.name
+        return self.short_name or self.image.name
 
 
 class LimitedInfo(BaseModel):
