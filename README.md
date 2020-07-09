@@ -45,16 +45,16 @@ in the notebook, import your models file
     - `curl -X POST -d "grant_type=refresh_token&refresh_token=<your_refresh_token>&client_id=<your_client_id>&client_secret=<your_client_secret>" http://localhost:8000/authenticate/token`
  
 
-Getting token Javascript example
+Example JavaScript code
 ```
-const url = 'http://127.0.0.1:8000/authenticate/token/';
+const url = 'http[s]://www.domain.com/authenticate/token/';
 const cId = '<application client id>'
 const cSecret = '<application sectret key>'
-var data = new FormData();
+const data = new FormData();
 data.append('username', '<username>');
 data.append('password', '<password>');
 data.append('grant_type', 'password');
-var config = {
+const config = {
    method: 'post',
    url,
    data,
