@@ -323,9 +323,9 @@ class Instrument(DataModel):
 
 class Deployment(DataModel):
     campaign = models.ForeignKey(Campaign, on_delete=models.CASCADE, related_name='deployments')
-    study_region_map = models.ForeignKey(Image, on_delete=models.CASCADE, null=True, blank=True, related_name='deployments_study')
-    ground_sites_map = models.ForeignKey(Image, on_delete=models.CASCADE, null=True, blank=True, related_name='deployments_ground')
-    flight_tracks = models.ForeignKey(Image, on_delete=models.CASCADE, null=True, blank=True, related_name='deployments_flight')
+    study_region_map = models.TextField(default='', blank=True)
+    ground_sites_map = models.TextField(default='', blank=True)
+    flight_tracks = models.TextField(default='', blank=True)
 
     start_date = models.DateField()
     end_date = models.DateField()
@@ -333,7 +333,7 @@ class Deployment(DataModel):
 
     geographical_regions = models.ManyToManyField(
         GeographicalRegion,
-        related_name='deployments', 
+        related_name='deployments',
         default='', blank=True
         )
 
