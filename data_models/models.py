@@ -303,8 +303,7 @@ class Instrument(DataModel):
     instrument_manufacturer = models.CharField(max_length=512, default='', blank=True)
     online_information = models.CharField(max_length=2048, default='', blank=True)
     instrument_doi = models.CharField(max_length=1024, default='', blank=True)
-
-    arbitrary_characteristics = models.JSONField(default=None, blank=True)
+    arbitrary_characteristics = JSONField(default=None, blank=True)
 
     gcmd_instruments = models.ManyToManyField(GcmdInstrument, related_name='instruments', default='', blank=True)
     instrument_types = models.ManyToManyField(InstrumentType, related_name='instruments')
