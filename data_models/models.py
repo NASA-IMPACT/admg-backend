@@ -162,6 +162,10 @@ class GcmdPhenomena(BaseModel):
             return self.category
 
 
+class DOI(BaseModel):
+    value = models.CharField(max_length=64)
+
+
 ###############
 # Core Models #
 ###############
@@ -265,6 +269,7 @@ class Platform(DataModel):
     online_information = models.CharField(max_length=512, default='', blank=True)
     stationary = models.BooleanField()
 
+    dois = models.ManyToManyField(DOI, related_name='platforms', default=None, blank=True)
     gcmd_platforms = models.ManyToManyField(GcmdPlatform, related_name='platforms', default='', blank=True)
 
     @property
@@ -305,6 +310,7 @@ class Instrument(DataModel):
     instrument_doi = models.CharField(max_length=1024, default='', blank=True)
     arbitrary_characteristics = JSONField(default=None, blank=True)
 
+    dois = models.ManyToManyField(DOI, related_name='instruments', default=None, blank=True)
     gcmd_instruments = models.ManyToManyField(GcmdInstrument, related_name='instruments', default='', blank=True)
     instrument_types = models.ManyToManyField(InstrumentType, related_name='instruments')
     gcmd_phenomenas = models.ManyToManyField(GcmdPhenomena, related_name='instruments')
@@ -389,6 +395,7 @@ class CollectionPeriod(BaseModel):
     num_ventures = models.PositiveIntegerField(null=True, blank=True)
     auto_generated = models.BooleanField()
 
+    dois = models.ManyToManyField(DOI, related_name='collection_periods', default=None, blank=True)
     instruments = models.ManyToManyField(Instrument, related_name='collection_periods')
 
     def __str__(self):
