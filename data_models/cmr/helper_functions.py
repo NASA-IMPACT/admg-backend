@@ -81,28 +81,39 @@ def ingest_campaign(short_name):
 
     return campaign_trees
 
-
 def campaign_xml_to_json(campaign_trees):
-
-    campaign_metadata = []
+    
+    concept_ids = []
     for campaign_tree in campaign_trees:
         for references in campaign_tree.findall('references'):
             for reference in references:
+                concept_ids.append(reference.find('id').text)
 
-                name = reference.find('name').text
-                concept_id = reference.find('id').text
+    # set initial variables
+    page_num = 1
+    page_size = 100
+    metadata = []
+    finished = False
 
-                url = f'https://cmr.earthdata.nasa.gov/search/concepts/{concept_id}.umm-json'
+    while not finished:
+        flag = 'echo_collection_id[]='
+        url = f'https://cmr.earthdata.nasa.gov/search/collections.umm_json?'+\
+            f'&'.join([flag + concept_id for concept_id in concept_ids])+\
+            f'&page_size={page_size}'+\
+            f'&page_num={page_num}'
 
-                metadata = ingest_json(url)
+        data = ingest_json(url)
+        metadata += [{'concept_id': entry['meta']['concept-id'], 'metadata': entry['umm']} for entry in data['items']]
 
-                campaign_metadata.append({
-                    'name': name,
-                    'concept_id': concept_id,
-                    'metadata': metadata
-                })
+        # calculate num returned and iterate if needed
+        num_hits = int(data['hits'])
+        num_returned_naive = page_num*page_size
+        if num_returned_naive < num_hits:
+            page_num += 1
+        else:
+            finished = True
 
-    return campaign_metadata
+    return metadata
 
 
 def general_extractor(campaign_metadata, field):
