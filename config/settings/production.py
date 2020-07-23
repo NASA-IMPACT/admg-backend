@@ -129,5 +129,14 @@ LOGGING = {
     },
 }
 
-# Your stuff...
-# ------------------------------------------------------------------------------
+
+# AWS Configuration
+
+DEFAULT_FILE_STORAGE = env('DEFAULT_FILE_STORAGE')
+
+AWS_STORAGE_BUCKET_NAME = env('AWS_STORAGE_BUCKET_NAME')
+AWS_S3_REGION_NAME = env('AWS_S3_REGION_NAME')
+AWS_ACCESS_KEY_ID = None
+AWS_SECRET_ACCESS_KEY = None
+
+AWS_DEFAULT_ACL = None
