@@ -85,8 +85,8 @@ THIRD_PARTY_APPS = [
     "rest_framework",
     "rest_framework.authtoken",
     "drf_yasg",
-    'oauth2_provider',
-    'storages',
+    "oauth2_provider",
+    "storages",
 ]
 
 LOCAL_APPS = [
