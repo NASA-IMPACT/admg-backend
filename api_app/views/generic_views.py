@@ -5,6 +5,7 @@ from rest_framework import filters
 from rest_framework.generics import (
     RetrieveUpdateDestroyAPIView,
     ListCreateAPIView,
+    GenericAPIView
 )
 
 from oauth2_provider.contrib.rest_framework import TokenHasScope
@@ -12,6 +13,15 @@ from data_models import serializers as sz
 from admg_webapp.users.models import STAFF
 from .view_utils import handle_exception, requires_admin_approval
 from ..models import CREATE, DELETE, PATCH
+
+class GetPermissionsMixin(GenericAPIView):
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            self.permission_classes = [permissions.IsAuthenticatedOrReadOnly,]
+        else:
+            self.permission_classes = [permissions.IsAuthenticated, TokenHasScope]
+            self.required_scopes = [STAFF]
+        return super().get_permissions()
 
 
 def GenericCreateGetAllView(model_name):
@@ -24,10 +34,7 @@ def GenericCreateGetAllView(model_name):
     Returns:
         View(class) : view class for LIST and CREATE API views
     """
-    class View(ListCreateAPIView):
-        permission_classes = [permissions.IsAuthenticated, TokenHasScope]
-        required_scopes = [STAFF]
-
+    class View(GetPermissionsMixin, ListCreateAPIView):
         Model = apps.get_model('data_models', model_name)
         queryset = Model.objects.all()
         serializer_class = getattr(sz, f"{model_name}Serializer")
@@ -63,9 +70,7 @@ def GenericPutPatchDeleteView(model_name):
     Returns:
         View(class) : view class for PUT, PATCH and DELETE API views
     """
-    class View(RetrieveUpdateDestroyAPIView):
-        permission_classes = [permissions.IsAuthenticated, TokenHasScope]
-        required_scopes = [STAFF]
+    class View(GetPermissionsMixin, RetrieveUpdateDestroyAPIView):
         Model = apps.get_model('data_models', model_name)
         lookup_field = "uuid"
         queryset = Model.objects.all()

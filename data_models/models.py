@@ -1,3 +1,4 @@
+import os
 import uuid
 
 from django.contrib.contenttypes.fields import GenericForeignKey
@@ -21,6 +22,17 @@ class BaseModel(models.Model):
 ##################
 # Limited Fields #
 ##################
+
+def get_file_path(instance, path):
+    return f'{instance.uuid}{os.path.splitext(path)[1]}'
+
+class Image(BaseModel):
+    image = models.ImageField(upload_to=get_file_path, null=True, blank=True)
+    short_name = models.CharField(max_length=512, default='', blank=True)
+    owner = models.CharField(max_length=512, default='', blank=True)
+
+    def __str__(self):
+        return self.short_name or self.image.name
 
 
 class LimitedInfo(BaseModel):
@@ -167,6 +179,8 @@ class DataModel(BaseModel):
 
 
 class Campaign(DataModel):
+    logo = models.ForeignKey(Image, on_delete=models.CASCADE, null=True, blank=True)
+
     description_short = models.TextField(default='', blank=True)
     description_long = models.TextField(default='', blank=True)
     focus_phenomena = models.CharField(max_length=1024)
@@ -272,6 +286,7 @@ class Campaign(DataModel):
 class Platform(DataModel):
 
     platform_type = models.ForeignKey(PlatformType, on_delete=models.SET_NULL, related_name='platforms', null=True)
+    image = models.ForeignKey(Image, on_delete=models.CASCADE, null=True, blank=True)   
 
     description = models.TextField()
     online_information = models.CharField(max_length=512, default='', blank=True)
@@ -301,6 +316,8 @@ class Platform(DataModel):
 
 
 class Instrument(DataModel):
+    image = models.ForeignKey(Image, on_delete=models.CASCADE, null=True, blank=True)
+
     description = models.TextField()
     lead_investigator = models.CharField(max_length=256, default='', blank=True)
     technical_contact = models.CharField(max_length=256)
@@ -331,8 +348,10 @@ class Instrument(DataModel):
 
 
 class Deployment(DataModel):
-
     campaign = models.ForeignKey(Campaign, on_delete=models.CASCADE, related_name='deployments')
+    study_region_map = models.ForeignKey(Image, on_delete=models.CASCADE, null=True, blank=True, related_name='deployments_study')
+    ground_sites_map = models.ForeignKey(Image, on_delete=models.CASCADE, null=True, blank=True, related_name='deployments_ground')
+    flight_tracks = models.ForeignKey(Image, on_delete=models.CASCADE, null=True, blank=True, related_name='deployments_flight')
 
     start_date = models.DateField()
     end_date = models.DateField()

@@ -77,7 +77,7 @@ DJANGO_APPS = [
 ]
 
 THIRD_PARTY_APPS = [
-    # "django_extensions",
+    "corsheaders",
     "crispy_forms",
     "allauth",
     "allauth.account",
@@ -85,7 +85,8 @@ THIRD_PARTY_APPS = [
     "rest_framework",
     "rest_framework.authtoken",
     "drf_yasg",
-    'oauth2_provider'
+    "oauth2_provider",
+    "storages",
 ]
 
 LOCAL_APPS = [
@@ -141,6 +142,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#middleware
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.locale.LocaleMiddleware",
@@ -288,6 +290,7 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_PARSER_CLASSES': [
         'rest_framework.parsers.JSONParser',
+        'rest_framework.parsers.MultiPartParser',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
@@ -322,3 +325,5 @@ OAUTH2_PROVIDER = {
         'write': 'Write scope',
     }
 }
+
+CORS_ORIGIN_ALLOW_ALL = True

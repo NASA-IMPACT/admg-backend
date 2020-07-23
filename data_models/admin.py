@@ -25,6 +25,7 @@ from .models import (
     CollectionPeriod,
     Alias,
     ExternalMetadata,
+    Image,
 )
 
 admin.site.register(PlatformType)
@@ -51,3 +52,4 @@ admin.site.register(SignificantEvent)
 admin.site.register(CollectionPeriod)
 admin.site.register(Alias)
 admin.site.register(ExternalMetadata)
+admin.site.register(Image)
