@@ -82,6 +82,16 @@ def ingest_campaign(short_name):
     return campaign_trees
 
 def campaign_xml_to_json(campaign_trees):
+    """Accepts campaign metadata in the form of a list of campaign_tree xml files
+    and parses out the relevant information, aggregates the results, and converts 
+    to a python dictionary.
+
+    Args:
+        campaign_trees ([list]): List of campaign xlm files
+
+    Returns:
+        dict: Parsed dictionary of the original campaign xml files
+    """
     
     concept_ids = []
     for campaign_tree in campaign_trees:
