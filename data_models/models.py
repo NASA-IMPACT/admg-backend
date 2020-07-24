@@ -163,7 +163,7 @@ class GcmdPhenomena(BaseModel):
 
 
 class DOI(BaseModel):
-    value = models.CharField(max_length=64)
+    doi = models.CharField(max_length=64)
 
 
 ###############
