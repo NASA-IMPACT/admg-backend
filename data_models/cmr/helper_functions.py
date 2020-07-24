@@ -5,7 +5,7 @@ from collections import namedtuple
 from datetime import datetime
 from io import BytesIO
 from lxml import etree
-
+from urllib.parse import urlencode
 
 def calculate_num_returned(num_hits, page_size, page_num):
     """Calculates number of hits returned in the current CMR page
@@ -64,10 +64,12 @@ def ingest_campaign(short_name):
 
     while not finished:  
         # make inital query and append results
-        url = f'https://cmr.earthdata.nasa.gov/search/collections?'+\
-            f'project={short_name}&'+\
-            f'page_size={page_size}&'+\
-            f'page_num={page_num}'
+        base_url = 'https://cmr.earthdata.nasa.gov/search/collections?'
+        parameters = urlencode({'project': short_name,
+                                'page_size': page_size,
+                                'page_num': page_num})
+        url = base_url + parameters
+
         campaign_tree = ingest_xml(url)
         campaign_trees.append(campaign_tree)
         
@@ -106,11 +108,11 @@ def campaign_xml_to_json(campaign_trees):
     finished = False
 
     while not finished:
-        flag = 'echo_collection_id[]='
-        url = f'https://cmr.earthdata.nasa.gov/search/collections.umm_json?'+\
-            f'&'.join([flag + concept_id for concept_id in concept_ids])+\
-            f'&page_size={page_size}'+\
-            f'&page_num={page_num}'
+        base_url = 'https://cmr.earthdata.nasa.gov/search/collections.umm_json?'
+        parameters = urlencode({'echo_collection_id[]': concept_ids, 
+                                'page_size': page_size, 
+                                'page_num': page_num}, doseq=True)
+        url = base_url + parameters
 
         data = ingest_json(url)
         metadata += [{'concept_id': entry['meta']['concept-id'], 'metadata': entry['umm']} for entry in data['items']]
