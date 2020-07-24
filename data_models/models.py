@@ -162,6 +162,10 @@ class GcmdPhenomena(BaseModel):
             return self.category
 
 
+class DOI(BaseModel):
+    doi = models.CharField(max_length=64)
+
+
 ###############
 # Core Models #
 ###############
@@ -265,6 +269,7 @@ class Platform(DataModel):
     online_information = models.CharField(max_length=512, default='', blank=True)
     stationary = models.BooleanField()
 
+    dois = models.ManyToManyField(DOI, related_name='platforms', default=None, blank=True)
     gcmd_platforms = models.ManyToManyField(GcmdPlatform, related_name='platforms', default='', blank=True)
 
     @property
@@ -303,7 +308,9 @@ class Instrument(DataModel):
     instrument_manufacturer = models.CharField(max_length=512, default='', blank=True)
     online_information = models.CharField(max_length=2048, default='', blank=True)
     instrument_doi = models.CharField(max_length=1024, default='', blank=True)
+    arbitrary_characteristics = JSONField(default=None, blank=True)
 
+    dois = models.ManyToManyField(DOI, related_name='instruments', default=None, blank=True)
     gcmd_instruments = models.ManyToManyField(GcmdInstrument, related_name='instruments', default='', blank=True)
     instrument_types = models.ManyToManyField(InstrumentType, related_name='instruments')
     gcmd_phenomenas = models.ManyToManyField(GcmdPhenomena, related_name='instruments')
@@ -322,9 +329,9 @@ class Instrument(DataModel):
 
 class Deployment(DataModel):
     campaign = models.ForeignKey(Campaign, on_delete=models.CASCADE, related_name='deployments')
-    study_region_map = models.ForeignKey(Image, on_delete=models.CASCADE, null=True, blank=True, related_name='deployments_study')
-    ground_sites_map = models.ForeignKey(Image, on_delete=models.CASCADE, null=True, blank=True, related_name='deployments_ground')
-    flight_tracks = models.ForeignKey(Image, on_delete=models.CASCADE, null=True, blank=True, related_name='deployments_flight')
+    study_region_map = models.TextField(default='', blank=True)
+    ground_sites_map = models.TextField(default='', blank=True)
+    flight_tracks = models.TextField(default='', blank=True)
 
     start_date = models.DateField()
     end_date = models.DateField()
@@ -332,7 +339,7 @@ class Deployment(DataModel):
 
     geographical_regions = models.ManyToManyField(
         GeographicalRegion,
-        related_name='deployments', 
+        related_name='deployments',
         default='', blank=True
         )
 
@@ -388,6 +395,7 @@ class CollectionPeriod(BaseModel):
     num_ventures = models.PositiveIntegerField(null=True, blank=True)
     auto_generated = models.BooleanField()
 
+    dois = models.ManyToManyField(DOI, related_name='collection_periods', default=None, blank=True)
     instruments = models.ManyToManyField(Instrument, related_name='collection_periods')
 
     def __str__(self):

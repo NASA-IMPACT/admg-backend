@@ -48,6 +48,7 @@ urls = [
     "GcmdInstrument",
     "GcmdPlatform",
     "GcmdPhenomena",
+    "DOI",
     "Campaign",
     "Platform",
     "Instrument",
