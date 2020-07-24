@@ -85,7 +85,7 @@ def ingest_campaign(short_name):
 
 def campaign_xml_to_json(campaign_trees):
     """Accepts campaign metadata in the form of a list of campaign_tree xml files
-    and parses out the relevant information, aggregates the results, and converts 
+    and parses out the relevant information, aggregates the results, and converts
     to a python dictionary.
 
     Args:
@@ -94,7 +94,7 @@ def campaign_xml_to_json(campaign_trees):
     Returns:
         dict: Parsed dictionary of the original campaign xml files
     """
-    
+
     concept_ids = []
     for campaign_tree in campaign_trees:
         for references in campaign_tree.findall('references'):
@@ -109,8 +109,8 @@ def campaign_xml_to_json(campaign_trees):
 
     while not finished:
         base_url = 'https://cmr.earthdata.nasa.gov/search/collections.umm_json?'
-        parameters = urlencode({'echo_collection_id[]': concept_ids, 
-                                'page_size': page_size, 
+        parameters = urlencode({'echo_collection_id[]': concept_ids,
+                                'page_size': page_size,
                                 'page_num': page_num}, doseq=True)
         url = base_url + parameters
 
@@ -119,7 +119,7 @@ def campaign_xml_to_json(campaign_trees):
 
         # calculate num returned and iterate if needed
         num_hits = int(data['hits'])
-        num_returned_naive = page_num*page_size
+        num_returned_naive = page_num * page_size
         if num_returned_naive < num_hits:
             page_num += 1
         else:
@@ -166,14 +166,14 @@ def extract_daacs(campaign_metadata):
             for daac_list in mega_daac_list
                 for daac in daac_list
                     if daac['Roles'][0] in role_filter
-            ]    
+            ]
 
     return daacs
 
 
 def extract_region_description(campaign_metadata):
     """Extracts the GCMD LocationKeywords from the metadata. These will be
-    used as a proxy for region_description at the campaign level. 
+    used as a proxy for region_description at the campaign level.
 
     Args:
         campaign_metadata ([type]): [description]
@@ -186,7 +186,7 @@ def extract_region_description(campaign_metadata):
 
     # json.dumps allows us to take the set of the dictionaries
     # the list comprehension is unpacking the nested entries
-    regions_json = set([json.dumps(region) 
+    regions_json = set([json.dumps(region)
                     for region_list in nested_regions
                         for region in region_list])
     regions_dict = [json.loads(region) for region in regions_json]
