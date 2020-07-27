@@ -16,6 +16,7 @@ from .models import (
     GcmdInstrument,
     GcmdPlatform,
     GcmdPhenomena,
+    DOI,
     Campaign,
     Platform,
     Instrument,
@@ -43,6 +44,7 @@ admin.site.register(GcmdProject)
 admin.site.register(GcmdInstrument)
 admin.site.register(GcmdPlatform)
 admin.site.register(GcmdPhenomena)
+admin.site.register(DOI)
 admin.site.register(Campaign)
 admin.site.register(Platform)
 admin.site.register(Instrument)

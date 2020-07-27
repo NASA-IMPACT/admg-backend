@@ -45,6 +45,31 @@ in the notebook, import your models file
     - `curl -X POST -d "grant_type=refresh_token&refresh_token=<your_refresh_token>&client_id=<your_client_id>&client_secret=<your_client_secret>" http://localhost:8000/authenticate/token`
  
 
+Example JavaScript code
+```
+const url = 'http[s]://www.domain.com/authenticate/token/';
+const cId = '<application client id>'
+const cSecret = '<application sectret key>'
+const data = new FormData();
+data.append('username', '<username>');
+data.append('password', '<password>');
+data.append('grant_type', 'password');
+const config = {
+   method: 'post',
+   url,
+   data,
+   auth: {
+      username: cId,
+      password: cSecret,
+   }
+};
+axios(config)
+.then(function (response) {
+   // response.access_token will have the token
+})
+```
+
+
 ## Automatic deployment
 
  - Change the webserver IP in the hosts file. If no hosts file exists, create one [see hosts.sample file]

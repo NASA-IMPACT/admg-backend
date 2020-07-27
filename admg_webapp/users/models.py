@@ -1,4 +1,7 @@
+import uuid
+
 from django.contrib.auth.models import AbstractUser
+from django.db import models
 from django.db.models import CharField, IntegerField
 from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
@@ -18,6 +21,8 @@ class User(AbstractUser):
 
     # First Name and Last Name do not cover name patterns
     # around the globe.
+    id = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False, unique=True)
+
     name = CharField(_("Name of User"), max_length=255)
     role = IntegerField(choices=AVAILABLE_ROLES, default=2)
 

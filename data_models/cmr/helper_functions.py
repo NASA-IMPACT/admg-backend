@@ -5,7 +5,7 @@ from collections import namedtuple
 from datetime import datetime
 from io import BytesIO
 from lxml import etree
-
+from urllib.parse import urlencode
 
 def calculate_num_returned(num_hits, page_size, page_num):
     """Calculates number of hits returned in the current CMR page
@@ -64,10 +64,12 @@ def ingest_campaign(short_name):
 
     while not finished:  
         # make inital query and append results
-        url = f'https://cmr.earthdata.nasa.gov/search/collections?'+\
-            f'project={short_name}&'+\
-            f'page_size={page_size}&'+\
-            f'page_num={page_num}'
+        base_url = 'https://cmr.earthdata.nasa.gov/search/collections?'
+        parameters = urlencode({'project': short_name,
+                                'page_size': page_size,
+                                'page_num': page_num})
+        url = base_url + parameters
+
         campaign_tree = ingest_xml(url)
         campaign_trees.append(campaign_tree)
         
@@ -81,28 +83,49 @@ def ingest_campaign(short_name):
 
     return campaign_trees
 
-
 def campaign_xml_to_json(campaign_trees):
+    """Accepts campaign metadata in the form of a list of campaign_tree xml files
+    and parses out the relevant information, aggregates the results, and converts
+    to a python dictionary.
 
-    campaign_metadata = []
+    Args:
+        campaign_trees ([list]): List of campaign xlm files
+
+    Returns:
+        dict: Parsed dictionary of the original campaign xml files
+    """
+
+    concept_ids = []
     for campaign_tree in campaign_trees:
         for references in campaign_tree.findall('references'):
             for reference in references:
+                concept_ids.append(reference.find('id').text)
 
-                name = reference.find('name').text
-                concept_id = reference.find('id').text
+    # set initial variables
+    page_num = 1
+    page_size = 100
+    metadata = []
+    finished = False
 
-                url = f'https://cmr.earthdata.nasa.gov/search/concepts/{concept_id}.umm-json'
+    while not finished:
+        base_url = 'https://cmr.earthdata.nasa.gov/search/collections.umm_json?'
+        parameters = urlencode({'echo_collection_id[]': concept_ids,
+                                'page_size': page_size,
+                                'page_num': page_num}, doseq=True)
+        url = base_url + parameters
 
-                metadata = ingest_json(url)
+        data = ingest_json(url)
+        metadata += [{'concept_id': entry['meta']['concept-id'], 'metadata': entry['umm']} for entry in data['items']]
 
-                campaign_metadata.append({
-                    'name': name,
-                    'concept_id': concept_id,
-                    'metadata': metadata
-                })
+        # calculate num returned and iterate if needed
+        num_hits = int(data['hits'])
+        num_returned_naive = page_num * page_size
+        if num_returned_naive < num_hits:
+            page_num += 1
+        else:
+            finished = True
 
-    return campaign_metadata
+    return metadata
 
 
 def general_extractor(campaign_metadata, field):
@@ -143,14 +166,14 @@ def extract_daacs(campaign_metadata):
             for daac_list in mega_daac_list
                 for daac in daac_list
                     if daac['Roles'][0] in role_filter
-            ]    
+            ]
 
     return daacs
 
 
 def extract_region_description(campaign_metadata):
     """Extracts the GCMD LocationKeywords from the metadata. These will be
-    used as a proxy for region_description at the campaign level. 
+    used as a proxy for region_description at the campaign level.
 
     Args:
         campaign_metadata ([type]): [description]
@@ -163,7 +186,7 @@ def extract_region_description(campaign_metadata):
 
     # json.dumps allows us to take the set of the dictionaries
     # the list comprehension is unpacking the nested entries
-    regions_json = set([json.dumps(region) 
+    regions_json = set([json.dumps(region)
                     for region_list in nested_regions
                         for region in region_list])
     regions_dict = [json.loads(region) for region in regions_json]
