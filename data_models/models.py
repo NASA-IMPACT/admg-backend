@@ -306,6 +306,7 @@ class Instrument(DataModel):
     radiometric_frequency = models.CharField(max_length=256)
     calibration_information = models.CharField(max_length=1024, default='', blank=True)
     instrument_manufacturer = models.CharField(max_length=512, default='', blank=True)
+    overview_publication = models.CharField(max_length=2048, default='', blank=True)
     online_information = models.CharField(max_length=2048, default='', blank=True)
     instrument_doi = models.CharField(max_length=1024, default='', blank=True)
     arbitrary_characteristics = JSONField(default=None, blank=True)

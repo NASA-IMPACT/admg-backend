@@ -678,6 +678,11 @@
             "max_length": 512,
             "required": False
         },
+        "overview_publication": {
+            "type": "CharField",
+            "max_length": 2048,
+            "required": False
+        },
         "online_information": {
             "type": "CharField",
             "max_length": 204,

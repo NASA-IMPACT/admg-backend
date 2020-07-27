@@ -98,6 +98,7 @@
     "Campaigns (from campaign tab)": "ignore_campaigns",
     "Initial Deployment Date": "deployment_date",
     "Date(s) of operation if not associated with a campaign": "decommision_date",
+    "Instrument Overview Publication": "overview_publication",
     "Online Information": "online_information",
     "Notes": "notes_internal",
     "GCMD Measurements/Variables UUID - internal 4-digit codes": "table-measurement_keywords-gcmd_uuid",
