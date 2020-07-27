@@ -94,7 +94,7 @@
         },
         "additional_info": {
             "type": "CharField",
-            "max_length": 204,
+            "max_length": 2048,
             "required": False
         }
     },
@@ -277,7 +277,7 @@
         },
         "source": {
             "type": "CharField",
-            "max_length": 204,
+            "max_length": 2048,
             "required": False
         }
     },
@@ -512,12 +512,12 @@
         },
         "publication_links": {
             "type": "CharField",
-            "max_length": 204,
+            "max_length": 2048,
             "required": False
         },
         "other_resources": {
             "type": "CharField",
-            "max_length": 204,
+            "max_length": 2048,
             "required": False
         },
         "ongoing": {
@@ -685,7 +685,7 @@
         },
         "online_information": {
             "type": "CharField",
-            "max_length": 204,
+            "max_length": 2048,
             "required": False
         },
         "instrument_doi": {
