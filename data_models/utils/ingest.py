@@ -1,9 +1,13 @@
 import json
 import pandas as pd
-import validate
+import os
 
-from general import many_to_many, many_cols
-
+try:
+    import validate
+    from general import (many_to_many, many_cols)
+except ImportError:
+    from . import validate
+    from .general import (many_to_many, many_cols)
 
 def rename_columns(db, table_name, remap_dict):
     table = db[table_name]
@@ -30,11 +34,12 @@ def main(file_path):
     db = {}
 
     excel_data = pd.read_excel(file_path, sheet_name = None)
+    base_path = os.path.join(os.path.abspath('.'), 'mapping')
     
-    mapping_columns = json.load(open('mapping_columns.json', 'r'))
-    mapping_ingest = json.load(open('mapping_ingest.json', 'r'))
-    mapping_limited_sheets = json.load(open('mapping_limited_sheets.json', 'r'))
-    mapping_limited_cols = json.load(open('mapping_limited_cols.json', 'r'))
+    mapping_columns = json.load(open(os.path.join(base_path, 'mapping_columns.json'), 'r'))
+    mapping_ingest = json.load(open(os.path.join(base_path, 'mapping_ingest.json'), 'r'))
+    mapping_limited_sheets = json.load(open(os.path.join(base_path, 'mapping_limited_sheets.json'), 'r'))
+    mapping_limited_cols = json.load(open(os.path.join(base_path, 'mapping_limited_cols.json'), 'r'))
 
     validate.sheet_names(excel_data)
 
