@@ -93,7 +93,7 @@ class GeophysicalConcept(LimitedInfo):
 
 
 class PartnerOrg(LimitedInfo):
-    website = models.CharField(max_length=256)
+    website = models.CharField(max_length=256, blank=True, default='')
 
 
 class Alias(BaseModel):
@@ -118,7 +118,7 @@ class GcmdProject(BaseModel):
 
 
 class GcmdInstrument(BaseModel):
-    short_name = models.CharField(max_length=256, blank=False, unique=True)
+    short_name = models.CharField(max_length=256, blank=True, unique=False)
     long_name = models.CharField(max_length=512, blank=True, default='')
     instrument_category = models.CharField(max_length=256, blank=True, default='') # these make more sense without 'instrument'
     instrument_class = models.CharField(max_length=256, blank=True, default='') # however class and type are default variables
@@ -126,12 +126,26 @@ class GcmdInstrument(BaseModel):
     instrument_subtype = models.CharField(max_length=256, blank=True, default='')
     gcmd_uuid = models.UUIDField()
 
+    def __str__(self):
+        if self.short_name:
+            return self.short_name
+        elif self.long_name:
+            return self.long_name
+        elif self.instrument_subtype:
+            return self.instrument_subtype
+        elif self.instrument_type:
+            return self.instrument_type
+        elif self.instrument_class:
+            return self.instrument_class
+        elif self.instrument_category:
+            return self.instrument_category
+
 
 class GcmdPlatform(BaseModel):
     short_name = models.CharField(max_length=256, blank=False, unique=True)
     long_name = models.CharField(max_length=512, blank=True, default='')
     category = models.CharField(max_length=256)
-    series_entry = models.CharField(max_length=256)
+    series_entry = models.CharField(max_length=256, blank=True, default='')
     description = models.TextField()
     gcmd_uuid = models.UUIDField()
 
@@ -173,7 +187,7 @@ class DOI(BaseModel):
 
 class DataModel(BaseModel):
     short_name = models.CharField(max_length=256, blank=False, unique=True)
-    long_name = models.CharField(max_length=512)
+    long_name = models.CharField(max_length=512, default='', blank=True)
     notes_internal = models.TextField(default='', blank=True)
     notes_public = models.TextField(default='', blank=True)
 
@@ -218,7 +232,6 @@ class Campaign(DataModel):
     repositories = models.ManyToManyField(Repository, related_name='campaigns')
     platform_types = models.ManyToManyField(PlatformType, related_name='campaigns')
     partner_orgs = models.ManyToManyField(PartnerOrg, related_name='campaigns', default='', blank=True)
-    gcmd_phenomenas = models.ManyToManyField(GcmdPhenomena, related_name='campaigns')
     gcmd_projects = models.ManyToManyField(GcmdProject, related_name='campaigns', default='', blank=True)
     geophysical_concepts = models.ManyToManyField(GeophysicalConcept, related_name='campaigns')
 
@@ -300,7 +313,7 @@ class Instrument(DataModel):
     lead_investigator = models.CharField(max_length=256, default='', blank=True)
     technical_contact = models.CharField(max_length=256)
     facility = models.CharField(max_length=256, default='', blank=True)
-    funding_source = models.CharField(max_length=256, default='', blank=True)
+    funding_source = models.CharField(max_length=1024, default='', blank=True)
     spatial_resolution = models.CharField(max_length=256)
     temporal_resolution = models.CharField(max_length=256)
     radiometric_frequency = models.CharField(max_length=256)
@@ -309,7 +322,7 @@ class Instrument(DataModel):
     overview_publication = models.CharField(max_length=2048, default='', blank=True)
     online_information = models.CharField(max_length=2048, default='', blank=True)
     instrument_doi = models.CharField(max_length=1024, default='', blank=True)
-    arbitrary_characteristics = JSONField(default=None, blank=True)
+    arbitrary_characteristics = JSONField(default=None, blank=True, null=True)
 
     dois = models.ManyToManyField(DOI, related_name='instruments', default=None, blank=True)
     gcmd_instruments = models.ManyToManyField(GcmdInstrument, related_name='instruments', default='', blank=True)
@@ -317,7 +330,6 @@ class Instrument(DataModel):
     gcmd_phenomenas = models.ManyToManyField(GcmdPhenomena, related_name='instruments')
     measurement_regions = models.ManyToManyField(MeasurementRegion, related_name='instruments')
     repositories = models.ManyToManyField(Repository, related_name='instruments', default='', blank=True)
-    geophysical_concepts = models.ManyToManyField(GeophysicalConcept, related_name='instruments')
 
     @property
     def campaigns(self):
