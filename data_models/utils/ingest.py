@@ -34,7 +34,8 @@ def main(file_path):
     db = {}
 
     excel_data = pd.read_excel(file_path, sheet_name = None)
-    base_path = os.path.join(os.path.abspath('.'), 'mapping')
+
+    base_path = os.path.join(os.path.abspath('.'), 'config')
     
     mapping_columns = json.load(open(os.path.join(base_path, 'mapping_columns.json'), 'r'))
     mapping_ingest = json.load(open(os.path.join(base_path, 'mapping_ingest.json'), 'r'))
