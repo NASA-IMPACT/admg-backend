@@ -20,4 +20,18 @@ def strip_all_columns(db):
         db[table_name] = table
 
     return db
+
+def replace_nid(db):
+    """Replaces all instances of 'NID' with 'Information Not Available'
+
+    Args:
+        db (dict): Dictionary of pandas dataframes representing the inventory import
+
+    Returns:
+        dict: replaced version of the input db
+    """
     
+    for table_name in db.keys():
+        db[table_name].replace('NID', 'Information Not Available', inplace=True)
+
+    return db
