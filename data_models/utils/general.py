@@ -97,6 +97,29 @@ def filter_campaigns(db, campaign_list):
     return db
 
 
+def filter_gcmd_tables(db):
+    # delete INA in all GCMD tables
+
+    db['campaign-to-gcmd_project'] = db['campaign-to-gcmd_project'][db['campaign-to-gcmd_project']['gcmd_project']!='Information Not Available']
+    db['platform-to-gcmd_platform'] = db['platform-to-gcmd_platform'][db['platform-to-gcmd_platform']['gcmd_platform']!='Information Not Available']
+    db['instrument-to-gcmd_instrument'] = db['instrument-to-gcmd_instrument'][db['instrument-to-gcmd_instrument']['gcmd_instrument']!='Information Not Available']
+    db['instrument-to-gcmd_phenomena'] = db['instrument-to-gcmd_phenomena'][db['instrument-to-gcmd_phenomena']['gcmd_phenomena']!='Information Not Available']
+
+    gcmd_phenomena_filter = list(set(list(db['instrument-to-gcmd_phenomena']['gcmd_phenomena'])))
+    db['gcmd_phenomena'] = db['gcmd_phenomena'][db['gcmd_phenomena']['ignore_code'].apply(lambda short: short in gcmd_phenomena_filter)]
+
+    gcmd_instrument_filter = list(set(list(db['instrument-to-gcmd_instrument']['gcmd_instrument'])))
+    db['gcmd_instrument'] = db['gcmd_instrument'][db['gcmd_instrument']['gcmd_uuid'].apply(lambda short: short in gcmd_instrument_filter)]
+
+    gcmd_platform_filter = list(set(list(db['platform-to-gcmd_platform']['gcmd_platform'])))
+    db['gcmd_platform'] = db['gcmd_platform'][db['gcmd_platform']['gcmd_uuid'].apply(lambda short: short in gcmd_platform_filter)]
+
+    gcmd_project_filter = list(set(list(db['campaign-to-gcmd_project']['gcmd_project'])))
+    db['gcmd_project'] = db['gcmd_project'][db['gcmd_project']['gcmd_uuid'].apply(lambda short: short in gcmd_project_filter)]
+
+    return db
+
+
 def log_short_names(db, table_name):
     """Saves a log file containing the short_names from a specified table. This functionality is designed
     primarily for use with instruments and platforms so that the Inventory Team can more easily identify
@@ -108,6 +131,6 @@ def log_short_names(db, table_name):
         table_name (str): name of the table from which the short_names will be logged
     """
 
-    with open(f'short_names-{table_name}.log', 'w') as f:
+    with open(f'logs/short_names-{table_name}.log', 'w') as f:
         f.write(f'this file contains the short_names of every {table_name} in the pre-ingested database\n')
         f.writelines(f'{item}\n' for item in db[table_name]['short_name'].values)
