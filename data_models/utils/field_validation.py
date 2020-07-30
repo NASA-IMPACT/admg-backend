@@ -306,7 +306,7 @@
         "short_name": {
             "type": "CharField",
             "max_length": 256,
-            "required": True
+            "required": False
         },
         "long_name": {
             "type": "CharField",
@@ -650,7 +650,7 @@
         },
         "funding_source": {
             "type": "CharField",
-            "max_length": 256,
+            "max_length": 1024,
             "required": False
         },
         "spatial_resolution": {
