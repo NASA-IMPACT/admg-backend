@@ -56,7 +56,6 @@ urls = [
     "IOP",
     "SignificantEvent",
     "CollectionPeriod",
-    "ExternalMetadata",
 ]
 
 urlpatterns = []

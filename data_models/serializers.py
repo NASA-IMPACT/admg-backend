@@ -285,8 +285,6 @@ class InstrumentSerializer(serializers.ModelSerializer):
     def get_collection_periods(self, obj):
         return get_uuids(obj.collection_periods)
 
-
-
     class Meta:
         model = models.Instrument
         fields = "__all__"
@@ -313,10 +311,4 @@ class CampaignSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.Campaign
-        fields = "__all__"
-
-class ExternalMetadataSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = models.ExternalMetadata
         fields = "__all__"
