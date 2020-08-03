@@ -25,7 +25,6 @@ from .models import (
     SignificantEvent,
     CollectionPeriod,
     Alias,
-    ExternalMetadata,
     Image,
 )
 
@@ -53,5 +52,4 @@ admin.site.register(IOP)
 admin.site.register(SignificantEvent)
 admin.site.register(CollectionPeriod)
 admin.site.register(Alias)
-admin.site.register(ExternalMetadata)
 admin.site.register(Image)
