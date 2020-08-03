@@ -46,6 +46,10 @@ def change_bbox_to_polygon(validated_data, key="spatial_bounds"):
         validated_data[key] = polygon
     return validated_data
 
+class ImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Image
+        fields = "__all__"
 
 class PlatformTypeSerializer(serializers.ModelSerializer):
     platforms = serializers.SerializerMethodField(read_only=True)
@@ -216,6 +220,11 @@ class GcmdPhenomenaSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.GcmdPhenomena
+        fields = "__all__"
+
+class DOISerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.DOI
         fields = "__all__"
 
 class DeploymentSerializer(serializers.ModelSerializer):
