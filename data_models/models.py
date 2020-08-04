@@ -297,14 +297,6 @@ class Platform(DataModel):
                     for inst in collection_period.instruments.all()
         ))     
 
-    @property
-    def instruments(self):
-        return list(set([
-            inst.uuid
-                for collection_period in self.collection_periods.all()
-                    for inst in collection_period.instruments.all()
-        ]))
-
 
 class Instrument(DataModel):
     image = models.ForeignKey(Image, on_delete=models.CASCADE, null=True, blank=True)
