@@ -127,18 +127,7 @@ class GcmdInstrument(BaseModel):
     gcmd_uuid = models.UUIDField()
 
     def __str__(self):
-        if self.short_name:
-            return self.short_name
-        elif self.long_name:
-            return self.long_name
-        elif self.instrument_subtype:
-            return self.instrument_subtype
-        elif self.instrument_type:
-            return self.instrument_type
-        elif self.instrument_class:
-            return self.instrument_class
-        elif self.instrument_category:
-            return self.instrument_category
+        return self.short_name or self.short_name or self.long_name or self.instrument_subtype or self.instrument_type or self.instrument_class or self.instrument_category
 
 
 class GcmdPlatform(BaseModel):
@@ -160,20 +149,7 @@ class GcmdPhenomena(BaseModel):
     gcmd_uuid = models.UUIDField()
 
     def __str__(self):
-        # TODO: is there a cleaner way to do this?
-        # display the most specific category which has a value
-        if self.variable_3:
-            return self.variable_3
-        elif self.variable_2:
-            return self.variable_2
-        elif self.variable_1:
-            return self.variable_1
-        elif self.term:
-            return self.term
-        elif self.topic:
-            return self.topic
-        else:
-            return self.category
+        return self.variable_3 or self.variable_3 or self.variable_2 or self.variable_1 or self.term or self.topic or self.category
 
 
 class DOI(BaseModel):
