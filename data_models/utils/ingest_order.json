@@ -1,0 +1,22 @@
+[
+    "platform_type",
+    "instrument_type",
+    "home_base",
+    "repository",
+    "focus_area",
+    "season",
+    "measurement_region",
+    "geographical_region",
+    "geophysical_concept",
+    "gcmd_phenomena",
+    "gcmd_instrument",
+    "gcmd_platform",
+    "gcmd_project",
+    "partner_org",
+    "instrument",
+    "platform",
+    "campaign",
+    "deployment",
+    "iop",
+    "significant_event"
+]
