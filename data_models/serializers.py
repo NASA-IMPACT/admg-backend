@@ -46,6 +46,10 @@ def change_bbox_to_polygon(validated_data, key="spatial_bounds"):
         validated_data[key] = polygon
     return validated_data
 
+class ImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Image
+        fields = "__all__"
 
 class PlatformTypeSerializer(serializers.ModelSerializer):
     platforms = serializers.SerializerMethodField(read_only=True)
@@ -218,6 +222,11 @@ class GcmdPhenomenaSerializer(serializers.ModelSerializer):
         model = models.GcmdPhenomena
         fields = "__all__"
 
+class DOISerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.DOI
+        fields = "__all__"
+
 class DeploymentSerializer(serializers.ModelSerializer):
     collection_periods = serializers.SerializerMethodField(read_only=True)
     iops = serializers.SerializerMethodField(read_only=True)
@@ -276,8 +285,6 @@ class InstrumentSerializer(serializers.ModelSerializer):
     def get_collection_periods(self, obj):
         return get_uuids(obj.collection_periods)
 
-
-
     class Meta:
         model = models.Instrument
         fields = "__all__"
@@ -304,10 +311,4 @@ class CampaignSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.Campaign
-        fields = "__all__"
-
-class ExternalMetadataSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = models.ExternalMetadata
         fields = "__all__"
