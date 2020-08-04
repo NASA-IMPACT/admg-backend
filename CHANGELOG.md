@@ -15,27 +15,8 @@ Consolidated ingest pipeline
 
 #### APIs
 - read access no longer requires a token or login
-- new image endpoint
-- new DOI endpoint
-- Campaign endpoints
-    - logo
-    - cmr_metadata (removed)
-    - gcmd_phenomenas (removed)
-- Platform endpoints
-    - image
-    - dois
-- Instrument endpoints
-    - image
-    - overview_publication
-    - arbitrary_characteristics
-    - dois
-    - geophysical_concepts (removed)
-- Deployment
-    - study_region_map
-    - ground_sites_map
-    - flight_tracks
-- CollectionPeriod
-    - dois
+- new image endpoint at api/image
+- new DOI endpoint at api/DOI
 
 #### Utils
 - new functions to access CMR API and process the results
