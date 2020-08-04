@@ -33,9 +33,9 @@ Consolidated ingest pipeline
 #### Data Models
 ##### Added Tables
 - Image
-    - Image
-    - Short_name
-    - Owner
+    - image
+    - short_name
+    - owner
 - DOI
     - doi
 
