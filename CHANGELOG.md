@@ -15,8 +15,8 @@ Consolidated ingest pipeline
 
 #### APIs
 - read access no longer requires a token or login
-- new image endpoint at api/image
-- new DOI endpoint at api/DOI
+- new image endpoint at `/api/image`
+- new DOI endpoint at `/api/DOI`
 
 #### Utils
 - new functions to access CMR API and process the results
