@@ -212,9 +212,6 @@ class GcmdPhenomenaSerializer(serializers.ModelSerializer):
     def get_instruments(self, obj):
         return get_uuids(obj.instruments)
 
-    def get_campaigns(self, obj):
-        return get_uuids(obj.campaigns)
-
     class Meta:
         model = models.GcmdPhenomena
         fields = "__all__"
