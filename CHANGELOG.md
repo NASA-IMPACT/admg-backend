@@ -10,7 +10,7 @@ Consolidated ingest pipeline
 
 ## 0.1.1 - 2020-08-05
 ### Fixed
-- removed deprecated serializer reference to geophysical_concept.instruments
+- removed deprecated serializer references to geophysical_concept.instruments and gcmd_phenomena.campaigns
 
 ## 0.1.0 - 2020-08-04
 ### Changed
