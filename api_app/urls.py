@@ -114,12 +114,12 @@ urlpatterns += [
     path(
         "image/",
         ImageListCreateView.as_view(),
-        name="image_upload"
+        name="image_list_create"
     ),
     path(
         f"image/<str:uuid>",
         ImageRetrieveDestroyView.as_view(),
-        name="image_upload"
+        name="image_retrieve_destroy"
     ),
     path(
         "docs/",
