@@ -8,12 +8,12 @@ from ..models import DELETE
 from .view_utils import handle_exception, requires_admin_approval
 
 
-class ImageListCreateView(ListCreateAPIView):
+class ImageListCreateAPIView(ListCreateAPIView):
     parser_class = (MultiPartParser,)
     queryset = Image.objects.all()
     serializer_class = ImageSerializer
 
-class ImageRetrieveDestroyView(RetrieveDestroyAPIView):
+class ImageRetrieveDestroyAPIView(RetrieveDestroyAPIView):
     parser_class = (MultiPartParser,)
     serializer_class = ImageSerializer
     lookup_field = "uuid"
