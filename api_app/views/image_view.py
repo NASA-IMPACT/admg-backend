@@ -10,7 +10,7 @@ from .view_utils import handle_exception, requires_admin_approval
 
 class ImageListCreateAPIView(ListCreateAPIView):
     """
-        Lists images and creates an image object
+        List images and create an image object
     """
     
     parser_class = (MultiPartParser,)
