@@ -1,11 +1,21 @@
-from api_app.serializers import ImageSerializer
-from rest_framework import status
-from rest_framework.generics import CreateAPIView
+from rest_framework.generics import ListCreateAPIView, RetrieveDestroyAPIView
 from rest_framework.parsers import MultiPartParser
-from rest_framework.response import Response
-from rest_framework.views import APIView
+
+from api_app.serializers import ImageSerializer
+
+from ..models import DELETE
+from .view_utils import handle_exception, requires_admin_approval
 
 
-class ImageUploadView(CreateAPIView):
+class ImageUploadView(ListCreateAPIView):
     parser_class = (MultiPartParser,)
     serializer_class = ImageSerializer
+
+class ImageView(RetrieveDestroyAPIView):
+    parser_class = (MultiPartParser,)
+    serializer_class = ImageSerializer
+
+    @handle_exception
+    @requires_admin_approval(model_name='Image', action=DELETE)
+    def delete(self, request, *args, **kwargs):
+        return self.destroy(request, *args, **kwargs)
