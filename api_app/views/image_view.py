@@ -9,11 +9,19 @@ from .view_utils import handle_exception, requires_admin_approval
 
 
 class ImageListCreateAPIView(ListCreateAPIView):
+    """
+        Lists images and creates an image object
+    """
+    
     parser_class = (MultiPartParser,)
     queryset = Image.objects.all()
     serializer_class = ImageSerializer
 
 class ImageRetrieveDestroyAPIView(RetrieveDestroyAPIView):
+    """
+        Retrieve a single image and delete images
+    """
+    
     parser_class = (MultiPartParser,)
     serializer_class = ImageSerializer
     lookup_field = "uuid"
