@@ -18,6 +18,8 @@ class ImageListCreateView(ListCreateAPIView):
 class ImageRetrieveDestroyView(RetrieveDestroyAPIView):
     parser_class = (MultiPartParser,)
     serializer_class = ImageSerializer
+    lookup_field = "uuid"
+    queryset = Image.objects.all()
 
     @handle_exception
     @requires_admin_approval(model_name='Image', action=DELETE)
