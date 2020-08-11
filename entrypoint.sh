@@ -1,4 +1,5 @@
 #!/bin/sh
+echo "Checking for database $DB_NAME"
 if [ ! -z "$DB_NAME" ]
 then
     echo "Waiting for postgres..."
@@ -7,6 +8,7 @@ then
     done
     echo "PostgreSQL started"
 fi
+echo "Running migrate and collectstatic..."
 python manage.py migrate
 python manage.py collectstatic --no-input
 
