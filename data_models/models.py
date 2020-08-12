@@ -179,11 +179,11 @@ class DataModel(BaseModel):
     def search(self, params):
         search_type = params.pop('search_type', 'plain')
         search = params.pop('search', None)
-        search_fields = params.pop('search_fields', None)
-        if search_fields:
-            search_fields = search_fields.split(',')
+        search_fields_param = params.pop('search_fields', None)
+        if search_fields_param:
+            search_fields = search_fields_param.split(',')
         else:
-            search_fields = self.search_fields
+            search_fields = self.search_fields()
 
         queryset = self.objects.all()
 
@@ -276,8 +276,7 @@ class Campaign(DataModel):
                     for collection_period in dep.collection_periods.all()
         ]))
 
-    @property
-    def search_fields(self):
+    def search_fields():
         return [
             'short_name',
             'long_name',
@@ -311,8 +310,7 @@ class Platform(DataModel):
                     for inst in collection_period.instruments.all()
         ))
 
-    @property
-    def search_fields(self):
+    def search_fields():
         return [
             'short_name',
             'long_name',

@@ -40,9 +40,6 @@ def GenericCreateGetAllView(model_name):
 
         @handle_exception
         def get(self, request, *args, **kwargs):
-            self.queryset = self.Model.objects.filter(
-                **request.query_params.dict()
-            )
             params = request.query_params.dict()
             try:
                 self.queryset = self.Model.search(params)
