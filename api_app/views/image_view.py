@@ -1,5 +1,5 @@
 from rest_framework.generics import ListCreateAPIView, RetrieveDestroyAPIView
-from rest_framework.parsers import MultiPartParser
+from rest_framework.parsers import JSONParser, MultiPartParser
 
 from api_app.serializers import ImageSerializer
 from data_models.models import Image
@@ -9,12 +9,20 @@ from .view_utils import handle_exception, requires_admin_approval
 
 
 class ImageListCreateAPIView(ListCreateAPIView):
-    parser_class = (MultiPartParser,)
+    """
+        List images and create an image object
+    """
+    
+    parser_class = (MultiPartParser, JSONParser)
     queryset = Image.objects.all()
     serializer_class = ImageSerializer
 
 class ImageRetrieveDestroyAPIView(RetrieveDestroyAPIView):
-    parser_class = (MultiPartParser,)
+    """
+        Retrieve a single image and delete images
+    """
+    
+    parser_class = (MultiPartParser, JSONParser)
     serializer_class = ImageSerializer
     lookup_field = "uuid"
     queryset = Image.objects.all()
