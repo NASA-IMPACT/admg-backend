@@ -8,9 +8,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 Consolidated ingest pipeline
 
-## 0.1.2 - 2020-08-10
+## 0.1.2 - 2020-08-13
+
+### Fixed
+- Django will no longer automatically append '/'s to incorrect urls, and will instead return 404
+
 ### Added
-- added UUID endpoint for images at api/image/<image_uuid>
+- added UUID endpoint for images at `/api/image/<image_uuid>`
+- Image.image is now a required field for posting to the `/api/image` endpoint
 
 ## 0.1.1 - 2020-08-05
 ### Fixed
