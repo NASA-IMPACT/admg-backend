@@ -1,5 +1,5 @@
 from rest_framework.generics import ListCreateAPIView, RetrieveDestroyAPIView
-from rest_framework.parsers import JSONParser, MultiPartParser
+from rest_framework.parsers import MultiPartParser
 
 from api_app.serializers import ImageSerializer
 from data_models.models import Image
@@ -12,8 +12,8 @@ class ImageListCreateAPIView(ListCreateAPIView):
     """
         List images and create an image object
     """
-    
-    parser_class = (MultiPartParser, JSONParser)
+
+    parser_class = (MultiPartParser,)
     queryset = Image.objects.all()
     serializer_class = ImageSerializer
 
@@ -21,8 +21,8 @@ class ImageRetrieveDestroyAPIView(RetrieveDestroyAPIView):
     """
         Retrieve a single image and delete images
     """
-    
-    parser_class = (MultiPartParser, JSONParser)
+
+    parser_class = (MultiPartParser,)
     serializer_class = ImageSerializer
     lookup_field = "uuid"
     queryset = Image.objects.all()
