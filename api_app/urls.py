@@ -112,7 +112,7 @@ urlpatterns += [
     ),
 
     path(
-        "image/",
+        "image",
         ImageListCreateAPIView.as_view(),
         name="image_list_create"
     ),

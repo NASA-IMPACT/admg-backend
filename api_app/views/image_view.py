@@ -12,7 +12,7 @@ class ImageListCreateAPIView(ListCreateAPIView):
     """
         List images and create an image object
     """
-    
+
     parser_class = (MultiPartParser,)
     queryset = Image.objects.all()
     serializer_class = ImageSerializer
@@ -21,7 +21,7 @@ class ImageRetrieveDestroyAPIView(RetrieveDestroyAPIView):
     """
         Retrieve a single image and delete images
     """
-    
+
     parser_class = (MultiPartParser,)
     serializer_class = ImageSerializer
     lookup_field = "uuid"
