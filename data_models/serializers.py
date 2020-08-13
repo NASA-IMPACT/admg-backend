@@ -150,11 +150,7 @@ class GeographicalRegionSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 class GeophysicalConceptSerializer(serializers.ModelSerializer):
-    instruments = serializers.SerializerMethodField(read_only=True)
     campaigns = serializers.SerializerMethodField(read_only=True)
-    
-    def get_instruments(self, obj):
-        return get_uuids(obj.instruments)
 
     def get_campaigns(self, obj):
         return get_uuids(obj.campaigns)
@@ -210,13 +206,9 @@ class GcmdPlatformSerializer(serializers.ModelSerializer):
 
 class GcmdPhenomenaSerializer(serializers.ModelSerializer):
     instruments = serializers.SerializerMethodField(read_only=True)
-    campaigns = serializers.SerializerMethodField(read_only=True)
     
     def get_instruments(self, obj):
         return get_uuids(obj.instruments)
-
-    def get_campaigns(self, obj):
-        return get_uuids(obj.campaigns)
 
     class Meta:
         model = models.GcmdPhenomena

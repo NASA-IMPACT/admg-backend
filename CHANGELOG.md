@@ -8,6 +8,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 Consolidated ingest pipeline
 
+## 0.1.2 - 2020-08-10
+### Added
+- added UUID endpoint for images at api/image/<image_uuid>
+
+## 0.1.1 - 2020-08-05
+### Fixed
+- removed deprecated serializer references to geophysical_concept.instruments and gcmd_phenomena.campaigns
+
 ## 0.1.0 - 2020-08-04
 ### Changed
 #### Requirements

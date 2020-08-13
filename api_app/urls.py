@@ -14,7 +14,7 @@ from .views.change_view import (
     REJECT
 )
 from .views.generic_views import GenericCreateGetAllView, GenericPutPatchDeleteView
-from .views.upload_view import ImageUploadView
+from .views.image_view import ImageListCreateAPIView, ImageRetrieveDestroyAPIView
 
 
 info = openapi.Info(
@@ -113,10 +113,14 @@ urlpatterns += [
 
     path(
         "image/",
-        ImageUploadView.as_view(),
-        name="image_upload"
+        ImageListCreateAPIView.as_view(),
+        name="image_list_create"
     ),
-
+    path(
+        f"image/<str:uuid>",
+        ImageRetrieveDestroyAPIView.as_view(),
+        name="image_retrieve_destroy"
+    ),
     path(
         "docs/",
         schema_view.with_ui("swagger", cache_timeout=0),
