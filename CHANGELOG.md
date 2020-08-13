@@ -13,9 +13,12 @@ Consolidated ingest pipeline
 ### Fixed
 - Django will no longer automatically append '/'s to incorrect urls, and will instead return 404
 
+### Changed
+- Image.image is now a required field for posting to the `/api/image` endpoint
+- Image.short_name has been changed to Image.description, in order to generate alt text
+
 ### Added
 - added UUID endpoint for images at `/api/image/<image_uuid>`
-- Image.image is now a required field for posting to the `/api/image` endpoint
 
 ## 0.1.1 - 2020-08-05
 ### Fixed
