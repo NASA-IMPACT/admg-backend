@@ -1,969 +1,968 @@
-test = {
+{
     "PlatformType": {
         "short_name": {
             "type": "CharField",
-            "max_length":256, 
-            "required": True
+            "max_length": 256,
+            "required": true
         },
         "long_name": {
             "type": "CharField",
-            "max_length":512, 
-            "required": False
+            "max_length": 512,
+            "required": false
         },
         "notes_public": {
             "type": "TextField",
-            "required": False
+            "required": false
         },
         "foreign-platform_type-short_name": {
             "type": "ForeignKey",
-            "required": False
-        },       
+            "required": false
+        },
         "gcmd_uuid": {
             "type": "UUIDField",
-            "required": False
+            "required": false
         },
         "example": {
             "type": "CharField",
-            "max_length":256, 
-            "required": False
-        },
+            "max_length": 256,
+            "required": false
+        }
     },
     "NasaMission": {
         "short_name": {
             "type": "CharField",
             "max_length": 256,
-            "required": True
+            "required": true
         },
         "long_name": {
             "type": "CharField",
             "max_length": 512,
-            "required": False
+            "required": false
         },
         "notes_public": {
             "type": "TextField",
-            "required": False
-        },
+            "required": false
+        }
     },
     "InstrumentType": {
         "short_name": {
             "type": "CharField",
             "max_length": 256,
-            "required": True
+            "required": true
         },
         "long_name": {
             "type": "CharField",
             "max_length": 512,
-            "required": False
+            "required": false
         },
         "notes_public": {
             "type": "TextField",
-            "required": False
+            "required": false
         },
         "foreign-platform_type-short_name": {
             "type": "ForeignKey",
-            "required": False
+            "required": false
         },
         "gcmd_uuid": {
             "type": "UUIDField",
-            "required": False
+            "required": false
         },
         "example": {
             "type": "CharField",
             "max_length": 256,
-            "required": False
-        },
+            "required": false
+        }
     },
     "HomeBase": {
         "short_name": {
             "type": "CharField",
             "max_length": 256,
-            "required": True
+            "required": true
         },
         "long_name": {
             "type": "CharField",
             "max_length": 512,
-            "required": False
+            "required": false
         },
         "notes_public": {
             "type": "TextField",
-            "required": False
+            "required": false
         },
         "location": {
             "type": "CharField",
             "max_length": 512,
-            "required": False
+            "required": false
         },
         "additional_info": {
             "type": "CharField",
             "max_length": 2048,
-            "required": False
+            "required": false
         }
     },
     "FocusArea": {
         "short_name": {
             "type": "CharField",
             "max_length": 256,
-            "required": True
+            "required": true
         },
         "long_name": {
             "type": "CharField",
             "max_length": 512,
-            "required": False
+            "required": false
         },
         "notes_public": {
             "type": "TextField",
-            "required": False
+            "required": false
         },
         "url": {
             "type": "CharField",
             "max_length": 256,
-            "required": False
+            "required": false
         }
     },
     "Season": {
         "short_name": {
             "type": "CharField",
             "max_length": 256,
-            "required": True
+            "required": true
         },
         "long_name": {
             "type": "CharField",
             "max_length": 512,
-            "required": False
+            "required": false
         },
         "notes_public": {
             "type": "TextField",
-            "required": False
-        },
+            "required": false
+        }
     },
-
     "Repository": {
         "short_name": {
             "type": "CharField",
             "max_length": 256,
-            "required": True
+            "required": true
         },
         "long_name": {
             "type": "CharField",
             "max_length": 512,
-            "required": False
+            "required": false
         },
         "notes_public": {
             "type": "TextField",
-            "required": False
+            "required": false
         },
         "gcmd_uuid": {
             "type": "UUID",
-            "required": False
+            "required": false
         }
     },
     "MeasurementRegion": {
         "short_name": {
             "type": "CharField",
             "max_length": 256,
-            "required": True
+            "required": true
         },
         "long_name": {
             "type": "CharField",
             "max_length": 512,
-            "required": False
+            "required": false
         },
         "notes_public": {
             "type": "TextField",
-            "required": False
+            "required": false
         },
         "gcmd_uuid": {
             "type": "UUID",
-            "required": False
+            "required": false
         },
         "example": {
             "type": "CharField",
             "max_length": 256,
-            "required": False
+            "required": false
         }
     },
     "GeographicalRegion": {
         "short_name": {
             "type": "CharField",
             "max_length": 256,
-            "required": True
+            "required": true
         },
         "long_name": {
             "type": "CharField",
             "max_length": 512,
-            "required": False
+            "required": false
         },
         "notes_public": {
             "type": "TextField",
-            "required": False
+            "required": false
         },
         "gcmd_uuid": {
             "type": "UUID",
-            "required": False
+            "required": false
         },
         "example": {
             "type": "CharField",
             "max_length": 256,
-            "required": False
+            "required": false
         }
     },
     "GeophysicalConcept": {
         "short_name": {
             "type": "CharField",
             "max_length": 256,
-            "required": True
+            "required": true
         },
         "long_name": {
             "type": "CharField",
             "max_length": 512,
-            "required": False
+            "required": false
         },
         "notes_public": {
             "type": "TextField",
-            "required": False
+            "required": false
         },
         "gcmd_uuid": {
             "type": "UUID",
-            "required": False
+            "required": false
         },
         "example": {
             "type": "CharField",
             "max_length": 256,
-            "required": False
+            "required": false
         }
     },
     "PartnerOrg": {
         "short_name": {
             "type": "CharField",
             "max_length": 256,
-            "required": True
+            "required": true
         },
         "long_name": {
             "type": "CharField",
             "max_length": 512,
-            "required": False
+            "required": false
         },
         "notes_public": {
             "type": "TextField",
-            "required": False
+            "required": false
         },
         "website": {
             "type": "CharField",
             "max_length": 256,
-            "required": False
+            "required": false
         }
     },
     "Alias": {
         "content_type": {
             "type": "ForeignKey",
-            "required": True
+            "required": true
         },
         "object_id": {
             "type": "UUIDField",
-            "required": True
+            "required": true
         },
         "parent_fk": {
             "type": "GenericForeignKey",
-            "required": True
+            "required": true
         },
         "short_name": {
             "type": "CharField",
             "max_length": 256,
-            "required": True
+            "required": true
         },
         "long_name": {
             "type": "CharField",
             "max_length": 512,
-            "required": False
+            "required": false
         },
         "source": {
             "type": "CharField",
             "max_length": 2048,
-            "required": False
+            "required": false
         }
     },
     "GcmdProject": {
         "short_name": {
             "type": "CharField",
             "max_length": 256,
-            "required": True
+            "required": true
         },
         "long_name": {
             "type": "CharField",
             "max_length": 512,
-            "required": False
+            "required": false
         },
         "bucket": {
             "type": "CharField",
             "max_length": 256,
-            "required": False
+            "required": false
         },
         "gcmd_uuid": {
             "type": "UUID",
-            "required": True
+            "required": true
         }
     },
     "GcmdInstrument": {
         "short_name": {
             "type": "CharField",
             "max_length": 256,
-            "required": False
+            "required": false
         },
         "long_name": {
             "type": "CharField",
             "max_length": 512,
-            "required": False
+            "required": false
         },
         "instrument_category": {
             "type": "CharField",
             "max_length": 256,
-            "required": False
+            "required": false
         },
         "instrument_class": {
             "type": "CharField",
             "max_length": 256,
-            "required": False
+            "required": false
         },
         "instrument_type": {
             "type": "CharField",
             "max_length": 256,
-            "required": False
+            "required": false
         },
         "instrument_subtype": {
             "type": "CharField",
             "max_length": 256,
-            "required": False
+            "required": false
         },
         "gcmd_uuid": {
             "type": "UUID",
-            "required": True
+            "required": true
         }
     },
     "GcmdPlatform": {
         "short_name": {
             "type": "CharField",
             "max_length": 256,
-            "required": True
+            "required": true
         },
         "long_name": {
             "type": "CharField",
             "max_length": 512,
-            "required": False
+            "required": false
         },
         "category": {
             "type": "CharField",
             "max_length": 256,
-            "required": False
+            "required": false
         },
         "series_entry": {
             "type": "CharField",
             "max_length": 256,
-            "required": False
-        },      
+            "required": false
+        },
         "description": {
             "type": "TextField",
-            "required": False
+            "required": false
         },
         "gcmd_uuid": {
             "type": "UUID",
-            "required": True
+            "required": true
         }
     },
     "GcmdPhenomena": {
         "category": {
             "type": "CharField",
             "max_length": 256,
-            "required": True
+            "required": true
         },
-        "topic": {    
+        "topic": {
             "type": "CharField",
             "max_length": 256,
-            "required": False
+            "required": false
         },
         "term": {
             "type": "CharField",
             "max_length": 256,
-            "required": False
+            "required": false
         },
         "variable_1": {
             "type": "CharField",
             "max_length": 256,
-            "required": False
+            "required": false
         },
         "variable_2": {
             "type": "CharField",
             "max_length": 256,
-            "required": False
+            "required": false
         },
         "variable_3": {
             "type": "CharField",
             "max_length": 256,
-            "required": False
+            "required": false
         },
         "gcmd_uuid": {
             "type": "UUID",
-            "required": True
+            "required": true
         }
     },
     "Campaign": {
         "short_name": {
             "type": "CharField",
             "max_length": 256,
-            "required": True
+            "required": true
         },
         "long_name": {
             "type": "CharField",
             "max_length": 512,
-            "required": False
+            "required": false
         },
         "notes_internal": {
             "type": "TextField",
-            "required": False
+            "required": false
         },
         "notes_public": {
             "type": "TextField",
-            "required": False
+            "required": false
         },
         "description_short": {
             "type": "TextField",
-            "required": False
+            "required": false
         },
         "description_long": {
             "type": "TextField",
-            "required": False
+            "required": false
         },
         "focus_phenomena": {
             "type": "CharField",
             "max_length": 1024,
-            "required": True
+            "required": true
         },
         "region_description": {
             "type": "TextField",
-            "required": True
+            "required": true
         },
         "spatial_bounds": {
             "type": "PolygonField",
-            "required": False
+            "required": false
         },
         "start_date": {
             "type": "DateField",
-            "required": True
+            "required": true
         },
         "end_date": {
             "type": "DateField",
-            "required": False
+            "required": false
         },
         "funding_agency": {
             "type": "CharField",
             "max_length": 256,
-            "required": True
+            "required": true
         },
         "funding_program": {
             "type": "CharField",
             "max_length": 256,
-            "required": True
+            "required": true
         },
         "funding_program_lead": {
             "type": "CharField",
             "max_length": 256,
-            "required": False
+            "required": false
         },
         "lead_investigator": {
             "type": "CharField",
             "max_length": 256,
-            "required": True
+            "required": true
         },
         "technical_contact": {
             "type": "CharField",
             "max_length": 256,
-            "required": False
+            "required": false
         },
         "number_collection_periods": {
             "type": "PositiveIntegerField",
-            "required": True
+            "required": true
         },
         "doi": {
             "type": "CharField",
             "max_length": 1024,
-            "required": False
+            "required": false
         },
         "number_data_products": {
             "type": "PositiveIntegerField",
-            "required": False
+            "required": false
         },
         "data_volume": {
             "type": "CharField",
             "max_length": 256,
-            "required": False
+            "required": false
         },
         "repository_website": {
             "type": "CharField",
             "max_length": 512,
-            "required": False
+            "required": false
         },
         "project_website": {
             "type": "CharField",
             "max_length": 512,
-            "required": False
+            "required": false
         },
         "tertiary_website": {
             "type": "CharField",
             "max_length": 512,
-            "required": False
+            "required": false
         },
         "publication_links": {
             "type": "CharField",
             "max_length": 2048,
-            "required": False
+            "required": false
         },
         "other_resources": {
             "type": "CharField",
             "max_length": 2048,
-            "required": False
+            "required": false
         },
         "ongoing": {
             "type": "Boolean",
-            "required": True
+            "required": true
         },
         "nasa_led": {
             "type": "Boolean",
-            "required": True
+            "required": true
         },
         "table-nasa_mission-short_name": {
             "type": "ManyToManyField",
-            "required": False
+            "required": false
         },
         "table-focus_area-short_name": {
             "type": "ManyToManyField",
-            "required": True
+            "required": true
         },
         "table-season-short_name": {
             "type": "ManyToManyField",
-            "required": True
+            "required": true
         },
         "table-repositorie-short_name": {
             "type": "ManyToManyField",
-            "required": True
+            "required": true
         },
         "table-platform_type-short_name": {
             "type": "ManyToManyField",
-            "required": True
+            "required": true
         },
         "table-partner_org-short_name": {
             "type": "ManyToManyField",
-            "required": False
+            "required": false
         },
         "table-gcmd_phenomena-ignore_code": {
             "type": "ManyToManyField",
-            "required": True
+            "required": true
         },
         "table-gcmd_project-gcmd_uuid": {
             "type": "ManyToManyField",
-            "required": False
+            "required": false
         },
         "table-geophysical_concepts-short_name": {
             "type": "ManyToManyField",
-            "required": True
+            "required": true
         }
     },
     "Platform": {
         "short_name": {
             "type": "CharField",
             "max_length": 256,
-            "required": True
+            "required": true
         },
         "long_name": {
             "type": "CharField",
             "max_length": 512,
-            "required": False
+            "required": false
         },
         "notes_internal": {
             "type": "TextField",
-            "required": False
+            "required": false
         },
         "notes_public": {
             "type": "TextField",
-            "required": False
+            "required": false
         },
         "foreign-platform_type-short_name": {
             "type": "ForeignKey",
-            "required": False
+            "required": false
         },
         "image": {
             "type": "ForeignKey",
-            "required": False
+            "required": false
         },
         "description": {
             "type": "TextField",
-            "required": True
+            "required": true
         },
         "online_information": {
             "type": "CharField",
             "max_length": 512,
-            "required": False
+            "required": false
         },
         "stationary": {
             "type": "BooleanField",
-            "required": True
+            "required": true
         },
         "table-gcmd_platform-gcmd_uuid": {
             "type": "ManyToManyField",
-            "required": False
+            "required": false
         }
     },
     "Instrument": {
         "short_name": {
             "type": "CharField",
             "max_length": 256,
-            "required": True
+            "required": true
         },
         "long_name": {
             "type": "CharField",
             "max_length": 512,
-            "required": False
+            "required": false
         },
         "notes_internal": {
             "type": "TextField",
-            "required": False
+            "required": false
         },
         "notes_public": {
             "type": "TextField",
-            "required": False
+            "required": false
         },
         "description": {
             "type": "TextField",
-            "required": True
+            "required": true
         },
         "lead_investigator": {
             "type": "CharField",
             "max_length": 256,
-            "required": False
+            "required": false
         },
         "technical_contact": {
             "type": "CharField",
             "max_length": 256,
-            "required": True
+            "required": true
         },
-        "facility": {       
+        "facility": {
             "type": "CharField",
             "max_length": 256,
-            "required": False
+            "required": false
         },
         "funding_source": {
             "type": "CharField",
             "max_length": 1024,
-            "required": False
+            "required": false
         },
         "spatial_resolution": {
             "type": "CharField",
             "max_length": 256,
-            "required": True
+            "required": true
         },
         "temporal_resolution": {
             "type": "CharField",
             "max_length": 256,
-            "required": True
-        },      
+            "required": true
+        },
         "radiometric_frequency": {
             "type": "CharField",
             "max_length": 256,
-            "required": True
+            "required": true
         },
         "calibration_information": {
             "type": "CharField",
             "max_length": 1024,
-            "required": False
+            "required": false
         },
         "instrument_manufacturer": {
             "type": "CharField",
             "max_length": 512,
-            "required": False
+            "required": false
         },
         "overview_publication": {
             "type": "CharField",
             "max_length": 2048,
-            "required": False
+            "required": false
         },
         "online_information": {
             "type": "CharField",
             "max_length": 2048,
-            "required": False
+            "required": false
         },
         "instrument_doi": {
             "type": "CharField",
             "max_length": 1024,
-            "required": False
+            "required": false
         },
         "table-gcmd_instrument-short_name": {
             "type": "ManyToManyField",
-            "required": False
+            "required": false
         },
         "table-instrument_type-short_name": {
             "type": "ManyToManyField",
-            "required": True
+            "required": true
         },
         "table-gcmd_phenomena-short_name": {
             "type": "ManyToManyField",
-            "required": True
+            "required": true
         },
         "table-measurement_region-short_name": {
             "type": "ManyToManyField",
-            "required": True
+            "required": true
         },
         "table-repository-short_name": {
             "type": "ManyToManyField",
-            "required": False
+            "required": false
         },
         "table-geophysical_concept-short_name": {
             "type": "ManyToManyField",
-            "required": True
-        },
+            "required": true
+        }
     },
     "Deployment": {
         "short_name": {
             "type": "CharField",
             "max_length": 256,
-            "required": True
+            "required": true
         },
         "long_name": {
             "type": "CharField",
             "max_length": 512,
-            "required": False
+            "required": false
         },
         "notes_internal": {
             "type": "TextField",
-            "required": False
+            "required": false
         },
         "notes_public": {
             "type": "TextField",
-            "required": False
+            "required": false
         },
-        "foreign-campaign-short_name" : {
+        "foreign-campaign-short_name": {
             "type": "ForeignKey",
-            "required": True
+            "required": true
         },
-        "ignore_study_region_map" : {
+        "ignore_study_region_map": {
             "type": "ForeignKey",
-            "required": False
+            "required": false
         },
-        "ignore_ground_sites_map" : {
+        "ignore_ground_sites_map": {
             "type": "ForeignKey",
-            "required": False
+            "required": false
         },
-        "ignore_flight_tracks" : {
+        "ignore_flight_tracks": {
             "type": "ForeignKey",
-            "required": False
+            "required": false
         },
         "start_date": {
             "type": "DateField",
-            "required": True
+            "required": true
         },
         "end_date": {
             "type": "DateField",
-            "required": True
+            "required": true
         },
         "number_collection_periods": {
             "type": "PositiveIntegerField",
-            "required": False
+            "required": false
         },
         "table-geographical_region-short_name": {
             "type": "ManyToManyField",
-            "required": True
+            "required": true
         }
     },
     "IopSe": {
         "foreign-deployment-short_name": {
             "type": "ForeignKey",
-            "required": True
+            "required": true
         },
         "short_name": {
             "type": "CharField",
             "max_length": 256,
-            "required": True
+            "required": true
         },
         "start_date": {
             "type": "DateField",
-            "required": True
+            "required": true
         },
         "end_date": {
             "type": "DateField",
-            "required": True
+            "required": true
         },
         "description": {
             "type": "TextField",
-            "required": True
+            "required": true
         },
         "region_description": {
             "type": "TextField",
-            "required": True
+            "required": true
         },
         "published_list": {
             "type": "CharField",
             "max_length": 1024,
-            "required": False
+            "required": false
         },
         "reports": {
             "type": "CharField",
             "max_length": 1024,
-            "required": False
+            "required": false
         },
         "reference_file": {
             "type": "CharField",
             "max_length": 1024,
-            "required": False
+            "required": false
         }
     },
     "IOP": {
         "foreign-deployment-short_name": {
             "type": "ForeignKey",
-            "required": True
+            "required": true
         },
         "short_name": {
             "type": "CharField",
             "max_length": 256,
-            "required": True
-        },     
+            "required": true
+        },
         "start_date": {
             "type": "DateField",
-            "required": True
+            "required": true
         },
         "end_date": {
             "type": "DateField",
-            "required": True
+            "required": true
         },
         "description": {
             "type": "TextField",
-            "required": True
+            "required": true
         },
         "region_description": {
             "type": "TextField",
-            "required": True
+            "required": true
         },
         "published_list": {
             "type": "CharField",
             "max_length": 1024,
-            "required": False
+            "required": false
         },
         "reports": {
             "type": "CharField",
             "max_length": 1024,
-            "required": False
+            "required": false
         },
         "reference_file": {
             "type": "CharField",
             "max_length": 1024,
-            "required": False
+            "required": false
         }
     },
     "SignificantEvent": {
         "foreign-deployment-short_name": {
             "type": "ForeignKey",
-            "required": True
+            "required": true
         },
         "short_name": {
             "type": "CharField",
             "max_length": 256,
-            "required": True
-        },     
+            "required": true
+        },
         "start_date": {
             "type": "DateField",
-            "required": True
+            "required": true
         },
         "end_date": {
             "type": "DateField",
-            "required": True
+            "required": true
         },
         "description": {
             "type": "TextField",
-            "required": True
+            "required": true
         },
         "region_description": {
             "type": "TextField",
-            "required": True
+            "required": true
         },
         "published_list": {
             "type": "CharField",
             "max_length": 1024,
-            "required": False
+            "required": false
         },
         "reports": {
             "type": "CharField",
             "max_length": 1024,
-            "required": False
+            "required": false
         },
         "reference_file": {
             "type": "CharField",
             "max_length": 1024,
-            "required": False
+            "required": false
         },
         "foreign-iop-short_name": {
             "type": "ForeignKey",
-            "required": False
+            "required": false
         }
     },
     "CollectionPeriod": {
         "foreign-deployment-short_name": {
             "type": "ForeignKey",
-            "required": True
+            "required": true
         },
         "foreign-platform-short_name": {
             "type": "ForeignKey",
-            "required": True
+            "required": true
         },
         "asp_long_name": {
             "type": "CharField",
             "max_length": 512,
-            "required":False
+            "required": false
         },
         "platform_identifier": {
             "type": "CharField",
             "max_length": 128,
-            "required":False
+            "required": false
         },
         "home_base": {
             "type": "CharField",
             "max_length": 256,
-            "required":False
+            "required": false
         },
         "campaign_deployment_base": {
             "type": "CharField",
             "max_length": 256,
-            "required":False
+            "required": false
         },
         "platform_owner": {
             "type": "CharField",
             "max_length": 256,
-            "required":False
+            "required": false
         },
         "platform_technical_contact": {
             "type": "CharField",
             "max_length": 256,
-            "required":False
+            "required": false
         },
         "instrument_information_source": {
             "type": "CharField",
             "max_length": 1024,
-            "required": False
+            "required": false
         },
         "notes_internal": {
             "type": "TextField",
-            "required": False
+            "required": false
         },
         "notes_public": {
             "type": "TextField",
-            "required": False
+            "required": false
         },
         "num_ventures": {
             "type": "TextField",
-            "required": False
+            "required": false
         },
         "auto_generated": {
             "type": "Boolean",
-            "required": True
+            "required": true
         },
         "table-instrument-short_name": {
             "type": "ManyToManyField",
-            "required": True
-        },
+            "required": true
+        }
     }
 }
