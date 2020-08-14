@@ -31,7 +31,7 @@ class Image(BaseModel):
     owner = models.CharField(max_length=512, default='', blank=True)
 
     def __str__(self):
-        return self.short_name or self.image.name
+        return self.image.name
 
 
 class LimitedInfo(BaseModel):
