@@ -171,8 +171,8 @@ class DataModel(BaseModel):
     class Meta:
         abstract = True
 
-    @property
-    def search_fields(self):
+    @staticmethod
+    def search_fields():
         return ['short_name', 'long_name']
 
     @classmethod
@@ -276,6 +276,7 @@ class Campaign(DataModel):
                     for collection_period in dep.collection_periods.all()
         ]))
 
+    @staticmethod
     def search_fields():
         return [
             'short_name',
@@ -310,6 +311,7 @@ class Platform(DataModel):
                     for inst in collection_period.instruments.all()
         ))
 
+    @staticmethod
     def search_fields():
         return [
             'short_name',
