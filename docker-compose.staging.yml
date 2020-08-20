@@ -12,7 +12,7 @@ services:
     expose:
       - 8000
     env_file:
-      - .env.staging
+      - .env
     depends_on:
       - db
   nginx-proxy:
