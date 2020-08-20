@@ -60,6 +60,8 @@ COPY --from=builder /usr/src/app/wheels /wheels
 COPY --from=builder /usr/src/app/requirements/ .
 
 RUN pip install --no-cache /wheels/*
+
+# argon2-cffi has some C dependencies that fail when relying on the wheels.
 RUN pip install --upgrade --force-reinstall argon2-cffi==20.1.0
 
 # copy entrypoint-prod.sh
