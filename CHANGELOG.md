@@ -8,15 +8,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 Consolidated ingest pipeline
 
-## 0.1.3 - 2020-08-19
+## 0.1.3 - 2020-08-20
 
 ### Added
+- Adds support for https using letsencrypt
+- Adds multistage build capabilities to Dockerfile
 - Adds functionality to Django to use PostgreSQL Full Text Search in API calls based on multiple columns
     - Add search method to DataModel
     - Add default search_fields to DataModel (short_name, long_name)
     - Add additional search_fields to Campaign (short_name, long_name, description_short, description_long, focus_phenomena)
     - Add additional search_fields to Platform (short_name, long_name, description)
     - Add filter by search to GenericCreateGetAllView
+
+### Changed
+- Update Dockerfile to use the more lightweight Linux Alpine distro
 
 ## 0.1.2 - 2020-08-13
 
