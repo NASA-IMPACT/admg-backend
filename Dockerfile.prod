@@ -25,10 +25,8 @@ COPY . .
 # install dependencies
 COPY requirements/ .
 RUN pip install -r production.txt
-RUN pip install -r local.txt
 
 RUN pip wheel --no-cache-dir --no-deps --wheel-dir /usr/src/app/wheels -r production.txt
-RUN pip wheel --no-cache-dir --no-deps --wheel-dir /usr/src/app/wheels -r local.txt
 
 #########
 # FINAL #
