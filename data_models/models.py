@@ -176,16 +176,16 @@ class DataModel(BaseModel):
         return ['short_name', 'long_name']
 
     @classmethod
-    def search(self, params):
+    def search(cls, params):
         search_type = params.pop('search_type', 'plain')
         search = params.pop('search', None)
         search_fields_param = params.pop('search_fields', None)
         if search_fields_param:
             search_fields = search_fields_param.split(',')
         else:
-            search_fields = self.search_fields()
+            search_fields = cls.search_fields()
 
-        queryset = self.objects.all()
+        queryset = cls.objects.all()
 
         if search:
             vector = SearchVector(*search_fields)
