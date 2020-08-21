@@ -128,7 +128,7 @@ class GcmdInstrument(BaseModel):
     gcmd_uuid = models.UUIDField()
 
     def __str__(self):
-        return self.short_name or self.short_name or self.long_name or self.instrument_subtype or self.instrument_type or self.instrument_class or self.instrument_category
+        return self.short_name or self.long_name or self.instrument_subtype or self.instrument_type or self.instrument_class or self.instrument_category
 
 
 class GcmdPlatform(BaseModel):
@@ -150,7 +150,7 @@ class GcmdPhenomena(BaseModel):
     gcmd_uuid = models.UUIDField()
 
     def __str__(self):
-        return self.variable_3 or self.variable_3 or self.variable_2 or self.variable_1 or self.term or self.topic or self.category
+        return self.variable_3 or self.variable_2 or self.variable_1 or self.term or self.topic or self.category
 
 
 class DOI(BaseModel):
@@ -176,16 +176,16 @@ class DataModel(BaseModel):
         return ['short_name', 'long_name']
 
     @classmethod
-    def search(self, params):
+    def search(cls, params):
         search_type = params.pop('search_type', 'plain')
         search = params.pop('search', None)
         search_fields_param = params.pop('search_fields', None)
         if search_fields_param:
             search_fields = search_fields_param.split(',')
         else:
-            search_fields = self.search_fields()
+            search_fields = cls.search_fields()
 
-        queryset = self.objects.all()
+        queryset = cls.objects.all()
 
         if search:
             vector = SearchVector(*search_fields)
