@@ -43,7 +43,7 @@ def GenericCreateGetAllView(model_name):
             params = request.query_params.dict()
             try:
                 self.queryset = self.Model.search(params)
-            except NotImplementedError:
+            except (NotImplementedError, AttributeError):
                 self.queryset = self.queryset.filter(**params)
             res = super().get(request, *args, **kwargs)
             return res
