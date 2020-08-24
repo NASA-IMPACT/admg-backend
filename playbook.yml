@@ -88,7 +88,7 @@
     - assert:
         that:
           - "not web.admg_webapp_web_1.state.running"
-          - "not nginx.dev_nginx.state.running"
+          - "'not nginx-proxy.nginx-proxy.state.running'"
   
     - name: Restart services
       docker_compose:
@@ -103,4 +103,4 @@
     - assert:
         that:
           - "web.admg_webapp_web_1.state.running"
-          - "nginx.dev_nginx.state.running"
+          - "'nginx-proxy.nginx-proxy.state.running'"
