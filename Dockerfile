@@ -4,6 +4,7 @@ ENV PYTHONUNBUFFERED 1
 RUN mkdir /code
 WORKDIR /code
 COPY requirements/ /code/
+RUN pip install -r base.txt
 RUN pip install -r local.txt
 RUN pip install -r production.txt
 COPY . /code/

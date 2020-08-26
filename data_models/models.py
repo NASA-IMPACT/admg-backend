@@ -5,6 +5,7 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.gis.db import models as geomodels
 from django.contrib.postgres.fields import JSONField
+from django.contrib.postgres.search import SearchQuery, SearchVector
 from django.db import models
 
 
@@ -15,7 +16,7 @@ class BaseModel(models.Model):
         return self.short_name
 
     class Meta:
-        abstract = True 
+        abstract = True
 
 
 ##################
@@ -31,7 +32,7 @@ class Image(BaseModel):
     owner = models.CharField(max_length=512, default='', blank=True)
 
     def __str__(self):
-        return self.short_name or self.image.name
+        return self.image.name
 
 
 class LimitedInfo(BaseModel):
@@ -45,7 +46,7 @@ class LimitedInfo(BaseModel):
 
 class PlatformType(LimitedInfo):
     parent = models.ForeignKey('PlatformType', on_delete=models.CASCADE, related_name='sub_types', null=True, blank=True)
-    
+
     gcmd_uuid = models.UUIDField(null=True, blank=True)
     example = models.CharField(max_length=256, blank=True, default='')
 
@@ -55,15 +56,15 @@ class NasaMission(LimitedInfo):
 
 class InstrumentType(LimitedInfo):
     parent = models.ForeignKey('InstrumentType', on_delete=models.CASCADE, related_name='sub_types', null=True, blank=True)
-    
+
     gcmd_uuid = models.UUIDField(null=True, blank=True)
     example = models.CharField(max_length=256, blank=True, default='')
-    
+
 
 class HomeBase(LimitedInfo):
     location = models.CharField(max_length=512, blank=True, default='')
     additional_info = models.CharField(max_length=2048, blank=True, default='')
-    
+
 
 class FocusArea(LimitedInfo):
     url = models.CharField(max_length=256, blank=True, default='')
@@ -75,7 +76,7 @@ class Season(LimitedInfo):
 
 class Repository(LimitedInfo):
     gcmd_uuid = models.UUIDField(null=True, blank=True)
-    
+
 
 class MeasurementRegion(LimitedInfo):
     gcmd_uuid = models.UUIDField(null=True, blank=True)
@@ -97,7 +98,7 @@ class PartnerOrg(LimitedInfo):
 
 
 class Alias(BaseModel):
-    
+
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.UUIDField()
     parent_fk = GenericForeignKey('content_type', 'object_id')
@@ -127,7 +128,7 @@ class GcmdInstrument(BaseModel):
     gcmd_uuid = models.UUIDField()
 
     def __str__(self):
-        return self.short_name or self.short_name or self.long_name or self.instrument_subtype or self.instrument_type or self.instrument_class or self.instrument_category
+        return self.short_name or self.long_name or self.instrument_subtype or self.instrument_type or self.instrument_class or self.instrument_category
 
 
 class GcmdPlatform(BaseModel):
@@ -149,7 +150,7 @@ class GcmdPhenomena(BaseModel):
     gcmd_uuid = models.UUIDField()
 
     def __str__(self):
-        return self.variable_3 or self.variable_3 or self.variable_2 or self.variable_1 or self.term or self.topic or self.category
+        return self.variable_3 or self.variable_2 or self.variable_1 or self.term or self.topic or self.category
 
 
 class DOI(BaseModel):
@@ -169,6 +170,33 @@ class DataModel(BaseModel):
 
     class Meta:
         abstract = True
+
+    @staticmethod
+    def search_fields():
+        return ['short_name', 'long_name']
+
+    @classmethod
+    def search(cls, params):
+        search_type = params.pop('search_type', 'plain')
+        search = params.pop('search', None)
+        search_fields_param = params.pop('search_fields', None)
+        if search_fields_param:
+            search_fields = search_fields_param.split(',')
+        else:
+            search_fields = cls.search_fields()
+
+        queryset = cls.objects.all()
+
+        if search:
+            vector = SearchVector(*search_fields)
+
+            queryset = queryset.annotate(
+                search=vector
+            ).filter(
+                search=SearchQuery(search, search_type=search_type)
+            )
+
+        return queryset.filter(**params)
 
 
 class Campaign(DataModel):
@@ -195,7 +223,7 @@ class Campaign(DataModel):
 
     repository_website = models.CharField(max_length=512, default='', blank=True) # repository homepage
     project_website = models.CharField(max_length=512, default='', blank=True) # dedicated homepage
-    tertiary_website = models.CharField(max_length=512, default='', blank=True) 
+    tertiary_website = models.CharField(max_length=512, default='', blank=True)
     publication_links = models.CharField(max_length=2048, default='', blank=True)
     other_resources = models.CharField(max_length=2048, default='', blank=True) # other urls
 
@@ -237,7 +265,7 @@ class Campaign(DataModel):
             inst.uuid
                 for dep in self.deployments.all()
                     for collection_period in dep.collection_periods.all()
-                        for inst in collection_period.instruments.all()  
+                        for inst in collection_period.instruments.all()
         ]))
 
     @property
@@ -248,11 +276,21 @@ class Campaign(DataModel):
                     for collection_period in dep.collection_periods.all()
         ]))
 
+    @staticmethod
+    def search_fields():
+        return [
+            'short_name',
+            'long_name',
+            'description_short',
+            'description_long',
+            'focus_phenomena',
+        ]
+
 
 class Platform(DataModel):
 
     platform_type = models.ForeignKey(PlatformType, on_delete=models.SET_NULL, related_name='platforms', null=True)
-    image = models.ForeignKey(Image, on_delete=models.CASCADE, null=True, blank=True)   
+    image = models.ForeignKey(Image, on_delete=models.CASCADE, null=True, blank=True)
 
     description = models.TextField()
     online_information = models.CharField(max_length=512, default='', blank=True)
@@ -271,7 +309,15 @@ class Platform(DataModel):
             inst.uuid
                 for collection_period in self.collection_periods.all()
                     for inst in collection_period.instruments.all()
-        ))     
+        ))
+
+    @staticmethod
+    def search_fields():
+        return [
+            'short_name',
+            'long_name',
+            'description',
+        ]
 
 
 class Instrument(DataModel):
@@ -335,7 +381,7 @@ class Deployment(DataModel):
 class IopSe(BaseModel):
 
     deployment = models.ForeignKey(Deployment, on_delete=models.CASCADE, related_name='iops')
-    
+
     short_name = models.CharField(max_length=256)
     start_date = models.DateField()
     end_date = models.DateField()
@@ -346,17 +392,17 @@ class IopSe(BaseModel):
     reference_file = models.CharField(max_length=1024, default='', blank=True)
 
     class Meta:
-        abstract = True 
+        abstract = True
 
 
 class IOP(IopSe):
     deployment = models.ForeignKey(Deployment, on_delete=models.CASCADE, related_name='iops')
-    
+
 
 class SignificantEvent(IopSe):
     deployment = models.ForeignKey(Deployment, on_delete=models.CASCADE, related_name='significant_events')
-    iop = models.ForeignKey(IOP, on_delete=models.CASCADE, related_name='significant_events', null=True) 
-    
+    iop = models.ForeignKey(IOP, on_delete=models.CASCADE, related_name='significant_events', null=True)
+
 
 class CollectionPeriod(BaseModel):
 
