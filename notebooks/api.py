@@ -29,9 +29,9 @@ class Api:
         self._make_connection()
 
     def _make_connection(self):
-        url = f"{self.credentials['server']}/authenticate/token/"
+        token_url = f"{self.credentials['server']}/authenticate/token/"
         response = requests.post(
-            url,
+            token_url,
             data=self.credentials['data'],
             auth=(self.credentials['client_id'], self.credentials['client_secret']),
         )
@@ -60,7 +60,7 @@ class Api:
     def gmcd_shorts(self, end_point, uuid):
         """Most items in the database have a potential GCMD translation.
         This function takes an end_point and the uuid of a specific obj at
-        that enpoint and returns the GCMD translation short_names for the UUID.
+        that endpoint and returns the GCMD translation short_names for the UUID.
 
         Args:
             end_point (str): API endpoint such as 'platform' or 'campaign'
@@ -72,9 +72,9 @@ class Api:
         """
 
         gcmd_uuids = self.get(f'{end_point}/{uuid}')['data'][f'gcmd_{end_point}s']
-        shorts = [
+        gcmd_short_names = [
             self.get(f'gcmd_{end_point}/{gcmd_uuid}')['data']['short_name']
             for gcmd_uuid in gcmd_uuids
         ]
 
-        return shorts
+        return gcmd_short_names
