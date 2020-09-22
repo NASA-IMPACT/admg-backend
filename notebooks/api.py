@@ -16,6 +16,13 @@ from utils.config.server import credentials as CREDENTIALS
 
 class Api:
     def __init__(self, deployment):
+        """Initializes the api by setting up the credentials and 
+        getting the token from one of the various servers
+
+        Args:
+            deployment (str): 'test', 'production', or 'local'
+        """
+
         self.deployment = deployment
         self.credentials = CREDENTIALS[self.deployment]
         self.base_url = f"{self.credentials['server']}/api/"
