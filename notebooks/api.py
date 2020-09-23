@@ -73,12 +73,25 @@ class Api:
         return json.loads(response.text)
 
     def delete(self, endpoint):
+        """Takes and endpoint and deletes the object in the db
+
+        Args:
+            endpoint (str): full endpoint including a UUID, 'season/37b0daa7-caa4-4649-b95c-929e8abe1dc8'
+        """
+
         delete_url = f'{self.base_url}{endpoint}'
         response = requests.delete(delete_url, headers=self.headers)
 
         self._approve_change_object(response)
 
     def update(self, endpoint, data):
+        """Takes and endpoint and some data and updates the object in the db
+
+        Args:
+            endpoint (str): full endpoint including a UUID, 'season/37b0daa7-caa4-4649-b95c-929e8abe1dc8'
+            data ([dict]): dictionary of data matching endpoint requirements
+        """
+
         post_url = f'{self.base_url}{endpoint}'
         response = requests.patch(post_url, data=json.dumps(data), headers=self.headers)
 
@@ -107,13 +120,13 @@ class Api:
 
         self._approve_change_object(response)
 
-    def gmcd_shorts(self, endpoint, uuid):
+    def gmcd_shorts(self, table_name, uuid):
         """Most items in the database have a potential GCMD translation.
-        This function takes an endpoint and the uuid of a specific obj at
-        that endpoint and returns the GCMD translation short_names for the UUID.
+        This function takes a table_name and the uuid of a specific obj at
+        that table_name and returns the GCMD translation short_names for the UUID.
 
         Args:
-            endpoint (str): API endpoint such as 'platform' or 'campaign'
+            table_name (str): API table_name such as 'platform' or 'campaign'
             uuid (str): uuid of a specific item such as an instrument uuid
 
         Returns:
@@ -121,9 +134,9 @@ class Api:
             returns a list of GCMD short_names
         """
 
-        gcmd_uuids = self.get(f'{endpoint}/{uuid}')['data'][f'gcmd_{endpoint}s']
+        gcmd_uuids = self.get(f'{table_name}/{uuid}')['data'][f'gcmd_{table_name}s']
         gcmd_short_names = [
-            self.get(f'gcmd_{endpoint}/{gcmd_uuid}')['data']['short_name']
+            self.get(f'gcmd_{table_name}/{gcmd_uuid}')['data']['short_name']
             for gcmd_uuid in gcmd_uuids
         ]
 
