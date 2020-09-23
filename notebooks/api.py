@@ -42,6 +42,21 @@ class Api:
             'Content-Type': 'application/json',
         }
 
+    def _approve_change_object(self, response):
+        # get the change_request_uuid
+        uuid = response.text.split(':')[4].strip().split(' ')[0]
+
+        requests.post(
+            f'{self.base_url}change_request/{uuid}/push', headers=self.headers
+        ).text
+        approved = json.loads(
+            requests.post(
+                f'{self.base_url}change_request/{uuid}/approve', headers=self.headers
+            ).text
+        )
+
+        return approved
+
     def get(self, endpoint):
         """Takes an ADMG endpoint as a string and runs a get request
 
@@ -57,32 +72,17 @@ class Api:
 
         return json.loads(response.text)
 
-    def delete(self, endpoint, uuid):
+    def delete(self, endpoint):
         delete_url = f'{self.base_url}{endpoint}'
         response = requests.delete(delete_url, headers=self.headers)
 
-        print(response)
-        print(response.text)
-
-        # get the change_request_uuid
-        uuid = response.text.split(':')[4].strip().split(' ')[0]
-
-        requests.post(f'{self.base_url}change_request/{uuid}/push', headers=self.headers).text
-        approved = json.loads(requests.post(f'{self.base_url}change_request/{uuid}/approve', headers=self.headers).text)
-        
-        return approved
+        self._approve_change_object(response)
 
     def update(self, endpoint, data):
         post_url = f'{self.base_url}{endpoint}'
         response = requests.patch(post_url, data=json.dumps(data), headers=self.headers)
 
-        # get the change_request_uuid
-        uuid = response.text.split(':')[4].strip().split(' ')[0]
-
-        requests.post(f'{self.base_url}change_request/{uuid}/push', headers=self.headers).text
-        approved = json.loads(requests.post(f'{self.base_url}change_request/{uuid}/approve', headers=self.headers).text)
-        
-        return approved
+        self._approve_change_object(response)
 
     def create(self, endpoint, data):
         """Takes and endpoint and some post data and creates an entry in the 
@@ -95,20 +95,17 @@ class Api:
         Returns:
             dict: response dictionary from API
         """
-        
+
         post_url = f'{self.base_url}{endpoint}'
         response = requests.post(post_url, data=json.dumps(data), headers=self.headers)
 
-        if '"success": false' in response.text and 'this short name already exists' in response.text:
+        if (
+            '"success": false' in response.text
+            and 'this short name already exists' in response.text
+        ):
             return f'the following entry already existed {endpoint=} {data=}'
 
-        # get the change_request_uuid
-        uuid = response.text.split(':')[4].strip().split(' ')[0]
-
-        requests.post(f'{self.base_url}change_request/{uuid}/push', headers=self.headers).text
-        approved = json.loads(requests.post(f'{self.base_url}change_request/{uuid}/approve', headers=self.headers).text)
-        
-        return approved
+        self._approve_change_object(response)
 
     def gmcd_shorts(self, endpoint, uuid):
         """Most items in the database have a potential GCMD translation.
