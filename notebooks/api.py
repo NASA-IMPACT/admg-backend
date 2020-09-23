@@ -42,28 +42,81 @@ class Api:
             'Content-Type': 'application/json',
         }
 
-    def get(self, end_point):
+    def get(self, endpoint):
         """Takes an ADMG endpoint as a string and runs a get request
 
         Args:
-            end_point (str): API end_point such as 'campaign'
+            endpoint (str): API endpoint such as 'campaign'
 
         Returns:
             dict: API response dictionary
         """
 
-        url = f'{self.base_url}{end_point}'
-        response = requests.get(url, headers=self.headers)
+        get_url = f'{self.base_url}{endpoint}'
+        response = requests.get(get_url, headers=self.headers)
 
         return json.loads(response.text)
 
-    def gmcd_shorts(self, end_point, uuid):
+    def delete(self, endpoint, uuid):
+        delete_url = f'{self.base_url}{endpoint}'
+        response = requests.delete(delete_url, headers=self.headers)
+
+        print(response)
+        print(response.text)
+
+        # get the change_request_uuid
+        uuid = response.text.split(':')[4].strip().split(' ')[0]
+
+        requests.post(f'{self.base_url}change_request/{uuid}/push', headers=self.headers).text
+        approved = json.loads(requests.post(f'{self.base_url}change_request/{uuid}/approve', headers=self.headers).text)
+        
+        return approved
+
+    def update(self, endpoint, data):
+        post_url = f'{self.base_url}{endpoint}'
+        response = requests.patch(post_url, data=json.dumps(data), headers=self.headers)
+
+        # get the change_request_uuid
+        uuid = response.text.split(':')[4].strip().split(' ')[0]
+
+        requests.post(f'{self.base_url}change_request/{uuid}/push', headers=self.headers).text
+        approved = json.loads(requests.post(f'{self.base_url}change_request/{uuid}/approve', headers=self.headers).text)
+        
+        return approved
+
+    def create(self, endpoint, data):
+        """Takes and endpoint and some post data and creates an entry in the 
+        database
+
+        Args:
+            endpoint (str): endpoint such as 'campaign' or 'season'
+            data (dict): dictionary of data matching endpoint requirements
+
+        Returns:
+            dict: response dictionary from API
+        """
+        
+        post_url = f'{self.base_url}{endpoint}'
+        response = requests.post(post_url, data=json.dumps(data), headers=self.headers)
+
+        if '"success": false' in response.text and 'this short name already exists' in response.text:
+            return f'the following entry already existed {endpoint=} {data=}'
+
+        # get the change_request_uuid
+        uuid = response.text.split(':')[4].strip().split(' ')[0]
+
+        requests.post(f'{self.base_url}change_request/{uuid}/push', headers=self.headers).text
+        approved = json.loads(requests.post(f'{self.base_url}change_request/{uuid}/approve', headers=self.headers).text)
+        
+        return approved
+
+    def gmcd_shorts(self, endpoint, uuid):
         """Most items in the database have a potential GCMD translation.
-        This function takes an end_point and the uuid of a specific obj at
+        This function takes an endpoint and the uuid of a specific obj at
         that endpoint and returns the GCMD translation short_names for the UUID.
 
         Args:
-            end_point (str): API endpoint such as 'platform' or 'campaign'
+            endpoint (str): API endpoint such as 'platform' or 'campaign'
             uuid (str): uuid of a specific item such as an instrument uuid
 
         Returns:
@@ -71,9 +124,9 @@ class Api:
             returns a list of GCMD short_names
         """
 
-        gcmd_uuids = self.get(f'{end_point}/{uuid}')['data'][f'gcmd_{end_point}s']
+        gcmd_uuids = self.get(f'{endpoint}/{uuid}')['data'][f'gcmd_{endpoint}s']
         gcmd_short_names = [
-            self.get(f'gcmd_{end_point}/{gcmd_uuid}')['data']['short_name']
+            self.get(f'gcmd_{endpoint}/{gcmd_uuid}')['data']['short_name']
             for gcmd_uuid in gcmd_uuids
         ]
 
