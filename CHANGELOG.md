@@ -15,7 +15,6 @@ Consolidated ingest pipeline
 ### Changed
 - `/change_request` endpoint now returns a JSON response
 
-
 ## 0.1.3 - 2020-08-24
 
 ### Added
