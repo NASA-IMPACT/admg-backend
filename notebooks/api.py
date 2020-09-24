@@ -120,7 +120,7 @@ class Api:
 
         self._approve_change_object(response)
 
-    def gmcd_shorts(self, table_name, uuid):
+    def gcmd_shorts(self, table_name, uuid):
         """Most items in the database have a potential GCMD translation.
         This function takes a table_name and the uuid of a specific obj at
         that table_name and returns the GCMD translation short_names for the UUID.
