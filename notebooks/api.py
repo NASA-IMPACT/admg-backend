@@ -6,7 +6,7 @@ import requests
 
 parent_directory = os.path.split(os.getcwd())[0]
 
-import_path = os.path.join(parent_directory, 'data_models')
+import_path = parent_directory + '/data_models'
 
 if import_path not in sys.path:
     sys.path.insert(0, import_path)
