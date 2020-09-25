@@ -345,32 +345,3 @@ def project_filter(campaign_metadata, short_name):
 def combine_spatial_extents(spatial_extents):
     # TODO: this should combine multiple spatial extents into a total coverage 
     pass
-
-
-def get_concepts(campaign_metadata, dep_start, dep_end):
-    filtered_metadata = date_filter(campaign_metadata, dep_start, dep_end)
-
-    concepts = []
-    for concept in filtered_metadata:
-        concept_short = concept['metadata']['ShortName']
-        doi = concept['metadata'].get('DOI',{}).get('DOI')
-        if not(doi):
-            continue    
-        print(concept_short, doi)
-
-        
-        data = {
-            'short_name': concept_short,
-            'doi': concept_short,
-            'platforms':[]
-        }
-        
-        for cmr_plat in concept['metadata'].get('Platforms', []):
-            cmr_plat_short = cmr_plat.get('ShortName')
-            if cmr_plat_short:
-                data['platforms'].append({cmr_plat_short: {'instruments':list(set([cmr_inst.get('ShortName') for cmr_inst in cmr_plat.get('Instruments', [])]))}})
-                
-                
-        concepts.append(data) 
-
-    return concepts
