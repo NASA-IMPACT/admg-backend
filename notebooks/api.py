@@ -6,7 +6,7 @@ import requests
 
 parent_directory = os.path.split(os.getcwd())[0]
 
-import_path = parent_directory + '/data_models'
+import_path = os.path.join(parent_directory, 'data_models')
 
 if import_path not in sys.path:
     sys.path.insert(0, import_path)
@@ -44,7 +44,7 @@ class Api:
 
     def _approve_change_object(self, response):
         # get the change_request_uuid
-        uuid = response.text.split(':')[4].strip().split(' ')[0]
+        uuid = json.loads(response.text)['uuid']
 
         requests.post(
             f'{self.base_url}change_request/{uuid}/push', headers=self.headers
@@ -111,16 +111,14 @@ class Api:
 
         post_url = f'{self.base_url}{endpoint}'
         response = requests.post(post_url, data=json.dumps(data), headers=self.headers)
-
-        if (
-            '"success": false' in response.text
-            and 'this short name already exists' in response.text
-        ):
+        
+        response_dict = json.loads(response.text)
+        if not(response_dict['success']) and 'this short name already exists' in response_dict['message']
             return f'the following entry already existed {endpoint=} {data=}'
 
         self._approve_change_object(response)
 
-    def gmcd_shorts(self, table_name, uuid):
+    def gcmd_shorts(self, table_name, uuid):
         """Most items in the database have a potential GCMD translation.
         This function takes a table_name and the uuid of a specific obj at
         that table_name and returns the GCMD translation short_names for the UUID.
