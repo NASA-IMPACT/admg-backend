@@ -44,11 +44,11 @@ class Api:
 
     def _approve_change_object(self, response):
         # get the change_request_uuid
-        uuid = json.loads(response.text)['uuid']
+        uuid = json.loads(response.text)['data']['uuid']
 
         requests.post(
             f'{self.base_url}change_request/{uuid}/push', headers=self.headers
-        ).text
+        )
         approved = json.loads(
             requests.post(
                 f'{self.base_url}change_request/{uuid}/approve', headers=self.headers
@@ -113,7 +113,7 @@ class Api:
         response = requests.post(post_url, data=json.dumps(data), headers=self.headers)
         
         response_dict = json.loads(response.text)
-        if not(response_dict['success']) and 'this short name already exists' in response_dict['message']
+        if not(response_dict['success']) and 'this short name already exists' in response_dict['message']:
             return f'the following entry already existed {endpoint=} {data=}'
 
         self._approve_change_object(response)
