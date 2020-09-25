@@ -17,7 +17,7 @@ except ImportError:
         extract_region_description,
         general_extractor,
         ingest_campaign,
-    ) 
+    )
 
 import pickle
 
@@ -57,15 +57,16 @@ def get_campaign(campaign_short_name):
     # TODO: replace this with the final location in the db we decide on
     campaign_metadata = pickle.load(open(f'cmr_data-{campaign_short_name}', 'rb'))
 
-    db = {'campaign':{
+    db = {
+        'campaign': {
             'short_name': campaign_short_name,
             'gcmd_region': extract_region_description(campaign_metadata),
             'repositories': extract_daacs(campaign_metadata),
             'spatial_bounds': general_extractor(campaign_metadata, 'SpatialExtent'),
             'gcmd_phenomena': general_extractor(campaign_metadata, 'ScienceKeywords'),
             'other_resources': general_extractor(campaign_metadata, 'RelatedUrls'),
-            }
         }
+    }
 
     return db
 
@@ -88,18 +89,58 @@ def get_deployment_and_cp(campaign_short_name, dep_start, dep_end):
     # TODO: replace this with the final location in the db we decide on
     campaign_metadata = pickle.load(open(f'cmr_data-{campaign_short_name}', 'rb'))
 
-    db = {'deployment': {
-            'short_name': '_&_'.join([campaign_short_name, str(dep_start), str(dep_end)]),
+    db = {
+        'deployment': {
+            'short_name': '_&_'.join(
+                [campaign_short_name, str(dep_start), str(dep_end)]
+            ),
             'foreign-campaign-short_name': campaign_short_name,
             'start_date': dep_start,
             'end_date': dep_end,
-            }
         }
+    }
 
     deployment_metadata = date_filter(campaign_metadata, dep_start, dep_end)
 
     db['collection_period'] = {}
-    db['collection_period']['platforms'] = extract_collection_periods(deployment_metadata)
-    db['collection_period']['foreign-deployment-short_name'] = db['deployment']['short_name']
+    db['collection_period']['platforms'] = extract_collection_periods(
+        deployment_metadata
+    )
+    db['collection_period']['foreign-deployment-short_name'] = db['deployment'][
+        'short_name'
+    ]
 
     return db
+
+
+def get_concepts(campaign_short_name, dep_start, dep_end):
+
+    campaign_metadata = pickle.load(open(f'cmr_data-{campaign_short_name}', 'rb'))
+
+    filtered_metadata = date_filter(campaign_metadata, dep_start, dep_end)
+
+    concepts = []
+    for concept in filtered_metadata:
+        concept_short = concept['metadata']['ShortName']
+        doi = concept['metadata'].get('DOI', {}).get('DOI')
+        if not (doi):
+            continue
+        print(concept_short, doi)
+
+        data = {'short_name': concept_short, 'doi': doi, 'platforms': []}
+
+        for cmr_plat in concept['metadata'].get('Platforms', []):
+            cmr_plat_short = cmr_plat.get('ShortName')
+            if cmr_plat_short:
+                data['platforms'].append({
+                    cmr_plat_short: {
+                        'instruments': list(set([
+                            cmr_inst.get('ShortName')
+                            for cmr_inst in cmr_plat.get('Instruments', [])
+                        ]))
+                    }
+                })
+
+        concepts.append(data)
+
+    return concepts
