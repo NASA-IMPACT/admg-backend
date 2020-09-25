@@ -132,20 +132,14 @@ def get_concepts(campaign_short_name, dep_start, dep_end):
         for cmr_plat in concept['metadata'].get('Platforms', []):
             cmr_plat_short = cmr_plat.get('ShortName')
             if cmr_plat_short:
-                data['platforms'].append(
-                    {
-                        cmr_plat_short: {
-                            'instruments': list(
-                                set(
-                                    [
-                                        cmr_inst.get('ShortName')
-                                        for cmr_inst in cmr_plat.get('Instruments', [])
-                                    ]
-                                )
-                            )
-                        }
+                data['platforms'].append({
+                    cmr_plat_short: {
+                        'instruments': list(set([
+                            cmr_inst.get('ShortName')
+                            for cmr_inst in cmr_plat.get('Instruments', [])
+                        ]))
                     }
-                )
+                })
 
         concepts.append(data)
 
