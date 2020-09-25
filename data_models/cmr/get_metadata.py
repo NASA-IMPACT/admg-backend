@@ -103,3 +103,35 @@ def get_deployment_and_cp(campaign_short_name, dep_start, dep_end):
     db['collection_period']['foreign-deployment-short_name'] = db['deployment']['short_name']
 
     return db
+
+
+def get_concepts(campaign_short_name, dep_start, dep_end):
+
+    campaign_metadata = pickle.load(open(f'cmr_data-{campaign_short_name}', 'rb'))
+
+    filtered_metadata = date_filter(campaign_metadata, dep_start, dep_end)
+
+    concepts = []
+    for concept in filtered_metadata:
+        concept_short = concept['metadata']['ShortName']
+        doi = concept['metadata'].get('DOI',{}).get('DOI')
+        if not(doi):
+            continue    
+        print(concept_short, doi)
+
+        
+        data = {
+            'short_name': concept_short,
+            'doi': doi,
+            'platforms':[]
+        }
+        
+        for cmr_plat in concept['metadata'].get('Platforms', []):
+            cmr_plat_short = cmr_plat.get('ShortName')
+            if cmr_plat_short:
+                data['platforms'].append({cmr_plat_short: {'instruments':list(set([cmr_inst.get('ShortName') for cmr_inst in cmr_plat.get('Instruments', [])]))}})
+                
+                
+        concepts.append(data) 
+
+    return concepts
