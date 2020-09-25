@@ -34,9 +34,9 @@ def requires_admin_approval(model_name, action=UPDATE):
             )
             change_object.save()
             return JsonResponse({
-                    'success': True,
-                    'uuid': change_object.uuid,
-                    'message': f'Change request with uuid: {change_object.uuid} created for the given request'
+                'success': True,
+                'uuid': change_object.uuid,
+                'message': f'Change request with uuid: {change_object.uuid} created for the given request'
             })
 
         return inner_wrapper
