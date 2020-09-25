@@ -116,7 +116,7 @@ class Api:
         if not(response_dict['success']) and 'this short name already exists' in response_dict['message']:
             return f'the following entry already existed {endpoint=} {data=}'
 
-        self._approve_change_object(response)
+        return self._approve_change_object(response)
 
     def gcmd_shorts(self, table_name, uuid):
         """Most items in the database have a potential GCMD translation.
@@ -139,3 +139,11 @@ class Api:
         ]
 
         return gcmd_short_names
+
+    def add_link_doi(self, linked_table, linked_uuid, doi_data):
+        self.create('doi', doi_data)
+        doi_uuid = self.get(f"doi?short_name={doi_data['short_name']}")['data'][0]['uuid']
+        dois = self.get(f"{linked_table}/{linked_uuid}")['data']['dois']
+        dois.append(doi_uuid)
+        dois = list(set(dois))
+        self.update(f"{linked_table}/{linked_uuid}", {'dois': dois})
