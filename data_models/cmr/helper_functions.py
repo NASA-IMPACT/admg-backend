@@ -207,13 +207,15 @@ def extract_collection_periods(campaign_metadata):
 
     platforms = {}
     for data_product in campaign_metadata:
+        print(data_product)
 
+        # TODO: refactor the error handling in this loop 
         for platform_info in data_product['metadata'].get('Platforms', [{}]):
             # generate reference name
             platform_short_name = platform_info.get('ShortName', '')
             platform_long_name = platform_info.get('LongName', '')
 
-            platform_chars = campaign_metadata[1]['metadata']['Platforms'][0].get('Characteristics', [])
+            platform_chars = data_product['metadata']['Platforms'][0].get('Characteristics', [])
             platform_identifiers = [char.get('Value', '') for char in platform_chars if char.get('Name') == 'AircraftID']
 
             platform_reference = '_&_'.join([platform_short_name, platform_long_name] + platform_identifiers)
@@ -301,6 +303,13 @@ def date_filter(campaign_metadata, dep_start, dep_end):
         cmr_start = TemporalExtents.get('RangeDateTimes', [{}])[0].get('BeginningDateTime', 'error')
         cmr_end = TemporalExtents.get('RangeDateTimes', [{}])[0].get('EndingDateTime', 'error')
 
+        if cmr_start == 'error' or cmr_end == 'error':
+            print('        ', reference['concept_id'], 'failed')
+            continue
+        else:
+            print('        ', reference['concept_id'], 'success')            
+
+
         cmr_start = datetime.strptime(cmr_start, date_format)
         cmr_end = datetime.strptime(cmr_end, date_format)
 
@@ -336,3 +345,32 @@ def project_filter(campaign_metadata, short_name):
 def combine_spatial_extents(spatial_extents):
     # TODO: this should combine multiple spatial extents into a total coverage 
     pass
+
+
+def get_concepts(campaign_metadata, dep_start, dep_end):
+    filtered_metadata = date_filter(campaign_metadata, dep_start, dep_end)
+
+    concepts = []
+    for concept in filtered_metadata:
+        concept_short = concept['metadata']['ShortName']
+        doi = concept['metadata'].get('DOI',{}).get('DOI')
+        if not(doi):
+            continue    
+        print(concept_short, doi)
+
+        
+        data = {
+            'short_name': concept_short,
+            'doi': concept_short,
+            'platforms':[]
+        }
+        
+        for cmr_plat in concept['metadata'].get('Platforms', []):
+            cmr_plat_short = cmr_plat.get('ShortName')
+            if cmr_plat_short:
+                data['platforms'].append({cmr_plat_short: {'instruments':list(set([cmr_inst.get('ShortName') for cmr_inst in cmr_plat.get('Instruments', [])]))}})
+                
+                
+        concepts.append(data) 
+
+    return concepts
