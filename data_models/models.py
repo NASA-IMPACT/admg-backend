@@ -154,7 +154,7 @@ class GcmdPhenomena(BaseModel):
 
 
 class DOI(BaseModel):
-    doi = models.CharField(max_length=64)
+    short_name = models.CharField(max_length=128, blank=False, unique=True)
     long_name = models.TextField(default='', blank=True)
 
 
