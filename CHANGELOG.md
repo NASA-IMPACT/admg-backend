@@ -12,6 +12,8 @@ Consolidated ingest pipeline
 ### Fixed
 - linking behavior of image objects has been changed from CASCADE to SET_NULL
 
+### Added
+- `/api/campaign` will now return an aggregated field, `dois`, containing DOIs from the linked `collection_periods`
 
 ## 0.1.4 - 2020-09-24
 ### Added
