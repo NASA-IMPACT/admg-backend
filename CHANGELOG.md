@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 Consolidated ingest pipeline
 
+## 0.1.5 - 2020-10-09
+### Fixed
+- linking behavior of image objects has been changed from CASCADE to SET_NULL
+
+
 ## 0.1.4 - 2020-09-24
 ### Added
 - DOI.long_name text field  
