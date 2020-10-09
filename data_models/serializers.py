@@ -21,7 +21,11 @@ def get_geojson_from_bb(bb_data):
         "type": "Polygon",
         "coordinates": [
             [
-                [e, n], [e, s], [w, s], [w, n], [e, n],
+                [n, w],
+                [s, w],
+                [s, e],
+                [n, e],
+                [n, w],
             ]
         ]
     }
@@ -288,6 +292,7 @@ class CampaignSerializer(serializers.ModelSerializer):
     number_deployments = serializers.IntegerField(read_only=True)
     instruments = serializers.ListField(read_only=True)
     platforms = serializers.ListField(read_only=True)
+    dois = serializers.ListField(read_only=True)
 
     def get_deployments(self, obj):
         return get_uuids(obj.deployments)
