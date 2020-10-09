@@ -11,6 +11,7 @@ Consolidated ingest pipeline
 ## 0.1.5 - 2020-10-09
 ### Fixed
 - linking behavior of image objects has been changed from CASCADE to SET_NULL
+- update bounding box coordinate ordering serializer
 
 ### Added
 - `/api/campaign` will now return an aggregated field, `dois`, containing DOIs from the linked `collection_periods`
