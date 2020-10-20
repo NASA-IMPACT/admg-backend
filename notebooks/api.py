@@ -95,7 +95,34 @@ class Api:
         post_url = f'{self.base_url}{endpoint}'
         response = requests.patch(post_url, data=json.dumps(data), headers=self.headers)
 
-        self._approve_change_object(response)
+        change_response = self._approve_change_object(response)
+
+        return change_response
+
+
+    def upload(self, metadata, image):
+        url = self.base_url + 'image'
+        headers = {'Authorization': self.headers['Authorization']}    
+
+
+        files = [
+        ('image', image)
+        ]
+
+        response = requests.post(url, headers=headers, data = metadata, files = files)
+        # print(url, '\n')
+        # print(headers, '\n')
+        # print(files, '\n')
+        # print(response.text.encode('utf8'))
+        return response
+
+    def upload_image(self, metadata, image):
+        post_url = f'{self.base_url}image'
+        headers = {'Authorization': self.headers['Authorization']}
+        
+        response = requests.post(post_url, data=metadata, files=[('image', image)], headers=self.headers)
+        return response
+
 
     def create(self, endpoint, data):
         """Takes and endpoint and some post data and creates an entry in the 
