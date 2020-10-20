@@ -154,7 +154,8 @@ class GcmdPhenomena(BaseModel):
 
 
 class DOI(BaseModel):
-    doi = models.CharField(max_length=64)
+    short_name = models.CharField(max_length=128, blank=False, unique=True)
+    long_name = models.TextField(default='', blank=True)
 
 
 ###############
@@ -200,7 +201,7 @@ class DataModel(BaseModel):
 
 
 class Campaign(DataModel):
-    logo = models.ForeignKey(Image, on_delete=models.CASCADE, null=True, blank=True)
+    logo = models.ForeignKey(Image, on_delete=models.SET_NULL, null=True, blank=True)
 
     description_short = models.TextField(default='', blank=True)
     description_long = models.TextField(default='', blank=True)
@@ -290,7 +291,7 @@ class Campaign(DataModel):
 class Platform(DataModel):
 
     platform_type = models.ForeignKey(PlatformType, on_delete=models.SET_NULL, related_name='platforms', null=True)
-    image = models.ForeignKey(Image, on_delete=models.CASCADE, null=True, blank=True)
+    image = models.ForeignKey(Image, on_delete=models.SET_NULL, null=True, blank=True)
 
     description = models.TextField()
     online_information = models.CharField(max_length=512, default='', blank=True)
@@ -321,7 +322,7 @@ class Platform(DataModel):
 
 
 class Instrument(DataModel):
-    image = models.ForeignKey(Image, on_delete=models.CASCADE, null=True, blank=True)
+    image = models.ForeignKey(Image, on_delete=models.SET_NULL, null=True, blank=True)
 
     description = models.TextField()
     lead_investigator = models.CharField(max_length=256, default='', blank=True)

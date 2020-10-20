@@ -49,7 +49,9 @@ def main(file_path):
     ######################
 
     # initial cleaning
-    limited = excel_data['Limited Fields'][3:].copy()
+    # TODO: change this drop to be found from a list of total minus desired columns
+    limited = excel_data['Limited Fields'][3:].drop(['Unnamed: 8', 'Unnamed: 9', 'Unnamed: 10',
+       'Unnamed: 11', 'Unnamed: 12'], axis=1)
     limited.columns = ['Ingest Label',
                         'short_name',
                         'long_name',

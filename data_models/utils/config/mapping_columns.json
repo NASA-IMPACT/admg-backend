@@ -46,9 +46,9 @@
     "Campaign's GCMD Project UUID": "table-gcmd_project-gcmd_uuid",
     "Campaign is Ongoing (True or False)": "ongoing",
     "Campaign Alias(es)": "ignore_alias",
-    "Campaign Logo - Image Name":"ignore_image_name",
-    "Campaign Logo - Image Location (URL)":"ignore_image_location",
-    "Campaign Logo - Image Owner (Should be NASA)":"ignore_image_owner",
+    "Campaign Logo - Image Name":"image-description",
+    "Campaign Logo - Image Location (URL)":"image-link",
+    "Campaign Logo - Image Owner (Should be NASA)":"image-owner",
     "Focus Phenomena - free text": "focus_phenomena",
     "Non-Aircraft Platform Types": "ignore_non_airborne_platform_types",
     "non-NASA-led campaign:  NASA was a Significant Participant":"nasa_led",
@@ -73,7 +73,7 @@
     "Aircraft Organization (who owns the aircraft)": "ignore_organization",
     "Notes": "notes_internal",
     "Known Aircraft Numbers": "ignore_tail_numbers",
-    "Platform Image (if available at NASA)": "ignore_image_url",
+    "Platform Image (if available at NASA)": "image-link",
     "ADMG's Aircraft Model": "platform_model"
   },
   "instrument": {
@@ -108,7 +108,7 @@
     "Platforms": "ignore_platforms",
     "Instrument Manufacturer": "instrument_manufacturer",
     "Instrument DOI": "instrument_doi",
-    "Instrument Image": "ignore_image_url",
+    "Instrument Image": "image-link",
     "Reviewer": "ignore_reviewer",
     "Initials": "ignore_initials"
   },
