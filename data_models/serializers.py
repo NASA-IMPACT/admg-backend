@@ -19,15 +19,13 @@ def get_geojson_from_bb(bb_data):
     n, s, e, w = [float(coord) for coord in bb_data.split(',')]
     retval = {
         "type": "Polygon",
-        "coordinates": [
-            [
-                [n, w],
-                [s, w],
-                [s, e],
-                [n, e],
-                [n, w],
-            ]
-        ]
+        "coordinates": [[
+            [e, n], 
+            [e, s], 
+            [w, s], 
+            [w, n], 
+            [e, n],
+        ]]
     }
     return json.dumps(retval)
 
