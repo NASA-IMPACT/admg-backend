@@ -4,9 +4,10 @@ from django.apps import apps
 from django.contrib.postgres.fields import JSONField
 from django.db import models
 from django.utils.timezone import now
+from rest_framework.response import Response
 
+from admg_webapp.users.models import ADMIN, User
 from data_models import serializers as sz
-from admg_webapp.users.models import User, ADMIN
 
 CREATE = 'Create'
 UPDATE = 'Update'
@@ -134,6 +135,29 @@ class Change(models.Model):
         if not post_save:
             self._check_model_and_uuid()
         return super().save(*args, **kwargs)
+
+    def validate(self):
+        serializer_class = getattr(sz, f"{self.model_name}Serializer")
+        
+        validation_message = 'All serializer validations passed'
+
+        if self.action == CREATE:
+            serializer_obj = serializer_class(data=self.update, partial=False)
+            serializer_obj.is_valid(raise_exception=True)
+
+        elif self.action == UPDATE:
+            serializer_obj = serializer_class(data=self.update, partial=True)
+            serializer_obj.is_valid(raise_exception=True)
+
+        elif self.action == DELETE:
+            validation_message = ''
+
+        return Response(
+            status=200,
+            data={
+                'message': validation_message,
+            }
+        )
 
     @handle_approve_reject
     def approve(self, admin_user, notes):
