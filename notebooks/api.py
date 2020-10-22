@@ -100,23 +100,9 @@ class Api:
         return change_response
 
 
-    def upload(self, metadata, image):
-        url = self.base_url + 'image'
-        headers = {'Authorization': self.headers['Authorization']}    
-
-
-        files = [
-        ('image', image)
-        ]
-
-        response = requests.post(url, headers=headers, data = metadata, files = files)
-        # print(url, '\n')
-        # print(headers, '\n')
-        # print(files, '\n')
-        # print(response.text.encode('utf8'))
-        return response
 
     def upload_image(self, metadata, image):
+        """
         post_url = f'{self.base_url}image'
         headers = {'Authorization': self.headers['Authorization']}
         
@@ -144,6 +130,7 @@ class Api:
             return f'the following entry already existed {endpoint=} {data=}'
 
         return self._approve_change_object(response)
+
 
     def gcmd_shorts(self, table_name, uuid):
         """Most items in the database have a potential GCMD translation.
