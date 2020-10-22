@@ -100,13 +100,24 @@ class Api:
         return change_response
 
 
-
     def upload_image(self, metadata, image):
+        """Upload an image with metadata to the database.
+
+        Args:
+            metadata (dict): dictionary with fields and values
+            image (binary): binary image
+
+        Returns:
+            dict: response from API
         """
+
         post_url = f'{self.base_url}image'
         headers = {'Authorization': self.headers['Authorization']}
-        
-        response = requests.post(post_url, data=metadata, files=[('image', image)], headers=self.headers)
+        files = [
+        ('image', image)
+        ]  
+
+        response = requests.post(post_url, data=metadata, files=files, headers=headers)
         return response
 
 
