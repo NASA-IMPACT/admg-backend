@@ -46,16 +46,21 @@ class Api:
         # get the change_request_uuid
         uuid = json.loads(response.text)['data']['uuid']
 
-        requests.post(
+        push_response = json.loads(requests.post(
             f'{self.base_url}change_request/{uuid}/push', headers=self.headers
-        )
-        approved = json.loads(
-            requests.post(
-                f'{self.base_url}change_request/{uuid}/approve', headers=self.headers
-            ).text
-        )
+        ).text)
 
-        return approved
+        if push_response.get('success'):
+            approve_response = json.loads(
+                requests.post(
+                    f'{self.base_url}change_request/{uuid}/approve', headers=self.headers
+                ).text
+            )
+            final_response = approve_response
+        else:
+            final_response = push_response
+
+        return final_response
 
     def get(self, endpoint):
         """Takes an ADMG endpoint as a string and runs a get request
