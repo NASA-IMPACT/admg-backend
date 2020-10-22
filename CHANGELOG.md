@@ -10,7 +10,7 @@ Consolidated ingest pipeline
 
 ## 0.1.6 - 2020-10-22
 ### Fixed
-- CREATE change requests now log the linked db object
+- CREATE change requests now log the linked database object
 
 ### Added
 - `api/change_request/{uuid}/validate` endpoint to validate specific change request
