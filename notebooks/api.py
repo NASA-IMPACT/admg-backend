@@ -114,7 +114,7 @@ class Api:
         post_url = f'{self.base_url}image'
         headers = {'Authorization': self.headers['Authorization']}
         files = [
-        ('image', image)
+            ('image', image)
         ]  
 
         response = requests.post(post_url, data=metadata, files=files, headers=headers)
