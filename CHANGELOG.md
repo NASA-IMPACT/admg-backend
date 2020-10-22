@@ -18,6 +18,7 @@ Consolidated ingest pipeline
 
 ### Changed
 - db objects generated from a CREATE change request now inherit the uuid of the change request for linking purposes
+- error message details are now returned as processed json instead of strings
 
 ## 0.1.5 - 2020-10-09
 ### Fixed
