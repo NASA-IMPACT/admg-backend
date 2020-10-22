@@ -22,10 +22,10 @@ def get_geojson_from_bb(bb_data):
     retval = {
         "type": "Polygon",
         "coordinates": [[
-            [e, n], 
-            [e, s], 
-            [w, s], 
-            [w, n], 
+            [e, n],
+            [e, s],
+            [w, s],
+            [w, n],
             [e, n],
         ]]
     }
