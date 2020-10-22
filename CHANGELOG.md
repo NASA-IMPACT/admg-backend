@@ -8,6 +8,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 Consolidated ingest pipeline
 
+## 0.1.5 - 2020-10-22
+### Fixed
+- CREATE change requests now log the linked db object
+
+### Added
+- `api/change_request/{uuid}/validate` endpoint to validate specific change request
+- `api/validate` endpoint to validate json
+
+### Changed
+- db objects generated from a CREATE change request now inherit the uuid of the change request for linking purposes
+
 ## 0.1.5 - 2020-10-09
 ### Fixed
 - linking behavior of image objects has been changed from CASCADE to SET_NULL
