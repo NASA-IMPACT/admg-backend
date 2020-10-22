@@ -1,3 +1,5 @@
+import json
+
 from django.http import JsonResponse
 from rest_framework.response import Response
 
@@ -48,7 +50,7 @@ def handle_exception(function):
         # TODO: change this to some custom exception
         except Exception as e:
             success = False
-            message = str(e)
+            message = json.dumps(e.get_full_details())
 
         return JsonResponse({
             "success": success,
