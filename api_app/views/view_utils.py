@@ -50,7 +50,10 @@ def handle_exception(function):
         # TODO: change this to some custom exception
         except Exception as e:
             success = False
-            message = json.dumps(e.get_full_details())
+            try:
+                message = json.dumps(e.get_full_details())
+            except AttributeError:
+                message = str(e)
 
         return JsonResponse({
             "success": success,
