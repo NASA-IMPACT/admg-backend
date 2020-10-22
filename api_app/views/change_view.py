@@ -155,6 +155,7 @@ class ChangePushView(APIView):
     def post(self, request, *args, **kwargs):
         uuid = kwargs.get("uuid")
         instance = _validate_update(request, uuid)
+        instance.validate()
         instance.status = PENDING_CODE
         instance.save()
         return Response(f"Status for uuid: {uuid} changed to pending.")
