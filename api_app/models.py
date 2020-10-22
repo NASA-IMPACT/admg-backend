@@ -183,10 +183,19 @@ class Change(models.Model):
         serializer_class = getattr(sz, f"{self.model_name}Serializer")
         model = apps.get_model("data_models", self.model_name)
         if self.action == CREATE:
-            serializer = serializer_class(data=self.update)
+
+            # this is sets the co uuid to be the same as the db uuid
+            change_object_uuid = self.uuid.__str__()
+            data = self.update
+            data['uuid'] = change_object_uuid
+
+            serializer = serializer_class(data=data)
+
+
             if serializer.is_valid():
                 created = serializer.save()
                 return {"uuid": created.uuid, "status": APPROVED_CODE}
+
             return false_success(serializer.errors)
 
         if not self.model_instance_uuid:
