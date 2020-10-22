@@ -98,7 +98,7 @@ urlpatterns += [
         name="change_request_list_update"
     ),
     path(
-        f"change_request/<str:uuid>/validate",
+        "change_request/<str:uuid>/validate",
         ChangeValidationView.as_view(),
         name="change_request_validate"
     ),
@@ -113,7 +113,7 @@ urlpatterns += [
         name="change_request_reject"
     ),
     path(
-        f"change_request/<str:uuid>/push",
+        "change_request/<str:uuid>/push",
         ChangePushView.as_view(),
         name="change_request_push"
     ),
@@ -123,7 +123,7 @@ urlpatterns += [
         name="image_list_create"
     ),
     path(
-        f"image/<str:uuid>",
+        "image/<str:uuid>",
         ImageRetrieveDestroyAPIView.as_view(),
         name="image_retrieve_destroy"
     ),
