@@ -69,6 +69,10 @@ def handle_approve_reject(function):
         if updated.get("success") == False:
             return updated
 
+        # links co to the new db instance
+        if self.action == CREATE:
+            self.model_instance_uuid = updated['uuid']
+
         self.status = updated["status"]  # approved/rejected
         self.appr_reject_by = admin_user
         self.notes = notes
