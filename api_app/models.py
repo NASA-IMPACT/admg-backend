@@ -184,19 +184,17 @@ class Change(models.Model):
         model = apps.get_model("data_models", self.model_name)
         if self.action == CREATE:
 
-            # this is sets the co uuid to be the same as the db uuid
-            change_object_uuid = self.uuid.__str__()
+            # this is sets the db uuid to be the same as the change request uuid
             data = self.update
-            data['uuid'] = change_object_uuid
+            data['uuid'] = self.uuid.__str__()
 
             serializer = serializer_class(data=data)
 
-
-            if serializer.is_valid():
+            # error handler will return results if validation fails
+            if serializer.is_valid(raise_exception=True):
                 created = serializer.save()
                 return {"uuid": created.uuid, "status": APPROVED_CODE}
 
-            return false_success(serializer.errors)
 
         if not self.model_instance_uuid:
             return false_success("UUID for the model was not found")
