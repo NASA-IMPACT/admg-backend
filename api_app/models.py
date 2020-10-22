@@ -7,7 +7,7 @@ from django.utils.timezone import now
 from rest_framework.response import Response
 
 from admg_webapp.users.models import ADMIN, User
-from data_models import serializers as sz
+from data_models import serializers
 
 CREATE = 'Create'
 UPDATE = 'Update'
@@ -123,7 +123,7 @@ class Change(models.Model):
         """
         model = apps.get_model("data_models", self.model_name)
         if self.action != CREATE:
-            serializer_class = getattr(sz, f"{self.model_name}Serializer")
+            serializer_class = getattr(serializers, f"{self.model_name}Serializer")
             instance = model.objects.get(uuid=self.model_instance_uuid)
             if self.action == UPDATE:
                 serializer = serializer_class(instance)
@@ -137,7 +137,7 @@ class Change(models.Model):
         return super().save(*args, **kwargs)
 
     def validate(self):
-        serializer_class = getattr(sz, f"{self.model_name}Serializer")
+        serializer_class = getattr(serializers, f"{self.model_name}Serializer")
         
         validation_message = 'All serializer validations passed'
 
@@ -180,7 +180,7 @@ class Change(models.Model):
                 message: "In case success is False"
             }
         """
-        serializer_class = getattr(sz, f"{self.model_name}Serializer")
+        serializer_class = getattr(serializers, f"{self.model_name}Serializer")
         model = apps.get_model("data_models", self.model_name)
         if self.action == CREATE:
 
