@@ -181,18 +181,30 @@ class Change(models.Model):
             }
         )
 
-    def _create(self):
-        # this is sets the db uuid to be the same as the change request uuid
-        data = self.update
-        data['uuid'] = self.uuid.__str__()
+    def _get_model_instance(self):
+        model = apps.get_model("data_models", self.model_name)
+        model_instance = model.objects.get(uuid=self.model_instance_uuid)
+        return model_instance
 
-        model_instance = None
+    def _save_serializer(self, model_instance, data, partial):
         serializer_class = getattr(serializers, f"{self.model_name}Serializer")
-        serializer = serializer_class(instance=model_instance, data=data)
+        serializer = serializer_class(instance=model_instance, data=data, partial=partial)
+
         if serializer.is_valid(raise_exception=True):
             new_model_instance = serializer.save()
-            uuid_changed = new_model_instance.uuid
-            response = {"uuid": uuid_changed, "status": APPROVED_CODE}
+            response = {"uuid": new_model_instance.uuid, "status": APPROVED_CODE}
+
+        return response
+
+    def _create(self):
+        # set the db uuid == change request uuid
+        self.update['uuid'] = str(self.uuid)
+
+        response = self._save_serializer(
+            model_instance=None,
+            data=self.update,
+            partial=False
+        )
 
         return response
 
@@ -200,28 +212,22 @@ class Change(models.Model):
         if not self.model_instance_uuid:
             response = {"success": False, "message": "UUID for the model was not found"}
         else:
-            model = apps.get_model("data_models", self.model_name)
-            model_instance = model.objects.get(uuid=self.model_instance_uuid)
-            serializer_class = getattr(serializers, f"{self.model_name}Serializer")
-            serializer = serializer_class(instance=model_instance, data=self.update, partial=True)
-
-            if serializer.is_valid(raise_exception=True):
-                new_model_instance = serializer.save()
-                uuid_changed = new_model_instance.uuid
-                response = {"uuid": uuid_changed, "status": APPROVED_CODE}
+            response = self._save_serializer(
+                model_instance=self._get_model_instance(),
+                data=self.update,
+                partial=True
+            )
 
         return response
 
     def _delete(self):
         if not self.model_instance_uuid:
-            response = {"success": False, "message": "UUID for the model was not found"} 
+            response = {"success": False, "message": "UUID for the model was not found"}
         else:
-            model = apps.get_model("data_models", self.model_name)
-            model_instance = model.objects.get(uuid=self.model_instance_uuid)
+            model_instance = self._get_model_instance()
             model_instance.delete()
-            uuid_changed = self.model_instance_uuid
 
-            response = {"uuid": uuid_changed, "status": APPROVED_CODE}
+            response = {"uuid": self.model_instance_uuid, "status": APPROVED_CODE}
 
         return response
 
