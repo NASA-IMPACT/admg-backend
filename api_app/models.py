@@ -215,31 +215,35 @@ class Change(models.Model):
                 created = serializer.save()
                 uuid_changed = created.uuid
 
+                response = {"uuid": uuid_changed, "status": APPROVED_CODE}
+
         elif self.action == UPDATE or self.action == PATCH:
             if not self.model_instance_uuid:
-                return false_success("UUID for the model was not found")
+                response = {"success": False, "message": "UUID for the model was not found"}
+            else:
+                model = apps.get_model("data_models", self.model_name)
+                model_instance = model.objects.get(uuid=self.model_instance_uuid)
+                serializer_class = getattr(serializers, f"{self.model_name}Serializer")
+                serializer = serializer_class(model_instance, data=self.update, partial=True)
 
-            model = apps.get_model("data_models", self.model_name)
-            model_instance = model.objects.get(uuid=self.model_instance_uuid)
-            serializer_class = getattr(serializers, f"{self.model_name}Serializer")
-            serializer = serializer_class(model_instance, data=self.update, partial=True)
-
-            if serializer.is_valid(raise_exception=True):
-                serializer.save()
-
-            uuid_changed = self.model_instance_uuid
+                if serializer.is_valid(raise_exception=True):
+                    serializer.save()
+                    uuid_changed = self.model_instance_uuid
+                    response = {"uuid": uuid_changed, "status": APPROVED_CODE}
 
         elif self.action == DELETE:
             if not self.model_instance_uuid:
-                return false_success("UUID for the model was not found")
+                response = {"success": False, "message": "UUID for the model was not found"} 
+            else:
+                model = apps.get_model("data_models", self.model_name)
+                model_instance = model.objects.get(uuid=self.model_instance_uuid)
+                model_instance.delete()
+                uuid_changed = self.model_instance_uuid
 
-            model = apps.get_model("data_models", self.model_name)
-            model_instance = model.objects.get(uuid=self.model_instance_uuid)
-            model_instance.delete()
-            uuid_changed = self.model_instance_uuid
+                response = {"uuid": uuid_changed, "status": APPROVED_CODE}
 
-        return {"uuid": uuid_changed, "status": APPROVED_CODE}
-
+        return response
+        
     @handle_approve_reject
     def reject(self, admin_user, notes):
         """
