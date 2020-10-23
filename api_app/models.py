@@ -183,8 +183,7 @@ class Change(models.Model):
 
     def _get_model_instance(self):
         model = apps.get_model("data_models", self.model_name)
-        model_instance = model.objects.get(uuid=self.model_instance_uuid)
-        return model_instance
+        return model.objects.get(uuid=self.model_instance_uuid)
 
     def _save_serializer(self, model_instance, data, partial):
         serializer_class = getattr(serializers, f"{self.model_name}Serializer")
@@ -193,7 +192,7 @@ class Change(models.Model):
         if serializer.is_valid(raise_exception=True):
             new_model_instance = serializer.save()
             response = {"uuid": new_model_instance.uuid, "status": APPROVED_CODE}
-
+            
         return response
 
     def _create(self):
