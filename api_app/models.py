@@ -202,35 +202,43 @@ class Change(models.Model):
                 message: "In case success is False"
             }
         """
-        serializer_class = getattr(serializers, f"{self.model_name}Serializer")
-        model = apps.get_model("data_models", self.model_name)
         if self.action == CREATE:
-
             # this is sets the db uuid to be the same as the change request uuid
             data = self.update
             data['uuid'] = self.uuid.__str__()
-
+        
+            serializer_class = getattr(serializers, f"{self.model_name}Serializer")
             serializer = serializer_class(data=data)
 
             # error handler will return results if validation fails
             if serializer.is_valid(raise_exception=True):
                 created = serializer.save()
-                return {"uuid": created.uuid, "status": APPROVED_CODE}
+                uuid_changed = created.uuid
 
+        elif self.action == UPDATE or self.action == PATCH:
+            if not self.model_instance_uuid:
+                return false_success("UUID for the model was not found")
 
-        if not self.model_instance_uuid:
-            return false_success("UUID for the model was not found")
-
-        # filter because delete and update both work on filter, update doesn't work on get
-        model_instance = model.objects.get(uuid=self.model_instance_uuid)
-        if self.action == DELETE:
-            model_instance.delete()
-        else:
-            # if not create or delete it is update, allow partial updates by default
+            model = apps.get_model("data_models", self.model_name)
+            model_instance = model.objects.get(uuid=self.model_instance_uuid)
+            serializer_class = getattr(serializers, f"{self.model_name}Serializer")
             serializer = serializer_class(model_instance, data=self.update, partial=True)
-            if serializer.is_valid():
+
+            if serializer.is_valid(raise_exception=True):
                 serializer.save()
-        return {"uuid": self.model_instance_uuid, "status": APPROVED_CODE}
+
+            uuid_changed = self.model_instance_uuid
+
+        elif self.action == DELETE:
+            if not self.model_instance_uuid:
+                return false_success("UUID for the model was not found")
+
+            model = apps.get_model("data_models", self.model_name)
+            model_instance = model.objects.get(uuid=self.model_instance_uuid)
+            model_instance.delete()
+            uuid_changed = self.model_instance_uuid
+
+        return {"uuid": uuid_changed, "status": APPROVED_CODE}
 
     @handle_approve_reject
     def reject(self, admin_user, notes):
