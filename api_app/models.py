@@ -165,11 +165,10 @@ class Change(models.Model):
             pass. Otherwise, the error handler will print out each validation error string
             and error code.
         """
-
         if self.action == CREATE:
             validation_message = self._run_validator(partial=False)
 
-        elif self.action == UPDATE:
+        elif self.action == PATCH or self.action == UPDATE:
             validation_message = self._run_validator(partial=True)
 
         elif self.action == DELETE:
