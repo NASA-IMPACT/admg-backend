@@ -136,18 +136,41 @@ class Change(models.Model):
             self._check_model_and_uuid()
         return super().save(*args, **kwargs)
 
-    def validate(self):
+    def _run_validator(self, partial):
+        """Helper function that runs the serializer validator. Please note
+        that if errors are found, the error handler will capture them and this
+        function's return will be bypassed.
+
+        Args:
+            partial (bool): A True value indicates partial validation, where 
+            required database fields are allowed to be missing.
+
+        Returns:
+            string: Returns a message string only if validation is passed.
+        """
+
         serializer_class = getattr(serializers, f"{self.model_name}Serializer")
-        
-        validation_message = 'All serializer validations passed'
+        serializer_obj = serializer_class(data=self.update, partial=partial)
+        serializer_obj.is_valid(raise_exception=True)
+
+        return 'All serializer validations passed'
+
+    def validate(self):
+        """Runs the serializer validation. Note that different request types will
+        have partial or non-partial validation. If errors are found, the error
+        handler will capture them and this function's return will be bypassed.
+
+        Returns:
+            Response: Returns a 200 with a validation message, only if the valdations
+            pass. Otherwise, the error handler will print out each validation error string
+            and error code.
+        """
 
         if self.action == CREATE:
-            serializer_obj = serializer_class(data=self.update, partial=False)
-            serializer_obj.is_valid(raise_exception=True)
+            validation_message = self._run_validator(partial=False)
 
         elif self.action == UPDATE:
-            serializer_obj = serializer_class(data=self.update, partial=True)
-            serializer_obj.is_valid(raise_exception=True)
+            validation_message = self._run_validator(partial=True)
 
         elif self.action == DELETE:
             validation_message = ''
