@@ -181,6 +181,49 @@ class Change(models.Model):
             }
         )
 
+    def _create(self):
+        # this is sets the db uuid to be the same as the change request uuid
+        data = self.update
+        data['uuid'] = self.uuid.__str__()
+
+        serializer_class = getattr(serializers, f"{self.model_name}Serializer")
+        serializer = serializer_class(data=data)
+        if serializer.is_valid(raise_exception=True):
+            created = serializer.save()
+            uuid_changed = created.uuid
+            response = {"uuid": uuid_changed, "status": APPROVED_CODE}
+
+        return response
+
+    def _update_patch(self):
+        if not self.model_instance_uuid:
+            response = {"success": False, "message": "UUID for the model was not found"}
+        else:
+            model = apps.get_model("data_models", self.model_name)
+            model_instance = model.objects.get(uuid=self.model_instance_uuid)
+            serializer_class = getattr(serializers, f"{self.model_name}Serializer")
+            serializer = serializer_class(model_instance, data=self.update, partial=True)
+
+            if serializer.is_valid(raise_exception=True):
+                serializer.save()
+                uuid_changed = self.model_instance_uuid
+                response = {"uuid": uuid_changed, "status": APPROVED_CODE}
+
+        return response
+
+    def _delete(self):
+        if not self.model_instance_uuid:
+            response = {"success": False, "message": "UUID for the model was not found"} 
+        else:
+            model = apps.get_model("data_models", self.model_name)
+            model_instance = model.objects.get(uuid=self.model_instance_uuid)
+            model_instance.delete()
+            uuid_changed = self.model_instance_uuid
+
+            response = {"uuid": uuid_changed, "status": APPROVED_CODE}
+
+        return response
+        
     @handle_approve_reject
     def approve(self, admin_user, notes):
         """
@@ -203,47 +246,14 @@ class Change(models.Model):
             }
         """
         if self.action == CREATE:
-            # this is sets the db uuid to be the same as the change request uuid
-            data = self.update
-            data['uuid'] = self.uuid.__str__()
-        
-            serializer_class = getattr(serializers, f"{self.model_name}Serializer")
-            serializer = serializer_class(data=data)
-
-            # error handler will return results if validation fails
-            if serializer.is_valid(raise_exception=True):
-                created = serializer.save()
-                uuid_changed = created.uuid
-
-                response = {"uuid": uuid_changed, "status": APPROVED_CODE}
-
+            response = self._create()
         elif self.action == UPDATE or self.action == PATCH:
-            if not self.model_instance_uuid:
-                response = {"success": False, "message": "UUID for the model was not found"}
-            else:
-                model = apps.get_model("data_models", self.model_name)
-                model_instance = model.objects.get(uuid=self.model_instance_uuid)
-                serializer_class = getattr(serializers, f"{self.model_name}Serializer")
-                serializer = serializer_class(model_instance, data=self.update, partial=True)
-
-                if serializer.is_valid(raise_exception=True):
-                    serializer.save()
-                    uuid_changed = self.model_instance_uuid
-                    response = {"uuid": uuid_changed, "status": APPROVED_CODE}
-
+            response = self._update_patch()
         elif self.action == DELETE:
-            if not self.model_instance_uuid:
-                response = {"success": False, "message": "UUID for the model was not found"} 
-            else:
-                model = apps.get_model("data_models", self.model_name)
-                model_instance = model.objects.get(uuid=self.model_instance_uuid)
-                model_instance.delete()
-                uuid_changed = self.model_instance_uuid
-
-                response = {"uuid": uuid_changed, "status": APPROVED_CODE}
+            response = self._delete()
 
         return response
-        
+
     @handle_approve_reject
     def reject(self, admin_user, notes):
         """
