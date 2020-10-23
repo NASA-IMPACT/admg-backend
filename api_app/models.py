@@ -186,11 +186,12 @@ class Change(models.Model):
         data = self.update
         data['uuid'] = self.uuid.__str__()
 
+        model_instance = None
         serializer_class = getattr(serializers, f"{self.model_name}Serializer")
-        serializer = serializer_class(data=data)
+        serializer = serializer_class(instance=model_instance, data=data)
         if serializer.is_valid(raise_exception=True):
-            created = serializer.save()
-            uuid_changed = created.uuid
+            new_model_instance = serializer.save()
+            uuid_changed = new_model_instance.uuid
             response = {"uuid": uuid_changed, "status": APPROVED_CODE}
 
         return response
@@ -202,11 +203,11 @@ class Change(models.Model):
             model = apps.get_model("data_models", self.model_name)
             model_instance = model.objects.get(uuid=self.model_instance_uuid)
             serializer_class = getattr(serializers, f"{self.model_name}Serializer")
-            serializer = serializer_class(model_instance, data=self.update, partial=True)
+            serializer = serializer_class(instance=model_instance, data=self.update, partial=True)
 
             if serializer.is_valid(raise_exception=True):
-                serializer.save()
-                uuid_changed = self.model_instance_uuid
+                new_model_instance = serializer.save()
+                uuid_changed = new_model_instance.uuid
                 response = {"uuid": uuid_changed, "status": APPROVED_CODE}
 
         return response
@@ -223,7 +224,7 @@ class Change(models.Model):
             response = {"uuid": uuid_changed, "status": APPROVED_CODE}
 
         return response
-        
+
     @handle_approve_reject
     def approve(self, admin_user, notes):
         """
