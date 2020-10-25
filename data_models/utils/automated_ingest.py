@@ -38,7 +38,7 @@ def ingest_2(inventory_path=INVENTORY_PATH):
 
     # use booleans inventory is backwards from db 'stationary' vs 'can move'
     db['platform']['stationary'].replace('Y', 'False', inplace=True)
-    db['platform']['stationary'].replace('N', 'True',  inplace=True)
+    db['platform']['stationary'].replace('N', 'True', inplace=True)
 
     db = clean.remove_NaN_columns(db)
     db = clean.strip_all_columns(db)
