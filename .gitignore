@@ -290,3 +290,4 @@ hosts
 *.jpeg
 *.png
 *.gif
+*.sql
