@@ -36,7 +36,8 @@ schema_view = get_schema_view(
 urls = [
     "PlatformType",
     "NasaMission",
-    "InstrumentType",
+    "MeasurementType",
+    "MeasurementStyle",
     "HomeBase",
     "FocusArea",
     "Season",

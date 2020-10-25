@@ -81,7 +81,7 @@ class NasaMissionSerializer(BaseSerializer):
         model = models.NasaMission
         fields = "__all__"
 
-class InstrumentTypeSerializer(BaseSerializer):
+class MeasurementTypeSerializer(BaseSerializer):
     instruments = serializers.SerializerMethodField(read_only=True)
     sub_types = serializers.SerializerMethodField(read_only=True)
     
@@ -91,11 +91,24 @@ class InstrumentTypeSerializer(BaseSerializer):
     def get_sub_types(self, obj):
         return get_uuids(obj.sub_types)
 
-    
     class Meta:
-        model = models.InstrumentType
+        model = models.MeasurementType
         fields = "__all__"
 
+class MeasurementStyleSerializer(BaseSerializer):
+    instruments = serializers.SerializerMethodField(read_only=True)
+    sub_types = serializers.SerializerMethodField(read_only=True)
+    
+    def get_instruments(self, obj):
+        return get_uuids(obj.instruments)
+
+    def get_sub_types(self, obj):
+        return get_uuids(obj.sub_types)
+
+    class Meta:
+        model = models.MeasurementStyle
+        fields = "__all__"
+        
 class HomeBaseSerializer(BaseSerializer):
     class Meta:
         model = models.HomeBase
