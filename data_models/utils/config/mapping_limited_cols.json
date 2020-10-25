@@ -9,15 +9,23 @@
     "notes":"notes_public",
     "parent":"foreign-platform_type-short_name"
   },
-  "instrument_type":{
-    "Ingest Label":"ignore_ingest_label",
-    "short_name":"short_name",
-    "long_name":"long_name",
-    "description":"ignore_gcmd_translation",
-    "gcmd_translation":"gcmd_uuid",
-    "examples":"example",
-    "notes":"notes_public",
-    "parent":"foreign-platform_type-short_name"
+  "measurement_style":{
+    "short_name": "short_name",
+    "long_name": "long_name",
+    "ignore_1": "ignore_1",
+    "ignore_2": "ignore_2",
+    "example": "example",
+    "notes": "notes_public",
+    "parent": "foreign-measurement_style-short_name"
+  },
+  "measurement_type":{
+    "short_name": "short_name",
+    "long_name": "long_name",
+    "ignore_1": "ignore_1",
+    "ignore_2": "ignore_2",
+    "example": "example",
+    "notes": "notes_public",
+    "parent": "foreign-measurement_type-short_name"
   },
   "home_base":{
     "Ingest Label":"ignore_ingest_label",
