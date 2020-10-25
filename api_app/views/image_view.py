@@ -17,6 +17,14 @@ class ImageListCreateAPIView(ListCreateAPIView):
     queryset = Image.objects.all()
     serializer_class = ImageSerializer
 
+    @handle_exception
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
+
+    @handle_exception
+    def post(self, request, *args, **kwargs):
+        return self.create(request, *args, **kwargs)
+
 class ImageRetrieveDestroyAPIView(RetrieveDestroyAPIView):
     """
         Retrieve a single image and delete images

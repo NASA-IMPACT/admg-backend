@@ -15,3 +15,16 @@ class ImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Image
         fields = "__all__"
+
+
+class ValidationSerializer(serializers.Serializer):
+    model_name = serializers.CharField(
+        help_text="String of the model name: Season",
+        min_length=128
+    )
+    data = serializers.JSONField(
+        help_text="""JSON containing model field names and values: {"short_name": "arctas"}"""
+    )
+    partial = serializers.BooleanField(
+        help_text="Boolean indicating whether validation will be partial (missing required fields is allowed)"
+    )

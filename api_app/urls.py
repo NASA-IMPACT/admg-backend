@@ -10,11 +10,13 @@ from .views.change_view import (
     ChangeListView,
     ChangeListUpdateView,
     ChangePushView,
+    ChangeValidationView,
     APPROVE,
     REJECT
 )
 from .views.generic_views import GenericCreateGetAllView, GenericPutPatchDeleteView
 from .views.image_view import ImageListCreateAPIView, ImageRetrieveDestroyAPIView
+from .views.validation_view import ValidationView
 
 
 info = openapi.Info(
@@ -96,6 +98,11 @@ urlpatterns += [
         name="change_request_list_update"
     ),
     path(
+        "change_request/<str:uuid>/validate",
+        ChangeValidationView.as_view(),
+        name="change_request_validate"
+    ),
+    path(
         f"change_request/<str:uuid>/{APPROVE}",
         ChangeApproveRejectView(APPROVE),
         name="change_request_approve"
@@ -106,20 +113,24 @@ urlpatterns += [
         name="change_request_reject"
     ),
     path(
-        f"change_request/<str:uuid>/push",
+        "change_request/<str:uuid>/push",
         ChangePushView.as_view(),
         name="change_request_push"
     ),
-
     path(
         "image",
         ImageListCreateAPIView.as_view(),
         name="image_list_create"
     ),
     path(
-        f"image/<str:uuid>",
+        "image/<str:uuid>",
         ImageRetrieveDestroyAPIView.as_view(),
         name="image_retrieve_destroy"
+    ),
+    path(
+        "validate",
+        ValidationView.as_view(),
+        name="validate"
     ),
     path(
         "docs/",

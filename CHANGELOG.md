@@ -8,6 +8,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 Consolidated ingest pipeline
 
+## 0.1.6 - 2020-10-22
+### Fixed
+- CREATE change requests now log the linked database object
+
+### Added
+- `api/change_request/{uuid}/validate` endpoint to validate specific change request
+- `api/validate` endpoint to validate json
+
+### Changed
+- db objects generated from a CREATE change request now inherit the uuid of the change request for linking purposes
+- error message details are now returned as processed json instead of strings
+- image endpoint now returns `{'success': boolean, 'message': string, 'data': []}` for get and post
+- change requests can now hold invalid data until the push operation
+
+## 0.1.5 - 2020-10-09
+### Fixed
+- linking behavior of image objects has been changed from CASCADE to SET_NULL
+- update bounding box coordinate ordering serializer
+
+### Added
+- `/api/campaign` will now return an aggregated field, `dois`, containing DOIs from the linked `collection_periods`
+
 ## 0.1.4 - 2020-09-24
 ### Added
 - DOI.long_name text field  

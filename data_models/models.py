@@ -277,6 +277,15 @@ class Campaign(DataModel):
                     for collection_period in dep.collection_periods.all()
         ]))
 
+    @property
+    def dois(self):
+        return list(set([
+            doi.uuid
+                for dep in self.deployments.all()
+                    for collection_period in dep.collection_periods.all()
+                        for doi in collection_period.dois.all()
+        ]))
+
     @staticmethod
     def search_fields():
         return [
