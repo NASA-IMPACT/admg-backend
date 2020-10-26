@@ -74,6 +74,8 @@
     "Notes": "notes_internal",
     "Known Aircraft Numbers": "ignore_tail_numbers",
     "Platform Image (if available at NASA)": "image-link",
+    "Platform Image Name/Description (used for alt-text/caption)":"image-description",
+    "Platform Image Source":"image-owner",
     "ADMG's Aircraft Model": "platform_model"
   },
   "instrument": {
@@ -111,6 +113,8 @@
     "Instrument Manufacturer": "instrument_manufacturer",
     "Instrument DOI": "instrument_doi",
     "Instrument Image": "image-link",
+    "Instrument Image Name/description":"image-description",
+    "Instrument Image Source":"image-owner",
     "Reviewer": "ignore_reviewer",
     "Initials": "ignore_initials"
   },
