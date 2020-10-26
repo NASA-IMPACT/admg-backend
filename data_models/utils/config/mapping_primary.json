@@ -5,6 +5,8 @@
     "focus_area": "short_name",
     "season": "short_name",
     "instrument_type": "short_name",
+    "measurement_style": "short_name",
+    "measurement_type": "short_name",
     "measurement_region": "short_name",
     "geographical_region": "short_name",
     "geophysical_concept": "short_name",

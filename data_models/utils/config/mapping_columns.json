@@ -160,6 +160,7 @@
     "Platform Deployment Base  - if avail": "campaign_deployment_base",
     "Platform Owner/Organization": "platform_owner",
     "Platform Technical Contact": "platform_technical_contact",
+    "Number of Continuous Data Collection Periods (CDCPs)": "num_ventures",
     "ADMG Instrument Shortname(s)": "table-instrument-short_name",
     "Instrument Package Information Source(s)": "instrument_information_source",
     "Stationary/Fixed platform Locations Info (link/URL, if available)":"location_info",
