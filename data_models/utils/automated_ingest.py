@@ -54,9 +54,15 @@ def ingest_2(inventory_path=INVENTORY_PATH):
     db['deployment']['short_name'] = db['deployment']['foreign-campaign-short_name']+'_'+db['deployment']['ignore_deployment_id']
     db['iopse']['foreign-deployment-short_name']=db['iopse']['foreign-campaign-short_name']+'_'+db['iopse']['ignore_deployment']
 
+    # create collection period table
     db['collection_period'] = many_to_many(db, 'linking', 'table-instrument-short_name', keep_all=True)
-    db['collection_period']['short_name'] = db['collection_period']['foreign-campaign-short_name']+'_'+db['collection_period']['foreign-deployment-short_name']
-
+    db['collection_period']['short_name'] = db['collection_period']['foreign-campaign-short_name']+'_'+db['collection_period']['foreign-deployment-short_name']+'_'+db['collection_period']['foreign-platform-short_name']
+    db['collection_period']['foreign-deployment-short_name']=db['collection_period']['foreign-campaign-short_name']+'_'+db['collection_period']['foreign-deployment-short_name']
+    
+    # correct column naming in collection_period table
+    db['collection_period'].rename(columns={'instrument':'foreign-instrument-short_name'}, inplace=True)
+    
+    db['collection_period']['auto_generated']=True
 
     #################
     # Matching IOPS #
@@ -75,6 +81,8 @@ def ingest_2(inventory_path=INVENTORY_PATH):
     db['iop'] = db['iopse'][db['iopse']['type']=='IOP']
     db['significant_event'] = db['iopse'][db['iopse']['type']=='SE']
 
+    # remove unnecessary iopse table
+    del db['iopse']
 
     ###################
     # Campaign Filter #
