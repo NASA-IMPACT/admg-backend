@@ -14,8 +14,11 @@
   "season": {
     "ingest_label": "Season"
   },
-  "instrument_type": {
-    "ingest_label": "Instrument Type"
+  "measurement_type": {
+    "ingest_label": "measurement_type"
+  },
+  "measurement_style": {
+    "ingest_label": "measurement_style"
   },
   "measurement_region": {
     "ingest_label": "measurement region"
