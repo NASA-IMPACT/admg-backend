@@ -1,6 +1,7 @@
 [
     "platform_type",
-    "instrument_type",
+    "measurement_type",
+    "measurement_style",
     "home_base",
     "repository",
     "focus_area",
