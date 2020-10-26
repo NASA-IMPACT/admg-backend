@@ -1,15 +1,16 @@
 {
   "platform_type":{
-    "Ingest Label":"ignore_ingest_label",
-    "short_name":"short_name",
-    "long_name":"long_name",
-    "description":"ignore_gcmd_translation",
-    "gcmd_translation":"gcmd_uuid",
-    "examples":"example",
-    "notes":"notes_public",
-    "parent":"foreign-platform_type-short_name"
+    "Ingest Label": "ignore_ingest_label",
+    "short_name": "short_name",
+    "long_name": "long_name",
+    "description": "ignore_gcmd_translation",
+    "gcmd_translation": "gcmd_uuid",
+    "examples": "example",
+    "notes": "notes_public",
+    "parent": "foreign-platform_type-short_name"
   },
   "measurement_style":{
+    "Ingest Label": "ignore_ingest_label",
     "short_name": "short_name",
     "long_name": "long_name",
     "ignore_1": "ignore_1",
@@ -19,6 +20,7 @@
     "parent": "foreign-measurement_style-short_name"
   },
   "measurement_type":{
+    "Ingest Label": "ignore_ingest_label",
     "short_name": "short_name",
     "long_name": "long_name",
     "ignore_1": "ignore_1",
@@ -28,73 +30,73 @@
     "parent": "foreign-measurement_type-short_name"
   },
   "home_base":{
-    "Ingest Label":"ignore_ingest_label",
-    "short_name":"short_name",
-    "long_name":"long_name",
-    "description":"location",
-    "gcmd_translation":"notes_public",
-    "examples":"additional_info",
-    "notes":"ignore_TODO",
-    "parent":"ignore_parent" 
+    "Ingest Label": "ignore_ingest_label",
+    "short_name": "short_name",
+    "long_name": "long_name",
+    "description": "location",
+    "gcmd_translation": "notes_public",
+    "examples": "additional_info",
+    "notes": "ignore_TODO",
+    "parent": "ignore_parent" 
   },
   "repository":{
-    "Ingest Label":"ignore_ingest_label",
-    "short_name":"short_name",
-    "long_name":"long_name",
-    "description":"ignore_gcmd_translation",
-    "gcmd_translation":"gcmd_uuid",
-    "examples":"ignore_blank",
-    "notes":"notes_public",
-    "parent":"ignore_parent"
+    "Ingest Label": "ignore_ingest_label",
+    "short_name": "short_name",
+    "long_name": "long_name",
+    "description": "ignore_gcmd_translation",
+    "gcmd_translation": "gcmd_uuid",
+    "examples": "ignore_blank",
+    "notes": "notes_public",
+    "parent": "ignore_parent"
   },
   "focus_area":{
-    "Ingest Label":"ignore_ingest_label",
-    "short_name":"short_name",
-    "long_name":"long_name",
-    "description":"url",
-    "gcmd_translation":"notes_public",
-    "examples":"ignore_blank_1",
-    "notes":"ignore_blank_2",
-    "parent":"ignore_parent" 
+    "Ingest Label": "ignore_ingest_label",
+    "short_name": "short_name",
+    "long_name": "long_name",
+    "description": "url",
+    "gcmd_translation": "notes_public",
+    "examples": "ignore_blank_1",
+    "notes": "ignore_blank_2",
+    "parent": "ignore_parent" 
   },
   "season":{
-    "Ingest Label":"ignore_ingest_label",
-    "short_name":"short_name",
-    "long_name":"long_name",
-    "description":"ignore_blank_1",
-    "gcmd_translation":"ignore_blank_2",
-    "examples":"ignore_blank_3",
-    "notes":"notes_public",
-    "parent":"ignore_parent" 
+    "Ingest Label": "ignore_ingest_label",
+    "short_name": "short_name",
+    "long_name": "long_name",
+    "description": "ignore_blank_1",
+    "gcmd_translation": "ignore_blank_2",
+    "examples": "ignore_blank_3",
+    "notes": "notes_public",
+    "parent": "ignore_parent" 
   }, 
   "measurement_region":{
-    "Ingest Label":"ignore_ingest_label",
-    "short_name":"short_name",
-    "long_name":"long_name",
-    "description":"ignore_gcmd_translation",
-    "gcmd_translation":"gcmd_uuid",
-    "examples":"example",
-    "notes":"notes_public",
-    "parent":"ignore_parent"
+    "Ingest Label": "ignore_ingest_label",
+    "short_name": "short_name",
+    "long_name": "long_name",
+    "description": "ignore_gcmd_translation",
+    "gcmd_translation": "gcmd_uuid",
+    "examples": "example",
+    "notes": "notes_public",
+    "parent": "ignore_parent"
   }, 
   "geographical_region":{
-    "Ingest Label":"ignore_ingest_label",
-    "short_name":"short_name",
-    "long_name":"long_name",
-    "description":"ignore_gcmd_translation",
-    "gcmd_translation":"gcmd_uuid",
-    "examples":"example",
-    "notes":"notes_public",
-    "parent":"ignore_parent"
+    "Ingest Label": "ignore_ingest_label",
+    "short_name": "short_name",
+    "long_name": "long_name",
+    "description": "ignore_gcmd_translation",
+    "gcmd_translation": "gcmd_uuid",
+    "examples": "example",
+    "notes": "notes_public",
+    "parent": "ignore_parent"
   },
   "geophysical_concept":{
-    "Ingest Label":"ignore_ingest_label",
-    "short_name":"short_name",
-    "long_name":"long_name",
-    "description":"ignore_gcmd_translation",
-    "gcmd_translation":"gcmd_uuid",
-    "examples":"example",
-    "notes":"notes_public",
-    "parent":"ignore_parent"
+    "Ingest Label": "ignore_ingest_label",
+    "short_name": "short_name",
+    "long_name": "long_name",
+    "description": "ignore_gcmd_translation",
+    "gcmd_translation": "gcmd_uuid",
+    "examples": "example",
+    "notes": "notes_public",
+    "parent": "ignore_parent"
   }
 }
