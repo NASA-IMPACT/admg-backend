@@ -91,7 +91,7 @@ def filter_campaigns(db, campaign_list):
     db['platform'] = db['platform'][db['platform']['short_name'].apply(lambda short: short in platform_filter)]
 
     # instruments
-    instrument_filter = list(set(list(db['collection_period']['instrument'])))
+    instrument_filter = list(set(list(db['collection_period']['foreign-instrument-short_name'])))
     db['instrument'] = db['instrument'][db['instrument']['short_name'].apply(lambda short: short in instrument_filter)]
 
     return db
