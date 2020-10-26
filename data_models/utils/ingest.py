@@ -65,8 +65,7 @@ def main(file_path):
                         'notes',
                         'parent',]
 
-    limited.fillna(value='Information Not Available', inplace=True)                        
-    
+    limited.fillna(value='Information Not Available', inplace=True)     
     # ingest all the limited fields 
     for table_name in mapping_limited_sheets.keys():
             db[table_name] = limited[limited['Ingest Label'] == mapping_limited_sheets[table_name]['ingest_label']].copy()
@@ -75,7 +74,8 @@ def main(file_path):
     # TODO: consider moving this list to a dedicated file
     tables_to_remap = [
         'platform_type',
-        'instrument_type',
+        'measurement_type',
+        'measurement_style',
         'home_base',
         'repository',
         'focus_area',
