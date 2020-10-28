@@ -122,12 +122,18 @@ def get_concepts(campaign_short_name, dep_start, dep_end):
     concepts = []
     for concept in filtered_metadata:
         concept_short = concept['metadata']['ShortName']
+        entry_title = concept['metadata']['EntryTitle']
         doi = concept['metadata'].get('DOI', {}).get('DOI')
         if not (doi):
             continue
         print(concept_short, doi)
 
-        data = {'short_name': concept_short, 'doi': doi, 'platforms': []}
+        data = {
+            'short_name': concept_short,
+            'EntryTitle': entry_title,
+            'doi': doi,
+            'platforms': []
+        }
 
         for cmr_plat in concept['metadata'].get('Platforms', []):
             cmr_plat_short = cmr_plat.get('ShortName')
