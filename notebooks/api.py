@@ -46,16 +46,21 @@ class Api:
         # get the change_request_uuid
         uuid = json.loads(response.text)['data']['uuid']
 
-        requests.post(
+        push_response = json.loads(requests.post(
             f'{self.base_url}change_request/{uuid}/push', headers=self.headers
-        )
-        approved = json.loads(
-            requests.post(
-                f'{self.base_url}change_request/{uuid}/approve', headers=self.headers
-            ).text
-        )
+        ).text)
 
-        return approved
+        if push_response.get('success'):
+            approve_response = json.loads(
+                requests.post(
+                    f'{self.base_url}change_request/{uuid}/approve', headers=self.headers
+                ).text
+            )
+            final_response = approve_response
+        else:
+            final_response = push_response
+
+        return final_response
 
     def get(self, endpoint):
         """Takes an ADMG endpoint as a string and runs a get request
@@ -95,7 +100,31 @@ class Api:
         post_url = f'{self.base_url}{endpoint}'
         response = requests.patch(post_url, data=json.dumps(data), headers=self.headers)
 
-        self._approve_change_object(response)
+        change_response = self._approve_change_object(response)
+
+        return change_response
+
+
+    def upload_image(self, metadata, image):
+        """Upload an image with metadata to the database.
+
+        Args:
+            metadata (dict): dictionary with fields and values
+            image (binary): binary image
+
+        Returns:
+            dict: response from API
+        """
+
+        post_url = f'{self.base_url}image'
+        headers = {'Authorization': self.headers['Authorization']}
+        files = [
+            ('image', image)
+        ]  
+
+        response = requests.post(post_url, data=metadata, files=files, headers=headers)
+        return response
+
 
     def create(self, endpoint, data):
         """Takes and endpoint and some post data and creates an entry in the 
@@ -117,6 +146,7 @@ class Api:
             return f'the following entry already existed {endpoint=} {data=}'
 
         return self._approve_change_object(response)
+
 
     def gcmd_shorts(self, table_name, uuid):
         """Most items in the database have a potential GCMD translation.

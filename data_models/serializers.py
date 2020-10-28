@@ -3,6 +3,8 @@ from rest_framework import serializers
 from django.contrib.gis.geos import GEOSGeometry
 from data_models import models
 
+from uuid import uuid4
+
 def get_uuids(database_entries):
     return list(database_entries.values_list('uuid', flat=True))
 
@@ -19,15 +21,13 @@ def get_geojson_from_bb(bb_data):
     n, s, e, w = [float(coord) for coord in bb_data.split(',')]
     retval = {
         "type": "Polygon",
-        "coordinates": [
-            [
-                [n, w],
-                [s, w],
-                [s, e],
-                [n, e],
-                [n, w],
-            ]
-        ]
+        "coordinates": [[
+            [w, s],
+            [e, s],
+            [e, n],
+            [w, n],
+            [w, s],
+        ]]
     }
     return json.dumps(retval)
 
@@ -50,12 +50,15 @@ def change_bbox_to_polygon(validated_data, key="spatial_bounds"):
         validated_data[key] = polygon
     return validated_data
 
-class ImageSerializer(serializers.ModelSerializer):
+class BaseSerializer(serializers.ModelSerializer):
+    uuid = serializers.UUIDField(default=uuid4)
+
+class ImageSerializer(BaseSerializer):
     class Meta:
         model = models.Image
         fields = "__all__"
 
-class PlatformTypeSerializer(serializers.ModelSerializer):
+class PlatformTypeSerializer(BaseSerializer):
     platforms = serializers.SerializerMethodField(read_only=True)
     campaigns = serializers.SerializerMethodField(read_only=True)
     sub_types = serializers.SerializerMethodField(read_only=True)
@@ -73,12 +76,12 @@ class PlatformTypeSerializer(serializers.ModelSerializer):
         model = models.PlatformType
         fields = "__all__"
 
-class NasaMissionSerializer(serializers.ModelSerializer):
+class NasaMissionSerializer(BaseSerializer):
     class Meta:
         model = models.NasaMission
         fields = "__all__"
 
-class InstrumentTypeSerializer(serializers.ModelSerializer):
+class MeasurementTypeSerializer(BaseSerializer):
     instruments = serializers.SerializerMethodField(read_only=True)
     sub_types = serializers.SerializerMethodField(read_only=True)
     
@@ -88,17 +91,30 @@ class InstrumentTypeSerializer(serializers.ModelSerializer):
     def get_sub_types(self, obj):
         return get_uuids(obj.sub_types)
 
-    
     class Meta:
-        model = models.InstrumentType
+        model = models.MeasurementType
         fields = "__all__"
 
-class HomeBaseSerializer(serializers.ModelSerializer):
+class MeasurementStyleSerializer(BaseSerializer):
+    instruments = serializers.SerializerMethodField(read_only=True)
+    sub_types = serializers.SerializerMethodField(read_only=True)
+    
+    def get_instruments(self, obj):
+        return get_uuids(obj.instruments)
+
+    def get_sub_types(self, obj):
+        return get_uuids(obj.sub_types)
+
+    class Meta:
+        model = models.MeasurementStyle
+        fields = "__all__"
+        
+class HomeBaseSerializer(BaseSerializer):
     class Meta:
         model = models.HomeBase
         fields = "__all__"
 
-class FocusAreaSerializer(serializers.ModelSerializer):
+class FocusAreaSerializer(BaseSerializer):
     campaigns = serializers.SerializerMethodField(read_only=True)
 
     def get_campaigns(self, obj):
@@ -108,7 +124,7 @@ class FocusAreaSerializer(serializers.ModelSerializer):
         model = models.FocusArea
         fields = "__all__"
 
-class SeasonSerializer(serializers.ModelSerializer):
+class SeasonSerializer(BaseSerializer):
     campaigns = serializers.SerializerMethodField(read_only=True)
 
     def get_campaigns(self, obj):
@@ -118,7 +134,7 @@ class SeasonSerializer(serializers.ModelSerializer):
         model = models.Season
         fields = "__all__"
 
-class RepositorySerializer(serializers.ModelSerializer):
+class RepositorySerializer(BaseSerializer):
     instruments = serializers.SerializerMethodField(read_only=True)
     campaigns = serializers.SerializerMethodField(read_only=True)
     
@@ -133,7 +149,7 @@ class RepositorySerializer(serializers.ModelSerializer):
         model = models.Repository
         fields = "__all__"
 
-class MeasurementRegionSerializer(serializers.ModelSerializer):
+class MeasurementRegionSerializer(BaseSerializer):
     instruments = serializers.SerializerMethodField(read_only=True)
     
     def get_instruments(self, obj):
@@ -143,7 +159,7 @@ class MeasurementRegionSerializer(serializers.ModelSerializer):
         model = models.MeasurementRegion
         fields = "__all__"
 
-class GeographicalRegionSerializer(serializers.ModelSerializer):
+class GeographicalRegionSerializer(BaseSerializer):
     deployments = serializers.SerializerMethodField(read_only=True)
     
     def get_deployments(self, obj):
@@ -153,7 +169,7 @@ class GeographicalRegionSerializer(serializers.ModelSerializer):
         model = models.GeographicalRegion
         fields = "__all__"
 
-class GeophysicalConceptSerializer(serializers.ModelSerializer):
+class GeophysicalConceptSerializer(BaseSerializer):
     campaigns = serializers.SerializerMethodField(read_only=True)
 
     def get_campaigns(self, obj):
@@ -163,7 +179,7 @@ class GeophysicalConceptSerializer(serializers.ModelSerializer):
         model = models.GeophysicalConcept
         fields = "__all__"
 
-class PartnerOrgSerializer(serializers.ModelSerializer):
+class PartnerOrgSerializer(BaseSerializer):
     campaigns = serializers.SerializerMethodField(read_only=True)
 
     def get_campaigns(self, obj):
@@ -173,12 +189,12 @@ class PartnerOrgSerializer(serializers.ModelSerializer):
         model = models.PartnerOrg
         fields = "__all__"
 
-class AliasSerializer(serializers.ModelSerializer):
+class AliasSerializer(BaseSerializer):
     class Meta:
         model = models.Alias
         fields = "__all__"
 
-class GcmdProjectSerializer(serializers.ModelSerializer):
+class GcmdProjectSerializer(BaseSerializer):
     campaigns = serializers.SerializerMethodField(read_only=True)
 
     def get_campaigns(self, obj):
@@ -188,7 +204,7 @@ class GcmdProjectSerializer(serializers.ModelSerializer):
         model = models.GcmdProject
         fields = "__all__"
 
-class GcmdInstrumentSerializer(serializers.ModelSerializer):
+class GcmdInstrumentSerializer(BaseSerializer):
     instruments = serializers.SerializerMethodField(read_only=True)
 
     def get_instruments(self, obj):
@@ -198,7 +214,7 @@ class GcmdInstrumentSerializer(serializers.ModelSerializer):
         model = models.GcmdInstrument
         fields = "__all__"
 
-class GcmdPlatformSerializer(serializers.ModelSerializer):
+class GcmdPlatformSerializer(BaseSerializer):
     platforms = serializers.SerializerMethodField(read_only=True)
 
     def get_platforms(self, obj):
@@ -208,7 +224,7 @@ class GcmdPlatformSerializer(serializers.ModelSerializer):
         model = models.GcmdPlatform
         fields = "__all__"
 
-class GcmdPhenomenaSerializer(serializers.ModelSerializer):
+class GcmdPhenomenaSerializer(BaseSerializer):
     instruments = serializers.SerializerMethodField(read_only=True)
     
     def get_instruments(self, obj):
@@ -218,12 +234,12 @@ class GcmdPhenomenaSerializer(serializers.ModelSerializer):
         model = models.GcmdPhenomena
         fields = "__all__"
 
-class DOISerializer(serializers.ModelSerializer):
+class DOISerializer(BaseSerializer):
     class Meta:
         model = models.DOI
         fields = "__all__"
 
-class DeploymentSerializer(serializers.ModelSerializer):
+class DeploymentSerializer(BaseSerializer):
     collection_periods = serializers.SerializerMethodField(read_only=True)
     iops = serializers.SerializerMethodField(read_only=True)
     significant_events = serializers.SerializerMethodField(read_only=True)
@@ -241,7 +257,7 @@ class DeploymentSerializer(serializers.ModelSerializer):
         model = models.Deployment
         fields = "__all__"
 
-class IOPSerializer(serializers.ModelSerializer):
+class IOPSerializer(BaseSerializer):
     significant_events = serializers.SerializerMethodField(read_only=True)
 
     def get_significant_events(self, obj):
@@ -251,17 +267,17 @@ class IOPSerializer(serializers.ModelSerializer):
         model = models.IOP
         fields = "__all__"
 
-class SignificantEventSerializer(serializers.ModelSerializer):
+class SignificantEventSerializer(BaseSerializer):
     class Meta:
         model = models.SignificantEvent
         fields = "__all__"
 
-class CollectionPeriodSerializer(serializers.ModelSerializer):
+class CollectionPeriodSerializer(BaseSerializer):
     class Meta:
         model = models.CollectionPeriod
         fields = "__all__"
 
-class PlatformSerializer(serializers.ModelSerializer):
+class PlatformSerializer(BaseSerializer):
     collection_periods = serializers.SerializerMethodField(read_only=True)
     instruments = serializers.ListField(read_only=True)
     campaigns = serializers.ListField(read_only=True)
@@ -273,7 +289,7 @@ class PlatformSerializer(serializers.ModelSerializer):
         model = models.Platform
         fields = "__all__"
 
-class InstrumentSerializer(serializers.ModelSerializer):
+class InstrumentSerializer(BaseSerializer):
     platforms = serializers.ListField(read_only=True)
     campaigns = serializers.ListField(read_only=True)
     collection_periods = serializers.SerializerMethodField(read_only=True)
@@ -285,7 +301,7 @@ class InstrumentSerializer(serializers.ModelSerializer):
         model = models.Instrument
         fields = "__all__"
 
-class CampaignSerializer(serializers.ModelSerializer):
+class CampaignSerializer(BaseSerializer):
     deployments = serializers.SerializerMethodField(read_only=True)
     significant_events = serializers.ListField(read_only=True)
     iops = serializers.ListField(read_only=True)
