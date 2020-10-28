@@ -142,7 +142,7 @@ class GcmdPlatform(BaseModel):
     long_name = models.CharField(max_length=512, blank=True, default='')
     category = models.CharField(max_length=256)
     series_entry = models.CharField(max_length=256, blank=True, default='')
-    description = models.TextField()
+    description = models.TextField(blank=True, default='')
     gcmd_uuid = models.UUIDField()
 
 
