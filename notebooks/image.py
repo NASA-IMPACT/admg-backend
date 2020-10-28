@@ -1,32 +1,33 @@
-import requests
 import mimetypes
 import pickle
 
+import requests
+
+
 def filter_image_list(db, table_name):
     # remove missing links
-    db[table_name] = db[table_name][db[table_name]['image-link']!='Information Not Available']
-    
+    db[table_name] = db[table_name][
+        db[table_name]['image-link'] != 'Information Not Available'
+    ]
+
     # only accept the first image in the list
-    db[table_name]['image-link']=db[table_name]['image-link'].apply(lambda link: link.split(',')[0])
+    db[table_name]['image-link'] = db[table_name]['image-link'].apply(
+        lambda link: link.split(',')[0]
+    )
+
 
 def valid_response(response):
-    return response.status_code == 200 # if response else False
+    return response.status_code == 200  # if response else False
 
 
 def valid_image(extension):
-    valid_extensions = [
-        '.tif',
-        '.tiff',
-        '.jpg',
-        '.jpeg',
-        '.png'
-    ]
+    valid_extensions = ['.tif', '.tiff', '.jpg', '.jpeg', '.png']
     return extension.lower() in valid_extensions
 
 
 def download_image(image_url):
     try:
-        response = requests.get(image_url)       
+        response = requests.get(image_url)
     except:
         response = None
 
@@ -54,6 +55,7 @@ def save_image(response, path):
 
     return success
 
+
 def download_all_images(db_path):
     log = open("image_log.txt", "w")
     db = pickle.load(open(db_path, "rb"))
@@ -67,7 +69,7 @@ def download_all_images(db_path):
             short_name = row['short_name']
             image_url = row['image-link']
 
-            if response:=download_image(image_url):
+            if response := download_image(image_url):
                 valid_response(response)
                 if extension := get_extension(response):
                     save_path = generate_save_path(table_name, short_name, extension)
@@ -79,9 +81,11 @@ def download_all_images(db_path):
                     message = f"    failed {short_name} - extentension"
             else:
                 message = f"    failed {short_name} - download"
-    
-            log.write(message+"\n")
+
+            log.write(message + "\n")
             print(message)
+
+    log.close()
 
 
 if __name__ == "__main__":
