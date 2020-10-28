@@ -48,17 +48,23 @@ class PlatformType(LimitedInfo):
     parent = models.ForeignKey('PlatformType', on_delete=models.CASCADE, related_name='sub_types', null=True, blank=True)
 
     gcmd_uuid = models.UUIDField(null=True, blank=True)
-    example = models.CharField(max_length=256, blank=True, default='')
+    example = models.CharField(max_length=1024, blank=True, default='')
 
 
 class NasaMission(LimitedInfo):
     pass
 
-class InstrumentType(LimitedInfo):
-    parent = models.ForeignKey('InstrumentType', on_delete=models.CASCADE, related_name='sub_types', null=True, blank=True)
 
-    gcmd_uuid = models.UUIDField(null=True, blank=True)
-    example = models.CharField(max_length=256, blank=True, default='')
+class MeasurementType(LimitedInfo):
+    parent = models.ForeignKey('MeasurementType', on_delete=models.CASCADE, related_name='sub_types', null=True, blank=True)
+
+    example = models.CharField(max_length=1024, blank=True, default='')
+
+
+class MeasurementStyle(LimitedInfo):
+    parent = models.ForeignKey('MeasurementStyle', on_delete=models.CASCADE, related_name='sub_types', null=True, blank=True)
+
+    example = models.CharField(max_length=1024, blank=True, default='')
 
 
 class HomeBase(LimitedInfo):
@@ -80,17 +86,17 @@ class Repository(LimitedInfo):
 
 class MeasurementRegion(LimitedInfo):
     gcmd_uuid = models.UUIDField(null=True, blank=True)
-    example = models.CharField(max_length=256, blank=True, default='')
+    example = models.CharField(max_length=1024, blank=True, default='')
 
 
 class GeographicalRegion(LimitedInfo):
     gcmd_uuid = models.UUIDField(null=True, blank=True)
-    example = models.CharField(max_length=256, blank=True, default='')
+    example = models.CharField(max_length=1024, blank=True, default='')
 
 
 class GeophysicalConcept(LimitedInfo):
     gcmd_uuid = models.UUIDField(null=True, blank=True)
-    example = models.CharField(max_length=256, blank=True, default='')
+    example = models.CharField(max_length=1024, blank=True, default='')
 
 
 class PartnerOrg(LimitedInfo):
@@ -332,6 +338,8 @@ class Platform(DataModel):
 
 class Instrument(DataModel):
     image = models.ForeignKey(Image, on_delete=models.SET_NULL, null=True, blank=True)
+    measurement_type = models.ForeignKey(MeasurementType, on_delete=models.SET_NULL, null=True, blank=True)
+    measurement_style = models.ForeignKey(MeasurementStyle, on_delete=models.SET_NULL, null=True, blank=True)
 
     description = models.TextField()
     lead_investigator = models.CharField(max_length=256, default='', blank=True)
@@ -350,7 +358,6 @@ class Instrument(DataModel):
 
     dois = models.ManyToManyField(DOI, related_name='instruments', default=None, blank=True)
     gcmd_instruments = models.ManyToManyField(GcmdInstrument, related_name='instruments', default='', blank=True)
-    instrument_types = models.ManyToManyField(InstrumentType, related_name='instruments')
     gcmd_phenomenas = models.ManyToManyField(GcmdPhenomena, related_name='instruments')
     measurement_regions = models.ManyToManyField(MeasurementRegion, related_name='instruments')
     repositories = models.ManyToManyField(Repository, related_name='instruments', default='', blank=True)

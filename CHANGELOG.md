@@ -15,12 +15,14 @@ Consolidated ingest pipeline
 ### Added
 - `api/change_request/{uuid}/validate` endpoint to validate specific change request
 - `api/validate` endpoint to validate json
+- new enpoints, `measurment_type` and `measurement_style` to replace `instrument_type`
 
 ### Changed
 - db objects generated from a CREATE change request now inherit the uuid of the change request for linking purposes
 - error message details are now returned as processed json instead of strings
 - image endpoint now returns `{'success': boolean, 'message': string, 'data': []}` for get and post
 - change requests can now hold invalid data until the push operation
+- all `example` fields have max_length increased from 256 to 1024 char
 
 ## 0.1.5 - 2020-10-09
 ### Fixed
