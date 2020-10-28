@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 Consolidated ingest pipeline
 
-## 0.1.6 - 2020-10-22
+## 0.1.6 - 2020-10-27
 ### Fixed
 - CREATE change requests now log the linked database object
 
@@ -23,6 +23,7 @@ Consolidated ingest pipeline
 - image endpoint now returns `{'success': boolean, 'message': string, 'data': []}` for get and post
 - change requests can now hold invalid data until the push operation
 - all `example` fields have max_length increased from 256 to 1024 char
+- `gcmd_platform.description` is now an optional field
 
 ## 0.1.5 - 2020-10-09
 ### Fixed
