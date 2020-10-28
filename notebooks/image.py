@@ -21,7 +21,7 @@ def valid_response(response):
 
 
 def valid_image(extension):
-    valid_extensions = ['.tif', '.tiff', '.jpg', '.jpeg', '.png']
+    valid_extensions = ['.tif', '.tiff', '.jpg', '.jpeg', '.png', '.bmp']
     return extension.lower() in valid_extensions
 
 
