@@ -8,6 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 Consolidated ingest pipeline
 
+## 0.1.7 - 2020-10-29
+### Fixed
+- linking error between measurements and instruments
+
+### Added
+- new field for the `image` endpoint, `source_url`
+
 ## 0.1.6 - 2020-10-22
 ### Fixed
 - CREATE change requests now log the linked database object
