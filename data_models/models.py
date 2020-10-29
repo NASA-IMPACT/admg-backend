@@ -30,6 +30,7 @@ class Image(BaseModel):
     image = models.ImageField(upload_to=get_file_path)
     description = models.CharField(max_length=1024, default='', blank=True)
     owner = models.CharField(max_length=512, default='', blank=True)
+    source_url = models.TextField(blank=True, default='')
 
     def __str__(self):
         return self.image.name
