@@ -13,16 +13,16 @@ Consolidated ingest pipeline
 - linking error between measurements and instruments
 
 ### Added
-- new field for the `image` endpoint, `source_url`
+- new text field for the `image` endpoint, `source_url`
 
-## 0.1.6 - 2020-10-22
+## 0.1.6 - 2020-10-27
 ### Fixed
 - CREATE change requests now log the linked database object
 
 ### Added
 - `api/change_request/{uuid}/validate` endpoint to validate specific change request
 - `api/validate` endpoint to validate json
-- new enpoints, `measurment_type` and `measurement_style` to replace `instrument_type`
+- new endpoints, `measurment_type` and `measurement_style` to replace `instrument_type`
 
 ### Changed
 - db objects generated from a CREATE change request now inherit the uuid of the change request for linking purposes
@@ -30,6 +30,7 @@ Consolidated ingest pipeline
 - image endpoint now returns `{'success': boolean, 'message': string, 'data': []}` for get and post
 - change requests can now hold invalid data until the push operation
 - all `example` fields have max_length increased from 256 to 1024 char
+- `gcmd_platform.description` is now an optional field
 
 ## 0.1.5 - 2020-10-09
 ### Fixed
@@ -82,7 +83,6 @@ Consolidated ingest pipeline
 ### Changed
 #### Requirements
 - repo now requires boto3 and botocore; see [requirements/base.txt](https://github.com/NASA-IMPACT/admg_webapp/blob/master/requirements/base.txt)
-
 
 #### APIs
 - read access no longer requires a token or login
