@@ -338,8 +338,8 @@ class Platform(DataModel):
 
 class Instrument(DataModel):
     image = models.ForeignKey(Image, on_delete=models.SET_NULL, null=True, blank=True)
-    measurement_type = models.ForeignKey(MeasurementType, on_delete=models.SET_NULL, null=True, blank=True)
-    measurement_style = models.ForeignKey(MeasurementStyle, on_delete=models.SET_NULL, null=True, blank=True)
+    measurement_type = models.ForeignKey(MeasurementType, on_delete=models.SET_NULL, null=True, blank=True, related_name='instruments')
+    measurement_style = models.ForeignKey(MeasurementStyle, on_delete=models.SET_NULL, null=True, blank=True, related_name='instruments')
 
     description = models.TextField()
     lead_investigator = models.CharField(max_length=256, default='', blank=True)
