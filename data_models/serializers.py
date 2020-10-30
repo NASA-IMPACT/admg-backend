@@ -190,6 +190,11 @@ class PartnerOrgSerializer(BaseSerializer):
         fields = "__all__"
 
 class AliasSerializer(BaseSerializer):
+    model = serializers.SerializerMethodField(read_only=True)
+    
+    def get_model(self, obj):
+        return obj.content_type.name
+
     class Meta:
         model = models.Alias
         fields = "__all__"
