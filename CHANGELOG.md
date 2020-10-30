@@ -8,6 +8,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 Consolidated ingest pipeline
 
+## 0.1.7 - 2020-10-30
+### Added
+- `aliases` field to `campaign`, `instrument`, `platform`, `deployment`, and `partner_org`
+
+### Changed
+- `alias` endpoint 
+    - removed `long_name`
+    - increase length `short_name` to 512 char and remove unique restriction
+    - change `source` to unlimited length
+
 ## 0.1.7 - 2020-10-29
 ### Fixed
 - linking error between measurements and instruments
