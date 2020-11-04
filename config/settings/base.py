@@ -67,7 +67,6 @@ WSGI_APPLICATION = "config.wsgi.application"
 DJANGO_APPS = [
     "django.contrib.auth",
     "django.contrib.contenttypes",
-    "grappelli",
     "django.contrib.sessions",
     "django.contrib.sites",
     "django.contrib.messages",

@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from admin_ui.views import ChangeAdmin
+from admin_ui.admin import ChangeAdmin
 
 from .models import (
     PlatformType,

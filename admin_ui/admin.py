@@ -72,3 +72,19 @@ class ChangeAdmin(admin.ModelAdmin):
             action=UPDATE if change else CREATE,
             user=request.user,
         )
+
+
+# class ModelOptions(admin.ModelAdmin):
+#     fieldsets = (
+#         ('', {
+#             'fields': ('title', 'subtitle', 'slug', 'pub_date', 'status',),
+#         }),
+#         ('Flags', {
+#             'classes': ('grp-collapse grp-closed',),
+#             'fields' : ('flag_front', 'flag_sticky', 'flag_allow_comments', 'flag_comments_closed',),
+#         }),
+#         ('Tags', {
+#             'classes': ('grp-collapse grp-open',),
+#             'fields' : ('tags',),
+#         }),
+#     )
