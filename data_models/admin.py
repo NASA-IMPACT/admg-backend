@@ -1,5 +1,7 @@
 from django.contrib import admin
 
+from admin_ui.views import ChangeAdmin
+
 from .models import (
     PlatformType,
     NasaMission,
@@ -28,6 +30,7 @@ from .models import (
     Image,
 )
 
+
 admin.site.register(PlatformType)
 admin.site.register(NasaMission)
 admin.site.register(InstrumentType)
@@ -44,7 +47,7 @@ admin.site.register(GcmdInstrument)
 admin.site.register(GcmdPlatform)
 admin.site.register(GcmdPhenomena)
 admin.site.register(DOI)
-admin.site.register(Campaign)
+admin.site.register(Campaign, ChangeAdmin)
 admin.site.register(Platform)
 admin.site.register(Instrument)
 admin.site.register(Deployment)

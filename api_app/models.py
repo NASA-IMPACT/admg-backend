@@ -4,14 +4,16 @@ from django.apps import apps
 from django.contrib.postgres.fields import JSONField
 from django.db import models
 from django.utils.timezone import now
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
 
 from data_models import serializers as sz
 from admg_webapp.users.models import User, ADMIN
 
-CREATE = 'Create'
-UPDATE = 'Update'
-DELETE = 'Delete'
-PATCH = 'Patch'
+CREATE = "Create"
+UPDATE = "Update"
+DELETE = "Delete"
+PATCH = "Patch"
 
 
 # The change is in progress, can not be approved, but the user can update the change request
@@ -24,15 +26,14 @@ PENDING, PENDING_CODE = "Pending", 2
 # The state of the change object can not be changed from this state.
 APPROVED, APPROVED_CODE = "Approved", 3
 AVAILABLE_STATUSES = (
-    (PENDING_CODE, PENDING), (APPROVED_CODE, APPROVED), (IN_PROGRESS_CODE, IN_PROGRESS)
+    (PENDING_CODE, PENDING),
+    (APPROVED_CODE, APPROVED),
+    (IN_PROGRESS_CODE, IN_PROGRESS),
 )
 
 
 def false_success(message):
-    return {
-        "success": False,
-        "message": message,
-    }
+    return {"success": False, "message": message}
 
 
 def handle_approve_reject(function):
@@ -80,7 +81,7 @@ def handle_approve_reject(function):
             "updated_model": self.model_name,
             "action": self.action,
             "uuid_changed": updated["uuid"],
-            "status": self.get_status_display()
+            "status": self.get_status_display(),
         }
 
     return wrapper
@@ -88,28 +89,34 @@ def handle_approve_reject(function):
 
 class Change(models.Model):
     uuid = models.UUIDField(primary_key=True, default=uuid4, editable=False)
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    model_instance_uuid = models.UUIDField(default=uuid4, blank=False, null=True)
+    content_object = GenericForeignKey("content_type", "model_instance_uuid")
 
     added_date = models.DateTimeField(auto_now_add=True)
-    appr_reject_date = models.DateTimeField(null=True)
+    appr_reject_date = models.DateTimeField(null=True, blank=True)
 
-    model_name = models.CharField(max_length=20, blank=False, null=False)
     status = models.IntegerField(choices=AVAILABLE_STATUSES, default=IN_PROGRESS_CODE)
     update = JSONField()
     previous = JSONField(default=dict)
-    model_instance_uuid = models.UUIDField(default=uuid4, blank=False, null=True)
 
     action = models.CharField(
         max_length=10,
         choices=((CREATE, CREATE), (UPDATE, UPDATE), (DELETE, DELETE)),
-        default=UPDATE
+        default=UPDATE,
     )
     user = models.ForeignKey(
-        User, on_delete=models.SET_NULL, related_name="changed_by", null=True
+        User, on_delete=models.SET_NULL, related_name="changed_by", null=True, blank=True
     )
     appr_reject_by = models.ForeignKey(
-        User, on_delete=models.DO_NOTHING, related_name="approved_by", null=True
+        User, on_delete=models.DO_NOTHING, related_name="approved_by", null=True, blank=True
     )
     notes = models.CharField(max_length=500, blank=True)
+
+    @property
+    def model_name(self):
+        # TODO: Verify that this works with API
+        return self.content_type.model_class().__name__
 
     def _check_model_and_uuid(self):
         """
@@ -122,7 +129,9 @@ class Change(models.Model):
             instance = model.objects.get(uuid=self.model_instance_uuid)
             if self.action == UPDATE:
                 serializer = serializer_class(instance)
-                self.previous = {key: getattr(serializer.data, key, None) for key in self.update}
+                self.previous = {
+                    key: serializer.data.get(key) for key in self.update
+                }
 
     def save(self, *args, post_save=False, **kwargs):
         # do not check for validity of model_name and uuid if it has been approved or rejected.
@@ -170,7 +179,9 @@ class Change(models.Model):
             model_instance.delete()
         else:
             # if not create or delete it is update, allow partial updates by default
-            serializer = serializer_class(model_instance, data=self.update, partial=True)
+            serializer = serializer_class(
+                model_instance, data=self.update, partial=True
+            )
             if serializer.is_valid():
                 serializer.save()
         return {"uuid": self.model_instance_uuid, "status": APPROVED_CODE}
