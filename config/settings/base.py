@@ -67,6 +67,7 @@ WSGI_APPLICATION = "config.wsgi.application"
 DJANGO_APPS = [
     "django.contrib.auth",
     "django.contrib.contenttypes",
+    "grappelli",
     "django.contrib.sessions",
     "django.contrib.sites",
     "django.contrib.messages",
@@ -93,6 +94,7 @@ LOCAL_APPS = [
     "admg_webapp.users.apps.UsersConfig",
     "data_models.apps.DataModelsConfig",
     "api_app",
+    # "admin_ui",
     # Your stuff: custom apps go here
 ]
 
