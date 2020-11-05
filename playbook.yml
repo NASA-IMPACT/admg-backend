@@ -42,8 +42,8 @@
 
     - name: Create ssh key on the server
       openssh_keypair:
-        owner: ubuntu
-        path: /home/ubuntu/.ssh/id_rsa
+        owner: "{{ user }}"
+        path: "/home/{{ user }}/.ssh/id_rsa"
 
     - name: Link to the github
       become_user: '{{ user }}'
