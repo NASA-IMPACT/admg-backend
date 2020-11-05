@@ -73,8 +73,9 @@ axios(config)
 ## Automatic deployment
 
  - Change the webserver IP in the hosts file. If no hosts file exists, create one [see hosts.sample file]
- - Run the command `ansible-playbook --private-key private_key_file.pem -i hosts playbook.yml -v [-e 'branch=<your_branch_here>']`
+ - Run the command `ansible-playbook --private-key private_key_file.pem -i hosts/<environment> playbook.yml -v [-e 'branch=<your_branch_here>']`
      - `private_key_file.pem` is the private key for the webserver
+     - `environment` a choice of staging or production
      - `[-e 'branch=<your_branch_here>']` part is optional and can be used in case some another branch is desired
 
 
