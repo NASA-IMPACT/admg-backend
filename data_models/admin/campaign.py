@@ -1,0 +1,27 @@
+from django.contrib import admin
+
+from data_models.models import Campaign
+from admin_ui.admin.changes import ChangeAdmin
+
+
+class LimitedInfoAdmin(admin.ModelAdmin):
+    list_display = ("short_name", "long_name")
+
+
+class CampaignAdmin(LimitedInfoAdmin, ChangeAdmin):
+    list_display = (*LimitedInfoAdmin.list_display, "funding_agency")
+    list_filter = (
+        "ongoing",
+        "nasa_led",
+        "nasa_missions",
+        "focus_areas",
+        "seasons",
+        "repositories",
+        "platform_types",
+        "partner_orgs",
+        "gcmd_projects",
+        "geophysical_concepts",
+    )
+
+
+admin.site.register(Campaign, CampaignAdmin)
