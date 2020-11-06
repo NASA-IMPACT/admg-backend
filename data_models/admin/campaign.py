@@ -1,11 +1,7 @@
 from django.contrib import admin
 
 from data_models.models import Campaign
-from admin_ui.admin.changes import ChangeAdmin
-
-
-class LimitedInfoAdmin(admin.ModelAdmin):
-    list_display = ("short_name", "long_name")
+from api_app.admin import ChangeAdmin
 
 
 class CampaignAdmin(LimitedInfoAdmin, ChangeAdmin):
