@@ -2,6 +2,7 @@ from django.contrib import admin
 
 from data_models.models import Campaign
 from api_app.admin import ChangeAdmin
+from .base import LimitedInfoAdmin
 
 
 class CampaignAdmin(LimitedInfoAdmin, ChangeAdmin):

@@ -1,4 +1,3 @@
-from data_models.admin.campaign import LimitedInfoAdmin
 from django.contrib import admin
 
 from data_models.models import (
@@ -18,7 +17,6 @@ from data_models.models import (
     GcmdPlatform,
     GcmdPhenomena,
     DOI,
-    Platform,
     Instrument,
     Deployment,
     IOP,
@@ -27,7 +25,11 @@ from data_models.models import (
     Alias,
     Image,
 )
+from .common import LimitedInfoAdmin
 
+
+admin.site.register(Instrument, LimitedInfoAdmin)
+admin.site.register(Deployment, LimitedInfoAdmin)
 
 admin.site.register(PlatformType)
 admin.site.register(NasaMission)
@@ -45,9 +47,6 @@ admin.site.register(GcmdInstrument)
 admin.site.register(GcmdPlatform)
 admin.site.register(GcmdPhenomena)
 admin.site.register(DOI)
-admin.site.register(Platform, LimitedInfoAdmin)
-admin.site.register(Instrument, LimitedInfoAdmin)
-admin.site.register(Deployment, LimitedInfoAdmin)
 admin.site.register(IOP)
 admin.site.register(SignificantEvent)
 admin.site.register(CollectionPeriod)
