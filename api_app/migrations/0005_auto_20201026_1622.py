@@ -10,7 +10,7 @@ def populate_content_type(apps, schema_editor):
     for model_name in Change.objects.values_list("model_name", flat=True).distinct():
         Change.objects.filter(model_name=model_name).update(
             content_type=ContentType.objects.get(
-                app_label="data_models", model=model_name
+                app_label="data_models", model=model_name.lower()
             )
         )
 
@@ -20,6 +20,7 @@ class Migration(migrations.Migration):
     dependencies = [
         ("contenttypes", "0002_remove_content_type_name"),
         ("api_app", "0004_auto_20200409_1912"),
+        ("data_models", "0006_auto_20201009_0715"),
     ]
 
     operations = [
