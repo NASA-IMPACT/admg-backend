@@ -1,7 +1,6 @@
 from uuid import uuid4
 
 from django.apps import apps
-from django.contrib.postgres.fields import JSONField
 from django.db import models
 from django.utils.timezone import now
 from django.contrib.contenttypes.fields import GenericForeignKey
@@ -97,8 +96,8 @@ class Change(models.Model):
     appr_reject_date = models.DateTimeField(null=True, blank=True)
 
     status = models.IntegerField(choices=AVAILABLE_STATUSES, default=IN_PROGRESS_CODE)
-    update = JSONField()
-    previous = JSONField(default=dict)
+    update = models.JSONField()
+    previous = models.JSONField(default=dict)
 
     action = models.CharField(
         max_length=10,

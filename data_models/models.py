@@ -4,7 +4,6 @@ import uuid
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.gis.db import models as geomodels
-from django.contrib.postgres.fields import JSONField
 from django.contrib.postgres.search import SearchQuery, SearchVector
 from django.db import models
 
@@ -53,6 +52,7 @@ class PlatformType(LimitedInfo):
 
 class NasaMission(LimitedInfo):
     pass
+
 
 class InstrumentType(LimitedInfo):
     parent = models.ForeignKey('InstrumentType', on_delete=models.CASCADE, related_name='sub_types', null=True, blank=True)
@@ -349,7 +349,7 @@ class Instrument(DataModel):
     overview_publication = models.CharField(max_length=2048, default='', blank=True)
     online_information = models.CharField(max_length=2048, default='', blank=True)
     instrument_doi = models.CharField(max_length=1024, default='', blank=True)
-    arbitrary_characteristics = JSONField(default=None, blank=True, null=True)
+    arbitrary_characteristics = models.JSONField(default=None, blank=True, null=True)
 
     dois = models.ManyToManyField(DOI, related_name='instruments', default=None, blank=True)
     gcmd_instruments = models.ManyToManyField(GcmdInstrument, related_name='instruments', default='', blank=True)
