@@ -16,7 +16,7 @@ PATCH = "Patch"
 
 
 # The change is in progress, can not be approved, but the user can update the change request
-IN_PROGRESS, IN_PROGRESS_CODE = "IN_PROGRESS", 1
+IN_PROGRESS, IN_PROGRESS_CODE = "In Progress", 1
 
 # Can be approved or rejected. Rejection sends it back to the in_progress state
 PENDING, PENDING_CODE = "Pending", 2
@@ -115,7 +115,11 @@ class Change(models.Model):
     @property
     def model_name(self):
         # TODO: Verify that this works with API
-        return self.content_type.model_class().__name__
+        cls = self.content_type.model_class()
+        return cls.__name__ if cls else 'UNKNOWN'
+
+    def __str__(self):
+        return f"{self.model_name} >> {self.uuid}"
 
     def _check_model_and_uuid(self):
         """
