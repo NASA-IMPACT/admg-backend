@@ -125,6 +125,26 @@ class Api:
         response = requests.post(post_url, data=metadata, files=files, headers=headers)
         return response
 
+    def upload_excel(self, excel, data=None):
+        """Upload an excel with optional data parameters to the validation endpoint.
+
+        Args:
+            data (dict): dictionary with fields and values
+            excel (binary): binary excel
+
+        Returns:
+            dict: response from API
+        """
+
+        post_url = f'{self.base_url}validate_excel'
+        headers = {'Authorization': self.headers['Authorization']}
+        files = [
+            ('excel', excel)
+        ]  
+
+        response = requests.post(post_url, data=data, files=files, headers=headers)
+        return response
+
 
     def create(self, endpoint, data):
         """Takes and endpoint and some post data and creates an entry in the 
