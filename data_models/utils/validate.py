@@ -19,8 +19,8 @@ def fuzzy_match(string, choices, threshold=.9):
 def foreign_keys(db, data_table, data_index, data_column, foreign_table, foreign_column):
     # outputs dataframe of incorrect values with suggestions
     
-    foreign_key_list = db[foreign_table][foreign_column]
-    
+    foreign_key_list = list(db[foreign_table][foreign_column])
+
     if data_table==foreign_table:
         # if a table is heirarchical, this will give a none value to allow parentless ojbects
         foreign_key_list.append('none')
