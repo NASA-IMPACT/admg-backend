@@ -16,16 +16,17 @@ def fuzzy_match(string, choices, threshold=.9):
     return [(test,x)  for test in choices if (x := fuzz.ratio(string, test))>=threshold]
     
     
-def foriegn_keys(db, data_table, data_index, data_column, foriegn_table,  foriegn_column):
+def foreign_keys(db, data_table, data_index, data_column, foreign_table, foreign_column):
     # outputs dataframe of incorrect values with suggestions
     
-    foriegn_keys = db[foriegn_table][foriegn_column]
-    foriegn_dict = {lan(key):key for key in foriegn_keys}
+    foreign_key_list = db[foreign_table][foreign_column]
+
+    foreign_dict = {lan(key):key for key in foreign_key_list}
     
-    bool_filter = db[data_table][data_column].apply(lambda x: lan(x) not in foriegn_dict.keys() and x!='Information Not Available')
+    bool_filter = db[data_table][data_column].apply(lambda x: lan(x) not in foreign_dict.keys() and x != 'Information Not Available')
 
     errors = db[data_table][bool_filter][[data_index, data_column]].copy()
-    errors['suggestions'] = errors[data_column].apply(lambda x: [foriegn_dict[match[0]] for match in fuzzy_match(lan(x), [lan(key) for key in foriegn_dict.keys()], 75)])
+    errors['suggestions'] = errors[data_column].apply(lambda x: [foreign_dict[match[0]] for match in fuzzy_match(lan(x), [lan(key) for key in foreign_dict.keys()], 75)])
     return errors
 
 
