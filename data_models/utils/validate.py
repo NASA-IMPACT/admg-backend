@@ -20,6 +20,10 @@ def foreign_keys(db, data_table, data_index, data_column, foreign_table, foreign
     # outputs dataframe of incorrect values with suggestions
     
     foreign_key_list = db[foreign_table][foreign_column]
+    
+    if data_table==foreign_table:
+        # if a table is heirarchical, this will give a none value to allow parentless ojbects
+        foreign_key_list.append('none')
 
     foreign_dict = {lan(key):key for key in foreign_key_list}
     
