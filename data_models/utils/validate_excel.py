@@ -1,15 +1,14 @@
 import pandas as pd
 import json
-from automated_ingest import ingest_2
+from data_models.utils.automated_ingest import ingest_2
 
-import validate
-from general import filter_gcmd_tables
+from data_models.utils import validate
+from data_models.utils.general import filter_gcmd_tables
 
+# def validate_excel(path='inventory_data/inventory - 2020.11.12.xlsx'):
 
-
-def validate_excel(path='inventory_data/inventory - 2020.11.12.xlsx'):
-
-    db = ingest_2(path)
+def validate_excel(excel_file):
+    db = ingest_2(excel_file)
 
     validation_results = {}
     # short name validation
@@ -35,8 +34,10 @@ def validate_excel(path='inventory_data/inventory - 2020.11.12.xlsx'):
 
 
     foreign_data_tables = [table_name for table_name in db.keys() if '-to-' in table_name]
-    primary_mapping = json.load(open('config/mapping_primary.json', 'r'))
-
+    try:
+        primary_mapping = json.load(open('config/mapping_primary.json', 'r'))
+    except:
+        primary_mapping = json.load(open('data_models/utils/config/mapping_primary.json', 'r'))
 
     # many to many validation
     results = {}

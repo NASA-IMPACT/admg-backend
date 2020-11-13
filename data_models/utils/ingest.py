@@ -33,9 +33,10 @@ def main(file_path):
     # this dict will hold all the database tables
     db = {}
 
-    excel_data = pd.read_excel(file_path, sheet_name = None)
+    excel_data = pd.read_excel(file_path, sheet_name = None, encoding='utf-8')
 
-    base_path = os.path.join(os.path.abspath('.'), 'config')
+    # base_path = os.path.join(os.path.abspath('.'), 'config')
+    base_path = os.path.join(os.path.abspath('.'), 'data_models/utils/config')
     
     mapping_columns = json.load(open(os.path.join(base_path, 'mapping_columns.json'), 'r'))
     mapping_ingest = json.load(open(os.path.join(base_path, 'mapping_ingest.json'), 'r'))
