@@ -14,7 +14,7 @@ from .view_utils import handle_exception, requires_admin_approval
 
 class JsonValidationView(GenericAPIView):#CreateAPIView):
     """
-        List images and create an image object
+        Take in Json for one database entry and run validation.
     """
     validation_serializer = ValidationSerializer
 
@@ -40,6 +40,9 @@ class JsonValidationView(GenericAPIView):#CreateAPIView):
         )
 
 class ExcelValidationView(GenericAPIView):
+    """
+        Take in excel from google sheets and run basic validation 
+    """
 
     parser_class = (MultiPartParser,)
 
