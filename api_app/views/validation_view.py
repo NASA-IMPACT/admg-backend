@@ -1,7 +1,9 @@
 from rest_framework.response import Response
 from rest_framework.generics import CreateAPIView, GenericAPIView
+from rest_framework.parsers import MultiPartParser
 
 from data_models import serializers as data_models_serializers
+from data_models.utils.validate_excel import validate_excel
 
 from api_app.serializers import ValidationSerializer
 from api_app.models import Change
@@ -10,7 +12,7 @@ from ..models import DELETE
 from .view_utils import handle_exception, requires_admin_approval
 
 
-class ValidationView(GenericAPIView):#CreateAPIView):
+class JsonValidationView(GenericAPIView):#CreateAPIView):
     """
         List images and create an image object
     """
@@ -34,5 +36,21 @@ class ValidationView(GenericAPIView):#CreateAPIView):
             status=200,
             data={
                 'message':'All serializer validations passed',
+            }
+        )
+
+class ExcelValidationView(GenericAPIView):
+
+    parser_class = (MultiPartParser,)
+
+    @handle_exception
+    def post(self, request, *args, **kwargs):
+        excel_file = request.FILES['excel']
+        results = validate_excel(excel_file)
+
+        return Response(
+            status=200,
+            data={
+                'validation_results':results,
             }
         )
