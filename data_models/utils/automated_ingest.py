@@ -1,16 +1,24 @@
 import pandas as pd
 import json
-import validate
-from general import correct_values, many_to_many, many_cols, filter_gcmd_tables
-import ingest
-import clean
-from config.paths import INVENTORY_PATH
-from general import filter_campaigns, log_short_names
+from data_models.utils import validate
+from data_models.utils.general import (
+    correct_values,
+    many_to_many,
+    many_cols,
+    filter_gcmd_tables,
+    filter_campaigns,
+    log_short_names
+)
+from data_models.utils import (
+    ingest,
+    clean,
+)
+# from config.paths import INVENTORY_PATH
 
 
-def ingest_2(inventory_path=INVENTORY_PATH):
+def ingest_2(excel_file):
 
-    data = ingest.main(inventory_path)
+    data = ingest.main(excel_file)
 
     excel_data = data['excel_data']
     db = data['database']
@@ -70,7 +78,6 @@ def ingest_2(inventory_path=INVENTORY_PATH):
 
     # filter out missing rows on the iopse tab
     db['iopse'] = db['iopse'][db['iopse']['short_name']!='Information Not Available']
-
     # test for unexpected values in this column
     assert set(db['iopse']['type']) == {'IOP', 'SE'}
 
@@ -88,12 +95,19 @@ def ingest_2(inventory_path=INVENTORY_PATH):
     # Campaign Filter #
     ###################
 
-    ingest_campaign_list = json.load(open('config/ingest_campaign_list.json', 'r'))['new_list']
+    try:
+        ingest_campaign_list = json.load(open('data_models/utils/config/ingest_campaign_list.json', 'r'))['new_list']
+    except:
+        ingest_campaign_list = json.load(open('config/ingest_campaign_list.json', 'r'))['new_list']
 
     db = filter_campaigns(db, ingest_campaign_list)
 
-    log_short_names(db, 'instrument')
-    log_short_names(db, 'platform')
+    # remove info not available
+    db['instrument'] = db['instrument'][db['instrument']['short_name']!='Information Not Available']
+    db['platform'] = db['platform'][db['platform']['short_name']!='Information Not Available']
+
+    # log_short_names(db, 'instrument')
+    # log_short_names(db, 'platform')
 
 
     #########################
@@ -111,11 +125,7 @@ def ingest_2(inventory_path=INVENTORY_PATH):
             db[new_table_name]=many_to_many(db, table, column)
             print(f'   {new_table_name} created')
 
+    # filter gcmd tables
+    db = filter_gcmd_tables(db)
+
     return db
-
-
-
-
-
-
-
