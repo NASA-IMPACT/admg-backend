@@ -28,3 +28,5 @@ django-cors-headers
 # AWS S3 Integration
 boto3==1.14.9
 botocore==1.17.9
+
+pandas==1.0.3
