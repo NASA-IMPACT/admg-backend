@@ -145,6 +145,19 @@ class Api:
         response = requests.post(post_url, data=data, files=files, headers=headers)
         return response
 
+    def validate_json(self, model_name, data, partial):
+        post_url = f'{self.base_url}validate_json'
+        headers = {'Authorization': self.headers['Authorization']}
+
+        validation_data = {
+            'model_name': model_name,
+            'data': data,
+            'partial': partial,
+        }
+
+        response = requests.post(post_url, data=json.dumps(validation_data), headers=self.headers)
+        return response        
+
 
     def create(self, endpoint, data):
         """Takes and endpoint and some post data and creates an entry in the 
@@ -191,6 +204,7 @@ class Api:
         return gcmd_short_names
 
     def add_link_doi(self, linked_table, linked_uuid, doi_data):
+        # todo: shouldn't this have a conditional to handle existing dois??? actually, maybe the create just fails and that's ok?
         self.create('doi', doi_data)
         doi_uuid = self.get(f"doi?short_name={doi_data['short_name']}")['data'][0]['uuid']
         dois = self.get(f"{linked_table}/{linked_uuid}")['data']['dois']
