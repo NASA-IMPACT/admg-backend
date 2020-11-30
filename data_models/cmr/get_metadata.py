@@ -36,7 +36,7 @@ def query_api(short_name):
     campaign_trees = ingest_campaign(short_name)
     campaign_metadata = campaign_xml_to_json(campaign_trees)
 
-    # TODO: replace this with the final location in the db we decide on
+    # TODO: replace this with the final location in the db we decide on 
     pickle.dump(campaign_metadata, open(f'cmr_data-{short_name}', 'wb'))
 
     return campaign_metadata
@@ -112,6 +112,9 @@ def get_deployment_and_cp(campaign_short_name, dep_start, dep_end):
 
     return db
 
+def extract_doi(concept):
+    """test function to extract missing DOI metadata. I'm actually not sure if this is legit and we should check for errors"""
+    return concept['metadata']['CollectionCitations'][0]['OtherCitationDetails'].split('DOI: ')[1].split('.org/')[1]
 
 def get_concepts(campaign_short_name, dep_start, dep_end):
 
@@ -125,7 +128,11 @@ def get_concepts(campaign_short_name, dep_start, dep_end):
         entry_title = concept['metadata']['EntryTitle']
         doi = concept['metadata'].get('DOI', {}).get('DOI')
         if not (doi):
-            continue
+            try:
+                doi = extract_doi(concept)
+                print(campaign_short_name, '- missing doi extracted')
+            except:
+                continue
         print(concept_short, doi)
 
         data = {
