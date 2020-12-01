@@ -1,9 +1,13 @@
 import json
-from rest_framework import serializers
+from uuid import uuid4
+
+from django.apps import apps
+from django.contrib.contenttypes.models import ContentType
 from django.contrib.gis.geos import GEOSGeometry
+from rest_framework import serializers
+
 from data_models import models
 
-from uuid import uuid4
 
 def get_uuids(database_entries):
     return list(database_entries.values_list('uuid', flat=True))
@@ -50,6 +54,7 @@ def change_bbox_to_polygon(validated_data, key="spatial_bounds"):
         validated_data[key] = polygon
     return validated_data
 
+
 class BaseSerializer(serializers.ModelSerializer):
     uuid = serializers.UUIDField(default=uuid4)
 
@@ -59,7 +64,8 @@ class GetAliasSerializer(BaseSerializer):
 
     def get_aliases(self, obj):
         return [alias.uuid for alias in obj.aliases.all()]
-        
+
+
 class ImageSerializer(BaseSerializer):
     class Meta:
         model = models.Image
@@ -196,11 +202,38 @@ class PartnerOrgSerializer(GetAliasSerializer):
         model = models.PartnerOrg
         fields = "__all__"
 
+
+def convert_to_content_type(validated_data, arg_to_convert='model_name'):
+    """Takes a model name such as PartnerOrg and converts it
+    to the content_type integer expected by the serializer
+
+    Args:
+        validated_data (dict): this is post data from the user
+    """
+
+    model_name = validated_data.get(arg_to_convert)
+    model = apps.get_model(app_label='data_models', model_name=model_name)
+    model_content_type = ContentType.objects.get_for_model(model)
+    validated_data.pop(arg_to_convert)
+    validated_data['content_type'] = model_content_type
+
+    return validated_data
+
+
 class AliasSerializer(BaseSerializer):
-    model = serializers.SerializerMethodField(read_only=True)
-    
+    model_name = serializers.CharField(write_only=True) # user input for model
+    model = serializers.SerializerMethodField(read_only=True) # serializer output for model
+
     def get_model(self, obj):
         return obj.content_type.name
+
+    def create(self, validated_data):
+        validated_data = convert_to_content_type(validated_data)
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        validated_data = convert_to_content_type(validated_data)
+        return super().update(instance, validated_data)
 
     class Meta:
         model = models.Alias
