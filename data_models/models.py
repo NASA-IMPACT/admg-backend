@@ -1,7 +1,9 @@
 import os
 import uuid
 
-from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
+from django.apps import apps
+from django.contrib.contenttypes.fields import (GenericForeignKey,
+                                                GenericRelation)
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.gis.db import models as geomodels
 from django.contrib.postgres.fields import JSONField
@@ -99,8 +101,7 @@ class GeophysicalConcept(LimitedInfo):
     gcmd_uuid = models.UUIDField(null=True, blank=True)
     example = models.CharField(max_length=1024, blank=True, default='')
 
-from django.apps import apps
-from django.contrib.contenttypes.models import ContentType
+
 class Alias(BaseModel):
 
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, blank=True)
