@@ -1,9 +1,13 @@
 import json
-from rest_framework import serializers
+from uuid import uuid4
+
+from django.apps import apps
+from django.contrib.contenttypes.models import ContentType
 from django.contrib.gis.geos import GEOSGeometry
+from rest_framework import serializers
+
 from data_models import models
 
-from uuid import uuid4
 
 def get_uuids(database_entries):
     return list(database_entries.values_list('uuid', flat=True))
@@ -50,6 +54,7 @@ def change_bbox_to_polygon(validated_data, key="spatial_bounds"):
         validated_data[key] = polygon
     return validated_data
 
+
 class BaseSerializer(serializers.ModelSerializer):
     uuid = serializers.UUIDField(default=uuid4)
 
@@ -59,7 +64,8 @@ class GetAliasSerializer(BaseSerializer):
 
     def get_aliases(self, obj):
         return [alias.uuid for alias in obj.aliases.all()]
-        
+
+
 class ImageSerializer(BaseSerializer):
     class Meta:
         model = models.Image
@@ -196,11 +202,8 @@ class PartnerOrgSerializer(GetAliasSerializer):
         model = models.PartnerOrg
         fields = "__all__"
 
+
 class AliasSerializer(BaseSerializer):
-    model = serializers.SerializerMethodField(read_only=True)
-    
-    def get_model(self, obj):
-        return obj.content_type.name
 
     class Meta:
         model = models.Alias
