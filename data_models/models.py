@@ -99,15 +99,25 @@ class GeophysicalConcept(LimitedInfo):
     gcmd_uuid = models.UUIDField(null=True, blank=True)
     example = models.CharField(max_length=1024, blank=True, default='')
 
-
+from django.apps import apps
+from django.contrib.contenttypes.models import ContentType
 class Alias(BaseModel):
 
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, blank=True)
     object_id = models.UUIDField()
     parent_fk = GenericForeignKey('content_type', 'object_id')
 
+    model_name = models.CharField(max_length=64, blank=False)
     short_name = models.CharField(max_length=512, blank=False)
     source = models.TextField(blank=True, default='')
+
+    def save(self, *args, **kwargs):
+        """converts model_name field 'PartnerOrg' into a content type to support the 
+        GenericForeignKey relationship, which would otherwise require an arbitrary 
+        primary key to be passed in the post request"""
+        model = apps.get_model(app_label='data_models', model_name=self.model_name)
+        self.content_type = ContentType.objects.get_for_model(model)
+        return super(Alias, self).save(*args, **kwargs)
 
     class Meta:
         verbose_name_plural='Aliases'
