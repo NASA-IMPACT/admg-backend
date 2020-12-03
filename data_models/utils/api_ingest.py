@@ -452,23 +452,23 @@ class ingest:
                             'validation_results':validation_dict,
                         })
                         
-        return all_validation
+        # return all_validation
 
-#                 api_response = self.api.create(table_name, api_data)
-#                 if not(api_response['success']):
-#                     if 'unique' in api_response['message']:
-#                         f.write(f'{table_name}, {primary_value}, not ingested because of duplication\n')
-#                     else:
-#                         f.write(f'{table_name}, {primary_value}, not ingested because unknown error\n')
-#                         f.write(f"{table_name}: {primary_value}, {json.dumps(api_data)}\n")
-#                         f.write(f"{table_name}: {primary_value}, {json.dumps(api_response)}\n")
-#                 else:
-#                     print(table_name)
-#                     foreign_key_uuid_map = update_uuid_map(primary_key_map, foreign_key_uuid_map, table_name, api_data, api_response)
-#                     f.write(f"{json.dumps(api_response)}\n")
-#                 #####
-#             else:
-#                 f.write(f"{table_name}: {primary_key}, {json.dumps(api_data)}\n")
+                    #     api_response = self.api.create(table_name, api_data)
+                    #     if not(api_response['success']):
+                    #         if 'unique' in api_response['message']:
+                    #             f.write(f'{table_name}, {primary_value}, not ingested because of duplication\n')
+                    #         else:
+                    #             f.write(f'{table_name}, {primary_value}, not ingested because unknown error\n')
+                    #             f.write(f"{table_name}: {primary_value}, {json.dumps(api_data)}\n")
+                    #             f.write(f"{table_name}: {primary_value}, {json.dumps(api_response)}\n")
+                    #     else:
+                    #         print(table_name)
+                    #         foreign_key_uuid_map = update_uuid_map(primary_key_map, foreign_key_uuid_map, table_name, api_data, api_response)
+                    #         f.write(f"{json.dumps(api_response)}\n")
+                    #     #####
+                    # else:
+                    #     f.write(f"{table_name}: {primary_key}, {json.dumps(api_data)}\n")
 
 
 
@@ -496,7 +496,8 @@ class ingest:
 import pickle
 if __name__ == "__main__":
     test = ingest()
+    validation_results = test.loop_validate()
     # db = prepare_db()
     # validation_results = loop_validate(db)
     # pickle.dump(db, open('test_db_pre_ingest', 'wb'))
-    # pickle.dump(validation_results, open('test_val_results', 'wb'))
+    pickle.dump(validation_results, open('test_val_results', 'wb'))

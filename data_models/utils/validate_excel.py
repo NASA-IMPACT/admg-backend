@@ -1,6 +1,6 @@
 import pandas as pd
 import json
-from data_models.utils.automated_ingest import ingest_2
+from data_models.utils.ingest import excel_to_processed_df
 
 from data_models.utils import validate
 from data_models.utils.general import filter_gcmd_tables
@@ -8,7 +8,7 @@ from data_models.utils.general import filter_gcmd_tables
 # def validate_excel(path='inventory_data/inventory - 2020.11.12.xlsx'):
 
 def validate_excel(excel_file):
-    db = ingest_2(excel_file)
+    db = excel_to_processed_df(excel_file)
 
     validation_results = {}
     # short name validation
