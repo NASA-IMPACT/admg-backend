@@ -3,29 +3,10 @@ import pandas as pd
 import os
 
 try:
-    from data_models.utils import (
-        clean,
-        validate
-    )
-    from data_models.utils.general import (
-        correct_values,
-        many_to_many,
-        many_cols,
-        filter_gcmd_tables,
-        filter_campaigns,
-        log_short_names
-    )
+    from data_models.utils.df_processing import *
 except ImportError:
-    import validate
-    import clean
-    from general import (
-        correct_values,
-        many_to_many,
-        many_cols,
-        filter_gcmd_tables,
-        filter_campaigns,
-        log_short_names
-    )
+    from df_processing import *
+
 # except ImportError:
 #     from . import validate
 #     from .general import (many_to_many, many_cols)
@@ -38,19 +19,6 @@ def rename_columns(db, table_name, remap_dict):
     table = db[table_name]
     table.rename(mapper=remap_dict[table_name], axis='columns', inplace=True)
     return table
-
-
-def sheet(excel_data, remap_dict, sheet_name, remap_name, header_row, data_row):
-
-    df = excel_data[sheet_name].copy()
-    df.columns = df.iloc[header_row]
-    df = df[data_row:]
-    df.fillna(value='Information Not Available', inplace=True)
-
-    if remap_name:
-        df.rename(mapper=remap_dict[remap_name], axis='columns', inplace=True)
-
-    return df
 
 
 def excel_to_df(file_path):
@@ -74,7 +42,7 @@ def excel_to_df(file_path):
     mapping_limited_sheets = json.load(open(os.path.join(base_path, 'mapping_limited_sheets.json'), 'r'))
     mapping_limited_cols = json.load(open(os.path.join(base_path, 'mapping_limited_cols.json'), 'r'))
 
-    validate.sheet_names(excel_data)
+    validate_sheet_names(excel_data)
 
     ######################
     ### LIMITED FIELDS ###
