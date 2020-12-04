@@ -30,6 +30,10 @@ except ImportError:
 #     from . import validate
 #     from .general import (many_to_many, many_cols)
 
+
+CAMPAIGNS_TO_INGEST = 'test_campaign'
+
+
 def rename_columns(db, table_name, remap_dict):
     table = db[table_name]
     table.rename(mapper=remap_dict[table_name], axis='columns', inplace=True)
@@ -46,7 +50,7 @@ def sheet(excel_data, remap_dict, sheet_name, remap_name, header_row, data_row):
     if remap_name:
         df.rename(mapper=remap_dict[remap_name], axis='columns', inplace=True)
 
-    return df  
+    return df
 
 
 def excel_to_df(file_path):
@@ -54,12 +58,18 @@ def excel_to_df(file_path):
     # this dict will hold all the database tables
     db = {}
 
-    excel_data = pd.read_excel(file_path, sheet_name = None, encoding='utf-8')
+    excel_data = pd.read_excel(file_path, sheet_name=None, encoding='utf-8')
 
-    # base_path = os.path.join(os.path.abspath('.'), 'config')
-    base_path = os.path.join(os.path.abspath('.'), 'data_models/utils/config')
-    
-    mapping_columns = json.load(open(os.path.join(base_path, 'mapping_columns.json'), 'r'))
+    # set the base path and attempt one load of data
+    # this problem arrises because of difference between how python sees the files when running on the
+    # command line vs running from withing the django application
+    try: # django version of imports
+        base_path = os.path.join(os.path.abspath('.'), 'data_models/utils/config')
+        mapping_columns = json.load(open(os.path.join(base_path, 'mapping_columns.json'), 'r'))
+    except: # command line version of imports
+        base_path = os.path.join(os.path.abspath('.'), 'config')
+        mapping_columns = json.load(open(os.path.join(base_path, 'mapping_columns.json'), 'r'))
+
     mapping_ingest = json.load(open(os.path.join(base_path, 'mapping_ingest.json'), 'r'))
     mapping_limited_sheets = json.load(open(os.path.join(base_path, 'mapping_limited_sheets.json'), 'r'))
     mapping_limited_cols = json.load(open(os.path.join(base_path, 'mapping_limited_cols.json'), 'r'))
@@ -201,9 +211,9 @@ def process_df(db):
     ###################
 
     try:
-        ingest_campaign_list = json.load(open('data_models/utils/config/ingest_campaign_list.json', 'r'))['new_list']
+        ingest_campaign_list = json.load(open('data_models/utils/config/ingest_campaign_list.json', 'r'))[CAMPAIGNS_TO_INGEST]
     except:
-        ingest_campaign_list = json.load(open('config/ingest_campaign_list.json', 'r'))['new_list']
+        ingest_campaign_list = json.load(open('config/ingest_campaign_list.json', 'r'))[CAMPAIGNS_TO_INGEST]
 
     db = filter_campaigns(db, ingest_campaign_list)
 
@@ -232,7 +242,6 @@ def process_df(db):
 
     # filter gcmd tables
     db = filter_gcmd_tables(db)
-
     return db
 
 
