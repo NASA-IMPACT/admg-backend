@@ -21,10 +21,11 @@ HEIRARCHICAL_TABLES = [
     }
 ]
 
-class ingest:
-    def __init__(self):
+class Ingest:
+    def __init__(self, df_file):
         self.api = Api('test')
-        self.db = pickle.load(open('ingest_data/db_20201028', 'rb')) # fresh_data_filtered
+        # self.db = pickle.load(open('ingest_data/db_20201028', 'rb')) # fresh_data_filtered
+        self.db = df_file # pickle.load(open('db_olympex_20201028', 'rb')) # fresh_data_filtered
 
         self.remove_multiple_gcmd_entries()
         self.handle_blank_values()
@@ -33,6 +34,11 @@ class ingest:
         self.primary_key_map = json.load(open("config/mapping_primary.json"))
         self.foreign_key_uuid_map = self.get_foreign_key_map(generate_blank=True)
         self.ingest_order = json.load(open("config/ingest_order.json"))
+
+        self.raw_validation = {}
+        self.filtered_validation = {}
+
+        self.ingest_log = []
 
 
     def pluralize_table_name(self, table_name):
@@ -397,107 +403,121 @@ class ingest:
             self.order_heirarchical_table(table_data['table_name'], table_data['field_name'])
 
 
-    def filter_validation_results(self, validation_dict):
+    def remove_unwanted_codes(self, validation_dict):
         
-        ignore_codes = ['unique', 'does_not_exist']
-        ignore_messages = ['valid UUID']
+        ignored_errors = {
+            'code': ['unique', 'does_not_exist'],
+            'message': ['valid UUID']
+        }
         
         filtered_dict = validation_dict.copy()
         for field, validation_results in validation_dict.items():
             for result in validation_results:
-                # codes
-                for code in ignore_codes:
-                    if code in result['code']:
-                        filtered_dict.pop(field)
-                # messages
-                for message in ignore_messages:
-                    if message in result['message']:
-                        filtered_dict.pop(field)
+                # loop through errors in ignored_errors dict
+                for error_type, error_list in ignored_errors.items():
+                    for error in error_list:
+                        if error in result[error_type]:
+                            filtered_dict.pop(field)
+
         return filtered_dict
 
 
-    def loop_validate(self):
-        # ingests everything except for collection period
-        all_validation = {}
-        with open("result.txt", "w") as f:
-            for table_name in self.ingest_order:
-                all_validation[table_name] = []
-            # for table_name in ["platform_type"]:
-                for index, row in self.db[table_name].iterrows():
-                    print(table_name, index)
-                    api_data = row.to_dict()
-                    print(api_data)
-                    api_data = self.remove_ignored_fields(api_data)
-                    api_data = self.convert_nans(api_data)
-                    api_data = self.remove_nones(api_data)
-                    primary_key = self.primary_key_map[table_name]
-                    primary_value = api_data.get(primary_key)
-                    if primary_value:
-                        self.resolve_many_to_many_keys(table_name, api_data, True)
-                        self.resolve_foreign_keys(table_name, api_data, True)
-            
-                        api_data = self.remove_field(api_data, 'end_date', 'ongoing')
-                            
-                        formatted_table_name = self.format_table_name(table_name)
-
-                        try:
-                            validation_response = self.api.validate_json(formatted_table_name, api_data, False)
-                        except:
-                            import ipdb; ipdb.set_trace()
-                            assert False    
-                        validation_dict = json.loads(validation_response.content)
-
-                        all_validation[table_name].append({
-                            'original_data':api_data,
-                            'validation_results':validation_dict,
-                        })
-                        
-        # return all_validation
-
-                    #     api_response = self.api.create(table_name, api_data)
-                    #     if not(api_response['success']):
-                    #         if 'unique' in api_response['message']:
-                    #             f.write(f'{table_name}, {primary_value}, not ingested because of duplication\n')
-                    #         else:
-                    #             f.write(f'{table_name}, {primary_value}, not ingested because unknown error\n')
-                    #             f.write(f"{table_name}: {primary_value}, {json.dumps(api_data)}\n")
-                    #             f.write(f"{table_name}: {primary_value}, {json.dumps(api_response)}\n")
-                    #     else:
-                    #         print(table_name)
-                    #         foreign_key_uuid_map = update_uuid_map(primary_key_map, foreign_key_uuid_map, table_name, api_data, api_response)
-                    #         f.write(f"{json.dumps(api_response)}\n")
-                    #     #####
-                    # else:
-                    #     f.write(f"{table_name}: {primary_key}, {json.dumps(api_data)}\n")
-
-
-
-
-
-# filtered_validation = {}
-# for table_name, table_values in all_validation.items():
-#     filtered_validation[table_name]=[]
-#     for entry in table_values:
-#         # filter if necessary
-#         if entry['validation_results'].get('success', True):
-#             validation_dict = {}
-#         else:
-#             print(entry)
-#             validation_dict = json.loads(entry['validation_results']['message'])
-#             validation_dict = filter_validation_results(validation_dict)
+    def filter_validation(self):
         
-#         if validation_dict:
-#             filtered_validation[table_name].append({
-#                 'original_data': entry['original_data'],
-#                 'validation_results': validation_dict
-#             })
+        filtered_validation = {}
+        for table_name, table_values in self.raw_validation.items():
+            filtered_validation[table_name] = []
+            for entry in table_values:
+                # filter if necessary
+                if entry['validation_results'].get('success', True):
+                    validation_dict = {}
+                else:
+                    print(entry)
+                    raw_validation_dict = json.loads(entry['validation_results']['message'])
+                    validation_dict = self.remove_unwanted_codes(raw_validation_dict)
+                
+                if validation_dict:
+                    filtered_validation[table_name].append({
+                        'original_data': entry['original_data'],
+                        'validation_results': validation_dict
+                    })
+
+        self.filtered_validation = filtered_validation
 
 
-import pickle
-if __name__ == "__main__":
-    test = ingest()
-    validation_results = test.loop_validate()
-    # db = prepare_db()
-    # validation_results = loop_validate(db)
-    # pickle.dump(db, open('test_db_pre_ingest', 'wb'))
-    pickle.dump(validation_results, open('test_val_results', 'wb'))
+    def validate_line(self, table_name, api_data):
+        formatted_table_name = self.format_table_name(table_name)
+
+        try:
+            validation_response = self.api.validate_json(formatted_table_name, api_data, False)
+        except:
+            import ipdb; ipdb.set_trace()
+            assert False
+        validation_dict = json.loads(validation_response.content)
+
+        self.raw_validation[table_name] = self.raw_validation.get(table_name, [])
+        self.raw_validation[table_name].append({
+            'original_data':api_data,
+            'validation_results':validation_dict,
+        })
+
+
+    def log_ingest_results(self, api_data, api_response, table_name):
+        if not(api_response['success']):
+
+            primary_key = self.primary_key_map[table_name]
+            primary_value = api_data.get(primary_key)
+
+            if 'unique' in api_response['message']:
+                self.ingest_log.append(f'{table_name}, {primary_value}, not ingested because of duplication')
+            else:
+                self.ingest_log.append(f'{table_name}, {primary_value}, not ingested because unknown error')
+                self.ingest_log.append(f"{table_name}: {primary_value}, {json.dumps(api_data)}")
+                self.ingest_log.append(f"{table_name}: {primary_value}, {json.dumps(api_response)}")
+        else:
+            print(table_name)
+            self.update_uuid_map(table_name, api_data, api_response)
+            self.ingest_log.append(f"{json.dumps(api_response)}")
+
+
+    def ingest_line(self, table_name, api_data):
+        api_response = self.api.create(table_name, api_data)
+        self.log_ingest_results(api_data, api_response, table_name)
+
+
+    def iterate_data(self, func):
+        for table_name in self.ingest_order:
+            for index, row in self.db[table_name].iterrows():
+                print(table_name, index)
+                api_data = row.to_dict()
+                print(api_data)
+                api_data = self.remove_ignored_fields(api_data)
+                api_data = self.convert_nans(api_data)
+                api_data = self.convert_dates(api_data)
+                api_data = self.remove_nones(api_data)
+
+                primary_key = self.primary_key_map[table_name]
+                primary_value = api_data.get(primary_key)
+
+                if primary_value:
+                    self.resolve_many_to_many_keys(table_name, api_data, True)
+                    self.resolve_foreign_keys(table_name, api_data, True)
+        
+                    api_data = self.remove_field(api_data, 'end_date', 'ongoing')
+
+                    func(table_name, api_data)
+
+                else:
+                    # under what cercumstances does this actually execute?
+                    if func == self.ingest_line:
+                        self.ingest_log.append(f"{table_name}: {primary_key}, {json.dumps(api_data)}")
+                            
+        
+    def validate(self):
+        self.iterate_data(self.validate_line)
+        self.filter_validation()
+
+
+    def ingest(self):
+        # ingests everything except for collection period?
+        self.iterate_data(self.api.create)
