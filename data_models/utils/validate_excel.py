@@ -1,9 +1,13 @@
 import pandas as pd
 import json
-from data_models.utils.ingest import excel_to_processed_df
 
-from data_models.utils import validate
-from data_models.utils.general import filter_gcmd_tables
+try:
+    from data_models.utils.df_processing import validate_foreign_keys, find_duplicates
+    from data_models.utils.ingest import excel_to_processed_df
+except ImportError:
+    from df_processing import validate_foreign_keys
+    from ingest import excel_to_processed_df
+
 
 # def validate_excel(path='inventory_data/inventory - 2020.11.12.xlsx'):
 
@@ -21,7 +25,7 @@ def validate_excel(excel_file):
             continue
 
         if 'short_name' in db[table_name].keys():
-            duplicates = validate.find_duplicates(db, table_name, 'short_name')
+            duplicates = find_duplicates(db, table_name, 'short_name')
 
             results[table_name] = {
                 'errors': duplicates
@@ -46,7 +50,7 @@ def validate_excel(excel_file):
         data_column = foreign_table = data_table.split('-')[2]
         foreign_column = primary_mapping[foreign_table]
 
-        errors = validate.foreign_keys(
+        errors = validate_foreign_keys(
             db,
             data_table=data_table,
             data_index=data_index,
@@ -55,6 +59,8 @@ def validate_excel(excel_file):
             foreign_column=foreign_column
         )
         results[data_table] = {'errors':errors.to_dict()}
+
+
 
     validation_results['many_to_many'] = {
         'results': results,
@@ -82,7 +88,7 @@ def validate_excel(excel_file):
                 foreign_table = column.split('-')[1]
                 foreign_column = 'short_name'
                 
-                errors = validate.foreign_keys(db, 
+                errors = validate_foreign_keys(db, 
                                                 data_table=data_table,
                                                 data_index=data_index,
                                                 data_column=data_column,
