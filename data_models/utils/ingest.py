@@ -21,12 +21,12 @@ def rename_columns(db, table_name, remap_dict):
     return table
 
 
-def excel_to_df(file_path):
+def excel_to_df(path_or_excel_file):
     
     # this dict will hold all the database tables
     db = {}
 
-    excel_data = pd.read_excel(file_path, sheet_name=None, encoding='utf-8')
+    excel_data = pd.read_excel(path_or_excel_file, sheet_name=None, encoding='utf-8')
 
     # set the base path and attempt one load of data
     # this problem arrises because of difference between how python sees the files when running on the
@@ -131,9 +131,9 @@ def process_df(db):
     db['platform']['stationary'].replace('Y', 'False', inplace=True)
     db['platform']['stationary'].replace('N', 'True', inplace=True)
 
-    db = clean.remove_NaN_columns(db)
-    db = clean.strip_all_columns(db)
-    db = clean.replace_nid(db)
+    db = remove_NaN_columns(db)
+    db = strip_all_columns(db)
+    db = replace_nid(db)
 
 
     ##############################
@@ -213,8 +213,8 @@ def process_df(db):
     return db
 
 
-def excel_to_processed_df(excel_file):
-    db = excel_to_df(excel_file)['database']
+def excel_to_processed_df(path_or_excel_file):
+    db = excel_to_df(path_or_excel_file)['database']
     db = process_df(db)
 
     return db
