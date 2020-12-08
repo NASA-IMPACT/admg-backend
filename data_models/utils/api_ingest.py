@@ -25,7 +25,8 @@ class Ingest:
     def __init__(self, df_file):
         self.api = Api('test')
         # self.db = pickle.load(open('ingest_data/db_20201028', 'rb')) # fresh_data_filtered
-        self.db = df_file # pickle.load(open('db_olympex_20201028', 'rb')) # fresh_data_filtered
+        self.db_raw = df_file # pickle.load(open('db_olympex_20201028', 'rb')) # fresh_data_filtered
+        self.db = self.db_raw.copy()
 
         self.remove_multiple_gcmd_entries()
         self.handle_blank_values()
@@ -35,8 +36,8 @@ class Ingest:
         self.foreign_key_uuid_map = self.get_foreign_key_map(generate_blank=True)
         self.ingest_order = json.load(open("config/ingest_order.json"))
 
-        self.raw_validation = {}
-        self.filtered_validation = {}
+        self.raw_validation_results = {}
+        self.filtered_validation_results = {}
 
         self.ingest_log = []
 
@@ -182,7 +183,7 @@ class Ingest:
         self.foreign_key_uuid_map[table_name][primary_value] = uuid
 
 
-    def resolve_many_to_many_keys(self, table_name, data, validation=False):
+    def resolve_many_to_many_keys(self, table_name, data):
         print('\n ----- Resolving Many to Many')
         
         # data should be json of the row
@@ -202,7 +203,7 @@ class Ingest:
             foreign_values = self.db[linking_table][self.db[linking_table][table_name] == primary_value][foreign_table]
             
             # get's list of shortnames if running validation or list of uuids if running ingest
-            if validation:
+            if self._use_short_names:
                 mapped_uuids = [i for i in foreign_values] # is actually just short names, not uuids
             else:
                 mapped_uuids = [
@@ -225,8 +226,10 @@ class Ingest:
             print(f'{mapped_uuids=}')
             print()
 
+        return data
 
-    def resolve_foreign_keys(self, table_name, data, validation=False):
+
+    def resolve_foreign_keys(self, table_name, data):
         print('\n ----- Resolving Foreign Keys')
         # data should be json of the row
 
@@ -243,17 +246,19 @@ class Ingest:
             print(f'{fields=}')
 
             # get's list of shortnames if running validation or list of uuids if running ingest
-            if validation:
+            if self._use_short_names:
+                if table_name in ['platform_type', 'instrument_type', 'measurement_type', 'measurement_style']:
+                    foreign_table = 'parent'
+                data[foreign_table] = foreign_value
+            else:
+                if self.foreign_key_uuid_map[foreign_table].get(foreign_value):
+                    mapped_uuid = self.foreign_key_uuid_map[foreign_table][foreign_value]   
                     if table_name in ['platform_type', 'instrument_type', 'measurement_type', 'measurement_style']:
                         foreign_table = 'parent'
-                    data[foreign_table] = foreign_value
-            else:
-                    if self.foreign_key_uuid_map[foreign_table].get(foreign_value):
-                        mapped_uuid = self.foreign_key_uuid_map[foreign_table][foreign_value]   
-                        if table_name in ['platform_type', 'instrument_type', 'measurement_type', 'measurement_style']:
-                            foreign_table = 'parent'
-                        data[foreign_table] = mapped_uuid
+                    data[foreign_table] = mapped_uuid
             del data[field]
+
+        return data
 
 
     def remove_multiple_gcmd_entries(self):
@@ -425,7 +430,7 @@ class Ingest:
     def filter_validation(self):
         
         filtered_validation = {}
-        for table_name, table_values in self.raw_validation.items():
+        for table_name, table_values in self.raw_validation_results.items():
             filtered_validation[table_name] = []
             for entry in table_values:
                 # filter if necessary
@@ -433,8 +438,8 @@ class Ingest:
                     validation_dict = {}
                 else:
                     print(entry)
-                    raw_validation_dict = json.loads(entry['validation_results']['message'])
-                    validation_dict = self.remove_unwanted_codes(raw_validation_dict)
+                    raw_validation_entry_dict = json.loads(entry['validation_results']['message'])
+                    validation_dict = self.remove_unwanted_codes(raw_validation_entry_dict)
                 
                 if validation_dict:
                     filtered_validation[table_name].append({
@@ -442,7 +447,7 @@ class Ingest:
                         'validation_results': validation_dict
                     })
 
-        self.filtered_validation = filtered_validation
+        self.filtered_validation_results = filtered_validation
 
 
     def validate_line(self, table_name, api_data):
@@ -455,8 +460,8 @@ class Ingest:
             assert False
         validation_dict = json.loads(validation_response.content)
 
-        self.raw_validation[table_name] = self.raw_validation.get(table_name, [])
-        self.raw_validation[table_name].append({
+        self.raw_validation_results[table_name] = self.raw_validation_results.get(table_name, [])
+        self.raw_validation_results[table_name].append({
             'original_data':api_data,
             'validation_results':validation_dict,
         })
@@ -485,6 +490,28 @@ class Ingest:
         self.log_ingest_results(api_data, api_response, table_name)
 
 
+    def generate_collection_periods(self):
+        """validation True will use short names instead of uuids"""
+        collection_periods = {}
+        for index, row in self.db["collection_period"].iterrows():
+            row_dict = row.to_dict()
+
+            row_dict = self.remove_ignored_fields(row_dict)
+            row_dict = self.remove_nones(row_dict)
+            row_dict = self.resolve_foreign_keys("collection_period", row_dict)
+
+            row_dict['instruments'] = [row_dict['instrument']]
+            del(row_dict['instrument'])
+
+            cp_short_name = row_dict['short_name']
+            if collection_periods.get(cp_short_name):
+                collection_periods[cp_short_name]['instruments'].extend(row_dict['instruments'])
+            else:
+                collection_periods[cp_short_name] = row_dict
+
+        return [collection_period for cp_short_name, collection_period in collection_periods.items()]
+
+
     def iterate_data(self, func):
         for table_name in self.ingest_order:
             for index, row in self.db[table_name].iterrows():
@@ -500,8 +527,8 @@ class Ingest:
                 primary_value = api_data.get(primary_key)
 
                 if primary_value:
-                    self.resolve_many_to_many_keys(table_name, api_data, True)
-                    self.resolve_foreign_keys(table_name, api_data, True)
+                    api_data = self.resolve_many_to_many_keys(table_name, api_data)
+                    api_data = self.resolve_foreign_keys(table_name, api_data)
         
                     api_data = self.remove_field(api_data, 'end_date', 'ongoing')
 
@@ -511,13 +538,60 @@ class Ingest:
                     # under what cercumstances does this actually execute?
                     if func == self.ingest_line:
                         self.ingest_log.append(f"{table_name}: {primary_key}, {json.dumps(api_data)}")
-                            
         
+        collection_period_data = self.generate_collection_periods()
+        for collection_period in collection_period_data:
+            func('collection_period', collection_period)
+
+
+        # ingested = []
+        # for cp_short_name, collection_period in collection_periods.items():
+        #     ingested.append(collection_period)
+
+
     def validate(self):
+        self._use_short_names = True # modifies get_foriegn and resolve_many_to_many
         self.iterate_data(self.validate_line)
         self.filter_validation()
 
 
     def ingest(self):
         # ingests everything except for collection period?
+        self._use_short_names = False
         self.iterate_data(self.api.create)
+
+
+    def purge_database(self):
+        # maybe recode this to use the apis once they are sped up?
+        from data_models import models
+
+        model_names = [
+            'PlatformType',
+            'NasaMission',
+            'MeasurementType',
+            'MeasurementStyle',
+            'HomeBase',
+            'FocusArea',
+            'Season',
+            'Repository',
+            'MeasurementRegion',
+            'GeographicalRegion',
+            'GeophysicalConcept',
+            'PartnerOrg',
+            'GcmdProject',
+            'GcmdInstrument',
+            'GcmdPlatform',
+            'GcmdPhenomena',
+            'DOI',
+            'Campaign',
+            'Platform',
+            'Deployment',
+            'IOP',
+            'SignificantEvent',
+            'CollectionPeriod',
+            'Instrument'
+        ]
+
+        for model_name in model_names:
+            model = getattr(models, model_name)
+            model.objects.all().delete()
