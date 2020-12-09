@@ -64,6 +64,36 @@ def correct_values(db, table_name, column, wrong_value, correct_value):
     return db
 
 
+def supplement_instrument_metadata(db):
+    """fixes problem of the missing required field. ADMG inventory team should collect this data, but
+    I am providing a default here until they do"""
+
+    # supplement missing instrument values
+    correct_values(
+        db=db,
+        table_name='instrument',
+        column='table-gcmd_phenomena-ignore_code',
+        wrong_value='Information Not Available',
+        correct_value='4081')
+
+    # add the correct gcmd code to match the default
+    if '4081' not in list(db['gcmd_phenomena']['ignore_code']):
+        default_gcmd_phenomena = {
+            'ignore_code': '4081',
+            'category': 'EARTH SCIENCE',
+            'topic': 'Information Not Available',
+            'term': 'Information Not Available',
+            'variable_1': 'Information Not Available',
+            'variable_2': 'Information Not Available',
+            'variable_3': 'Information Not Available',
+            'gcmd_uuid': 'e9f67a66-e9fc-435c-b720-ae32a2c3d8f5'
+        }
+
+        db['gcmd_phenomena'] = db['gcmd_phenomena'].append(default_gcmd_phenomena, ignore_index=True)
+    
+    return db
+
+
 def filter_campaigns(db, campaign_list):
     """Takes a pre-database dataframe and a list of campaigns and filters all the related tables to only 
     contain data linked to those campaigns.

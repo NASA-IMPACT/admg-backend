@@ -147,13 +147,24 @@ def process_df(db):
 
     # create collection period table
     db['collection_period'] = many_to_many(db, 'linking', 'table-instrument-short_name', keep_all=True)
-    db['collection_period']['short_name'] = db['collection_period']['foreign-campaign-short_name']+'_'+db['collection_period']['foreign-deployment-short_name']+'_'+db['collection_period']['foreign-platform-short_name']
+
+    # generate a clean platform id column for appending
+    db['collection_period']['ignore_plat_id'] = db['collection_period']['platform_identifier'].apply(lambda x: str(x) if x!='Information Not Available' else '')
+    db['collection_period']['short_name'] = db['collection_period']['foreign-campaign-short_name']+'_'+db['collection_period']['foreign-deployment-short_name']+'_'+db['collection_period']['foreign-platform-short_name']+'_'+db['collection_period']['ignore_plat_id']
     db['collection_period']['foreign-deployment-short_name']=db['collection_period']['foreign-campaign-short_name']+'_'+db['collection_period']['foreign-deployment-short_name']
     
     # correct column naming in collection_period table
     db['collection_period'].rename(columns={'instrument':'foreign-instrument-short_name'}, inplace=True)
     
     db['collection_period']['auto_generated']=True
+
+
+    ########################
+    # Data Supplementation #
+    ########################
+
+    db = supplement_instrument_metadata(db)
+
 
     #################
     # Matching IOPS #
