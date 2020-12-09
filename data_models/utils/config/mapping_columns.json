@@ -105,6 +105,7 @@
     "Instrument Overview Publication": "overview_publication",
     "Online Information": "online_information",
     "Notes": "notes_internal",
+    "OLD -- DO NOT USE AFTER 19 May 2020 -- GCMD Measurements/Variables UUID - internal 4-digit codes": "ignore_old_gcmd",
     "GCMD Measurements/Variables UUID - internal 4-digit codes": "table-gcmd_phenomena-ignore_code",
     "Primary Applicable Geophysical Concepts": "ignore_geophysical_concept",
     "Instrument radiometric Frequency of Measurement": "radiometric_frequency",
@@ -116,7 +117,14 @@
     "Instrument Image Name/description":"image-description",
     "Instrument Image Source":"image-owner",
     "Reviewer": "ignore_reviewer",
-    "Initials": "ignore_initials"
+    "Initials": "ignore_initials",
+    "In Backlog/To Do": "ignore_in_backlog",
+    "1st Review Complete": "ignore_1st_review",
+    "2nd Review Complete": "ignore_2nd_review",
+    " Admin Check Compete": "ignore_admin_check",
+    "Metadata Added": "ignore_metadata_added",
+    "Non-Admin Reviews Completed": "ignore_non_admin_reviews",
+    "Done": "ignore_done"
   },
   "deployment": {
     "campaign shortname": "foreign-campaign-short_name",
