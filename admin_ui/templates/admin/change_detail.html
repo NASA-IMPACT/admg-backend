@@ -1,6 +1,6 @@
 {% extends "admin/change_form.html" %}
 {% load i18n admin_urls %}
-{% block object-tools-items %}
+<!-- {% block object-tools-items %}
     <li>
         <a href="{% url opts|admin_urlname:'history' original.pk|admin_urlquote %}" class="historylink">{% translate "History" %}</a>
     </li>
@@ -12,7 +12,7 @@
             <a href="{% url 'admin:view_on_site' content_type_id original.pk %}" class="viewsitelink">{% translate "View on site" %}</a>
         </li>
     {% endif %}
-{% endblock %}
+{% endblock %} -->
 {% block after_field_sets %}
 <hr />
 {# https://github.com/django/django/blob/master/django/contrib/admin/templates/admin/change_form.html#L48-L52 #}
