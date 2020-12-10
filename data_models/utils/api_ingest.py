@@ -49,6 +49,7 @@ class Ingest:
         self.remove_multiple_gcmd_entries()
         self.handle_blank_values()
         self.order_tables()
+        self.supplement_instrument_metadata()
 
         self.primary_key_map = json.load(open(BASE_PATH+"/mapping_primary.json"))
         self.foreign_key_uuid_map = self.get_foreign_key_map(generate_blank=True)
@@ -200,6 +201,19 @@ class Ingest:
             modifies self.db in place
         """
         self.db[table_name][column] = self.db[table_name][column].apply(lambda x: x if x!=wrong_value else correct_value)
+
+
+    def supplement_instrument_metadata(self):
+        missing_inst_bool = self.db['instrument']['table-measurement_region-short_name']=='Information Not Available'
+        instruments_missing_value = list(self.db['instrument'][missing_inst_bool]['short_name'])
+        for instrument in instruments_missing_value:
+            data = {'instrument': instrument,
+                    'measurement_region': 'NID'}
+            self.db['instrument-to-measurement_region'] = self.db['instrument-to-measurement_region'].append(data, ignore_index=True)
+
+        self.correct_values('instrument', 'table-measurement_region-short_name', 'Information Not Available', 'NID')
+        self.correct_values('instrument', 'table-measurement_region-short_name', '', 'NID')
+        self.correct_values('measurement_region', 'short_name', 'Information Not Available', 'NID')
 
 
     def update_uuid_map(self, table_name, data, create_response):
