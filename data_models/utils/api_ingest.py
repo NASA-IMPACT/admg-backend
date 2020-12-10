@@ -4,7 +4,17 @@ import requests
 import numpy as np
 import datetime
 import pandas as pd
-from api import Api
+
+try:
+    from data_models import models
+    from data_models.utils.api import Api
+except ImportError:
+    # models import can only be run from within django framework, so this
+    # exception can't import it at all if you are using this class from the 
+    # vanilla terminal or from within a juypter notebook
+    # Ingest.purge_database will be unavailable
+    from api import Api
+
 
 HEIRARCHICAL_TABLES = [
     {
@@ -21,9 +31,17 @@ HEIRARCHICAL_TABLES = [
     }
 ]
 
+
+try:
+    open("config/mapping_primary.json")
+    BASE_PATH = 'config'
+except:
+    BASE_PATH = 'data_models/utils/config'
+
+
 class Ingest:
-    def __init__(self, df_file):
-        self.api = Api('test')
+    def __init__(self, df_file, server):
+        self.api = Api(server)
         # self.db = pickle.load(open('ingest_data/db_20201028', 'rb')) # fresh_data_filtered
         self.db_raw = df_file # pickle.load(open('db_olympex_20201028', 'rb')) # fresh_data_filtered
         self.db = self.db_raw.copy()
@@ -32,9 +50,9 @@ class Ingest:
         self.handle_blank_values()
         self.order_tables()
 
-        self.primary_key_map = json.load(open("config/mapping_primary.json"))
+        self.primary_key_map = json.load(open(BASE_PATH+"/mapping_primary.json"))
         self.foreign_key_uuid_map = self.get_foreign_key_map(generate_blank=True)
-        self.ingest_order = json.load(open("config/ingest_order.json"))
+        self.ingest_order = json.load(open(BASE_PATH+"/ingest_order.json"))
 
         self.raw_validation_results = {}
         self.filtered_validation_results = {}
@@ -120,9 +138,7 @@ class Ingest:
 
 
     def remove_ignored_fields(self, data):
-        """this is doing too many things. first it is removing unneeded data
-        from the sheets import which is tagged with 'ignore' in the field name
-        it also cleans up nan values and converts them to 0
+        """
 
         Args:
             data ([type]): [description]
@@ -133,7 +149,7 @@ class Ingest:
         
         filtered_data = {}
         for field_name, value in data.items():
-            if field_name == "ignore_code":
+            if 'ignore_code' in field_name:
                 filtered_data[field_name] = value
             elif 'ignore' not in field_name:
                 filtered_data[field_name] = value
@@ -172,6 +188,17 @@ class Ingest:
 
 
     def correct_values(self, table_name, column, wrong_value, correct_value):
+        """Simple find and replace to correct values prior to import
+
+        Args:
+            table_name (str): name of the table inside of which the values will be replaced
+            column (str): name of the column (field) where the values will be replaced
+            wrong_value (str): str value of the incorrect value
+            correct_value (str): str value of the correct value
+
+        Returns:
+            modifies self.db in place
+        """
         self.db[table_name][column] = self.db[table_name][column].apply(lambda x: x if x!=wrong_value else correct_value)
 
 
@@ -190,7 +217,7 @@ class Ingest:
     
         primary_key = self.primary_key_map[table_name]
         primary_value = data[primary_key]
-        m2m_table_names = [key for key in self.db[table_name].keys() if "table-" in key]
+        m2m_table_names = [key for key in data.keys() if "table-" in key]
         
         print(f'{primary_key=}')
         print(f'{primary_value=}')
@@ -251,8 +278,9 @@ class Ingest:
                     foreign_table = 'parent'
                 data[foreign_table] = foreign_value
             else:
+                # if a match for the foreign key exists
                 if self.foreign_key_uuid_map[foreign_table].get(foreign_value):
-                    mapped_uuid = self.foreign_key_uuid_map[foreign_table][foreign_value]   
+                    mapped_uuid = self.foreign_key_uuid_map[foreign_table][foreign_value]
                     if table_name in ['platform_type', 'instrument_type', 'measurement_type', 'measurement_style']:
                         foreign_table = 'parent'
                     data[foreign_table] = mapped_uuid
@@ -264,7 +292,7 @@ class Ingest:
     def remove_multiple_gcmd_entries(self):
         """ modifies self.db in place """
 
-        # remove multiple gcmd links. This will need to be properly implemented in the future
+        # TODO: remove multiple gcmd links. This will need to be properly implemented in the future
 
         self.correct_values(
             table_name='platform_type',
@@ -453,11 +481,8 @@ class Ingest:
     def validate_line(self, table_name, api_data):
         formatted_table_name = self.format_table_name(table_name)
 
-        try:
-            validation_response = self.api.validate_json(formatted_table_name, api_data, False)
-        except:
-            import ipdb; ipdb.set_trace()
-            assert False
+        validation_response = self.api.validate_json(formatted_table_name, api_data, False)
+
         validation_dict = json.loads(validation_response.content)
 
         self.raw_validation_results[table_name] = self.raw_validation_results.get(table_name, [])
@@ -538,15 +563,10 @@ class Ingest:
                     # under what cercumstances does this actually execute?
                     if func == self.ingest_line:
                         self.ingest_log.append(f"{table_name}: {primary_key}, {json.dumps(api_data)}")
-        
+
         collection_period_data = self.generate_collection_periods()
         for collection_period in collection_period_data:
             func('collection_period', collection_period)
-
-
-        # ingested = []
-        # for cp_short_name, collection_period in collection_periods.items():
-        #     ingested.append(collection_period)
 
 
     def validate(self):
@@ -558,12 +578,11 @@ class Ingest:
     def ingest(self):
         # ingests everything except for collection period?
         self._use_short_names = False
-        self.iterate_data(self.api.create)
+        self.iterate_data(self.ingest_line)
 
 
     def purge_database(self):
-        # maybe recode this to use the apis once they are sped up?
-        from data_models import models
+        """only available when running from within the django framework"""
 
         model_names = [
             'PlatformType',
