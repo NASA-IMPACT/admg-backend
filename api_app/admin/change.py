@@ -128,6 +128,17 @@ class ChangeAdmin(admin.ModelAdmin):
         Model = obj.content_type.model_class()
         return modelform_factory(Model, exclude=[])
 
+    @staticmethod
+    def prefix_field(field, field_name_prefix) -> None:
+        """
+        Mutate a provided field so that its rendered inputs have a name prefixed
+        with the provided field name prefix.
+        """
+        renderer = field.widget.render
+        def _widget_render_wrapper(name, *args, **kwargs):
+            return renderer(f"{field_name_prefix}{name}", *args, **kwargs)
+        field.widget.render = _widget_render_wrapper
+
     def _get_adminform_for_model(self, obj, field_name_prefix):
         """
         Helper to build form for Change's destination model.
@@ -143,13 +154,7 @@ class ChangeAdmin(admin.ModelAdmin):
         # fields relating to the Change model and those that relate to the
         # content_object
         for field in form.fields.values():
-            # TODO: START HERE! SERIOUS! This seems to cause all widgets to use the same rederrer!
-            old_render = field.widget.render
-
-            def _widget_render_wrapper(name, *args, **kwargs):
-                return old_render(f"{field_name_prefix}{name}", *args, **kwargs)
-
-            field.widget.render = _widget_render_wrapper
+            self.prefix_field(field, field_name_prefix)
         return admin.helpers.AdminForm(
             form,
             fieldsets,
