@@ -16,7 +16,7 @@ from .views.change_view import (
 )
 from .views.generic_views import GenericCreateGetAllView, GenericPutPatchDeleteView
 from .views.image_view import ImageListCreateAPIView, ImageRetrieveDestroyAPIView
-from .views.validation_view import JsonValidationView, ExcelValidationView
+from .views.validation_view import JsonValidationView
 
 
 info = openapi.Info(
@@ -132,11 +132,6 @@ urlpatterns += [
         "validate_json",
         JsonValidationView.as_view(),
         name="validate_json"
-    ),
-    path(
-        "validate_excel",
-        ExcelValidationView.as_view(),
-        name="validate_excel"
     ),
     path(
         "docs/",
