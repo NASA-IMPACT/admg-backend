@@ -151,7 +151,7 @@ class GcmdInstrument(BaseModel):
 
 
 class GcmdPlatform(BaseModel):
-    short_name = models.CharField(max_length=256, blank=False, unique=True)
+    short_name = models.CharField(max_length=256, blank=True, default='')
     long_name = models.CharField(max_length=512, blank=True, default='')
     category = models.CharField(max_length=256)
     series_entry = models.CharField(max_length=256, blank=True, default='')
