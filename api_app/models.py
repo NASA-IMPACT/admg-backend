@@ -96,13 +96,13 @@ class Change(models.Model):
     appr_reject_date = models.DateTimeField(null=True, blank=True)
 
     status = models.IntegerField(choices=AVAILABLE_STATUSES, default=IN_PROGRESS_CODE)
-    update = models.JSONField()
+    update = models.JSONField(default=dict, blank=True)
     previous = models.JSONField(default=dict)
 
     action = models.CharField(
         max_length=10,
         choices=((choice, choice) for choice in [CREATE, UPDATE, DELETE, PATCH]),
-        default=UPDATE,
+        default=CREATE,
     )
     user = models.ForeignKey(
         User, on_delete=models.SET_NULL, related_name="changed_by", null=True, blank=True

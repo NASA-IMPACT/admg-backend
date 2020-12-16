@@ -1,31 +1,39 @@
-from django.forms import ModelForm, modelform_factory
-# from django.forms.models import (
-#     BaseInlineFormSet, inlineformset_factory, modelform_defines_fields,
-#     modelform_factory, modelformset_factory,
-# )
-from django.views.generic.list import ListView
-from django.views.generic.detail import DetailView
-from django.views.generic.edit import ModelFormMixin
+from django.http import HttpResponseRedirect
+from django.contrib.auth.decorators import permission_required
+from django.contrib import messages
+from django.conf import settings
+from django.utils.safestring import mark_safe
 
-from api_app.models import Change
+import requests
 
 
-class ChangeListView(ListView):
-    model = Change
-    template_name = "admin/change_list.html"
-    paginate_by = 50
+@permission_required("admin_ui.can_deploy")
+def deploy_admin(request):
+    # # TODO: Mv much of this config into settings
+    workflow = settings.GITHUB_WORKFLOW
 
+    response = requests.post(
+        url=f"https://api.github.com/repos/{workflow['repo']}/actions/workflows/{workflow['id']}/dispatches",
+        headers={
+            "Accept": "application/vnd.github.v3+json",
+            "Authorization": f"token {workflow['token']}",
+        },
+        json={"ref": workflow['branch']},
+    )
+    if response.ok:
+        messages.add_message(
+            request,
+            messages.INFO,
+            mark_safe(
+                "Successfully triggered deployment. See details "
+                f'<a href="https://github.com/{workflow['repo']}/actions?query=workflow%3ADeploy" target="_blank">here</a>.'
+            ),
+        )
+    else:
+        messages.add_message(
+            request, messages.ERROR, f"Failed to trigger deplyoment: {response.text}"
+        )
 
-class ChangeDetailView(ModelFormMixin, DetailView):
-    model = Change
-    template_name = "admin/change_detail.html"
-    pk_url_kwarg = "uuid"
-    fields = ['uuid']
-
-    def get_form_class(self):
-        # https://github.com/django/django/blob/354c1524b38c9b9f052c1d78dcbfa6ed5559aeb3/django/contrib/admin/options.py#L670-L711
-        # https://github.com/django/django/blob/354c1524b38c9b9f052c1d78dcbfa6ed5559aeb3/django/forms/models.py#L483
-        # return modelform_factory(self.object.__class__)
-        cls = modelform_factory(self.object.content_type.model_class(), exclude=[])
-        print(cls)
-        return cls
+    # TODO: Redirect back to origin of request
+    # TODO: Use dynamic admin route (either from URL router or from settings)
+    return HttpResponseRedirect("/admin/")

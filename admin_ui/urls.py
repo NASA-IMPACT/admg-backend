@@ -1,10 +1,9 @@
 from django.contrib import admin
 from django.urls import path
 
-from .views import ChangeDetailView, ChangeListView
+from .views import deploy_admin
 
 urlpatterns = [
     path("", admin.site.urls),
-    path("changes/", ChangeListView.as_view(), name="change-list"),
-    path("changes/<uuid:uuid>", ChangeDetailView.as_view(), name="change-detail"),
+    path("deploy-admin/", deploy_admin, name="deploy-admin"),
 ]

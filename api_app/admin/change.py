@@ -1,4 +1,4 @@
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext as _
@@ -62,7 +62,7 @@ class ModelToBeChangedFilter(admin.SimpleListFilter):
 
 class ChangeAdmin(admin.ModelAdmin):
     # TODO: Filter content_type to be only those of interest to the data team
-    change_form_template = "admin/change_detail.html"
+    change_form_template = "admin/change_model_detail.html"
     list_display = ("model_name", "added_date", "action", "status", "user")
     list_filter = (
         "status",
@@ -120,6 +120,9 @@ class ChangeAdmin(admin.ModelAdmin):
 
         return False
 
+    # def get_changeform_initial_data(self, request):
+    #     return {'update': {}}
+
     def get_queryset(self, request):
         return super().get_queryset(request).select_related("content_type", "user")
 
@@ -159,6 +162,14 @@ class ChangeAdmin(admin.ModelAdmin):
         except form.instance.__class__.DoesNotExist as e:
             raise ValidationError(_("Destination object does not exist")) from e
 
+    def add_view(self, request, form_url="", extra_context=None):
+        self.message_user(
+            request,
+            'To create a new entry for a data type, first select the appropriate "content type" and press the "Save and continue editing" button.  The appropriate editing form will then become visible.',
+            level=messages.INFO,
+        )
+        return super().add_view(request, form_url, extra_context=extra_context)
+
     def change_view(self, request, object_id, form_url="", extra_context=None):
         """
         Overridden change_view. This will build a form to represent the Change's
@@ -195,11 +206,6 @@ class ChangeAdmin(admin.ModelAdmin):
                 )
             ],
             prepopulated_fields={},
-            # prepopulated_fields=(
-            #     self.get_prepopulated_fields(request, obj)
-            #     if object_id is None or self.has_change_permission(request, obj)
-            #     else obj.update
-            # ),
             readonly_fields=(),
             model_admin=self,
         )
