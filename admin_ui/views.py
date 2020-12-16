@@ -9,7 +9,6 @@ import requests
 
 @permission_required("admin_ui.can_deploy")
 def deploy_admin(request):
-    # # TODO: Mv much of this config into settings
     workflow = settings.GITHUB_WORKFLOW
 
     response = requests.post(
@@ -26,7 +25,7 @@ def deploy_admin(request):
             messages.INFO,
             mark_safe(
                 "Successfully triggered deployment. See details "
-                f'<a href="https://github.com/{workflow['repo']}/actions?query=workflow%3ADeploy" target="_blank">here</a>.'
+                f'<a href="https://github.com/{workflow["repo"]}/actions?query=workflow%3ADeploy" target="_blank">here</a>.'
             ),
         )
     else:
