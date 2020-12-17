@@ -54,10 +54,6 @@ class PlatformType(LimitedInfo):
     example = models.CharField(max_length=1024, blank=True, default='')
 
 
-class NasaMission(LimitedInfo):
-    pass
-
-
 class MeasurementType(LimitedInfo):
     parent = models.ForeignKey('MeasurementType', on_delete=models.CASCADE, related_name='sub_types', null=True, blank=True)
 
@@ -248,8 +244,8 @@ class Campaign(DataModel):
 
     ongoing = models.BooleanField()
     nasa_led = models.BooleanField()
+    nasa_missions = models.TextField(default='', blank=True)
 
-    nasa_missions = models.ManyToManyField(NasaMission, related_name='campaigns', default='', blank=True)
     focus_areas = models.ManyToManyField(FocusArea, related_name='campaigns')
     seasons = models.ManyToManyField(Season, related_name='campaigns')
     repositories = models.ManyToManyField(Repository, related_name='campaigns')

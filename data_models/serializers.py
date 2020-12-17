@@ -89,11 +89,6 @@ class PlatformTypeSerializer(BaseSerializer):
         model = models.PlatformType
         fields = "__all__"
 
-class NasaMissionSerializer(BaseSerializer):
-    class Meta:
-        model = models.NasaMission
-        fields = "__all__"
-
 class MeasurementTypeSerializer(BaseSerializer):
     instruments = serializers.SerializerMethodField(read_only=True)
     sub_types = serializers.SerializerMethodField(read_only=True)

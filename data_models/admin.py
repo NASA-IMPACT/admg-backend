@@ -2,7 +2,6 @@ from django.contrib import admin
 
 from .models import (
     PlatformType,
-    NasaMission,
     MeasurementType,
     MeasurementStyle,
     HomeBase,
@@ -30,7 +29,6 @@ from .models import (
 )
 
 admin.site.register(PlatformType)
-admin.site.register(NasaMission)
 admin.site.register(MeasurementType)
 admin.site.register(MeasurementStyle)
 admin.site.register(HomeBase)
