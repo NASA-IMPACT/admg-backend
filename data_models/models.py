@@ -437,10 +437,10 @@ class CollectionPeriod(BaseModel):
 
     deployment = models.ForeignKey(Deployment, on_delete=models.CASCADE, related_name='collection_periods')
     platform = models.ForeignKey(Platform, on_delete=models.CASCADE, related_name='collection_periods')
+    home_base = models.ForeignKey(HomeBase, on_delete=models.CASCADE, related_name='collection_periods')
 
     asp_long_name = models.CharField(max_length=512, default='', blank=True)
     platform_identifier = models.CharField(max_length=128, default='', blank=True)
-    home_base = models.CharField(max_length=256, default='', blank=True)
     campaign_deployment_base = models.CharField(max_length=256, default='', blank=True)
     platform_owner = models.CharField(max_length=256, default='', blank=True)
     platform_technical_contact = models.CharField(max_length=256, default='', blank=True)
