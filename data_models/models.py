@@ -40,8 +40,9 @@ class Image(BaseModel):
 
 class LimitedInfo(BaseModel):
     short_name = models.CharField(max_length=256, blank=False, unique=True)
-    long_name = models.CharField(max_length=512, blank=True, default='')
-    notes_public = models.TextField(blank=True, default='')
+    long_name = models.CharField(max_length=512, default='', blank=True)
+    notes_internal = models.TextField(default='', blank=True)
+    notes_public = models.TextField(default='', blank=True)
 
     class Meta:
         abstract = True
@@ -178,12 +179,7 @@ class DOI(BaseModel):
 ###############
 
 
-class DataModel(BaseModel):
-    short_name = models.CharField(max_length=256, blank=False, unique=True)
-    long_name = models.CharField(max_length=512, default='', blank=True)
-    notes_internal = models.TextField(default='', blank=True)
-    notes_public = models.TextField(default='', blank=True)
-
+class DataModel(LimitedInfo):
     class Meta:
         abstract = True
 
