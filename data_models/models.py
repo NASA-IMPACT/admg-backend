@@ -433,7 +433,7 @@ class CollectionPeriod(BaseModel):
 
     deployment = models.ForeignKey(Deployment, on_delete=models.CASCADE, related_name='collection_periods')
     platform = models.ForeignKey(Platform, on_delete=models.CASCADE, related_name='collection_periods')
-    home_base = models.ForeignKey(HomeBase, on_delete=models.CASCADE, related_name='collection_periods')
+    home_base = models.ForeignKey(HomeBase, on_delete=models.CASCADE, related_name='collection_periods', null=True)
 
     asp_long_name = models.CharField(max_length=512, default='', blank=True)
     platform_identifier = models.CharField(max_length=128, default='', blank=True)
