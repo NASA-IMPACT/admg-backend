@@ -8,6 +8,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 Consolidated ingest pipeline
 
+## 0.1.8 - 2021-01-06
+### Changed
+- `nasa_mission` endpoint removed. `campaign.nasa_missions` now returns a string instead of a list of uuids 
+- `notes_internal` field standardized accross all limited field endpoints
+- `alias` endpoint now accepts `model_name` instead of `content_type`
+- `gcmd_platform.short_name` is now optional
+
+## 0.1.7 - 2020-10-30
+### Added
+- `aliases` field to `campaign`, `instrument`, `platform`, `deployment`, and `partner_org`
+
+### Changed
+- `alias` endpoint 
+    - removed `long_name`
+    - increase length `short_name` to 512 char and remove unique restriction
+    - change `source` to unlimited length
+
 ## 0.1.7 - 2020-10-29
 ### Fixed
 - linking error between measurements and instruments

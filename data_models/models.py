@@ -1,7 +1,9 @@
 import os
 import uuid
 
-from django.contrib.contenttypes.fields import GenericForeignKey
+from django.apps import apps
+from django.contrib.contenttypes.fields import (GenericForeignKey,
+                                                GenericRelation)
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.gis.db import models as geomodels
 from django.contrib.postgres.fields import JSONField
@@ -38,8 +40,9 @@ class Image(BaseModel):
 
 class LimitedInfo(BaseModel):
     short_name = models.CharField(max_length=256, blank=False, unique=True)
-    long_name = models.CharField(max_length=512, blank=True, default='')
-    notes_public = models.TextField(blank=True, default='')
+    long_name = models.CharField(max_length=512, default='', blank=True)
+    notes_internal = models.TextField(default='', blank=True)
+    notes_public = models.TextField(default='', blank=True)
 
     class Meta:
         abstract = True
@@ -50,10 +53,6 @@ class PlatformType(LimitedInfo):
 
     gcmd_uuid = models.UUIDField(null=True, blank=True)
     example = models.CharField(max_length=1024, blank=True, default='')
-
-
-class NasaMission(LimitedInfo):
-    pass
 
 
 class MeasurementType(LimitedInfo):
@@ -100,22 +99,32 @@ class GeophysicalConcept(LimitedInfo):
     example = models.CharField(max_length=1024, blank=True, default='')
 
 
-class PartnerOrg(LimitedInfo):
-    website = models.CharField(max_length=256, blank=True, default='')
-
-
 class Alias(BaseModel):
 
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, blank=True)
     object_id = models.UUIDField()
     parent_fk = GenericForeignKey('content_type', 'object_id')
 
-    short_name = models.CharField(max_length=256, blank=False, unique=True)
-    long_name = models.CharField(max_length=512, blank=True, default='')
-    source = models.CharField(max_length=2048, blank=True, default='')
+    model_name = models.CharField(max_length=64, blank=False)
+    short_name = models.CharField(max_length=512, blank=False)
+    source = models.TextField(blank=True, default='')
+
+    def save(self, *args, **kwargs):
+        """converts model_name field 'PartnerOrg' into a content type to support the 
+        GenericForeignKey relationship, which would otherwise require an arbitrary 
+        primary key to be passed in the post request"""
+        model = apps.get_model(app_label='data_models', model_name=self.model_name)
+        self.content_type = ContentType.objects.get_for_model(model)
+        return super(Alias, self).save(*args, **kwargs)
 
     class Meta:
         verbose_name_plural='Aliases'
+
+
+class PartnerOrg(LimitedInfo):
+    aliases = GenericRelation(Alias)
+
+    website = models.CharField(max_length=256, blank=True, default='')
 
 
 class GcmdProject(BaseModel):
@@ -139,7 +148,7 @@ class GcmdInstrument(BaseModel):
 
 
 class GcmdPlatform(BaseModel):
-    short_name = models.CharField(max_length=256, blank=False, unique=True)
+    short_name = models.CharField(max_length=256, blank=True, default='')
     long_name = models.CharField(max_length=512, blank=True, default='')
     category = models.CharField(max_length=256)
     series_entry = models.CharField(max_length=256, blank=True, default='')
@@ -170,12 +179,7 @@ class DOI(BaseModel):
 ###############
 
 
-class DataModel(BaseModel):
-    short_name = models.CharField(max_length=256, blank=False, unique=True)
-    long_name = models.CharField(max_length=512, default='', blank=True)
-    notes_internal = models.TextField(default='', blank=True)
-    notes_public = models.TextField(default='', blank=True)
-
+class DataModel(LimitedInfo):
     class Meta:
         abstract = True
 
@@ -209,6 +213,7 @@ class DataModel(BaseModel):
 
 class Campaign(DataModel):
     logo = models.ForeignKey(Image, on_delete=models.SET_NULL, null=True, blank=True)
+    aliases = GenericRelation(Alias)
 
     description_short = models.TextField(default='', blank=True)
     description_long = models.TextField(default='', blank=True)
@@ -222,8 +227,6 @@ class Campaign(DataModel):
     funding_program_lead = models.CharField(max_length=256, default='', blank=True)
     lead_investigator = models.CharField(max_length=256)
     technical_contact = models.CharField(max_length=256, default='', blank=True)
-    # nonaircraft_platforms = models.CharField(max_length=1024, default='', blank=True)
-    # nonaircraft_instruments = models.CharField(max_length=1024, default='', blank=True)
     number_collection_periods = models.PositiveIntegerField()
     doi = models.CharField(max_length=1024, default='', blank=True)
     number_data_products = models.PositiveIntegerField(null=True, blank=True)
@@ -237,8 +240,8 @@ class Campaign(DataModel):
 
     ongoing = models.BooleanField()
     nasa_led = models.BooleanField()
+    nasa_missions = models.TextField(default='', blank=True)
 
-    nasa_missions = models.ManyToManyField(NasaMission, related_name='campaigns', default='', blank=True)
     focus_areas = models.ManyToManyField(FocusArea, related_name='campaigns')
     seasons = models.ManyToManyField(Season, related_name='campaigns')
     repositories = models.ManyToManyField(Repository, related_name='campaigns')
@@ -308,6 +311,7 @@ class Platform(DataModel):
 
     platform_type = models.ForeignKey(PlatformType, on_delete=models.SET_NULL, related_name='platforms', null=True)
     image = models.ForeignKey(Image, on_delete=models.SET_NULL, null=True, blank=True)
+    aliases = GenericRelation(Alias)
 
     description = models.TextField()
     online_information = models.CharField(max_length=512, default='', blank=True)
@@ -341,6 +345,7 @@ class Instrument(DataModel):
     image = models.ForeignKey(Image, on_delete=models.SET_NULL, null=True, blank=True)
     measurement_type = models.ForeignKey(MeasurementType, on_delete=models.SET_NULL, null=True, blank=True, related_name='instruments')
     measurement_style = models.ForeignKey(MeasurementStyle, on_delete=models.SET_NULL, null=True, blank=True, related_name='instruments')
+    aliases = GenericRelation(Alias)
 
     description = models.TextField()
     lead_investigator = models.CharField(max_length=256, default='', blank=True)
@@ -374,6 +379,8 @@ class Instrument(DataModel):
 
 class Deployment(DataModel):
     campaign = models.ForeignKey(Campaign, on_delete=models.CASCADE, related_name='deployments')
+    aliases = GenericRelation(Alias)
+
     study_region_map = models.TextField(default='', blank=True)
     ground_sites_map = models.TextField(default='', blank=True)
     flight_tracks = models.TextField(default='', blank=True)
@@ -426,10 +433,10 @@ class CollectionPeriod(BaseModel):
 
     deployment = models.ForeignKey(Deployment, on_delete=models.CASCADE, related_name='collection_periods')
     platform = models.ForeignKey(Platform, on_delete=models.CASCADE, related_name='collection_periods')
+    home_base = models.ForeignKey(HomeBase, on_delete=models.CASCADE, related_name='collection_periods', null=True)
 
     asp_long_name = models.CharField(max_length=512, default='', blank=True)
     platform_identifier = models.CharField(max_length=128, default='', blank=True)
-    home_base = models.CharField(max_length=256, default='', blank=True)
     campaign_deployment_base = models.CharField(max_length=256, default='', blank=True)
     platform_owner = models.CharField(max_length=256, default='', blank=True)
     platform_technical_contact = models.CharField(max_length=256, default='', blank=True)

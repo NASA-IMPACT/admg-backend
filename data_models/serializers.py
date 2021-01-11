@@ -1,9 +1,13 @@
 import json
-from rest_framework import serializers
+from uuid import uuid4
+
+from django.apps import apps
+from django.contrib.contenttypes.models import ContentType
 from django.contrib.gis.geos import GEOSGeometry
+from rest_framework import serializers
+
 from data_models import models
 
-from uuid import uuid4
 
 def get_uuids(database_entries):
     return list(database_entries.values_list('uuid', flat=True))
@@ -50,8 +54,17 @@ def change_bbox_to_polygon(validated_data, key="spatial_bounds"):
         validated_data[key] = polygon
     return validated_data
 
+
 class BaseSerializer(serializers.ModelSerializer):
     uuid = serializers.UUIDField(default=uuid4)
+
+
+class GetAliasSerializer(BaseSerializer):
+    aliases = serializers.SerializerMethodField(read_only=True)
+
+    def get_aliases(self, obj):
+        return [alias.uuid for alias in obj.aliases.all()]
+
 
 class ImageSerializer(BaseSerializer):
     class Meta:
@@ -74,11 +87,6 @@ class PlatformTypeSerializer(BaseSerializer):
 
     class Meta:
         model = models.PlatformType
-        fields = "__all__"
-
-class NasaMissionSerializer(BaseSerializer):
-    class Meta:
-        model = models.NasaMission
         fields = "__all__"
 
 class MeasurementTypeSerializer(BaseSerializer):
@@ -179,7 +187,7 @@ class GeophysicalConceptSerializer(BaseSerializer):
         model = models.GeophysicalConcept
         fields = "__all__"
 
-class PartnerOrgSerializer(BaseSerializer):
+class PartnerOrgSerializer(GetAliasSerializer):
     campaigns = serializers.SerializerMethodField(read_only=True)
 
     def get_campaigns(self, obj):
@@ -189,7 +197,9 @@ class PartnerOrgSerializer(BaseSerializer):
         model = models.PartnerOrg
         fields = "__all__"
 
+
 class AliasSerializer(BaseSerializer):
+
     class Meta:
         model = models.Alias
         fields = "__all__"
@@ -239,7 +249,7 @@ class DOISerializer(BaseSerializer):
         model = models.DOI
         fields = "__all__"
 
-class DeploymentSerializer(BaseSerializer):
+class DeploymentSerializer(GetAliasSerializer):
     collection_periods = serializers.SerializerMethodField(read_only=True)
     iops = serializers.SerializerMethodField(read_only=True)
     significant_events = serializers.SerializerMethodField(read_only=True)
@@ -277,11 +287,11 @@ class CollectionPeriodSerializer(BaseSerializer):
         model = models.CollectionPeriod
         fields = "__all__"
 
-class PlatformSerializer(BaseSerializer):
+class PlatformSerializer(GetAliasSerializer):
     collection_periods = serializers.SerializerMethodField(read_only=True)
     instruments = serializers.ListField(read_only=True)
     campaigns = serializers.ListField(read_only=True)
-
+        
     def get_collection_periods(self, obj):
         return get_uuids(obj.collection_periods) 
 
@@ -289,7 +299,7 @@ class PlatformSerializer(BaseSerializer):
         model = models.Platform
         fields = "__all__"
 
-class InstrumentSerializer(BaseSerializer):
+class InstrumentSerializer(GetAliasSerializer):
     platforms = serializers.ListField(read_only=True)
     campaigns = serializers.ListField(read_only=True)
     collection_periods = serializers.SerializerMethodField(read_only=True)
@@ -301,7 +311,7 @@ class InstrumentSerializer(BaseSerializer):
         model = models.Instrument
         fields = "__all__"
 
-class CampaignSerializer(BaseSerializer):
+class CampaignSerializer(GetAliasSerializer):
     deployments = serializers.SerializerMethodField(read_only=True)
     significant_events = serializers.ListField(read_only=True)
     iops = serializers.ListField(read_only=True)
@@ -320,7 +330,6 @@ class CampaignSerializer(BaseSerializer):
     def update(self, instance, validated_data, **kwargs):
         validated_data = change_bbox_to_polygon(validated_data)
         return super().update(instance, validated_data, **kwargs)
-
 
     class Meta:
         model = models.Campaign

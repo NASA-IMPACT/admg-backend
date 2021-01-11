@@ -1,5 +1,6 @@
 from rest_framework.response import Response
 from rest_framework.generics import CreateAPIView, GenericAPIView
+from rest_framework.parsers import MultiPartParser
 
 from data_models import serializers as data_models_serializers
 
@@ -10,9 +11,9 @@ from ..models import DELETE
 from .view_utils import handle_exception, requires_admin_approval
 
 
-class ValidationView(GenericAPIView):#CreateAPIView):
+class JsonValidationView(GenericAPIView):#CreateAPIView):
     """
-        List images and create an image object
+        Take in Json for one database entry and run validation.
     """
     validation_serializer = ValidationSerializer
 
