@@ -112,6 +112,9 @@ class Change(models.Model):
     )
     notes = models.CharField(max_length=500, blank=True)
 
+    class Meta:
+        verbose_name = 'Draft'
+
     @property
     def model_name(self):
         # TODO: Verify that this works with API
