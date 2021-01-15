@@ -88,7 +88,22 @@ def handle_approve_reject(function):
 
 class Change(models.Model):
     uuid = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    content_type = models.ForeignKey(
+        ContentType,
+        help_text="Model for which the draft pertains.",
+        on_delete=models.CASCADE,
+        limit_choices_to={
+            "app_label": "data_models",
+            "model__in": [
+                "campaign",
+                "instrument",
+                "platform",
+                "iop",
+                "deployment",
+                "partnerorg",
+            ],
+        },
+    )
     model_instance_uuid = models.UUIDField(default=uuid4, blank=False, null=True)
     content_object = GenericForeignKey("content_type", "model_instance_uuid")
 
@@ -105,21 +120,29 @@ class Change(models.Model):
         default=CREATE,
     )
     user = models.ForeignKey(
-        User, on_delete=models.SET_NULL, related_name="changed_by", null=True, blank=True
+        User,
+        on_delete=models.SET_NULL,
+        related_name="changed_by",
+        null=True,
+        blank=True,
     )
     appr_reject_by = models.ForeignKey(
-        User, on_delete=models.DO_NOTHING, related_name="approved_by", null=True, blank=True
+        User,
+        on_delete=models.DO_NOTHING,
+        related_name="approved_by",
+        null=True,
+        blank=True,
     )
     notes = models.CharField(max_length=500, blank=True)
 
     class Meta:
-        verbose_name = 'Draft'
+        verbose_name = "Draft"
 
     @property
     def model_name(self):
         # TODO: Verify that this works with API
         cls = self.content_type.model_class()
-        return cls.__name__ if cls else 'UNKNOWN'
+        return cls.__name__ if cls else "UNKNOWN"
 
     def __str__(self):
         return f"{self.model_name} >> {self.uuid}"
@@ -135,9 +158,7 @@ class Change(models.Model):
             instance = model.objects.get(uuid=self.model_instance_uuid)
             if self.action == UPDATE:
                 serializer = serializer_class(instance)
-                self.previous = {
-                    key: serializer.data.get(key) for key in self.update
-                }
+                self.previous = {key: serializer.data.get(key) for key in self.update}
 
     def save(self, *args, post_save=False, **kwargs):
         # do not check for validity of model_name and uuid if it has been approved or rejected.
