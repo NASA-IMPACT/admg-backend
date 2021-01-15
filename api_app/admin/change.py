@@ -106,22 +106,12 @@ class ChangeAdmin(admin.ModelAdmin):
 
     def has_change_permission(self, request, obj: Change = None):
         """ Only allow changing objects if you're the author or superuser """
-        # Anyone can create a new object
-        if obj is None:
-            return True
+        if obj:
+            # Nobody can edit an approved object
+            if obj.status == APPROVED_CODE:
+                return False
 
-        # Nobody can edit an approved object
-        if obj.status == APPROVED_CODE:
-            return False
-
-        # User must be superuser or object's creator
-        if request.user.is_superuser or obj.user == request.user:
-            return True
-
-        return False
-
-    # def get_changeform_initial_data(self, request):
-    #     return {'update': {}}
+        return True
 
     def get_queryset(self, request):
         return super().get_queryset(request).select_related("content_type", "user")
