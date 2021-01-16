@@ -1,7 +1,11 @@
+from functools import partial
+
 from django.contrib import admin, messages
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext as _
+from django.forms import modelform_factory
+from django.forms.models import ModelForm
 
 from api_app.admin import utils
 from .inlines import PendingChangeInline, InProgressChangeInline
@@ -114,41 +118,41 @@ class ChangeAdmin(admin.ModelAdmin):
         return True
 
     def get_queryset(self, request):
-        return super().get_queryset(request).select_related("content_type", "user")
+        return (
+            super().get_queryset(request)
+            # fetch related data to avoid followup lookups of needed data
+            .select_related("content_type", "user")
+        )
 
     def save_model(self, request, obj: Change, form, change):
-        print(change, obj)
-        if not change:
-            obj.update = {}
-            obj.user = request.user
 
-        else:
+        rm_prefix = lambda name: name[len(SUBMODEL_FIELDNAME_PREFIX) :]
 
-            def rm_prefix(name: str) -> str:
-                return name[len(SUBMODEL_FIELDNAME_PREFIX) :]
+        # Retrieve update data from form
+        model_fields = [
+            (rm_prefix(k), v)
+            for k, v in form.data.dict().items()
+            # Find field that have been name with special prefix
+            if k.startswith(SUBMODEL_FIELDNAME_PREFIX)
+        ]
+        obj.update = {
+            k: v
+            for k, v in model_fields
+            # Update data should only be data that is different than previous
+            if v != obj.previous.get(k, "")
+        }
 
-            # Retrieve update data from form
-            obj.update = {
-                rm_prefix(k): v
-                for k, v in form.data.dict().items()
-                # Find field that have been name with special prefix
-                if k.startswith(SUBMODEL_FIELDNAME_PREFIX) and
-                # Update data should only be data that is different than previous
-                v != obj.previous.get(rm_prefix(k))
-            }
+        # Validate update
+        ModelForm = self._get_modelform_for_content_type(request, obj.content_type)
+        update_form = ModelForm(data=obj.update)
+        update_form.full_clean()
 
-            # Validate update
-            ModelForm = utils.get_modelform_for_content_type(obj.content_type)
-            update_form = ModelForm(data=obj.update)
-            update_form.full_clean()
+        # if (obj.action in [CREATE, UPDATE]) and (not update_form.is_valid()):
+        #     # TODO: Learn how django admin validates
+        #     raise ValidationError(_(), update_form.errors)
 
-            print(update_form.errors)
-            print(update_form.cleaned_data)
-            # if (obj.action in [CREATE, UPDATE]) and (not update_form.is_valid()):
-            #     # TODO: Learn how django admin validates
-            #     raise ValidationError(_(), update_form.errors)
         try:
-            super().save_model(request, obj, form, change)
+            obj.save(post_save=True)  # Use post_save to opt-out of setting obj.previous
         except form.instance.__class__.DoesNotExist as e:
             raise ValidationError(_("Destination object does not exist")) from e
 
@@ -166,33 +170,41 @@ class ChangeAdmin(admin.ModelAdmin):
         target model, allowing users to edit data with standard Field inputs
         that match the target model's field types.
         """
-        # Buildout custom form for destination model
         obj = self.get_object(request, object_id)
-        ModelForm = utils.get_modelform_for_content_type(obj.content_type)
 
-        # We want to ensure that all the input fields for the custom submodel
-        # form are prefixed with a string. This was, we can later distinguish
-        # between fields relating to the Change model and those that relate to
-        # the content_object
-        form = ModelForm(
-            obj.update,
-            # TODO: This may be the correct way to prefix the submodel form
-            # prefix=SUBMODEL_FIELDNAME_PREFIX,
-            # empty_permitted=False
+        # Buildout custom form for destination model
+        ModelForm = self._get_modelform_for_content_type(request, obj.content_type)
+        model_form = ModelForm(
+            {
+                **obj.previous,
+                **obj.update,
+            }  # Populate form with previous and updated data
         )
 
         readonly = not self.has_change_permission(request, obj)
-        for field in form.fields.values():
-            utils.prefix_field(field, SUBMODEL_FIELDNAME_PREFIX)
-            field.widget.attrs["disabled"] = readonly
-            field.widget.attrs["readonly"] = readonly
+        if readonly:
+            self.message_user(
+                request, "You cannot edit approved Drafts.", level=messages.WARNING
+            )
+
+        for model_field in model_form.fields.values():
+            # We want to ensure that all the input fields for the custom submodel
+            # form are prefixed with a string. This way, we can later distinguish
+            # between fields relating to the Change model and those that relate to
+            # the content_object
+            utils.prefix_field(model_field, SUBMODEL_FIELDNAME_PREFIX)
+
+            # Enforce admin state on model form
+            model_field.widget.attrs["disabled"] = readonly
+            model_field.widget.attrs["readonly"] = readonly
+            model_field.widget.can_add_related = True
 
         admin_form = admin.helpers.AdminForm(
-            form=form,
+            form=model_form,
             fieldsets=[
                 (
-                    f"{form.instance.__class__.__name__} Form",
-                    {"fields": list(form.base_fields)},
+                    f"{model_form.instance.__class__.__name__} Form",
+                    {"fields": list(model_form.base_fields)},
                 )
             ],
             prepopulated_fields={},
@@ -207,6 +219,22 @@ class ChangeAdmin(admin.ModelAdmin):
         return super().change_view(
             request, object_id, form_url, extra_context=extra_context
         )
+
+    def _get_modelform_for_content_type(
+        self, request, content_type: ContentType, **kwargs
+    ) -> ModelForm:
+        """
+        Returns a ModelForm for content object associated with a provided object.
+        """
+        # Source: https://github.com/django/django/blob/e0a46367df8b17905f1c78f5c86f88d21c0f2b4d/django/contrib/admin/options.py#L698-L710
+        defaults = {
+            # 'form': form,
+            # 'fields': fields,
+            "exclude": [],
+            "formfield_callback": partial(self.formfield_for_dbfield, request=request),
+            **kwargs,
+        }
+        return modelform_factory(content_type.model_class(), **defaults)
 
 
 admin.site.register(Change, ChangeAdmin)

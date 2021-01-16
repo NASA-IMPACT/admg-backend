@@ -1,6 +1,4 @@
-from django.contrib.contenttypes.models import ContentType
-from django.forms import modelform_factory, Field
-from django.forms.models import ModelForm
+from django.forms import Field
 
 
 def prefix_field(field: Field, field_name_prefix: str) -> None:
@@ -14,10 +12,3 @@ def prefix_field(field: Field, field_name_prefix: str) -> None:
         return renderer(f"{field_name_prefix}{name}", *args, **kwargs)
 
     field.widget.render = _widget_render_wrapper
-
-
-def get_modelform_for_content_type(content_type: ContentType) -> ModelForm:
-    """
-    Returns a ModelForm for content object associated with a provided object.
-    """
-    return modelform_factory(content_type.model_class(), exclude=[])
