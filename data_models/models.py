@@ -25,6 +25,7 @@ class BaseModel(models.Model):
 def get_file_path(instance, path):
     return f'{instance.uuid}{os.path.splitext(path)[1]}'
 
+
 class Image(BaseModel):
     image = models.ImageField(upload_to=get_file_path)
     description = models.CharField(max_length=1024, default='', blank=True)

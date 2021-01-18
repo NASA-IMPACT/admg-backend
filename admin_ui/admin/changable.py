@@ -1,6 +1,8 @@
+from django.contrib import admin
+from django.utils.translation import gettext as _
 from django.contrib.contenttypes.admin import GenericTabularInline
 
-from ..models import Change, PENDING_CODE, IN_PROGRESS_CODE
+from api_app.models import Change, PENDING_CODE, IN_PROGRESS_CODE
 
 
 class BaseChangeInline(GenericTabularInline):
@@ -19,24 +21,20 @@ class BaseChangeInline(GenericTabularInline):
         # a model
         return False
 
-    # TODO: Only let author or superuser change
-    # https://docs.djangoproject.com/en/3.1/ref/contrib/admin/#django.contrib.admin.InlineModelAdmin.has_change_permission
-    # https://docs.djangoproject.com/en/3.1/ref/contrib/admin/#inlinemodeladmin-options
-    # Is it possible to determine change permissions on a per inline basis?
-
 
 class PendingChangeInline(BaseChangeInline):
     verbose_name_plural = "Pending Changes"
 
     def get_queryset(self, request):
-        qs = super().get_queryset(request)
-        return qs.filter(status=PENDING_CODE)
+        return super().get_queryset(request).filter(status=PENDING_CODE)
 
 
 class InProgressChangeInline(BaseChangeInline):
     verbose_name_plural = "In Progress Changes"
 
     def get_queryset(self, request):
-        qs = super().get_queryset(request)
-        return qs.filter(status=IN_PROGRESS_CODE)
+        return super().get_queryset(request).filter(status=IN_PROGRESS_CODE)
 
+
+class ChangableAdmin(admin.ModelAdmin):
+    inlines = [PendingChangeInline, InProgressChangeInline]

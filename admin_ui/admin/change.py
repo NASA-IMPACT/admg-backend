@@ -4,46 +4,10 @@ from django.contrib import admin, messages
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext as _
-from django.forms import modelform_factory
+from django.forms import modelform_factory, Field
 from django.forms.models import ModelForm
 
-from api_app.admin import utils
-from .inlines import PendingChangeInline, InProgressChangeInline
-from ..models import APPROVED, APPROVED_CODE, Change, UPDATE, CREATE
-
-
-SUBMODEL_FIELDNAME_PREFIX = "submodel__"
-
-
-class ChangableAdmin(admin.ModelAdmin):
-    inlines = [PendingChangeInline, InProgressChangeInline]
-
-    def save_model(self, request, obj, form, change):
-        if request.user.is_superuser or not form.changed_data:
-            return super().save_model(request, obj, form, change)
-        # if action == CREATE:
-        #     # the user should still be able to add in few partial fields
-        #     serializer = self.get_serializer(data=request.data, partial=True)
-        #     serializer.is_valid(raise_exception=True)
-        # elif action == UPDATE:
-        #     partial = action == PATCH or kwargs.pop('partial', False)
-        #     instance = self.get_object()
-        #     serializer = self.get_serializer(instance, data=request.data, partial=partial)
-        #     serializer.is_valid(raise_exception=True)
-
-        # TODO:
-        # serializer_class = getattr(sz, f"{self.model_name}Serializer")
-        # instance = model.objects.get(uuid=self.model_instance_uuid)
-        # if self.action == UPDATE:
-        #     serializer = serializer_class(instance)
-
-        return Change.objects.create(
-            content_type=ContentType.objects.get_for_model(obj),
-            update={k: form.data[k] for k in form.changed_data},
-            model_instance_uuid=obj.uuid,
-            action=UPDATE if change else CREATE,
-            user=request.user,
-        )
+from api_app.models import APPROVED_CODE, Change
 
 
 class ModelToBeChangedFilter(admin.SimpleListFilter):
@@ -65,7 +29,8 @@ class ModelToBeChangedFilter(admin.SimpleListFilter):
 
 
 class ChangeAdmin(admin.ModelAdmin):
-    # TODO: Filter content_type to be only those of interest to the data team
+    SUBMODEL_FIELDNAME_PREFIX = "submodel__"
+
     change_form_template = "admin/change_model_detail.html"
     list_display = ("model_name", "added_date", "action", "status", "user")
     list_filter = (
@@ -77,7 +42,7 @@ class ChangeAdmin(admin.ModelAdmin):
         "appr_reject_date",
     )
     readonly_fields = (
-        "user",  # TODO: Admins should be able to change user
+        "user",
         # "update",
         "previous",
         "uuid",
@@ -125,15 +90,12 @@ class ChangeAdmin(admin.ModelAdmin):
         )
 
     def save_model(self, request, obj: Change, form, change):
-
-        rm_prefix = lambda name: name[len(SUBMODEL_FIELDNAME_PREFIX) :]
-
         # Retrieve update data from form
         model_fields = [
-            (rm_prefix(k), v)
+            (k[len(self.SUBMODEL_FIELDNAME_PREFIX) :], v)  # Rm prefix
             for k, v in form.data.dict().items()
             # Find field that have been name with special prefix
-            if k.startswith(SUBMODEL_FIELDNAME_PREFIX)
+            if k.startswith(self.SUBMODEL_FIELDNAME_PREFIX)
         ]
         obj.update = {
             k: v
@@ -184,7 +146,9 @@ class ChangeAdmin(admin.ModelAdmin):
         readonly = not self.has_change_permission(request, obj)
         if readonly:
             self.message_user(
-                request, "You cannot edit approved Drafts.", level=messages.WARNING
+                request,
+                "You cannot edit Drafts after they have been approved.",
+                level=messages.WARNING,
             )
 
         for model_field in model_form.fields.values():
@@ -192,7 +156,7 @@ class ChangeAdmin(admin.ModelAdmin):
             # form are prefixed with a string. This way, we can later distinguish
             # between fields relating to the Change model and those that relate to
             # the content_object
-            utils.prefix_field(model_field, SUBMODEL_FIELDNAME_PREFIX)
+            self._prefix_field(model_field, self.SUBMODEL_FIELDNAME_PREFIX)
 
             # Enforce admin state on model form
             model_field.widget.attrs["disabled"] = readonly
@@ -235,6 +199,19 @@ class ChangeAdmin(admin.ModelAdmin):
             **kwargs,
         }
         return modelform_factory(content_type.model_class(), **defaults)
+
+    @staticmethod
+    def _prefix_field(field: Field, field_name_prefix: str) -> None:
+        """
+        Mutate a provided field so that its rendered inputs have a name prefixed
+        with the provided field name prefix.
+        """
+        renderer = field.widget.render
+
+        def _widget_render_wrapper(name, *args, **kwargs):
+            return renderer(f"{field_name_prefix}{name}", *args, **kwargs)
+
+        field.widget.render = _widget_render_wrapper
 
 
 admin.site.register(Change, ChangeAdmin)

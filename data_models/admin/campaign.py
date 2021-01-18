@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 from data_models.models import Campaign
-from api_app.admin import ChangableAdmin
+from admin_ui.admin.changable import ChangableAdmin
 from .base import LimitedInfoAdmin
 
 
