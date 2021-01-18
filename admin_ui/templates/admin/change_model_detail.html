@@ -2,7 +2,7 @@
 {% load i18n admin_urls %}
 
 {# Load model form's media (CSS, JS) #}
-{% block extrahead %}{{ modelform.media }} {{ block.super }}{% endblock %}
+{% block extrahead %}{{ block.super }}{{ modelform.media }}{% endblock %}
 
 <!-- {% block object-tools-items %}
     <li>
