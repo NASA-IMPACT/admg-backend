@@ -14,6 +14,9 @@ def populate_content_type(apps, schema_editor):
             )
         )
 
+def noop(apps, schema_editor):
+    pass
+
 
 class Migration(migrations.Migration):
 
@@ -34,7 +37,7 @@ class Migration(migrations.Migration):
             ),
             preserve_default=False,
         ),
-        migrations.RunPython(populate_content_type),
+        migrations.RunPython(populate_content_type, noop),
         migrations.AlterField(
             model_name="change",
             name="content_type",
