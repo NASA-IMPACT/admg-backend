@@ -5,8 +5,46 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
-Consolidated ingest pipeline
+## 0.1.8 - 2021-01-06
+### Changed
+- `nasa_mission` endpoint removed. `campaign.nasa_missions` now returns a string instead of a list of uuids 
+- `notes_internal` field standardized accross all limited field endpoints
+- `alias` endpoint now accepts `model_name` instead of `content_type`
+- `gcmd_platform.short_name` is now optional
+
+## 0.1.7 - 2020-10-30
+### Added
+- `aliases` field to `campaign`, `instrument`, `platform`, `deployment`, and `partner_org`
+
+### Changed
+- `alias` endpoint 
+    - removed `long_name`
+    - increase length `short_name` to 512 char and remove unique restriction
+    - change `source` to unlimited length
+
+## 0.1.7 - 2020-10-29
+### Fixed
+- linking error between measurements and instruments
+
+### Added
+- new text field for the `image` endpoint, `source_url`
+
+## 0.1.6 - 2020-10-27
+### Fixed
+- CREATE change requests now log the linked database object
+
+### Added
+- `api/change_request/{uuid}/validate` endpoint to validate specific change request
+- `api/validate` endpoint to validate json
+- new endpoints, `measurment_type` and `measurement_style` to replace `instrument_type`
+
+### Changed
+- db objects generated from a CREATE change request now inherit the uuid of the change request for linking purposes
+- error message details are now returned as processed json instead of strings
+- image endpoint now returns `{'success': boolean, 'message': string, 'data': []}` for get and post
+- change requests can now hold invalid data until the push operation
+- all `example` fields have max_length increased from 256 to 1024 char
+- `gcmd_platform.description` is now an optional field
 
 ## 0.1.5 - 2020-10-09
 ### Fixed
@@ -59,7 +97,6 @@ Consolidated ingest pipeline
 ### Changed
 #### Requirements
 - repo now requires boto3 and botocore; see [requirements/base.txt](https://github.com/NASA-IMPACT/admg_webapp/blob/master/requirements/base.txt)
-
 
 #### APIs
 - read access no longer requires a token or login

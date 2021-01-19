@@ -284,4 +284,11 @@ admg_webapp/media/
 
 .pytest_cache/
 .ipynb_checkpoints/
-hosts
+*.xlsx
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.sql
+hosts/*
+!hosts/*.sample

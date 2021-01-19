@@ -136,6 +136,16 @@ def ChangeApproveRejectView(approve_or_reject):
 
     return View.as_view()
 
+class ChangeValidationView(APIView):
+    permission_classes = [permissions.IsAuthenticated, TokenHasScope]
+    required_scopes = [STAFF]
+    
+    @handle_exception
+    def post(self, request, *args, **kwargs):
+        uuid = kwargs.get("uuid")
+        instance = _validate_update(request, uuid)
+        return instance.validate()
+
 
 class ChangePushView(APIView):
     permission_classes = [permissions.IsAuthenticated, TokenHasScope]
@@ -145,6 +155,7 @@ class ChangePushView(APIView):
     def post(self, request, *args, **kwargs):
         uuid = kwargs.get("uuid")
         instance = _validate_update(request, uuid)
+        instance.validate()
         instance.status = PENDING_CODE
         instance.save()
         return Response(f"Status for uuid: {uuid} changed to pending.")

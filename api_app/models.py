@@ -3,11 +3,10 @@ from uuid import uuid4
 from django.apps import apps
 from django.db import models
 from django.utils.timezone import now
-from django.contrib.contenttypes.fields import GenericForeignKey
-from django.contrib.contenttypes.models import ContentType
+from rest_framework.response import Response
 
-from data_models import serializers as sz
-from admg_webapp.users.models import User, ADMIN
+from admg_webapp.users.models import ADMIN, User
+from data_models import serializers
 
 CREATE = "Create"
 UPDATE = "Update"
@@ -68,6 +67,10 @@ def handle_approve_reject(function):
         # a false success might be triggered, and using not doesn't rule out None
         if updated.get("success") == False:
             return updated
+
+        # links co to the new db instance
+        if self.action == CREATE:
+            self.model_instance_uuid = updated['uuid']
 
         self.status = updated["status"]  # approved/rejected
         self.appr_reject_by = admin_user
@@ -154,7 +157,7 @@ class Change(models.Model):
         """
         model = apps.get_model("data_models", self.model_name)
         if self.action != CREATE:
-            serializer_class = getattr(sz, f"{self.model_name}Serializer")
+            serializer_class = getattr(serializers, f"{self.model_name}Serializer")
             instance = model.objects.get(uuid=self.model_instance_uuid)
             if self.action == UPDATE:
                 serializer = serializer_class(instance)
@@ -166,6 +169,100 @@ class Change(models.Model):
         if not post_save:
             self._check_model_and_uuid()
         return super().save(*args, **kwargs)
+
+    def _run_validator(self, partial):
+        """Helper function that runs the serializer validator. Please note
+        that if errors are found, the error handler will capture them and this
+        function's return will be bypassed.
+
+        Args:
+            partial (bool): A True value indicates partial validation, where
+            required database fields are allowed to be missing.
+
+        Returns:
+            string: Returns a message string only if validation is passed.
+        """
+
+        serializer_class = getattr(serializers, f"{self.model_name}Serializer")
+        serializer_obj = serializer_class(data=self.update, partial=partial)
+        serializer_obj.is_valid(raise_exception=True)
+
+        return 'All serializer validations passed'
+
+    def validate(self):
+        """Runs the serializer validation. Note that different request types will
+        have partial or non-partial validation. If errors are found, the error
+        handler will capture them and this function's return will be bypassed.
+
+        Returns:
+            Response: Returns a 200 with a validation message, only if the valdations
+            pass. Otherwise, the error handler will print out each validation error string
+            and error code.
+        """
+        if self.action == CREATE:
+            validation_message = self._run_validator(partial=False)
+
+        elif self.action == PATCH or self.action == UPDATE:
+            validation_message = self._run_validator(partial=True)
+
+        elif self.action == DELETE:
+            validation_message = ''
+
+        return Response(
+            status=200,
+            data={
+                'message': validation_message,
+            }
+        )
+
+    def _get_model_instance(self):
+        model = apps.get_model("data_models", self.model_name)
+        return model.objects.get(uuid=self.model_instance_uuid)
+
+    def _save_serializer(self, model_instance, data, partial):
+        serializer_class = getattr(serializers, f"{self.model_name}Serializer")
+        serializer = serializer_class(instance=model_instance, data=data, partial=partial)
+
+        if serializer.is_valid(raise_exception=True):
+            new_model_instance = serializer.save()
+            response = {"uuid": new_model_instance.uuid, "status": APPROVED_CODE}
+
+        return response
+
+    def _create(self):
+        # set the db uuid == change request uuid
+        self.update['uuid'] = str(self.uuid)
+
+        response = self._save_serializer(
+            model_instance=None,
+            data=self.update,
+            partial=False
+        )
+
+        return response
+
+    def _update_patch(self):
+        if not self.model_instance_uuid:
+            response = {"success": False, "message": "UUID for the model was not found"}
+        else:
+            response = self._save_serializer(
+                model_instance=self._get_model_instance(),
+                data=self.update,
+                partial=True
+            )
+
+        return response
+
+    def _delete(self):
+        if not self.model_instance_uuid:
+            response = {"success": False, "message": "UUID for the model was not found"}
+        else:
+            model_instance = self._get_model_instance()
+            model_instance.delete()
+
+            response = {"uuid": self.model_instance_uuid, "status": APPROVED_CODE}
+
+        return response
 
     @handle_approve_reject
     def approve(self, admin_user, notes):
@@ -188,30 +285,14 @@ class Change(models.Model):
                 message: "In case success is False"
             }
         """
-        serializer_class = getattr(sz, f"{self.model_name}Serializer")
-        model = apps.get_model("data_models", self.model_name)
         if self.action == CREATE:
-            serializer = serializer_class(data=self.update)
-            if serializer.is_valid():
-                created = serializer.save()
-                return {"uuid": created.uuid, "status": APPROVED_CODE}
-            return false_success(serializer.errors)
+            response = self._create()
+        elif self.action == UPDATE or self.action == PATCH:
+            response = self._update_patch()
+        elif self.action == DELETE:
+            response = self._delete()
 
-        if not self.model_instance_uuid:
-            return false_success("UUID for the model was not found")
-
-        # filter because delete and update both work on filter, update doesn't work on get
-        model_instance = model.objects.get(uuid=self.model_instance_uuid)
-        if self.action == DELETE:
-            model_instance.delete()
-        else:
-            # if not create or delete it is update, allow partial updates by default
-            serializer = serializer_class(
-                model_instance, data=self.update, partial=True
-            )
-            if serializer.is_valid():
-                serializer.save()
-        return {"uuid": self.model_instance_uuid, "status": APPROVED_CODE}
+        return response
 
     @handle_approve_reject
     def reject(self, admin_user, notes):

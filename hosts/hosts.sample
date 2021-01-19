@@ -1,0 +1,5 @@
+[webserver]
+[your_server_ip_here]
+
+[webserver:vars]
+ansible_python_interpreter=/usr/bin/python3
