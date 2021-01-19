@@ -184,8 +184,14 @@ TEMPLATES = [
         "BACKEND": "django.template.backends.django.DjangoTemplates",
         "APP_DIRS": True,
         # https://docs.djangoproject.com/en/dev/ref/settings/#template-dirs
-        "DIRS": [str(APPS_DIR("templates"))],
+        "DIRS": [str(APPS_DIR.path("templates"))],
         "OPTIONS": {
+            # https://docs.djangoproject.com/en/dev/ref/settings/#template-loaders
+            # https://docs.djangoproject.com/en/dev/ref/templates/api/#loader-types
+            # "loaders": [
+            #     "django.template.loaders.filesystem.Loader",
+            #     "django.template.loaders.app_directories.Loader",
+            # ],
             # https://docs.djangoproject.com/en/dev/ref/settings/#template-context-processors
             "context_processors": [
                 "django.template.context_processors.debug",
@@ -196,7 +202,7 @@ TEMPLATES = [
                 "django.template.context_processors.static",
                 "django.template.context_processors.tz",
                 "django.contrib.messages.context_processors.messages",
-            ]
+            ],
         },
     }
 ]
@@ -281,35 +287,46 @@ SOCIALACCOUNT_ADAPTER = "admg_webapp.users.adapters.SocialAccountAdapter"
 # ------------------------------------------------------------------------------
 
 REST_FRAMEWORK = {
-    "DEFAULT_RENDERER_CLASSES": ["rest_framework.renderers.JSONRenderer"],
-    "DEFAULT_PARSER_CLASSES": [
-        "rest_framework.parsers.JSONParser",
-        "rest_framework.parsers.MultiPartParser",
+    'DEFAULT_RENDERER_CLASSES': [
+        'rest_framework.renderers.JSONRenderer',
     ],
-    "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.IsAuthenticated"],
-    "DEFAULT_AUTHENTICATION_CLASSES": [
-        "oauth2_provider.contrib.rest_framework.OAuth2Authentication"
+    'DEFAULT_PARSER_CLASSES': [
+        'rest_framework.parsers.JSONParser',
+        'rest_framework.parsers.MultiPartParser',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'oauth2_provider.contrib.rest_framework.OAuth2Authentication',
     ],
 }
 
 SWAGGER_SETTINGS = {
-    "JSON_EDITOR": True,
-    "DEFAULT_INFO": "api_app.urls.info",
-    "SUPPORTED_SUBMIT_METHODS": ["get", "post", "put", "delete", "patch"],
-    "DEFAULT_AUTO_SCHEMA_CLASS": "api_app.utils.XcodeAutoSchema",
-    "SECURITY_DEFINITIONS": {
+    'JSON_EDITOR': True,
+    'DEFAULT_INFO': 'api_app.urls.info',
+    'SUPPORTED_SUBMIT_METHODS': ['get', 'post', 'put', 'delete', 'patch'],
+    'DEFAULT_AUTO_SCHEMA_CLASS': 'api_app.utils.XcodeAutoSchema',
+    'SECURITY_DEFINITIONS': {
         # TODO: does not work right now. Need to make it work
-        "ADMG API - Swagger": {
-            "type": "oauth2",
-            "authorizationUrl": "/authenticate/authorize",
-            "tokenUrl": "/authenticate/token/",
-            "flow": "accessCode",
-            "scopes": {"read:groups": "read groups"},
+        'ADMG API - Swagger': {
+            'type': 'oauth2',
+            'authorizationUrl': '/authenticate/authorize',
+            'tokenUrl': '/authenticate/token/',
+            'flow': 'accessCode',
+            'scopes': {
+                'read:groups': 'read groups',
+            },
         }
     },
 }
 
-OAUTH2_PROVIDER = {"SCOPES": {"read": "Read scope", "write": "Write scope"}}
+OAUTH2_PROVIDER = {
+    'SCOPES': {
+        'read': 'Read scope',
+        'write': 'Write scope',
+    }
+}
 
 CORS_ORIGIN_ALLOW_ALL = True
 
