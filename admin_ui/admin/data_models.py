@@ -1,9 +1,8 @@
 from django.contrib import admin
-from django.contrib.admin.options import ModelAdmin
 
-from admin_ui.admin.changable import ChangableAdmin
+from data_models import models
 
-from . import models
+from .changable import ChangableAdmin
 
 
 @admin.register(models.PlatformType)
