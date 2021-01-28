@@ -12,12 +12,12 @@ class BaseChangeInline(GenericTabularInline):
     extra = 0
 
     def has_add_permission(self, request, obj):
-        # Changes may not be manually added. They should on be created by saving
+        # Changes may not be manually added. They should be created by saving
         # a model
         return False
 
     def has_change_permission(self, request, obj):
-        # Changes may not be manually added. They should on be created by saving
+        # Changes may not be manually added. They should be created by saving
         # a model
         return False
 
