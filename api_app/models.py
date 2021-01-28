@@ -3,6 +3,8 @@ from uuid import uuid4
 from django.apps import apps
 from django.db import models
 from django.utils.timezone import now
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
 from rest_framework.response import Response
 
 from admg_webapp.users.models import ADMIN, User
