@@ -28,8 +28,11 @@ class User(AbstractUser):
 
     def get_absolute_url(self):
         return reverse("users:detail", kwargs={"username": self.username})
-    
+
     def save(self, *args, **kwargs):
         if self.is_superuser:
             self.role = ADMIN_CODE
         super().save(*args, **kwargs)
+
+    def can_deploy(self):
+        return self.role == ADMIN_CODE

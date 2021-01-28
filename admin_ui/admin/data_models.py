@@ -2,61 +2,62 @@ from django.contrib import admin
 
 from data_models import models
 
+from .base import EnforcedPermissions
 from .changable import ChangableAdmin
 
 
 @admin.register(models.PlatformType)
-class PlatformTypeAdmin(admin.ModelAdmin):
+class PlatformTypeAdmin(EnforcedPermissions):
     list_display = ("short_name", "long_name")
 
 
 @admin.register(models.MeasurementStyle)
-class MeasurementStyleAdmin(admin.ModelAdmin):
+class MeasurementStyleAdmin(EnforcedPermissions):
     list_display = ("short_name", "long_name")
 
 
 @admin.register(models.MeasurementType)
-class MeasurementTypeAdmin(admin.ModelAdmin):
+class MeasurementTypeAdmin(EnforcedPermissions):
     list_display = ("short_name", "long_name")
 
 
 @admin.register(models.HomeBase)
-class HomeBaseAdmin(admin.ModelAdmin):
+class HomeBaseAdmin(EnforcedPermissions):
     list_display = ("short_name", "long_name")
 
 
 @admin.register(models.FocusArea)
-class FocusAreaAdmin(admin.ModelAdmin):
+class FocusAreaAdmin(EnforcedPermissions):
     list_display = ("short_name", "long_name")
 
 
 @admin.register(models.Season)
-class SeasonAdmin(admin.ModelAdmin):
+class SeasonAdmin(EnforcedPermissions):
     list_display = ("short_name", "long_name")
 
 
 @admin.register(models.Repository)
-class RepositoryAdmin(admin.ModelAdmin):
+class RepositoryAdmin(EnforcedPermissions):
     list_display = ("short_name", "long_name")
 
 
 @admin.register(models.MeasurementRegion)
-class MeasurementRegionAdmin(admin.ModelAdmin):
+class MeasurementRegionAdmin(EnforcedPermissions):
     list_display = ("short_name", "long_name")
 
 
 @admin.register(models.GeographicalRegion)
-class GeographicalRegionAdmin(admin.ModelAdmin):
+class GeographicalRegionAdmin(EnforcedPermissions):
     list_display = ("short_name", "long_name")
 
 
 @admin.register(models.GeophysicalConcept)
-class GeophysicalConceptAdmin(admin.ModelAdmin):
+class GeophysicalConceptAdmin(EnforcedPermissions):
     list_display = ("short_name", "long_name")
 
 
 @admin.register(models.Campaign)
-class CampaignAdmin(ChangableAdmin):
+class CampaignAdmin(EnforcedPermissions, ChangableAdmin):
     list_display = ("short_name", "long_name", "funding_agency")
     list_filter = (
         "ongoing",
@@ -73,41 +74,41 @@ class CampaignAdmin(ChangableAdmin):
 
 
 @admin.register(models.Instrument)
-class InstrumentAdmin(ChangableAdmin):
+class InstrumentAdmin(EnforcedPermissions, ChangableAdmin):
     list_display = ("short_name", "long_name")
 
 
 @admin.register(models.Platform)
-class PlatformAdmin(ChangableAdmin):
+class PlatformAdmin(EnforcedPermissions, ChangableAdmin):
     list_display = ("short_name", "long_name")
     list_filter = ("platform_type",)
 
 
 @admin.register(models.Deployment)
-class DeploymentAdmin(ChangableAdmin):
+class DeploymentAdmin(EnforcedPermissions, ChangableAdmin):
     list_display = ("short_name", "long_name")
 
 
 @admin.register(models.IOP)
-class IOPAdmin(ChangableAdmin):
+class IOPAdmin(EnforcedPermissions, ChangableAdmin):
     list_display = ("short_name",)
 
 
 @admin.register(models.SignificantEvent)
-class SignificantEventAdmin(ChangableAdmin):
+class SignificantEventAdmin(EnforcedPermissions, ChangableAdmin):
     list_display = ("short_name",)
 
 
 @admin.register(models.PartnerOrg)
-class PartnerOrgAdmin(ChangableAdmin):
+class PartnerOrgAdmin(EnforcedPermissions, ChangableAdmin):
     list_display = ("short_name", "long_name")
 
 
-admin.site.register(models.GcmdProject)
-admin.site.register(models.GcmdInstrument)
-admin.site.register(models.GcmdPlatform)
-admin.site.register(models.GcmdPhenomena)
-admin.site.register(models.DOI)
-admin.site.register(models.CollectionPeriod)
-admin.site.register(models.Alias)
-admin.site.register(models.Image)
+admin.site.register(models.GcmdProject, EnforcedPermissions)
+admin.site.register(models.GcmdInstrument, EnforcedPermissions)
+admin.site.register(models.GcmdPlatform, EnforcedPermissions)
+admin.site.register(models.GcmdPhenomena, EnforcedPermissions)
+admin.site.register(models.DOI, EnforcedPermissions)
+admin.site.register(models.CollectionPeriod, EnforcedPermissions)
+admin.site.register(models.Alias, EnforcedPermissions)
+admin.site.register(models.Image, EnforcedPermissions)
