@@ -120,10 +120,6 @@ class ChangeAdmin(EnforcedPermissions):
         update_form = ModelForm(data=obj.update)
         update_form.full_clean()
 
-        # if (obj.action in [CREATE, UPDATE]) and (not update_form.is_valid()):
-        #     # TODO: Learn how django admin validates
-        #     raise ValidationError(_(), update_form.errors)
-
         try:
             obj.save(post_save=True)  # Use post_save to opt-out of setting obj.previous
         except form.instance.__class__.DoesNotExist as e:
