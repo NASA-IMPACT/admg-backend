@@ -44,11 +44,10 @@ class ChangeAdmin(EnforcedPermissions):
     )
     readonly_fields = (
         "user",
-        # "update",
         "previous",
         "uuid",
         "model_instance_uuid",
-        "appr_reject_date",  # TODO: Admins should be able to change appr_reject_date
+        "appr_reject_date",
     )
     fieldsets = (
         (
@@ -57,7 +56,6 @@ class ChangeAdmin(EnforcedPermissions):
                 "fields": (
                     "action",
                     "content_type",
-                    # "added_date",
                 )
             },
         ),
