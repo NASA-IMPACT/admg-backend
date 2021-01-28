@@ -149,12 +149,11 @@ class ChangeAdmin(EnforcedPermissions):
 
         # Buildout custom form for destination model
         ModelForm = self._get_modelform_for_content_type(request, obj.content_type)
-        model_form = ModelForm(
-            {
-                **obj.previous,
-                **obj.update,
-            }  # Populate form with previous and updated data
-        )
+        # some field widgets crash if passed None values
+        form_data = {f.name: "" for f in obj.content_type.model_class()._meta.fields}
+        form_data.update(obj.previous)
+        form_data.update(obj.update)
+        model_form = ModelForm(form_data)
 
         readonly = not self.has_change_permission(request, obj)
         if readonly:
@@ -174,7 +173,6 @@ class ChangeAdmin(EnforcedPermissions):
             # Enforce admin state on model form
             model_field.widget.attrs["disabled"] = readonly
             model_field.widget.attrs["readonly"] = readonly
-            model_field.widget.can_add_related = True
 
         admin_form = admin.helpers.AdminForm(
             form=model_form,
