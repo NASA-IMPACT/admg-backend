@@ -6,7 +6,7 @@
 
 {% block after_field_sets %}
 <hr />
-{# https://github.com/django/django/blob/master/django/contrib/admin/templates/admin/change_form.html#L48-L52 #}
+{# Build custom form for Draft's target model #}
 {% for fieldset in modelform %}
   {% include "admin/includes/fieldset.html" %}
 {% endfor %}
