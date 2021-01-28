@@ -10,13 +10,13 @@ class PlatformTypeAdmin(admin.ModelAdmin):
     list_display = ("short_name", "long_name")
 
 
-@admin.register(models.NasaMission)
-class NasaMissionAdmin(admin.ModelAdmin):
+@admin.register(models.MeasurementStyle)
+class MeasurementStyleAdmin(admin.ModelAdmin):
     list_display = ("short_name", "long_name")
 
 
-@admin.register(models.InstrumentType)
-class InstrumentTypeAdmin(admin.ModelAdmin):
+@admin.register(models.MeasurementType)
+class MeasurementTypeAdmin(admin.ModelAdmin):
     list_display = ("short_name", "long_name")
 
 
