@@ -8,6 +8,7 @@ from django.forms import modelform_factory, Field
 from django.forms.models import ModelForm
 
 from api_app.models import APPROVED_CODE, Change
+from .base import EnforcedPermissions
 
 
 class ModelToBeChangedFilter(admin.SimpleListFilter):
@@ -28,7 +29,7 @@ class ModelToBeChangedFilter(admin.SimpleListFilter):
         return queryset.filter(content_type_id=self.value())
 
 
-class ChangeAdmin(admin.ModelAdmin):
+class ChangeAdmin(EnforcedPermissions):
     SUBMODEL_FIELDNAME_PREFIX = "submodel__"
 
     change_form_template = "admin/change_model_detail.html"
@@ -73,6 +74,12 @@ class ChangeAdmin(admin.ModelAdmin):
         ),
     )
 
+    def has_module_permission(self, request):
+        return True
+
+    def has_view_permission(self, request, obj=None):
+        return True
+
     def has_change_permission(self, request, obj: Change = None):
         """ Only allow changing objects if you're the author or superuser """
         if obj:
@@ -81,6 +88,12 @@ class ChangeAdmin(admin.ModelAdmin):
                 return False
 
         return True
+
+    def has_add_permission(self, request, obj=None):
+        return True
+
+    def has_delete_permission(self, request, obj=None):
+        return self.is_admin(request)
 
     def get_queryset(self, request):
         return (
