@@ -94,7 +94,11 @@ class ChangeAdmin(EnforcedPermissions):
     def get_changeform_initial_data(self, request):
         return {'action': CREATE}
 
-    def save_model(self, request, obj: Change, form, change):
+    def save_model(self, request, obj: Change, form, change: boolean):
+        """
+        Given a model instance save it to the database. ``change`` is True if
+        the object is being changed, and False if it's being added.
+        """
         # Retrieve update data from form
         model_fields = [
             (k[len(self.SUBMODEL_FIELDNAME_PREFIX) :], v)  # Rm prefix
