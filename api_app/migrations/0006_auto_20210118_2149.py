@@ -21,7 +21,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='change',
             name='action',
-            field=models.CharField(choices=[('Create', 'Create'), ('Update', 'Update'), ('Delete', 'Delete'), ('Patch', 'Patch')], default='Create', max_length=10),
+            field=models.CharField(choices=[('Create', 'Create'), ('Update', 'Update'), ('Delete', 'Delete'), ('Patch', 'Patch')], default='Update', max_length=10),
         ),
         migrations.AlterField(
             model_name='change',

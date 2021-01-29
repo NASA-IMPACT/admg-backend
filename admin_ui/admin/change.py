@@ -6,7 +6,7 @@ from django.utils.translation import gettext as _
 from django.forms import modelform_factory, Field
 from django.forms.models import ModelForm as ModelFormType
 
-from api_app.models import APPROVED_CODE, Change
+from api_app.models import APPROVED_CODE, Change, CREATE
 from .base import EnforcedPermissions
 
 
@@ -90,6 +90,9 @@ class ChangeAdmin(EnforcedPermissions):
             # fetch related data to avoid followup lookups of needed data
             .select_related("content_type", "user")
         )
+
+    def get_changeform_initial_data(self, request):
+        return {'action': CREATE}
 
     def save_model(self, request, obj: Change, form, change):
         # Retrieve update data from form

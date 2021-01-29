@@ -122,7 +122,7 @@ class Change(models.Model):
     action = models.CharField(
         max_length=10,
         choices=((choice, choice) for choice in [CREATE, UPDATE, DELETE, PATCH]),
-        default=CREATE,
+        default=UPDATE,
     )
     user = models.ForeignKey(
         User,
