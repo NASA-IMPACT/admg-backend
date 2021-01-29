@@ -3,7 +3,7 @@ from django.contrib import admin
 from data_models import models
 
 from .base import EnforcedPermissions
-from .changable import ChangableAdmin
+from .changeable import ChangeableAdmin
 
 
 @admin.register(models.PlatformType)
@@ -57,7 +57,7 @@ class GeophysicalConceptAdmin(EnforcedPermissions):
 
 
 @admin.register(models.Campaign)
-class CampaignAdmin(EnforcedPermissions, ChangableAdmin):
+class CampaignAdmin(EnforcedPermissions, ChangeableAdmin):
     list_display = ("short_name", "long_name", "funding_agency")
     list_filter = (
         "ongoing",
@@ -74,33 +74,33 @@ class CampaignAdmin(EnforcedPermissions, ChangableAdmin):
 
 
 @admin.register(models.Instrument)
-class InstrumentAdmin(EnforcedPermissions, ChangableAdmin):
+class InstrumentAdmin(EnforcedPermissions, ChangeableAdmin):
     list_display = ("short_name", "long_name")
 
 
 @admin.register(models.Platform)
-class PlatformAdmin(EnforcedPermissions, ChangableAdmin):
+class PlatformAdmin(EnforcedPermissions, ChangeableAdmin):
     list_display = ("short_name", "long_name")
     list_filter = ("platform_type",)
 
 
 @admin.register(models.Deployment)
-class DeploymentAdmin(EnforcedPermissions, ChangableAdmin):
+class DeploymentAdmin(EnforcedPermissions, ChangeableAdmin):
     list_display = ("short_name", "long_name")
 
 
 @admin.register(models.IOP)
-class IOPAdmin(EnforcedPermissions, ChangableAdmin):
+class IOPAdmin(EnforcedPermissions, ChangeableAdmin):
     list_display = ("short_name",)
 
 
 @admin.register(models.SignificantEvent)
-class SignificantEventAdmin(EnforcedPermissions, ChangableAdmin):
+class SignificantEventAdmin(EnforcedPermissions, ChangeableAdmin):
     list_display = ("short_name",)
 
 
 @admin.register(models.PartnerOrg)
-class PartnerOrgAdmin(EnforcedPermissions, ChangableAdmin):
+class PartnerOrgAdmin(EnforcedPermissions, ChangeableAdmin):
     list_display = ("short_name", "long_name")
 
 

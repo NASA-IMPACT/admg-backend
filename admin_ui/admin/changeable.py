@@ -36,5 +36,5 @@ class InProgressChangeInline(BaseChangeInline):
         return super().get_queryset(request).filter(status=IN_PROGRESS_CODE)
 
 
-class ChangableAdmin(admin.ModelAdmin):
+class ChangeableAdmin(admin.ModelAdmin):
     inlines = [PendingChangeInline, InProgressChangeInline]
