@@ -1,11 +1,10 @@
 from functools import partial
 
 from django.contrib import admin, messages
-from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext as _
 from django.forms import modelform_factory, Field
-from django.forms.models import ModelForm
+from django.forms.models import ModelForm as ModelFormType
 
 from api_app.models import APPROVED_CODE, Change
 from .base import EnforcedPermissions
@@ -50,15 +49,7 @@ class ChangeAdmin(EnforcedPermissions):
         "appr_reject_date",
     )
     fieldsets = (
-        (
-            None,
-            {
-                "fields": (
-                    "action",
-                    "content_type",
-                )
-            },
-        ),
+        (None, {"fields": ("action", "content_type")}),
         (
             "Details",
             {"classes": (), "fields": ("user", "status", "appr_reject_date", "notes")},
@@ -116,7 +107,9 @@ class ChangeAdmin(EnforcedPermissions):
         }
 
         # Validate update
-        ModelForm = self._get_modelform_for_content_type(request, obj.content_type)
+        ModelForm = self._get_modelform_for_model_class(
+            request, obj.content_type.model_class()
+        )
         update_form = ModelForm(data=obj.update)
         update_form.full_clean()
 
@@ -142,12 +135,14 @@ class ChangeAdmin(EnforcedPermissions):
         obj = self.get_object(request, object_id)
 
         # Buildout custom form for destination model
-        ModelForm = self._get_modelform_for_content_type(request, obj.content_type)
-        # some field widgets crash if passed None values
-        form_data = {f.name: "" for f in obj.content_type.model_class()._meta.fields}
-        form_data.update(obj.previous)
-        form_data.update(obj.update)
-        model_form = ModelForm(form_data)
+        ModelCls = obj.content_type.model_class()
+        ModelForm = self._get_modelform_for_model_class(request, ModelCls)
+        model_form = ModelForm({
+            # some field widgets crash if passed None values
+            **{f.name: "" for f in ModelCls._meta.fields},
+            **(obj.previous or {}),
+            **(obj.update or {}),
+        })
 
         readonly = not self.has_change_permission(request, obj)
         if readonly:
@@ -189,21 +184,23 @@ class ChangeAdmin(EnforcedPermissions):
             request, object_id, form_url, extra_context=extra_context
         )
 
-    def _get_modelform_for_content_type(
-        self, request, content_type: ContentType, **kwargs
-    ) -> ModelForm:
+    def _get_modelform_for_model_class(
+        self, request, ModelCls, **kwargs
+    ) -> ModelFormType:
         """
-        Returns a ModelForm for content object associated with a provided object.
+        Returns a ModelForm for provided model.
         """
         # Source: https://github.com/django/django/blob/e0a46367df8b17905f1c78f5c86f88d21c0f2b4d/django/contrib/admin/options.py#L698-L710
-        defaults = {
-            # 'form': form,
-            # 'fields': fields,
-            "exclude": [],
-            "formfield_callback": partial(self.formfield_for_dbfield, request=request),
-            **kwargs,
-        }
-        return modelform_factory(content_type.model_class(), **defaults)
+        return modelform_factory(
+            ModelCls,
+            **{
+                "exclude": [],
+                "formfield_callback": partial(
+                    self.formfield_for_dbfield, request=request
+                ),
+                **kwargs,
+            },
+        )
 
     @staticmethod
     def _prefix_field(field: Field, field_name_prefix: str) -> None:
