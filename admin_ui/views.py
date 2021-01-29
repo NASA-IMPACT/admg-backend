@@ -1,5 +1,5 @@
 from django.http import HttpResponseRedirect
-from django.contrib.auth.decorators import permission_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
 from django.conf import settings
 from django.utils.safestring import mark_safe
@@ -7,7 +7,8 @@ from django.utils.safestring import mark_safe
 import requests
 
 
-@permission_required("admin_ui.can_deploy")
+@login_required
+@user_passes_test(lambda user: user.can_deploy())
 def deploy_admin(request):
     workflow = settings.GITHUB_WORKFLOW
 
