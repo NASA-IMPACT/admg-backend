@@ -1,5 +1,7 @@
 import json
 
+from django.apps import apps
+from django.contrib.contenttypes.models import ContentType
 from django.http import JsonResponse
 from rest_framework.response import Response
 
@@ -16,8 +18,10 @@ def requires_admin_approval(model_name, action=UPDATE):
         # unsed function variable because this adds request to the change model
         def inner_wrapper(self, request, *args, **kwargs):
 
+            content_type = ContentType.objects.get(app_label="data_models", model=model_name.lower())
+
             change_object = Change(
-                model_name=model_name,
+                content_type=content_type,
                 update=request.data,
                 model_instance_uuid=kwargs.get("uuid"),
                 action=action,
