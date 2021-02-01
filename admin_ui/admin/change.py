@@ -94,7 +94,7 @@ class ChangeAdmin(EnforcedPermissions):
     def get_changeform_initial_data(self, request):
         return {'action': CREATE}
 
-    def save_model(self, request, obj: Change, form, change: boolean):
+    def save_model(self, request, obj: Change, form, change: bool):
         """
         Given a model instance save it to the database. ``change`` is True if
         the object is being changed, and False if it's being added.
