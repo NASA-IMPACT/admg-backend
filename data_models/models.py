@@ -111,8 +111,7 @@ class Alias(BaseModel):
         """converts model_name field 'PartnerOrg' into a content type to support the
         GenericForeignKey relationship, which would otherwise require an arbitrary
         primary key to be passed in the post request"""
-        model = apps.get_model(app_label='data_models', model_name=self.model_name)
-        self.content_type = ContentType.objects.get_for_model(model)
+        self.content_type = ContentType.objects.get(app_label="data_models", model=self.model_name.lower())
         return super(Alias, self).save(*args, **kwargs)
 
     class Meta:
