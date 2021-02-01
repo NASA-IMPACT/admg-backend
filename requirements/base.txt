@@ -28,3 +28,4 @@ django-cors-headers
 # AWS S3 Integration
 boto3==1.14.9
 botocore==1.17.9
+django-storages==1.11.1
