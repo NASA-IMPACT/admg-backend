@@ -331,13 +331,3 @@ CORS_ORIGIN_ALLOW_ALL = True
 
 
 APPEND_SLASH = False
-
-
-# Github Configuration (for deployment)
-GITHUB_WORKFLOW = {
-    "repo": "developmentseed/admg-inventory",
-    "id": "deploy.yml",  # Name of workflow file
-    "name": "Deploy",  # Name of workflow
-    "token": env("GH_TOKEN"),
-    "branch": "manual-deploy-support",  # Branch to be deployed
-}

@@ -140,3 +140,13 @@ AWS_ACCESS_KEY_ID = None
 AWS_SECRET_ACCESS_KEY = None
 
 AWS_DEFAULT_ACL = None
+
+
+# Github Configuration (for deployment)
+GITHUB_WORKFLOW = {
+    "repo": "developmentseed/admg-inventory",
+    "id": "deploy.yml",  # Name of workflow file
+    "name": "Deploy",  # Name of workflow
+    "token": env("GH_TOKEN"),
+    "branch": "manual-deploy-support",  # Branch to be deployed
+}
