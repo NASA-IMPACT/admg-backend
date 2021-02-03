@@ -50,31 +50,20 @@ class QueryCounter:
             self.finished = True
 
 
-def get_xml(url):
-    response = requests.get(url)
-    rdf_file = BytesIO(response.content)
-    tree = etree.parse(rdf_file)  # could fail for a lot of reasons
-    return tree
-
-
 def get_json(url):
     response = requests.get(url).text
-    # TODO: address this in the testing
-    try:
-        data = json.loads(response)
-    except:
-        data = None
+    data = json.loads(response)
     return data
 
 
-# def ingest_campaign(short_name):
-def campaign_query(short_name):
-    # TODO: i think I can update this to query several CMR parameters
-    """Queries CMR for a specific campaign/project short_name and aggergates
+def universal_query(query_parameter, query_value):
+    """Queries CMR for a specific query_parameter and value and aggergates
     all the granule metadata.
 
     Args:
-        short_name (str): capaign/project short_name
+        query_parameter (str): 'project', 'instrument', 'platform'
+        query_value (str): value associated with parameter such as a 
+            campaign short_name, 'ABOVE' for query_parameter='project'
 
     Returns:
         list: list of xml_trees
@@ -82,63 +71,41 @@ def campaign_query(short_name):
 
     # set initial variables
     counter = QueryCounter()
-    base_url = 'https://cmr.earthdata.nasa.gov/search/collections?'
-    campaign_trees = []
+    base_url = 'https://cmr.earthdata.nasa.gov/search/collections.umm_json?'
+    results = []
 
     while not counter.finished:
         # make inital query and append results
-        parameters = urlencode({'project': short_name,
+        parameters = urlencode({query_parameter: query_value,
                                 'page_size': counter.page_size,
                                 'page_num': counter.page_num},
                                 doseq=True)
         url = base_url + parameters
 
-        campaign_tree = get_xml(url)
-        campaign_trees.append(campaign_tree)
+        # retrieve and append results
+        response = get_json(url)
+        results.append(response)
 
         # iterate counter
-        num_hits = int(campaign_tree.find('hits').text)
+        num_hits = int(response['hits'])
         counter.iterate(num_hits)
 
-    return campaign_trees
+    return results
 
 
-def campaign_xml_to_json(campaign_trees):
-    """Accepts campaign metadata in the form of a list of campaign_tree xml files
-    and parses out the relevant information, aggregates the results, and converts
-    to a python dictionary.
+def extract_concept_ids(collections_json):
+    concept_ids_nested = [[collection['meta']['concept-id'] for collection in page['items']] for page in collections_json]
+    concept_ids = [concept_id for sublist in concept_ids_nested for concept_id in sublist]
+    return concept_ids
 
-    Args:
-        campaign_trees ([list]): List of campaign xlm files
 
-    Returns:
-        dict: Parsed dictionary of the original campaign xml files
-    """
+def query_cmr(query_parameter, query_value):
 
-    concept_ids = []
-    for campaign_tree in campaign_trees:
-        for references in campaign_tree.findall('references'):
-            for reference in references:
-                concept_ids.append(reference.find('id').text)
+    collections_json = universal_query(query_parameter, query_value)
+    concept_ids = extract_concept_ids(collections_json)
+    concept_ids_responses = universal_query('echo_collection_id[]', concept_ids)
 
-    # set initial variables
-    counter = QueryCounter()
-    base_url = 'https://cmr.earthdata.nasa.gov/search/collections.umm_json?'
-    metadata = []
-
-    while not counter.finished:
-        parameters = urlencode({'echo_collection_id[]': concept_ids,
-                                'page_size': counter.page_size,
-                                'page_num': counter.page_num},
-                                doseq=True)
-        url = base_url + parameters
-
-        data = get_json(url)
-        metadata += [{'concept_id': entry['meta']['concept-id'], 'metadata': entry['umm']} for entry in data['items']]
-
-        # iterate counter
-        num_hits = int(data['hits'])
-        counter.iterate(num_hits)
+    metadata = [concept_id_data for page in [response['items'] for response in concept_ids_responses] for concept_id_data in page]
 
     return metadata
 
