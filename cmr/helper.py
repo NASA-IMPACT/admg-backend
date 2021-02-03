@@ -8,27 +8,46 @@ from lxml import etree
 from urllib.parse import urlencode
 
 
-def calculate_num_returned(num_hits, page_size, page_num, naive):
-    """Calculates number of hits returned in the current CMR page
+class QueryCounter:
+    def __init__(self, page_num=1, page_size=100):
+        self.page_num = page_num
+        self.page_size = page_size
+        self.finished = False
 
-    Args:
-        num_hits (int): num hits from api call metadata
-        page_size (int): page size from user query
-        page_num (int): page number from user query
-        naive (bool): selects for naive calculation
+    def calculate_num_returned(self, num_hits, naive):
+        """Calculates number of hits returned in the current CMR page
 
-    Returns:
-        int: number of results on current page
-    """
+        Args:
+            num_hits (int): num hits from api call metadata
+            page_size (int): page size from user query
+            page_num (int): page number from user query
+            naive (bool): selects for naive calculation
 
-    if naive:
-        num_returned = page_num*page_size
-    else:
-        num_returned = page_size * page_num
-        if num_returned < num_hits:
-            num_returned = num_hits % num_returned
+        Returns:
+            int: number of results on current page
+        """
 
-    return num_returned
+        if naive:
+            num_returned = self.page_num * self.page_size
+        else:
+            num_returned = self.page_size * self.page_num
+            if num_returned < num_hits:
+                num_returned = num_hits % num_returned
+
+        return num_returned
+
+    def iterate(self, num_hits):
+        """Updates self.page_num and self.finished after a new page with new hits
+        is returned.
+
+        Args:
+            num_hits (int): number of hits returned from the most recent query
+        """
+        num_returned_naive = self.calculate_num_returned(num_hits, naive=True)
+        if num_returned_naive < num_hits:
+            self.page_num += 1
+        else:
+            self.finished = True
 
 
 def get_xml(url):
@@ -38,14 +57,14 @@ def get_xml(url):
     return tree
 
 
-# def ingest_json(url):
-#     response = requests.get(url).text
-#     # TODO: address this in the testing
-#     try:
-#         data = json.loads(response)
-#     except:
-#         data = None
-#     return data
+def get_json(url):
+    response = requests.get(url).text
+    # TODO: address this in the testing
+    try:
+        data = json.loads(response)
+    except:
+        data = None
+    return data
 
 
 # def ingest_campaign(short_name):
@@ -62,29 +81,24 @@ def campaign_query(short_name):
     """
 
     # set initial variables
-    page_num = 1
-    page_size = 100
-    finished = False
+    counter = QueryCounter()
     base_url = 'https://cmr.earthdata.nasa.gov/search/collections?'
     campaign_trees = []
 
-    while not finished:
+    while not counter.finished:
         # make inital query and append results
         parameters = urlencode({'project': short_name,
-                                'page_size': page_size,
-                                'page_num': page_num})
+                                'page_size': counter.page_size,
+                                'page_num': counter.page_num},
+                                doseq=True)
         url = base_url + parameters
 
         campaign_tree = get_xml(url)
         campaign_trees.append(campaign_tree)
 
-        # calculate num returned and iterate if needed
+        # iterate counter
         num_hits = int(campaign_tree.find('hits').text)
-        num_returned_naive = calculate_num_returned(num_hits, page_size, page_num, naive=True)
-        if num_returned_naive < num_hits:
-            page_num += 1
-        else:
-            finished = True
+        counter.iterate(num_hits)
 
     return campaign_trees
 
@@ -108,28 +122,23 @@ def campaign_xml_to_json(campaign_trees):
                 concept_ids.append(reference.find('id').text)
 
     # set initial variables
-    page_num = 1
-    page_size = 100
+    counter = QueryCounter()
+    base_url = 'https://cmr.earthdata.nasa.gov/search/collections.umm_json?'
     metadata = []
-    finished = False
 
-    while not finished:
-        base_url = 'https://cmr.earthdata.nasa.gov/search/collections.umm_json?'
+    while not counter.finished:
         parameters = urlencode({'echo_collection_id[]': concept_ids,
-                                'page_size': page_size,
-                                'page_num': page_num}, doseq=True)
+                                'page_size': counter.page_size,
+                                'page_num': counter.page_num},
+                                doseq=True)
         url = base_url + parameters
 
-        data = ingest_json(url)
+        data = get_json(url)
         metadata += [{'concept_id': entry['meta']['concept-id'], 'metadata': entry['umm']} for entry in data['items']]
 
-        # calculate num returned and iterate if needed
+        # iterate counter
         num_hits = int(data['hits'])
-        num_returned_naive = page_num * page_size
-        if num_returned_naive < num_hits:
-            page_num += 1
-        else:
-            finished = True
+        counter.iterate(num_hits)
 
     return metadata
 
