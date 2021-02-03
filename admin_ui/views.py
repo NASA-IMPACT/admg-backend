@@ -31,7 +31,7 @@ def deploy_admin(request):
         )
     else:
         messages.add_message(
-            request, messages.ERROR, f"Failed to trigger deplyoment: {response.text}"
+            request, messages.ERROR, f"Failed to trigger deployment: {response.text}"
         )
 
     # TODO: Redirect back to origin of request
