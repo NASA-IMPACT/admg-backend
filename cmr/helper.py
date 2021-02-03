@@ -3,8 +3,6 @@ import requests
 
 from collections import namedtuple
 from datetime import datetime
-from io import BytesIO
-from lxml import etree
 from urllib.parse import urlencode
 
 
@@ -62,7 +60,7 @@ def universal_query(query_parameter, query_value):
 
     Args:
         query_parameter (str): 'project', 'instrument', 'platform'
-        query_value (str): value associated with parameter such as a 
+        query_value (str): value associated with parameter such as a
             campaign short_name, 'ABOVE' for query_parameter='project'
 
     Returns:
@@ -94,8 +92,20 @@ def universal_query(query_parameter, query_value):
 
 
 def extract_concept_ids(collections_json):
+    """Takes the results from an initial collections query and extracts each
+    concept_id mentioned, with the intent that they are subsequently queried
+    individually for their detailed metadata.
+
+    Args:
+        collections_json (dict): Python dict generated from the json from 
+            universal_query()
+
+    Returns:
+        list: list of concept_id strings
+    """
     concept_ids_nested = [[collection['meta']['concept-id'] for collection in page['items']] for page in collections_json]
     concept_ids = [concept_id for sublist in concept_ids_nested for concept_id in sublist]
+    concept_ids = list(set(concept_ids))
     return concept_ids
 
 
@@ -108,6 +118,21 @@ def query_cmr(query_parameter, query_value):
     metadata = [concept_id_data for page in [response['items'] for response in concept_ids_responses] for concept_id_data in page]
 
     return metadata
+
+
+def aggregate_aliases(query_parameter, query_value):
+    
+    if query_parameter not in ['project', 'instrument', 'platform']:
+        raise ValueError('CMR query parameter must be project, instrument, or platform in order for aliases to be queried from the db')
+    
+    if query_parameter == 'project':
+        table_name = 'campaign'
+    else:
+        table_name = query_parameter
+
+    
+
+
 
 
 def general_extractor(campaign_metadata, field):
