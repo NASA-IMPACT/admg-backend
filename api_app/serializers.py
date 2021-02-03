@@ -5,6 +5,7 @@ from data_models.models import Image
 
 
 class ChangeSerializer(serializers.ModelSerializer):
+    model_name = serializers.CharField(read_only=True)
     class Meta:
         model = Change
         fields = "__all__"
