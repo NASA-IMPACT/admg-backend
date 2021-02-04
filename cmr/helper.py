@@ -113,15 +113,35 @@ def query_cmr(query_parameter, query_value):
 
     collections_json = universal_query(query_parameter, query_value)
     concept_ids = extract_concept_ids(collections_json)
-    concept_ids_responses = universal_query('echo_collection_id[]', concept_ids)
 
+    
+    concept_ids_responses = universal_query('echo_collection_id[]', concept_ids)
     metadata = [concept_id_data for page in [response['items'] for response in concept_ids_responses] for concept_id_data in page]
 
     return metadata
 
 
-def aggregate_aliases(query_parameter, query_value):
+
+def filter_co(co, table_name, query_parameter='short_name', query_value=None):
+    is_create = co['action'] ==  'Create'
+    is_unapproved = co['status']==0 or co['status']==1
+    is_table = co['model_name'].lower().replace(' ', '_') == table_name.lower().replace(' ', '_')
+    # TODO: exclude rejected ones
+    if query_value:
+        is_value = co['update'].get(query_parameter) == query_value
+    else:
+        is_value = True
+        
+    if is_create and is_unapproved and is_table and is_value:
+        return True
+    else:
+        return False
+
+
+
+def aggregate_aliases(api, query_parameter, query_value, prequeried={}):
     
+
     if query_parameter not in ['project', 'instrument', 'platform']:
         raise ValueError('CMR query parameter must be project, instrument, or platform in order for aliases to be queried from the db')
     
@@ -129,10 +149,58 @@ def aggregate_aliases(query_parameter, query_value):
         table_name = 'campaign'
     else:
         table_name = query_parameter
+        
+    if prequeried.get(table_name, {}).get(query_value):
+        return prequeried.get(query_value)
 
-    
+    all_aliases = [query_value]
 
+    # query exists in regular database
+    response = api.get(f'{table_name}?short_name={query_value}')['data']
+    filtered_db = {}
+    if response:
+        filtered_db = response[0]
 
+    all_aliases.append(filtered_db.get('short_name'))
+    all_aliases.append(filtered_db.get('long_name'))
+
+    db_alias_uuids = filtered_db.get('aliases', [])
+    for uuid in db_alias_uuids:
+        alias = api.get(f'alias/{uuid}')['data']['short_name']
+        all_aliases.append(alias)
+
+    gcmd_table = 'gcmd_project'
+    gcmd_uuids = filtered_db.get(gcmd_table + 's', [])
+    for gcmd_uuid in gcmd_uuids:
+        gcmd_project = api.get(f'{gcmd_table}/{gcmd_uuid}')['data']
+        all_aliases.append(gcmd_project.get('short_name'))
+        all_aliases.append(gcmd_project.get('long_name'))
+        
+    # search drafts for many cmr query object (such as campaign)
+    change_response = api.get('change_request')['data']
+    filtered_drafts = [co for co in change_response if filter_co(co, table_name, query_value=query_value)]
+
+    # loop through every result in drafts for main query object
+    for draft in filtered_drafts:
+        all_aliases.append(draft['update'].get('short_name'))
+        all_aliases.append(draft['update'].get('long_name'))
+        
+        # search draft aliases for matches to each main query object uuid
+        draft_aliases = [co for co in change_response if filter_co(co, 'alias', 'object_id', draft['uuid'])]
+        for alias in draft_aliases:
+            all_aliases.append(alias['update'].get('short_name'))
+        
+        # GCMD items are not expected to ever be in the draft stage, so only the db propper is queried
+        gcmd_table = 'gcmd_project'
+        gcmd_uuids = draft['update'].get(gcmd_table + 's', [])
+        for gcmd_uuid in gcmd_uuids:
+            gcmd_project = api.get(f'{gcmd_table}/{gcmd_uuid}')['data']
+            all_aliases.append(gcmd_project.get('short_name'))
+            all_aliases.append(gcmd_project.get('long_name'))
+
+    all_aliases = list(set([a.lower() for a in all_aliases if a]))
+
+    return all_aliases
 
 
 def general_extractor(campaign_metadata, field):
