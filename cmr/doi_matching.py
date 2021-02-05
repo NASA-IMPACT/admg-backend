@@ -13,7 +13,7 @@ def universal_get(table_name, uuid):
     Args:
         api (class): api class
         table_name (str): table name such as 'gcmd_platform'
-        uuid (str): uuid of the object 
+        uuid (str): uuid of the object
 
     Returns:
         data (dict): object from change table or None if not found
@@ -64,9 +64,14 @@ def valid_object_list_generator(table_name, use_cached_data=False):
 
     api = Api(SERVER)
     # this improves speed during development
+    failed = False
     if use_cached_data:
-        change_requests = pickle.load(open('change_request', 'rb'))
-    else:
+        try:
+            change_requests = pickle.load(open('change_request', 'rb'))
+        except:
+            failed = True
+            
+    if failed or not(use_cached_data):
         change_requests = api.get('change_request')['data']
         pickle.dump(change_requests, open('change_request', 'wb'))
 
@@ -119,14 +124,19 @@ def supplement_campaign_metadata(campaign_metadata):
     return campaign_metadata
 
 
-def anthony(campaign_short_name, fake_data=None):
+def anthony(campaign_short_name, use_cached_data=False):
     api = Api(SERVER)
 
-    if fake_data:
-        metadata = fake_data
-    else:
-        metadata = query_campaign(api, campaign_short_name)
-    
+    failed = False
+    if use_cached_data:
+        try:
+            metadata = pickle.load(open(f'metadata_{campaign_short_name}', 'rb'))
+        except:
+            failed=True
+    if failed or not(use_cached_data):
+        metadata = api.get(f'metadata_{campaign_short_name}')['data']
+        pickle.dump(metadata, open(f'metadata_{campaign_short_name}', 'wb'))
+  
     supplemented_metadata = supplement_campaign_metadata(metadata)
 
     return supplemented_metadata
