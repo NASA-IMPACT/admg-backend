@@ -5,6 +5,7 @@ from collections import namedtuple
 from datetime import datetime
 from urllib.parse import urlencode
 
+from process_metadata import process_metadata_list
 
 class QueryCounter:
     def __init__(self, page_num=1, page_size=100):
@@ -56,7 +57,7 @@ def get_json(url):
 
 def universal_query(query_parameter, query_value):
     """Queries CMR for a specific query_parameter and value and aggergates
-    all the granule metadata.
+    all the collection metadata.
 
     Args:
         query_parameter (str): 'project', 'instrument', 'platform'
@@ -91,13 +92,13 @@ def universal_query(query_parameter, query_value):
     return results
 
 
-def extract_concept_ids(collections_json):
+def extract_concept_ids_from_universal_query(collections_json):
     """Takes the results from an initial collections query and extracts each
     concept_id mentioned, with the intent that they are subsequently queried
     individually for their detailed metadata.
 
     Args:
-        collections_json (dict): Python dict generated from the json from 
+        collections_json (dict): Python dict generated from the json from
             universal_query()
 
     Returns:
@@ -109,17 +110,42 @@ def extract_concept_ids(collections_json):
     return concept_ids
 
 
-def query_cmr(query_parameter, query_value):
+def individual_concept_ids_query(query_parameter, query_value):
 
     collections_json = universal_query(query_parameter, query_value)
-    concept_ids = extract_concept_ids(collections_json)
+    concept_ids = extract_concept_ids_from_universal_query(collections_json)
 
-    
-    concept_ids_responses = universal_query('echo_collection_id[]', concept_ids)
-    metadata = [concept_id_data for page in [response['items'] for response in concept_ids_responses] for concept_id_data in page]
+    return concept_ids
 
-    return metadata
 
+def aggregate_concept_ids_queries(query_parameter, query_value_list):
+    # aggregate all concept_ids for all query_values
+    concept_id_list = []
+    for query_value in query_value_list:
+        concept_ids = individual_concept_ids_query(query_parameter, query_value)
+        concept_id_list.extend(concept_ids)
+    concept_id_list = list(set(concept_id_list))
+
+    return concept_id_list
+
+
+def query_cmr(query_parameter, query_value_list):
+    # this is the main cmr query function that takes a table and a list of aliases
+    # we want to feed all aliases at this stage because if two alias return the same
+    # list of concept_ids then we only want those concept_ids to be queried ONCE
+
+    # query value list is intended to take a list of aliases
+
+    concept_id_list = aggregate_concept_ids_queries(query_parameter, query_value_list)
+
+    # query cmr with list of concept ids
+    concept_ids_responses = universal_query('echo_collection_id[]', concept_id_list)
+    metadata_list = [concept_id_data for page in [response['items'] for response in concept_ids_responses] for concept_id_data in page]
+
+    # filter metadata
+    # filtered_metadata = filter_cmr_metadata(metadata)
+
+    return metadata_list
 
 
 def filter_co(co, table_name, query_parameter='short_name', query_value=None):
@@ -201,6 +227,19 @@ def aggregate_aliases(api, query_parameter, query_value, prequeried={}):
     all_aliases = list(set([a.lower() for a in all_aliases if a]))
 
     return all_aliases
+
+
+def query_campaign(api, campaign_short_name):
+    query_parameter = 'project'
+
+    aliases = aggregate_aliases(api, query_parameter, campaign_short_name)
+    raw_metadata_list = query_cmr(query_parameter, aliases)
+
+    processed_metadata_list = process_metadata_list(raw_metadata_list)
+
+    return processed_metadata_list
+
+####################################################################################################################################################################################
 
 
 def general_extractor(campaign_metadata, field):
