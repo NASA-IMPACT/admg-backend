@@ -1,35 +1,27 @@
-from cmr import query_campaign
+from cmr import purify_list, query_campaign
 from api import Api
 from config import server as SERVER
-from cmr import purify_list
 
 
 def filter_change_object(co, action=None, statuses=None, table_name=None, query_parameter=None, query_value=None):
     # statuses should be a list of integers
+    
+    # tests will default to True if the associate arg is not passed
+    is_action, is_status, is_table_name, is_value = True
+
     if action:
         is_action = co['action'].lower()==action.lower()
-    else
-        is_action = True
-    
+
     if statuses:
         is_status = co['staus'] in statuses
-    else
-        is_status = True
-    
+
     if table_name:
         is_table_name = co['model_name'].lower().replace(' ', '_') == table_name.lower().replace(' ', '_')
-    else:
-        is_table_name = True    
 
     if query_value:
         is_value = co['update'].get(query_parameter, '').lower() == query_value.lower()
-    else:
-        is_value = True
-        
-    if is_action and is_status and is_table_name and is_value:
-        return True
-    else:
-        return False    
+
+    return is_action and is_status and is_table_name and is_value:
 
 
 def valid_object_list_generator(table_name):
