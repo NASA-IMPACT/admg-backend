@@ -18,11 +18,11 @@ def purify_list(dirty_list, lower=True):
     Returns:
         list: clean list with no duplicates, uppercase, or null values
     """
-    
+
     if lower:
-        clean_list = list(set(i.lower() for i in dirty_list if a))
+        clean_list = list(set(i.lower() for i in dirty_list if i))
     else:
-        clean_list = list(set(i for i in dirty_list if a))
+        clean_list = list(set(i for i in dirty_list if i))
 
     return clean_list
 
@@ -126,7 +126,7 @@ def extract_concept_ids_from_universal_query(collections_json):
     """
     concept_ids_nested = [[collection['meta']['concept-id'] for collection in page['items']] for page in collections_json]
     concept_ids = [concept_id for sublist in concept_ids_nested for concept_id in sublist]
-    concept_ids = list(set(concept_ids))
+    concept_ids = purify_list(concept_ids, lower=False)
     return concept_ids
 
 
@@ -144,7 +144,7 @@ def aggregate_concept_ids_queries(query_parameter, query_value_list):
     for query_value in query_value_list:
         concept_ids = individual_concept_ids_query(query_parameter, query_value)
         concept_id_list.extend(concept_ids)
-    concept_id_list = list(set(concept_id_list))
+    concept_id_list = purify_list(concept_id_list, lower=False)
 
     return concept_id_list
 
@@ -169,6 +169,7 @@ def query_cmr(query_parameter, query_value_list):
 
 
 def filter_co(co, table_name, query_parameter='short_name', query_value=None):
+    # TODO: refactor to use more general doi_matching.filter_change_object() 
     is_create = co['action'] ==  'Create'
     is_unapproved = co['status']==0 or co['status']==1
     is_table = co['model_name'].lower().replace(' ', '_') == table_name.lower().replace(' ', '_')
@@ -244,7 +245,7 @@ def aggregate_aliases(api, query_parameter, query_value, prequeried={}):
             all_aliases.append(gcmd_project.get('short_name'))
             all_aliases.append(gcmd_project.get('long_name'))
 
-    all_aliases = list(set([a.lower() for a in all_aliases if a]))
+    all_aliases = purify_list(all_aliases)
 
     return all_aliases
 
