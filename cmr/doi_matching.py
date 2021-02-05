@@ -1,7 +1,41 @@
-from cmr import purify_list, query_campaign
-from api import Api
-from config import server as SERVER
 import pickle
+
+from api import Api
+from cmr import purify_list, query_campaign
+from config import server as SERVER
+
+
+def universal_get(table_name, uuid):
+    """Queries the database for a uuid within a table name, but searches
+    the database propper as well as change objects, preferentially returning
+    results from the main db.
+
+    Args:
+        api (class): api class
+        table_name (str): table name such as 'gcmd_platform'
+        uuid (str): uuid of the object 
+
+    Returns:
+        data (dict): object from change table or None if not found
+    """
+
+    api = Api(SERVER)
+
+    db_response = api.get(f'{table_name}/{uuid}')
+    if db_response['success']:
+        data = db_response['data']
+    else:
+        draft_response = api.get(f'change_request/{uuid}')
+        if draft_response['success']:
+            data = draft_response['data']['update']
+            data['uuid'] = draft_response['data']['uuid']
+            data['change_object'] = True
+            data['change_object_action'] = draft_response['data']['action']
+            data['change_object_status'] = draft_response['data']['status']
+        else:
+            data = None
+    return data
+
 
 def filter_change_object(co, action=None, statuses=None, table_name=None, query_parameter=None, query_value=None):
     # statuses should be a list of integers
@@ -45,7 +79,7 @@ def valid_object_list_generator(table_name, use_cached_data=False):
     deleted_uuids = [d['model_instance_uuid'] for d in deleted]
     valid_objects = [c for c in created if c['uuid'] not in deleted_uuids]
 
-    return valid_objects
+    return [o['uuid'] for o in valid_objects]
 
 
 def campaign_recommender(doi_metadata):
