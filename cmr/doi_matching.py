@@ -1,7 +1,7 @@
 import pickle
 
 from api import Api
-from cmr import purify_list, query_campaign
+from cmr import aggregate_aliases, purify_list, query_campaign
 from config import server as SERVER
 
 
@@ -58,22 +58,39 @@ def filter_change_object(co, action=None, statuses=None, table_name=None, query_
     return is_action and is_status and is_table_name and is_value
 
 
+def get_change_requests(use_cached_data=False):
+    """Downloads all change requests from the DB. Can be set to use cached
+    data that was previously queried, in order to improve speed.
+
+    Args:
+        use_cached_data (bool, optional): Set True to use cached data.
+
+    Returns:
+        change_requests (list): List of all change_requests from db
+    """
+    api = Api(SERVER)
+
+    failed = False
+    if use_cached_data:
+        try:
+            change_requests = pickle.load(open('change_request', 'rb'))
+        except FileNotFoundError:
+            failed = True
+            
+    if failed or not(use_cached_data):
+        change_requests = api.get('change_request')['data']
+        pickle.dump(change_requests, open('change_request', 'wb'))
+
+    return change_requests 
+
+
 def valid_object_list_generator(table_name, use_cached_data=False):
     # table_name => list uuids
     # gets a list of all valid object uuids from any database table
 
     api = Api(SERVER)
     # this improves speed during development
-    failed = False
-    if use_cached_data:
-        try:
-            change_requests = pickle.load(open('change_request', 'rb'))
-        except:
-            failed = True
-            
-    if failed or not(use_cached_data):
-        change_requests = api.get('change_request')['data']
-        pickle.dump(change_requests, open('change_request', 'wb'))
+    change_requests = get_change_requests(use_cached_data)
 
     # get all create items of any approval status from the given table
     created = [c for c in change_requests if filter_change_object(c, 'create', [1,2,3], table_name)]
@@ -134,7 +151,7 @@ def anthony(campaign_short_name, use_cached_data=False):
         except:
             failed=True
     if failed or not(use_cached_data):
-        metadata = api.get(f'metadata_{campaign_short_name}')['data']
+        metadata = query_campaign(campaign_short_name)
         pickle.dump(metadata, open(f'metadata_{campaign_short_name}', 'wb'))
   
     supplemented_metadata = supplement_campaign_metadata(metadata)
