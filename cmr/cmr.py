@@ -7,6 +7,26 @@ from urllib.parse import urlencode
 
 from process_metadata import process_metadata_list
 
+
+def purify_list(dirty_list, lower=True):
+    """Takes a dirty list and removes duplicates, converts to lowercase, 
+    and removes null values.
+
+    Args:
+        dirty_list (list): List with duplicate, uppercase, or null values
+
+    Returns:
+        list: clean list with no duplicates, uppercase, or null values
+    """
+    
+    if lower:
+        clean_list = list(set(i.lower() for i in dirty_list if a))
+    else:
+        clean_list = list(set(i for i in dirty_list if a))
+
+    return clean_list
+
+
 class QueryCounter:
     def __init__(self, page_num=1, page_size=100):
         self.page_num = page_num
