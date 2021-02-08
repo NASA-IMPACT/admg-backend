@@ -47,7 +47,7 @@ DATABASES = {
         "ENGINE": env("DB_ENGINE"),
         "NAME": env("DB_NAME"),
         "USER": env("DB_USER"),
-        "PASSWORD": env("DB_PASSWORD"),
+        "PASSWORD": env("DB_PASSWORD", default=None),
         "HOST": env("DB_HOST"),
         "PORT": env("DB_PORT"),
     }
@@ -72,6 +72,7 @@ DJANGO_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     # "django.contrib.humanize", # Handy template tags
+    "admin_ui",  # Must be before django.contrib.admin
     "django.contrib.admin",
     "django.contrib.gis",  # add this line
 ]

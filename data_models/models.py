@@ -6,7 +6,6 @@ from django.contrib.contenttypes.fields import (GenericForeignKey,
                                                 GenericRelation)
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.gis.db import models as geomodels
-from django.contrib.postgres.fields import JSONField
 from django.contrib.postgres.search import SearchQuery, SearchVector
 from django.db import models
 
@@ -27,6 +26,7 @@ class BaseModel(models.Model):
 
 def get_file_path(instance, path):
     return f'{instance.uuid}{os.path.splitext(path)[1]}'
+
 
 class Image(BaseModel):
     image = models.ImageField(upload_to=get_file_path)
@@ -57,13 +57,11 @@ class PlatformType(LimitedInfo):
 
 class MeasurementType(LimitedInfo):
     parent = models.ForeignKey('MeasurementType', on_delete=models.CASCADE, related_name='sub_types', null=True, blank=True)
-
     example = models.CharField(max_length=1024, blank=True, default='')
 
 
 class MeasurementStyle(LimitedInfo):
     parent = models.ForeignKey('MeasurementStyle', on_delete=models.CASCADE, related_name='sub_types', null=True, blank=True)
-
     example = models.CharField(max_length=1024, blank=True, default='')
 
 
@@ -110,11 +108,10 @@ class Alias(BaseModel):
     source = models.TextField(blank=True, default='')
 
     def save(self, *args, **kwargs):
-        """converts model_name field 'PartnerOrg' into a content type to support the 
-        GenericForeignKey relationship, which would otherwise require an arbitrary 
+        """converts model_name field 'PartnerOrg' into a content type to support the
+        GenericForeignKey relationship, which would otherwise require an arbitrary
         primary key to be passed in the post request"""
-        model = apps.get_model(app_label='data_models', model_name=self.model_name)
-        self.content_type = ContentType.objects.get_for_model(model)
+        self.content_type = ContentType.objects.get(app_label="data_models", model=self.model_name.lower())
         return super(Alias, self).save(*args, **kwargs)
 
     class Meta:
@@ -172,6 +169,9 @@ class GcmdPhenomena(BaseModel):
 class DOI(BaseModel):
     short_name = models.CharField(max_length=128, blank=False, unique=True)
     long_name = models.TextField(default='', blank=True)
+
+    class Meta:
+        verbose_name = "DOI"
 
 
 ###############
@@ -360,7 +360,7 @@ class Instrument(DataModel):
     overview_publication = models.CharField(max_length=2048, default='', blank=True)
     online_information = models.CharField(max_length=2048, default='', blank=True)
     instrument_doi = models.CharField(max_length=1024, default='', blank=True)
-    arbitrary_characteristics = JSONField(default=None, blank=True, null=True)
+    arbitrary_characteristics = models.JSONField(default=None, blank=True, null=True)
 
     dois = models.ManyToManyField(DOI, related_name='instruments', default=None, blank=True)
     gcmd_instruments = models.ManyToManyField(GcmdInstrument, related_name='instruments', default='', blank=True)

@@ -1,22 +1,23 @@
 from uuid import uuid4
 
 from django.apps import apps
-from django.contrib.postgres.fields import JSONField
 from django.db import models
 from django.utils.timezone import now
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
 from rest_framework.response import Response
 
 from admg_webapp.users.models import ADMIN, User
 from data_models import serializers
 
-CREATE = 'Create'
-UPDATE = 'Update'
-DELETE = 'Delete'
-PATCH = 'Patch'
+CREATE = "Create"
+UPDATE = "Update"
+DELETE = "Delete"
+PATCH = "Patch"
 
 
 # The change is in progress, can not be approved, but the user can update the change request
-IN_PROGRESS, IN_PROGRESS_CODE = "IN_PROGRESS", 1
+IN_PROGRESS, IN_PROGRESS_CODE = "In Progress", 1
 
 # Can be approved or rejected. Rejection sends it back to the in_progress state
 PENDING, PENDING_CODE = "Pending", 2
@@ -25,15 +26,14 @@ PENDING, PENDING_CODE = "Pending", 2
 # The state of the change object can not be changed from this state.
 APPROVED, APPROVED_CODE = "Approved", 3
 AVAILABLE_STATUSES = (
-    (PENDING_CODE, PENDING), (APPROVED_CODE, APPROVED), (IN_PROGRESS_CODE, IN_PROGRESS)
+    (PENDING_CODE, PENDING),
+    (APPROVED_CODE, APPROVED),
+    (IN_PROGRESS_CODE, IN_PROGRESS),
 )
 
 
 def false_success(message):
-    return {
-        "success": False,
-        "message": message,
-    }
+    return {"success": False, "message": message}
 
 
 def handle_approve_reject(function):
@@ -85,7 +85,7 @@ def handle_approve_reject(function):
             "updated_model": self.model_name,
             "action": self.action,
             "uuid_changed": updated["uuid"],
-            "status": self.get_status_display()
+            "status": self.get_status_display(),
         }
 
     return wrapper
@@ -93,28 +93,64 @@ def handle_approve_reject(function):
 
 class Change(models.Model):
     uuid = models.UUIDField(primary_key=True, default=uuid4, editable=False)
+    content_type = models.ForeignKey(
+        ContentType,
+        help_text="Model for which the draft pertains.",
+        on_delete=models.CASCADE,
+        limit_choices_to={
+            "app_label": "data_models",
+            "model__in": [
+                "campaign",
+                "instrument",
+                "platform",
+                "iop",
+                "deployment",
+                "partnerorg",
+            ],
+        },
+    )
+    model_instance_uuid = models.UUIDField(default=uuid4, blank=False, null=True)
+    content_object = GenericForeignKey("content_type", "model_instance_uuid")
 
     added_date = models.DateTimeField(auto_now_add=True)
-    appr_reject_date = models.DateTimeField(null=True)
+    appr_reject_date = models.DateTimeField(null=True, blank=True)
 
-    model_name = models.CharField(max_length=20, blank=False, null=False)
     status = models.IntegerField(choices=AVAILABLE_STATUSES, default=IN_PROGRESS_CODE)
-    update = JSONField()
-    previous = JSONField(default=dict)
-    model_instance_uuid = models.UUIDField(default=uuid4, blank=False, null=True)
+    update = models.JSONField(default=dict, blank=True)
+    previous = models.JSONField(default=dict)
 
     action = models.CharField(
         max_length=10,
-        choices=((CREATE, CREATE), (UPDATE, UPDATE), (DELETE, DELETE)),
-        default=UPDATE
+        choices=((choice, choice) for choice in [CREATE, UPDATE, DELETE, PATCH]),
+        default=UPDATE,
     )
     user = models.ForeignKey(
-        User, on_delete=models.SET_NULL, related_name="changed_by", null=True
+        User,
+        on_delete=models.SET_NULL,
+        related_name="changed_by",
+        null=True,
+        blank=True,
     )
     appr_reject_by = models.ForeignKey(
-        User, on_delete=models.DO_NOTHING, related_name="approved_by", null=True
+        User,
+        on_delete=models.DO_NOTHING,
+        related_name="approved_by",
+        null=True,
+        blank=True,
     )
     notes = models.CharField(max_length=500, blank=True)
+
+    class Meta:
+        verbose_name = "Draft"
+
+    @property
+    def model_name(self):
+        # TODO: Verify that this works with API
+        cls = self.content_type.model_class()
+        return cls.__name__ if cls else "UNKNOWN"
+
+    def __str__(self):
+        return f"{self.model_name} >> {self.uuid}"
 
     def _check_model_and_uuid(self):
         """
@@ -127,7 +163,7 @@ class Change(models.Model):
             instance = model.objects.get(uuid=self.model_instance_uuid)
             if self.action == UPDATE:
                 serializer = serializer_class(instance)
-                self.previous = {key: getattr(serializer.data, key, None) for key in self.update}
+                self.previous = {key: serializer.data.get(key) for key in self.update}
 
     def save(self, *args, post_save=False, **kwargs):
         # do not check for validity of model_name and uuid if it has been approved or rejected.
@@ -142,7 +178,7 @@ class Change(models.Model):
         function's return will be bypassed.
 
         Args:
-            partial (bool): A True value indicates partial validation, where 
+            partial (bool): A True value indicates partial validation, where
             required database fields are allowed to be missing.
 
         Returns:
@@ -192,7 +228,7 @@ class Change(models.Model):
         if serializer.is_valid(raise_exception=True):
             new_model_instance = serializer.save()
             response = {"uuid": new_model_instance.uuid, "status": APPROVED_CODE}
-            
+
         return response
 
     def _create(self):
