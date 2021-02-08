@@ -1,10 +1,12 @@
 import json
-import requests
-
 from collections import namedtuple
 from datetime import datetime
 from urllib.parse import urlencode
 
+import requests
+
+from api import Api
+from config import server as SERVER
 from process_metadata import process_metadata_list
 
 
@@ -186,8 +188,8 @@ def filter_co(co, table_name, query_parameter='short_name', query_value=None):
 
 
 
-def aggregate_aliases(api, query_parameter, query_value, prequeried={}):
-    
+def aggregate_aliases(query_parameter, query_value, prequeried={}):
+    api = Api(SERVER)
 
     if query_parameter not in ['project', 'instrument', 'platform']:
         raise ValueError('CMR query parameter must be project, instrument, or platform in order for aliases to be queried from the db')
@@ -250,10 +252,10 @@ def aggregate_aliases(api, query_parameter, query_value, prequeried={}):
     return all_aliases
 
 
-def query_campaign(api, campaign_short_name):
+def query_campaign(campaign_short_name):
     query_parameter = 'project'
 
-    aliases = aggregate_aliases(api, query_parameter, campaign_short_name)
+    aliases = aggregate_aliases(query_parameter, campaign_short_name)
     raw_metadata_list = query_cmr(query_parameter, aliases)
 
     processed_metadata_list = process_metadata_list(raw_metadata_list)
