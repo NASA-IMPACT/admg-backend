@@ -1,9 +1,12 @@
 import pickle
 
 from api import Api
-from cmr import aggregate_aliases, purify_list, query_campaign
+from cmr import aggregate_aliases, query_campaign
 from config import server as SERVER
-
+from utils import (
+    clean_table_name,
+    purify_list
+)
 
 def universal_get(table_name, uuid):
     """Queries the database for a uuid within a table name, but searches
@@ -50,7 +53,7 @@ def filter_change_object(co, action=None, statuses=None, table_name=None, query_
         is_status = co['status'] in statuses
 
     if table_name:
-        is_table_name = co['model_name'].lower().replace(' ', '').replace('_', '') == table_name.lower().replace(' ', '').replace('_', '')
+        is_table_name = clean_table_name(co['model_name']) == clean_table_name(table_name)
 
     if query_value:
         is_value = co['update'].get(query_parameter, '').lower() == query_value.lower()
@@ -84,7 +87,7 @@ def get_change_requests(use_cached_data=False):
     return change_requests 
 
 
-def valid_object_list_generator(table_name, use_cached_data=False):
+def valid_object_list_generator(table_name, query_parameter=None, query_value=None, use_cached_data=False):
     # table_name => list uuids
     # gets a list of all valid object uuids from any database table
 
@@ -93,15 +96,43 @@ def valid_object_list_generator(table_name, use_cached_data=False):
     change_requests = get_change_requests(use_cached_data)
 
     # get all create items of any approval status from the given table
-    created = [c for c in change_requests if filter_change_object(c, 'create', [1,2,3], table_name)]
+    created = [c for c in change_requests if filter_change_object(c, 'create', [1,2,3], table_name, query_parameter, query_value)]
     # get all approved deleted objects
-    deleted = [c for c in change_requests if filter_change_object(c, 'delete', [3], table_name)]
+    deleted = [c for c in change_requests if filter_change_object(c, 'delete', [3], table_name, query_parameter, query_value)]
 
     # filtere out the approved deletes from the approved and in progress create list
     deleted_uuids = [d['model_instance_uuid'] for d in deleted]
     valid_objects = [c for c in created if c['uuid'] not in deleted_uuids]
 
     return [o['uuid'] for o in valid_objects]
+
+
+def universal_alias(table_name, uuid):
+    table_name = clean_table_name(table_name)
+    obj = universal_get(table_name, uuid)
+
+    alias_list = []
+    alias_list.append(obj.get('short_name'))
+    alias_list.append(obj.get('long_name'))
+
+    # gets gcmd alias
+    if table_name in ['campaign', 'platform', 'instrument']:
+        if table_name == 'campaign':
+            table_name = 'project'
+        
+        gcmd_uuids = obj.get(f'gcmd_{table_name}s')
+        for gcmd_uuid in gcmd_uuids:
+            gcmd_obj = universal_get(f'gcmd_{table_name}', gcmd_uuid)
+            alias_list.append(gcmd_obj.get('short_name'))
+            alias_list.append(gcmd_obj.get('long_name'))
+
+    # get alias that are still in draft
+    linked_aliases = valid_object_list_generator('alias', 'object_id', uuid)
+    for alias_uuid in linked_aliases:
+        alias = universal_get('alias', alias_uuid)
+        alias_list.append(alias.get('short_name'))
+    
+    return purify_list(alias_list)
 
 
 def campaign_recommender(doi_metadata):
