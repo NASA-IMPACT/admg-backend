@@ -318,7 +318,6 @@ class CampaignSerializer(GetAliasSerializer):
     number_deployments = serializers.IntegerField(read_only=True)
     instruments = serializers.ListField(read_only=True)
     platforms = serializers.ListField(read_only=True)
-    dois = serializers.ListField(read_only=True)
 
     def get_deployments(self, obj):
         return get_uuids(obj.deployments)

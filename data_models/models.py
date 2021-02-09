@@ -166,14 +166,6 @@ class GcmdPhenomena(BaseModel):
         return self.variable_3 or self.variable_2 or self.variable_1 or self.term or self.topic or self.category
 
 
-class DOI(BaseModel):
-    short_name = models.CharField(max_length=128, blank=False, unique=True)
-    long_name = models.TextField(default='', blank=True)
-
-    class Meta:
-        verbose_name = "DOI"
-
-
 ###############
 # Core Models #
 ###############
@@ -228,7 +220,7 @@ class Campaign(DataModel):
     lead_investigator = models.CharField(max_length=256)
     technical_contact = models.CharField(max_length=256, default='', blank=True)
     number_collection_periods = models.PositiveIntegerField()
-    doi = models.CharField(max_length=1024, default='', blank=True)
+    campaign_doi = models.CharField(max_length=1024, default='', blank=True)
     number_data_products = models.PositiveIntegerField(null=True, blank=True)
     data_volume = models.CharField(max_length=256, null=True, blank=True)
 
@@ -287,15 +279,6 @@ class Campaign(DataModel):
                     for collection_period in dep.collection_periods.all()
         ]))
 
-    @property
-    def dois(self):
-        return list(set([
-            doi.uuid
-                for dep in self.deployments.all()
-                    for collection_period in dep.collection_periods.all()
-                        for doi in collection_period.dois.all()
-        ]))
-
     @staticmethod
     def search_fields():
         return [
@@ -317,7 +300,6 @@ class Platform(DataModel):
     online_information = models.CharField(max_length=512, default='', blank=True)
     stationary = models.BooleanField()
 
-    dois = models.ManyToManyField(DOI, related_name='platforms', default=None, blank=True)
     gcmd_platforms = models.ManyToManyField(GcmdPlatform, related_name='platforms', default='', blank=True)
 
     @property
@@ -362,7 +344,6 @@ class Instrument(DataModel):
     instrument_doi = models.CharField(max_length=1024, default='', blank=True)
     arbitrary_characteristics = models.JSONField(default=None, blank=True, null=True)
 
-    dois = models.ManyToManyField(DOI, related_name='instruments', default=None, blank=True)
     gcmd_instruments = models.ManyToManyField(GcmdInstrument, related_name='instruments', default='', blank=True)
     gcmd_phenomenas = models.ManyToManyField(GcmdPhenomena, related_name='instruments')
     measurement_regions = models.ManyToManyField(MeasurementRegion, related_name='instruments')
@@ -447,9 +428,28 @@ class CollectionPeriod(BaseModel):
     num_ventures = models.PositiveIntegerField(null=True, blank=True)
     auto_generated = models.BooleanField()
 
-    dois = models.ManyToManyField(DOI, related_name='collection_periods', default=None, blank=True)
     instruments = models.ManyToManyField(Instrument, related_name='collection_periods')
 
     def __str__(self):
         # TODO: maybe come up with something better? dep_plat_uuid?
         return str(self.uuid)
+
+class DOI(BaseModel):
+    concept_id = models.CharField(max_length=512, unique=True)
+    doi = models.CharField(max_length=512, blank=True, default='')
+
+    cmr_short_name = models.CharField(max_length=512, blank=True, default='')
+    cmr_entry_title = models.TextField(blank=True, default='')
+    cmr_projects = models.JSONField(default=None, blank=True, null=True)
+    cmr_dates = models.JSONField(default=None, blank=True, null=True)
+    cmr_plats_and_insts = models.JSONField(default=None, blank=True, null=True)
+
+    date_queried = models.DateTimeField()
+
+    campaigns = models.ManyToManyField(Campaign, related_name='dois')
+    instruments = models.ManyToManyField(Instrument, related_name='dois')
+    platforms = models.ManyToManyField(Platform, related_name='dois')
+    collection_periods = models.ManyToManyField(CollectionPeriod, related_name='dois')
+    
+    class Meta:
+        verbose_name = "DOI"
