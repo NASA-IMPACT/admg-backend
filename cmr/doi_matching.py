@@ -136,6 +136,7 @@ def universal_alias(table_name, uuid):
 
 
 def campaign_recommender(doi_metadata):
+    campaign_recs = []
     # extract all cmr_project_names
     cmr_project_names = []
     for project in doi_metadata.get('cmr_projects', []):
@@ -144,31 +145,39 @@ def campaign_recommender(doi_metadata):
     cmr_project_names = purify_list(cmr_project_names)
 
     # list of each campaign uuid with all it's names
+    campaign_uuids = valid_object_list_generator('campaign')
 
     # compare the lists for matches and suppelent the metadata
+    for campaign_uuid in campaign_uuids:
+        camp_uuid_aliases = universal_alias('campaign', campaign_uuid)
+        if cmr_project_names.intersection(camp_uuid_aliases):
+            campaign_recs.append(campaign_uuid)
 
-    return doi_metadata
+    return campaign_recs
 
 def instrument_recommender(doi_metadata):
-    return doi_metadata
+    instrument_recs = []
+    return instrument_recs
 
 def platform_recommender(doi_metadata):
-    return doi_metadata
+    platform_recs = []
+    return platform_recs
 
 def flight_recommender(doi_metadata):
-    return doi_metadata
+    flight_recs = []
+    return flight_recs
 
 
 def supplement_campaign_metadata(campaign_metadata):
     supplemented_campaign_metadata = []
     for doi_metadata in campaign_metadata:
-        doi_metadata = campaign_recommender(doi_metadata)
-        doi_metadata = instrument_recommender(doi_metadata)
-        doi_metadata = platform_recommender(doi_metadata)
-        doi_metadata = flight_recommender(doi_metadata)
+        doi_metadata['campaign_suggestions'] = campaign_recommender(doi_metadata)
+        doi_metadata['instrument_suggestions'] = instrument_recommender(doi_metadata)
+        doi_metadata['platform_suggestions'] = platform_recommender(doi_metadata)
+        doi_metadata['flight_suggestions'] = flight_recommender(doi_metadata)
 
         supplemented_campaign_metadata.append(doi_metadata)
-    
+
     return campaign_metadata
 
 
