@@ -122,7 +122,7 @@ class DoiMatcher():
             if table_name == 'campaign':
                 table_name = 'project'
             
-            gcmd_uuids = obj.get(f'gcmd_{table_name}s')
+            gcmd_uuids = obj.get(f'gcmd_{table_name}s', [])
             for gcmd_uuid in gcmd_uuids:
                 gcmd_obj = self.universal_get(f'gcmd_{table_name}', gcmd_uuid)
                 alias_list.append(gcmd_obj.get('short_name'))
@@ -165,10 +165,43 @@ class DoiMatcher():
 
     def instrument_recommender(self, doi_metadata):
         instrument_recs = []
+        # extract all cmr instrument names
+        cmr_instrument_names = []
+        for platform_data in doi_metadata['cmr_plats_and_insts']:
+            for instrument_data in platform_data.get('Instruments', []):
+                cmr_instrument_names.append(instrument_data.get('ShortName'))
+                cmr_instrument_names.append(instrument_data.get('LongName'))
+        cmr_instrument_names = purify_list(cmr_instrument_names)
+
+        # list of each instrument uuid with all it's names
+        instrument_uuids = self.valid_object_list_generator('instrument')
+
+        # compare the lists for matches and suppelent the metadata
+        for instrument_uuid in instrument_uuids:
+            inst_uuid_aliases = self.universal_alias('instrument', instrument_uuid)
+            if cmr_instrument_names.intersection(inst_uuid_aliases):
+                instrument_recs.append(instrument_uuid)
+
         return instrument_recs
 
     def platform_recommender(self, doi_metadata):
         platform_recs = []
+        # extract all cmr platform names
+        cmr_platform_names = []
+        for platform_data in doi_metadata['cmr_plats_and_insts']:
+            cmr_platform_names.append(platform_data.get('ShortName'))
+            cmr_platform_names.append(platform_data.get('LongName'))
+        cmr_platform_names = purify_list(cmr_platform_names)
+
+        # list of each platform uuid with all it's names
+        platform_uuids = self.valid_object_list_generator('platform')
+
+        # compare the lists for matches and suppelent the metadata
+        for platform_uuid in platform_uuids:
+            plat_uuid_aliases = self.universal_alias('platform', platform_uuid)
+            if cmr_platform_names.intersection(plat_uuid_aliases):
+                platform_recs.append(platform_uuid)
+
         return platform_recs
 
     def flight_recommender(self, doi_metadata):
