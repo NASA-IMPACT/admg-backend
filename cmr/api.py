@@ -4,7 +4,7 @@ import sys
 
 import requests
 
-from server import credentials as CREDENTIALS
+from cmr.server import credentials as CREDENTIALS
 
 
 class Api:
@@ -89,7 +89,7 @@ class Api:
 
         self._approve_change_object(response)
 
-    def update(self, endpoint, data):
+    def update(self, endpoint, data, draft=False):
         """Takes and endpoint and some data and updates the object in the db
 
         Args:
@@ -100,13 +100,14 @@ class Api:
         post_url = f'{self.base_url}{endpoint}'
         response = requests.patch(post_url, data=json.dumps(data), headers=self.headers)
 
-        change_response = self._approve_change_object(response)
-
-        return change_response
+        if draft:
+            return json.loads(response.text)
+        else:
+            return self._approve_change_object(response)
 
 
     def create(self, endpoint, data, draft=False):
-        """Takes and endpoint and some post data and creates an entry in the 
+        """Takes and endpoint and some post data and creates an entry in the
         database
 
         Args:
