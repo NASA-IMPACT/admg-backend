@@ -434,6 +434,7 @@ class CollectionPeriod(BaseModel):
         # TODO: maybe come up with something better? dep_plat_uuid?
         return str(self.uuid)
 
+
 class DOI(BaseModel):
     concept_id = models.CharField(max_length=512, unique=True)
     doi = models.CharField(max_length=512, blank=True, default='')
@@ -450,6 +451,9 @@ class DOI(BaseModel):
     instruments = models.ManyToManyField(Instrument, blank=True, related_name='dois')
     platforms = models.ManyToManyField(Platform, blank=True, related_name='dois')
     collection_periods = models.ManyToManyField(CollectionPeriod, blank=True, related_name='dois')
+
+    def __str__(self):
+        return self.cmr_entry_title or self.cmr_short_name or self.doi or self.concept_id
     
     class Meta:
         verbose_name = "DOI"
