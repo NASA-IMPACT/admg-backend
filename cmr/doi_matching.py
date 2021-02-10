@@ -1,10 +1,13 @@
 from datetime import datetime
 import pickle
 
-from api import Api
-from cmr import aggregate_aliases, query_campaign
-from config import server as SERVER
-from utils import (
+from api_app.models import Change
+from data_models.models import DOI
+
+from cmr.api import Api
+from cmr.cmr import aggregate_aliases, query_campaign
+from cmr.config import server as SERVER
+from cmr.utils import (
     clean_table_name,
     purify_list
 )
@@ -81,7 +84,7 @@ class DoiMatcher():
             change_requests (list): List of all change_requests from db
         """
 
-        if not(self.change_requests):
+        if not self.change_requests:
             self.change_requests = self.api.get('change_request')['data']
         return self.change_requests
 
@@ -107,7 +110,7 @@ class DoiMatcher():
 
     def universal_alias(self, table_name, uuid):
 
-        if aliases := self.uuid_to_aliases.get(table_name, {}).get(uuid):
+        if aliases:=self.uuid_to_aliases.get(table_name, {}).get(uuid):
             return aliases
 
         table_name = clean_table_name(table_name)
@@ -121,7 +124,7 @@ class DoiMatcher():
         if table_name in ['campaign', 'platform', 'instrument']:
             if table_name == 'campaign':
                 table_name = 'project'
-            
+
             gcmd_uuids = obj.get(f'gcmd_{table_name}s', [])
             for gcmd_uuid in gcmd_uuids:
                 gcmd_obj = self.universal_get(f'gcmd_{table_name}', gcmd_uuid)
@@ -139,7 +142,7 @@ class DoiMatcher():
         # store alias set for faster lookups later
         self.uuid_to_aliases[table_name] = self.uuid_to_aliases.get(table_name, {})
         self.uuid_to_aliases[table_name][uuid] = alias_set
-        
+
         return alias_set
 
 
@@ -211,7 +214,7 @@ class DoiMatcher():
 
     def supplement_campaign_metadata(self, campaign_metadata):
         supplemented_campaign_metadata = []
-        for doi_metadata in campaign_metadata[:3]:# TODO REMOVE INDEXING
+        for doi_metadata in campaign_metadata[0:1]: # TODO REMOVE INDEXING
             doi_metadata['date_queried'] = datetime.now().isoformat()
             doi_metadata['campaigns'] = self.campaign_recommender(doi_metadata)
             doi_metadata['instruments'] = self.instrument_recommender(doi_metadata)
@@ -220,18 +223,57 @@ class DoiMatcher():
 
             supplemented_campaign_metadata.append(doi_metadata)
 
-        return campaign_metadata
+        return supplemented_campaign_metadata
+
+
+    def add_to_db(self, doi):
+        # search db for existing items with concept_id
+        existing_doi_uuids = self.valid_object_list_generator('doi', query_parameter='concept_id', query_value=doi['concept_id'])
+        if len(existing_doi_uuids)>1:
+            raise ValueError('There has been an internal database error')
+
+        # if none exist add normally as a draft
+        if not existing_doi_uuids:
+            self.api.create('doi', doi, draft=True)
+            return 'Draft created for DOI'
+
+        uuid = existing_doi_uuids[0]
+        existing_doi = self.universal_get('doi', uuid)
+        # if item exists as a draft, directly update using db functions with same methodology as above
+        if existing_doi.get('change_object'):
+            for field in ['campaigns', 'instruments', 'platforms', 'collection_periods']:
+                doi[field].extend(existing_doi.get(field))
+
+            draft = Change.objects.all().filter(uuid=uuid).first()
+            draft.update = doi
+            draft.save()
+
+            return f'DOI already exists as a draft. Existing draft updated. {uuid}'
+
+        # if db item exists, replace cmr metadata fields and append suggestion fields as an update
+        existing_doi = DOI.objects.all().filter(uuid=uuid).first()
+        existing_campaigns = [str(c.uuid) for c in existing_doi.campaigns.all()]
+        existing_instruments = [str(c.uuid) for c in existing_doi.instruments.all()]
+        existing_platforms = [str(c.uuid) for c in existing_doi.platforms.all()]
+        existing_collection_periods = [str(c.uuid) for c in existing_doi.collection_periods.all()]
+
+        doi['campaigns'].extend(existing_campaigns)
+        doi['instruments'].extend(existing_instruments)
+        doi['platforms'].extend(existing_platforms)
+        doi['collection_periods'].extend(existing_collection_periods)
+
+        self.api.update(f'doi/{uuid}', data=doi, draft=True)
+        return f'DOI already exists in database. Update draft created. {uuid}'
 
 
     def anthony(self, campaign_short_name, use_cached_data=False):
-        api = Api(SERVER)
 
         failed = False
         if use_cached_data:
             try:
                 metadata = pickle.load(open(f'metadata_{campaign_short_name}', 'rb'))
                 print('using cached CMR metadata')
-            except:
+            except FileNotFoundError:
                 failed=True
                 print('cached CMR data unavailable')
         if failed or not(use_cached_data):
@@ -240,4 +282,8 @@ class DoiMatcher():
     
         supplemented_metadata = self.supplement_campaign_metadata(metadata)
 
+        for doi in supplemented_metadata:
+            print(self.add_to_db(doi))
+
         return supplemented_metadata
+
