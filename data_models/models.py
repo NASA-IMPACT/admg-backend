@@ -447,9 +447,9 @@ class DOI(BaseModel):
     date_queried = models.DateTimeField()
 
     campaigns = models.ManyToManyField(Campaign, related_name='dois')
-    instruments = models.ManyToManyField(Instrument, related_name='dois')
-    platforms = models.ManyToManyField(Platform, related_name='dois')
-    collection_periods = models.ManyToManyField(CollectionPeriod, related_name='dois')
+    instruments = models.ManyToManyField(Instrument, blank=True, related_name='dois')
+    platforms = models.ManyToManyField(Platform, blank=True, related_name='dois')
+    collection_periods = models.ManyToManyField(CollectionPeriod, blank=True, related_name='dois')
     
     class Meta:
         verbose_name = "DOI"
