@@ -1,3 +1,4 @@
+from datetime import datetime
 import pickle
 
 from api import Api
@@ -107,7 +108,6 @@ class DoiMatcher():
     def universal_alias(self, table_name, uuid):
 
         if aliases := self.uuid_to_aliases.get(table_name, {}).get(uuid):
-            print(f'got saved aliases for {table_name}/{uuid}')
             return aliases
 
         table_name = clean_table_name(table_name)
@@ -211,11 +211,12 @@ class DoiMatcher():
 
     def supplement_campaign_metadata(self, campaign_metadata):
         supplemented_campaign_metadata = []
-        for doi_metadata in campaign_metadata:
-            doi_metadata['campaign_suggestions'] = self.campaign_recommender(doi_metadata)
-            doi_metadata['instrument_suggestions'] = self.instrument_recommender(doi_metadata)
-            doi_metadata['platform_suggestions'] = self.platform_recommender(doi_metadata)
-            doi_metadata['flight_suggestions'] = self.flight_recommender(doi_metadata)
+        for doi_metadata in campaign_metadata[:3]:# TODO REMOVE INDEXING
+            doi_metadata['date_queried'] = datetime.now().isoformat()
+            doi_metadata['campaigns'] = self.campaign_recommender(doi_metadata)
+            doi_metadata['instruments'] = self.instrument_recommender(doi_metadata)
+            doi_metadata['platforms'] = self.platform_recommender(doi_metadata)
+            doi_metadata['collection_periods'] = self.flight_recommender(doi_metadata)
 
             supplemented_campaign_metadata.append(doi_metadata)
 
@@ -232,7 +233,7 @@ class DoiMatcher():
                 print('using cached CMR metadata')
             except:
                 failed=True
-                print('cached cmr data unavailable')
+                print('cached CMR data unavailable')
         if failed or not(use_cached_data):
             metadata = query_campaign(campaign_short_name)
             pickle.dump(metadata, open(f'metadata_{campaign_short_name}', 'wb'))
