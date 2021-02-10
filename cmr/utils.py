@@ -18,8 +18,8 @@ def purify_list(dirty_list, lower=True):
     """
 
     if lower:
-        clean_list = list(set(i.lower() for i in dirty_list if i))
+        clean_set = set(i.lower() for i in dirty_list if i)
     else:
-        clean_list = list(set(i for i in dirty_list if i))
+        clean_set = set(i for i in dirty_list if i)
 
-    return clean_list
+    return clean_set
