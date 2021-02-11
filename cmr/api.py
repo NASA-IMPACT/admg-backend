@@ -1,7 +1,4 @@
 import json
-import os
-import sys
-
 import requests
 
 from cmr.server import credentials as CREDENTIALS
@@ -129,35 +126,3 @@ class Api:
             return response_dict
         else:
             return self._approve_change_object(response)
-
-
-    def gcmd_shorts(self, table_name, uuid):
-        """Most items in the database have a potential GCMD translation.
-        This function takes a table_name and the uuid of a specific obj at
-        that table_name and returns the GCMD translation short_names for the UUID.
-
-        Args:
-            table_name (str): API table_name such as 'platform' or 'campaign'
-            uuid (str): uuid of a specific item such as an instrument uuid
-
-        Returns:
-            list: Because an item can have multiple GCMD translations, function
-            returns a list of GCMD short_names
-        """
-
-        gcmd_uuids = self.get(f'{table_name}/{uuid}')['data'][f'gcmd_{table_name}s']
-        gcmd_short_names = [
-            self.get(f'gcmd_{table_name}/{gcmd_uuid}')['data']['short_name']
-            for gcmd_uuid in gcmd_uuids
-        ]
-
-        return gcmd_short_names
-
-    def add_link_doi(self, linked_table, linked_uuid, doi_data):
-        # with an existing doi, the create just fails and the code continues
-        self.create('doi', doi_data)
-        doi_uuid = self.get(f"doi?short_name={doi_data['short_name']}")['data'][0]['uuid']
-        dois = self.get(f"{linked_table}/{linked_uuid}")['data']['dois']
-        dois.append(doi_uuid)
-        dois = list(set(dois))
-        self.update(f"{linked_table}/{linked_uuid}", {'dois': dois})
