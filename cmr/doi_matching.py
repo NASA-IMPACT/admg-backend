@@ -5,7 +5,7 @@ from api_app.models import Change
 from data_models.models import DOI
 
 from cmr.api import Api
-from cmr.cmr import bulk_cmr_query
+from cmr.cmr import query_and_process_cmr
 from cmr.config import server as SERVER
 from cmr.utils import (
     clean_table_name,
@@ -282,15 +282,14 @@ class DoiMatcher():
                 print('cached CMR data unavailable')
 
         aliases = self.universal_alias(table_name, uuid)
-        
+
         if failed or not(use_cached_data):
-            metadata = bulk_cmr_query(table_name, aliases)
+            metadata = query_and_process_cmr(table_name, aliases)
             pickle.dump(metadata, open(f'metadata_{uuid}', 'wb'))
-    
+
         supplemented_metadata = self.supplement_campaign_metadata(metadata)
 
         for doi in supplemented_metadata:
             print(self.add_to_db(doi))
 
         return supplemented_metadata
-
