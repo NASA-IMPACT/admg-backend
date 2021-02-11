@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.1.9 - 2021.02.10
+### Changed
+- `doi` endpoint now has the following fields  
+    - `concept_id`
+    - `doi`
+    - `cmr_short_name`, `cmr_entry_title`, `cmr_projects`, `cmr_dates`, `cmr_plats_and_insts`
+    - `date_queried`
+    - many to many links to `platform`, `instrument`, `collection_period`, and `campaign`
+- new integrated cmr app supports doi recommendations for `platform`, `instrument`, `collection_period`, and `campaign`
+- `campaign.doi` has been renamed `campaign.campaign_doi` for clarity and standardization with `instrument` and `platform`
+
 ## 0.1.8 - 2021-01-06
 ### Changed
 - `nasa_mission` endpoint removed. `campaign.nasa_missions` now returns a string instead of a list of uuids 
