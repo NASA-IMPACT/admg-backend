@@ -168,18 +168,45 @@ def filter_co(co, table_name, query_parameter='short_name', query_value=None):
     else:
         return False
 
+def cmr_parameter_transform(input_str, reverse=False):
+    """Takes a table name from the database and transforms it into the
+    associated cmr query parameter. Also throws an error for invalid names.
+
+    Args:
+        input_str (str): db table_name in ['project', 'instrument', 'platform']
+        reverse (bool): When true, function will convert backwards
+
+    Raises:
+        ValueError: Raises an error if input_str is not in ['project', 'instrument', 'platform']
+
+    Returns:
+        query_parameter (str): cmr query parameter matching the input_str
+    """
+
+    mapping = {
+        'instrument': 'instrument',
+        'platform': 'platform',
+        'campaign': 'project',
+    }
+
+    input_str = input_str.lower()
+
+    if reverse:
+        if input_str not in [cmr_param for table_name, cmr_param in mapping.items()]:
+            raise ValueError('cmr_param must be project, instrument, or platform')
+        result = {v:k for k,v in mapping.items()}[input_str]
+    else:
+        if input_str not in [table_name for table_name, cmr_param in mapping.items()]:
+            raise ValueError('table_name must be campaign, instrument, or platform')
+        result = mapping[input_str]
+
+    return result
 
 
 def aggregate_aliases(query_parameter, query_value, prequeried={}):
     api = Api(SERVER)
 
-    if query_parameter not in ['project', 'instrument', 'platform']:
-        raise ValueError('CMR query parameter must be project, instrument, or platform in order for aliases to be queried from the db')
-    
-    if query_parameter == 'project':
-        table_name = 'campaign'
-    else:
-        table_name = query_parameter
+    table_name = cmr_parameter_transform(query_parameter, reverse=True)
         
     if prequeried.get(table_name, {}).get(query_value):
         return prequeried.get(query_value)
@@ -234,11 +261,11 @@ def aggregate_aliases(query_parameter, query_value, prequeried={}):
     return all_aliases
 
 
-def query_campaign(campaign_short_name):
+def query_campaign(campaign_aliases):
     query_parameter = 'project'
 
     aliases = aggregate_aliases(query_parameter, campaign_short_name)
-    raw_metadata_list = query_cmr(query_parameter, aliases)
+    raw_metadata_list = query_cmr(query_parameter, campaign_aliases)
 
     processed_metadata_list = process_metadata_list(raw_metadata_list)
 
