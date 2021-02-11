@@ -5,7 +5,7 @@ from api_app.models import Change
 from data_models.models import DOI
 
 from cmr.api import Api
-from cmr.cmr import aggregate_aliases, bulk_cmr_query
+from cmr.cmr import bulk_cmr_query
 from cmr.config import server as SERVER
 from cmr.utils import (
     clean_table_name,

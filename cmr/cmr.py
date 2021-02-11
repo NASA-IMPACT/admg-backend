@@ -203,64 +203,6 @@ def cmr_parameter_transform(input_str, reverse=False):
     return result
 
 
-def aggregate_aliases(query_parameter, query_value, prequeried={}):
-    api = Api(SERVER)
-
-    table_name = cmr_parameter_transform(query_parameter, reverse=True)
-        
-    if prequeried.get(table_name, {}).get(query_value):
-        return prequeried.get(query_value)
-
-    all_aliases = [query_value]
-
-    # query exists in regular database
-    response = api.get(f'{table_name}?short_name={query_value}')['data']
-    filtered_db = {}
-    if response:
-        filtered_db = response[0]
-
-    all_aliases.append(filtered_db.get('short_name'))
-    all_aliases.append(filtered_db.get('long_name'))
-
-    db_alias_uuids = filtered_db.get('aliases', [])
-    for uuid in db_alias_uuids:
-        alias = api.get(f'alias/{uuid}')['data']['short_name']
-        all_aliases.append(alias)
-
-    gcmd_table = 'gcmd_project'
-    gcmd_uuids = filtered_db.get(gcmd_table + 's', [])
-    for gcmd_uuid in gcmd_uuids:
-        gcmd_project = api.get(f'{gcmd_table}/{gcmd_uuid}')['data']
-        all_aliases.append(gcmd_project.get('short_name'))
-        all_aliases.append(gcmd_project.get('long_name'))
-        
-    # search drafts for many cmr query object (such as campaign)
-    change_response = api.get('change_request')['data']
-    filtered_drafts = [co for co in change_response if filter_co(co, table_name, query_value=query_value)]
-
-    # loop through every result in drafts for main query object
-    for draft in filtered_drafts:
-        all_aliases.append(draft['update'].get('short_name'))
-        all_aliases.append(draft['update'].get('long_name'))
-        
-        # search draft aliases for matches to each main query object uuid
-        draft_aliases = [co for co in change_response if filter_co(co, 'alias', 'object_id', draft['uuid'])]
-        for alias in draft_aliases:
-            all_aliases.append(alias['update'].get('short_name'))
-        
-        # GCMD items are not expected to ever be in the draft stage, so only the db propper is queried
-        gcmd_table = 'gcmd_project'
-        gcmd_uuids = draft['update'].get(gcmd_table + 's', [])
-        for gcmd_uuid in gcmd_uuids:
-            gcmd_project = api.get(f'{gcmd_table}/{gcmd_uuid}')['data']
-            all_aliases.append(gcmd_project.get('short_name'))
-            all_aliases.append(gcmd_project.get('long_name'))
-
-    all_aliases = purify_list(all_aliases)
-
-    return all_aliases
-
-
 def bulk_cmr_query(table_name, aliases):
     query_parameter = cmr_parameter_transform(table_name)
     raw_metadata_list = query_cmr(query_parameter, aliases)
