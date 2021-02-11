@@ -1,13 +1,23 @@
-
 def clean_table_name(table_name):
+    """Takes in various randomly formatted table names such as 'Gcmd Platform', 'gcmd_platform'
+    and 'GcmdPlatform' and standardizes them all to 'gcmdplatform' for comparison purposes.
+
+    Args:
+        table_name (str): Randomly formatted table_name, such as 'gcmd_platform' or 'GcmdPlatform'
+
+    Returns:
+        table_name (str): Uniformly formatted table_name, such as 'gcmdplatform'
+    """
+
     table_name = table_name.lower()
     table_name = table_name.replace(' ', '')
     table_name = table_name.replace('_', '')
+
     return table_name
 
 
 def purify_list(dirty_list, lower=True):
-    """Takes a dirty list and removes duplicates, converts to lowercase, 
+    """Takes a dirty list and removes duplicates, converts to lowercase,
     and removes null values.
 
     Args:
