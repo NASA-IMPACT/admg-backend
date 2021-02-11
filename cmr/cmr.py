@@ -6,7 +6,6 @@ from urllib.parse import urlencode
 import requests
 
 from cmr.api import Api
-from cmr.config import server as SERVER
 from cmr.process_metadata import process_metadata_list
 from cmr.utils import purify_list
 

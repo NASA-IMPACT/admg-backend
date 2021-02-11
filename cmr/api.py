@@ -1,12 +1,12 @@
 import json
 import requests
 
-from cmr.server import credentials as CREDENTIALS
+from cmr.config import credentials as CREDENTIALS
 
 
 class Api:
     def __init__(self):
-        """Initializes the api by setting up the credentials and 
+        """Initializes the api by setting up the credentials and
         getting the token from one of the various servers
 
         Args:
@@ -18,6 +18,12 @@ class Api:
         self._make_connection()
 
     def _make_connection(self):
+        """Connects to the database and sets the headers for future api requests.
+
+        Raises:
+            ValueError: Will raise error if connection fails. 
+        """
+
         token_url = f"{self.credentials['server']}/authenticate/token/"
         response = requests.post(
             token_url,
@@ -38,6 +44,18 @@ class Api:
         }
 
     def _approve_change_object(self, response):
+        """Change objects must pass through an approval process in order to be added
+        to the database. This function streamlines everystep of the approval process
+        and results in the draft change object being added to the database.
+
+        Args:
+            response (response): Response object from a python request. This should
+               come from the update, delete, or create methods.
+
+        Returns:
+            response : Response object from the approval process.
+        """
+
         # get the change_request_uuid
         response = json.loads(response.text)
         uuid = response['data']['uuid']
@@ -74,7 +92,7 @@ class Api:
         return json.loads(response.text)
 
     def delete(self, endpoint):
-        """Takes and endpoint and deletes the object in the db
+        """Takes an endpoint and deletes the object in the db
 
         Args:
             endpoint (str): full endpoint including a UUID, 'season/37b0daa7-caa4-4649-b95c-929e8abe1dc8'
@@ -116,7 +134,7 @@ class Api:
 
         post_url = f'{self.base_url}{endpoint}'
         response = requests.post(post_url, data=json.dumps(data), headers=self.headers)
-        
+
         response_dict = json.loads(response.text)
         if not(response_dict['success']) and 'this short name already exists' in response_dict['message']:
             return f'the following entry already existed {endpoint=} {data=}'
