@@ -58,13 +58,17 @@ def change_bbox_to_polygon(validated_data, key="spatial_bounds"):
 class BaseSerializer(serializers.ModelSerializer):
     uuid = serializers.UUIDField(default=uuid4)
 
-
 class GetAliasSerializer(BaseSerializer):
     aliases = serializers.SerializerMethodField(read_only=True)
 
     def get_aliases(self, obj):
         return [alias.uuid for alias in obj.aliases.all()]
 
+class GetDoiSerializer(BaseSerializer):
+    dois = serializers.SerializerMethodField(read_only=True)    
+
+    def get_dois(self, obj):
+        return get_uuids(obj.dois)
 
 class ImageSerializer(BaseSerializer):
     class Meta:
@@ -282,16 +286,16 @@ class SignificantEventSerializer(BaseSerializer):
         model = models.SignificantEvent
         fields = "__all__"
 
-class CollectionPeriodSerializer(BaseSerializer):
+class CollectionPeriodSerializer(GetDoiSerializer):
     class Meta:
         model = models.CollectionPeriod
         fields = "__all__"
 
-class PlatformSerializer(GetAliasSerializer):
+class PlatformSerializer(GetAliasSerializer, GetDoiSerializer):
     collection_periods = serializers.SerializerMethodField(read_only=True)
     instruments = serializers.ListField(read_only=True)
     campaigns = serializers.ListField(read_only=True)
-        
+
     def get_collection_periods(self, obj):
         return get_uuids(obj.collection_periods) 
 
@@ -299,7 +303,7 @@ class PlatformSerializer(GetAliasSerializer):
         model = models.Platform
         fields = "__all__"
 
-class InstrumentSerializer(GetAliasSerializer):
+class InstrumentSerializer(GetAliasSerializer, GetDoiSerializer):
     platforms = serializers.ListField(read_only=True)
     campaigns = serializers.ListField(read_only=True)
     collection_periods = serializers.SerializerMethodField(read_only=True)
@@ -311,7 +315,7 @@ class InstrumentSerializer(GetAliasSerializer):
         model = models.Instrument
         fields = "__all__"
 
-class CampaignSerializer(GetAliasSerializer):
+class CampaignSerializer(GetAliasSerializer, GetDoiSerializer):
     deployments = serializers.SerializerMethodField(read_only=True)
     significant_events = serializers.ListField(read_only=True)
     iops = serializers.ListField(read_only=True)
