@@ -261,11 +261,9 @@ def aggregate_aliases(query_parameter, query_value, prequeried={}):
     return all_aliases
 
 
-def query_campaign(campaign_aliases):
-    query_parameter = 'project'
-
-    aliases = aggregate_aliases(query_parameter, campaign_short_name)
-    raw_metadata_list = query_cmr(query_parameter, campaign_aliases)
+def bulk_cmr_query(table_name, aliases):
+    query_parameter = cmr_parameter_transform(table_name)
+    raw_metadata_list = query_cmr(query_parameter, aliases)
 
     processed_metadata_list = process_metadata_list(raw_metadata_list)
 

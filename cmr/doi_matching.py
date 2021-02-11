@@ -5,7 +5,7 @@ from api_app.models import Change
 from data_models.models import DOI
 
 from cmr.api import Api
-from cmr.cmr import aggregate_aliases, query_campaign
+from cmr.cmr import aggregate_aliases, bulk_cmr_query
 from cmr.config import server as SERVER
 from cmr.utils import (
     clean_table_name,
@@ -243,6 +243,7 @@ class DoiMatcher():
         if existing_doi.get('change_object'):
             for field in ['campaigns', 'instruments', 'platforms', 'collection_periods']:
                 doi[field].extend(existing_doi.get(field))
+                doi[field] = list(set(doi[field]))
 
             draft = Change.objects.all().filter(uuid=uuid).first()
             draft.update = doi
@@ -262,23 +263,29 @@ class DoiMatcher():
         doi['platforms'].extend(existing_platforms)
         doi['collection_periods'].extend(existing_collection_periods)
 
+        for field in ['campaigns', 'instruments', 'platforms', 'collection_periods']:
+            doi[field] = list(set(doi[field]))
+
         self.api.update(f'doi/{uuid}', data=doi, draft=True)
         return f'DOI already exists in database. Update draft created. {uuid}'
 
 
-    def anthony(self, campaign_short_name, use_cached_data=False):
+    def anthony(self, table_name, uuid, use_cached_data=False):  
 
         failed = False
         if use_cached_data:
             try:
-                metadata = pickle.load(open(f'metadata_{campaign_short_name}', 'rb'))
+                metadata = pickle.load(open(f'metadata_{uuid}', 'rb'))
                 print('using cached CMR metadata')
             except FileNotFoundError:
                 failed=True
                 print('cached CMR data unavailable')
+
+        aliases = self.universal_alias(table_name, uuid)
+        
         if failed or not(use_cached_data):
-            metadata = query_campaign(campaign_short_name)
-            pickle.dump(metadata, open(f'metadata_{campaign_short_name}', 'wb'))
+            metadata = bulk_cmr_query(table_name, aliases)
+            pickle.dump(metadata, open(f'metadata_{uuid}', 'wb'))
     
         supplemented_metadata = self.supplement_campaign_metadata(metadata)
 
