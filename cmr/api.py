@@ -5,7 +5,7 @@ from cmr.server import credentials as CREDENTIALS
 
 
 class Api:
-    def __init__(self, deployment):
+    def __init__(self):
         """Initializes the api by setting up the credentials and 
         getting the token from one of the various servers
 
@@ -13,8 +13,7 @@ class Api:
             deployment (str): 'test', 'production', or 'local'
         """
 
-        self.deployment = deployment
-        self.credentials = CREDENTIALS[self.deployment]
+        self.credentials = CREDENTIALS
         self.base_url = f"{self.credentials['server']}/api/"
         self._make_connection()
 
