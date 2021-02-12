@@ -438,6 +438,7 @@ class CollectionPeriod(BaseModel):
 class DOI(BaseModel):
     concept_id = models.CharField(max_length=512, unique=True)
     doi = models.CharField(max_length=512, blank=True, default='')
+    long_name = models.TextField(blank=True, default='')
 
     cmr_short_name = models.CharField(max_length=512, blank=True, default='')
     cmr_entry_title = models.TextField(blank=True, default='')
@@ -454,6 +455,6 @@ class DOI(BaseModel):
 
     def __str__(self):
         return self.cmr_entry_title or self.cmr_short_name or self.doi or self.concept_id
-    
+
     class Meta:
         verbose_name = "DOI"

@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `doi` endpoint now has the following fields  
     - `concept_id`
     - `doi`
+    - `long_name`, an optional field to provide a custom ADMG name
     - `cmr_short_name`, `cmr_entry_title`, `cmr_projects`, `cmr_dates`, `cmr_plats_and_insts`
     - `date_queried`
     - many to many links to `platform`, `instrument`, `collection_period`, and `campaign`
