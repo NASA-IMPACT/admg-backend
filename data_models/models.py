@@ -97,6 +97,14 @@ class GeophysicalConcept(LimitedInfo):
     example = models.CharField(max_length=1024, blank=True, default='')
 
 
+class WebsiteType(models.Model):
+    long_name = models.TextField()
+    description = models.TextField()
+
+    def __str__(self):
+        return self.long_name
+
+
 class Alias(BaseModel):
 
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, blank=True)
@@ -166,6 +174,16 @@ class GcmdPhenomena(BaseModel):
         return self.variable_3 or self.variable_2 or self.variable_1 or self.term or self.topic or self.category
 
 
+class Website(models.Model):
+    url = models.TextField()
+    title = models.TextField()
+    description = models.TextField(default='', blank=True)
+    website_type = models.ManyToManyField(WebsiteType, related_name='campaigns')
+
+    def __str__(self):
+        return self.title
+
+
 ###############
 # Core Models #
 ###############
@@ -201,24 +219,6 @@ class DataModel(LimitedInfo):
             )
 
         return queryset.filter(**params)
-
-
-class WebsiteType(models.Model):
-    long_name = models.TextField()
-    description = models.TextField()
-
-    def __str__(self):
-        return self.long_name
-
-
-class Website(models.Model):
-    url = models.TextField()
-    title = models.TextField()
-    description = models.TextField(default='', blank=True)
-    website_type = models.ManyToManyField(WebsiteType, related_name='campaigns')
-
-    def __str__(self):
-        return self.title
 
 
 class Campaign(DataModel):
