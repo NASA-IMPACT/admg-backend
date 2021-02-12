@@ -16,6 +16,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - many to many links to `platform`, `instrument`, `collection_period`, and `campaign`
 - new integrated cmr app supports doi recommendations for `platform`, `instrument`, `collection_period`, and `campaign`
 - `campaign.doi` has been renamed `campaign.campaign_doi` for clarity and standardization with `instrument` and `platform`
+- `campaign` endpoint has lost the following fields: 
+     - `repository_website`
+     - `project_website`
+     - `tertiary_website`
+     - `publication_links`
+     - `other_resources` 
+      - these are replaced by the many to many field `websites`
+- new `website` endpoint 
+    - `url`
+    - `title`
+    - `description`
+    - `website_type`
+- new `website_type` endpoint
+    - `long_name`
+    - `description`
 
 ## 0.1.8 - 2021-01-06
 ### Changed
