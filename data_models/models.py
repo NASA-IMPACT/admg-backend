@@ -178,7 +178,7 @@ class Website(models.Model):
     url = models.TextField()
     title = models.TextField()
     description = models.TextField(default='', blank=True)
-    website_type = models.ManyToManyField(WebsiteType, related_name='campaigns')
+    website_type = models.ManyToManyField(WebsiteType, related_name='websites')
 
     def __str__(self):
         return self.title
@@ -253,7 +253,7 @@ class Campaign(DataModel):
     partner_orgs = models.ManyToManyField(PartnerOrg, related_name='campaigns', default='', blank=True)
     gcmd_projects = models.ManyToManyField(GcmdProject, related_name='campaigns', default='', blank=True)
     geophysical_concepts = models.ManyToManyField(GeophysicalConcept, related_name='campaigns')
-    website_types = models.ManyToManyField(WebsiteType, related_name='campaigns')
+    websites = models.ManyToManyField(Website, related_name='campaigns')
 
     @property
     def significant_events(self):
