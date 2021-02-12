@@ -203,6 +203,24 @@ class DataModel(LimitedInfo):
         return queryset.filter(**params)
 
 
+class WebsiteType(models.Model):
+    long_name = models.TextField()
+    description = models.TextField()
+
+    def __str__(self):
+        return self.long_name
+
+
+class Website(models.Model):
+    url = models.TextField()
+    title = models.TextField()
+    description = models.TextField(default='', blank=True)
+    website_type = models.ManyToManyField(WebsiteType, related_name='campaigns')
+
+    def __str__(self):
+        return self.title
+
+
 class Campaign(DataModel):
     logo = models.ForeignKey(Image, on_delete=models.SET_NULL, null=True, blank=True)
     aliases = GenericRelation(Alias)
@@ -224,12 +242,6 @@ class Campaign(DataModel):
     number_data_products = models.PositiveIntegerField(null=True, blank=True)
     data_volume = models.CharField(max_length=256, null=True, blank=True)
 
-    repository_website = models.CharField(max_length=512, default='', blank=True) # repository homepage
-    project_website = models.CharField(max_length=512, default='', blank=True) # dedicated homepage
-    tertiary_website = models.CharField(max_length=512, default='', blank=True)
-    publication_links = models.CharField(max_length=2048, default='', blank=True)
-    other_resources = models.CharField(max_length=2048, default='', blank=True) # other urls
-
     ongoing = models.BooleanField()
     nasa_led = models.BooleanField()
     nasa_missions = models.TextField(default='', blank=True)
@@ -241,6 +253,7 @@ class Campaign(DataModel):
     partner_orgs = models.ManyToManyField(PartnerOrg, related_name='campaigns', default='', blank=True)
     gcmd_projects = models.ManyToManyField(GcmdProject, related_name='campaigns', default='', blank=True)
     geophysical_concepts = models.ManyToManyField(GeophysicalConcept, related_name='campaigns')
+    website_types = models.ManyToManyField(WebsiteType, related_name='campaigns')
 
     @property
     def significant_events(self):
