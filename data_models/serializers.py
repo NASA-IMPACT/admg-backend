@@ -191,6 +191,16 @@ class GeophysicalConceptSerializer(BaseSerializer):
         model = models.GeophysicalConcept
         fields = "__all__"
 
+class WebsiteTypeSerializer(BaseSerializer):
+    websites = serializers.SerializerMethodField(read_only=True)
+
+    def get_websites(self, obj):
+        return get_uuids(obj.websites)
+
+    class Meta:
+        model = models.WebsiteType
+        fields = "__all__"
+
 class PartnerOrgSerializer(GetAliasSerializer):
     campaigns = serializers.SerializerMethodField(read_only=True)
 
@@ -246,6 +256,16 @@ class GcmdPhenomenaSerializer(BaseSerializer):
 
     class Meta:
         model = models.GcmdPhenomena
+        fields = "__all__"
+
+class WebsiteSerializer(BaseSerializer):
+    campaigns = serializers.SerializerMethodField(read_only=True)
+
+    def get_campaigns(self, obj):
+        return get_uuids(obj.campaigns)
+
+    class Meta:
+        model = models.Website
         fields = "__all__"
 
 class DOISerializer(BaseSerializer):
