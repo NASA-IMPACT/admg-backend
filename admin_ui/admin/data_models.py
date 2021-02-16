@@ -3,7 +3,16 @@ from django.contrib import admin
 from data_models import models
 
 from .base import EnforcedPermissions
-from .changeable import ChangeableAdmin
+from .changeable import (
+    ChangeableAdmin,
+    InProgressChangeInline,
+    PendingChangeInline
+)
+
+class CampaignWebsiteInline(admin.TabularInline):
+    model = models.Campaign.websites.through
+    fields = ["website", "priority"]
+    ordering = ("priority",)
 
 
 @admin.register(models.PlatformType)
@@ -57,7 +66,7 @@ class GeophysicalConceptAdmin(EnforcedPermissions):
 
 
 @admin.register(models.Campaign)
-class CampaignAdmin(EnforcedPermissions, ChangeableAdmin):
+class CampaignAdmin(EnforcedPermissions):
     list_display = ("short_name", "long_name", "funding_agency")
     list_filter = (
         "ongoing",
@@ -72,6 +81,7 @@ class CampaignAdmin(EnforcedPermissions, ChangeableAdmin):
         "geophysical_concepts",
     )
 
+    inlines = (CampaignWebsiteInline, PendingChangeInline, InProgressChangeInline)
 
 @admin.register(models.Instrument)
 class InstrumentAdmin(EnforcedPermissions, ChangeableAdmin):
@@ -104,6 +114,12 @@ class PartnerOrgAdmin(EnforcedPermissions, ChangeableAdmin):
     list_display = ("short_name", "long_name")
 
 
+@admin.register(models.CampaignWebsite)
+class CampaignWebsiteAdmin(EnforcedPermissions, ChangeableAdmin):
+    list_display = ["__str__", "campaign", "priority"]
+
+
+
 admin.site.register(models.GcmdProject, EnforcedPermissions)
 admin.site.register(models.GcmdInstrument, EnforcedPermissions)
 admin.site.register(models.GcmdPlatform, EnforcedPermissions)
@@ -112,3 +128,5 @@ admin.site.register(models.DOI, EnforcedPermissions)
 admin.site.register(models.CollectionPeriod, EnforcedPermissions)
 admin.site.register(models.Alias, EnforcedPermissions)
 admin.site.register(models.Image, EnforcedPermissions)
+admin.site.register(models.WebsiteType, EnforcedPermissions)
+admin.site.register(models.Website, EnforcedPermissions)
