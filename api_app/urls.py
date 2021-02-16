@@ -58,6 +58,9 @@ urls = [
     "IOP",
     "SignificantEvent",
     "CollectionPeriod",
+    "Website",
+    "WebsiteType",
+    "CampaignWebsite",
 ]
 
 urlpatterns = []
