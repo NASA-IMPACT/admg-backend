@@ -472,7 +472,10 @@ class DOI(BaseModel):
     class Meta:
         verbose_name = "DOI"
 
-# custom linking tables
+
+##################
+# Linking Tables #
+##################
 
 class CampaignWebsite(models.Model):
     campaign = models.ForeignKey(Campaign, on_delete=models.CASCADE)
