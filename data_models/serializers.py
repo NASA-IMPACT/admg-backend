@@ -357,3 +357,9 @@ class CampaignSerializer(GetAliasSerializer, GetDoiSerializer):
     class Meta:
         model = models.Campaign
         fields = "__all__"
+
+class CampaignWebsiteSerializer(BaseSerializer):
+
+    class Meta:
+        model = models.CampaignWebsite
+        fields = "__all__"

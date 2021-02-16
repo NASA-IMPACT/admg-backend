@@ -31,6 +31,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - new `website_type` endpoint
     - `long_name`
     - `description`
+- new `campaign_website` endpoint
+    - `campaign`
+    - `website`
+    - `priority`
+    - this endpoint shows the link between a campaign and website and allows the assignment of a priorty for each website relative to the campaign it is linked to, so that the display order of the websites can be adjusted.
 
 ## 0.1.8 - 2021-01-06
 ### Changed
