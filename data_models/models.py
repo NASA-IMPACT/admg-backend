@@ -253,7 +253,7 @@ class Campaign(DataModel):
     partner_orgs = models.ManyToManyField(PartnerOrg, related_name='campaigns', default='', blank=True)
     gcmd_projects = models.ManyToManyField(GcmdProject, related_name='campaigns', default='', blank=True)
     geophysical_concepts = models.ManyToManyField(GeophysicalConcept, related_name='campaigns')
-    websites = models.ManyToManyField(Website, related_name='campaigns')
+    websites = models.ManyToManyField(Website, related_name='campaigns', through='CampaignWebsite', default='', blank=True)
 
     @property
     def significant_events(self):
@@ -471,3 +471,17 @@ class DOI(BaseModel):
 
     class Meta:
         verbose_name = "DOI"
+
+# custom linking tables
+
+class CampaignWebsite(models.Model):
+    campaign = models.ForeignKey(Campaign, on_delete=models.CASCADE)
+    website = models.ForeignKey(Website, on_delete=models.CASCADE)
+    priority = models.IntegerField()
+
+
+    def __str__(self):
+        return f"{self.campaign} has {self.website}"
+
+    class Meta:
+        unique_together = [("campaign", "website"), ("campaign", "priority")]
