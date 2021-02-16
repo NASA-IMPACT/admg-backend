@@ -119,7 +119,6 @@ class CampaignWebsiteAdmin(EnforcedPermissions, ChangeableAdmin):
     list_display = ["__str__", "campaign", "priority"]
 
 
-
 admin.site.register(models.GcmdProject, EnforcedPermissions)
 admin.site.register(models.GcmdInstrument, EnforcedPermissions)
 admin.site.register(models.GcmdPlatform, EnforcedPermissions)
