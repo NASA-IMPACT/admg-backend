@@ -97,7 +97,7 @@ class GeophysicalConcept(LimitedInfo):
     example = models.CharField(max_length=1024, blank=True, default='')
 
 
-class WebsiteType(models.Model):
+class WebsiteType(BaseModel):
     long_name = models.TextField()
     description = models.TextField()
 
@@ -174,8 +174,8 @@ class GcmdPhenomena(BaseModel):
         return self.variable_3 or self.variable_2 or self.variable_1 or self.term or self.topic or self.category
 
 
-class Website(models.Model):
-    url = models.TextField()
+class Website(BaseModel):
+    url = models.URLField(unique=True)
     title = models.TextField()
     description = models.TextField(default='', blank=True)
     website_type = models.ManyToManyField(WebsiteType, related_name='websites')
@@ -477,7 +477,7 @@ class DOI(BaseModel):
 # Linking Tables #
 ##################
 
-class CampaignWebsite(models.Model):
+class CampaignWebsite(BaseModel):
     campaign = models.ForeignKey(Campaign, on_delete=models.CASCADE)
     website = models.ForeignKey(Website, on_delete=models.CASCADE)
     priority = models.IntegerField()
