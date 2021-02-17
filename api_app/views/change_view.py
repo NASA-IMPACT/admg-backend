@@ -13,7 +13,7 @@ from oauth2_provider.contrib.rest_framework import TokenHasScope
 
 
 from admg_webapp.users.models import ADMIN, STAFF
-from ..models import Change, PENDING_CODE, APPROVED_CODE
+from ..models import Change, IN_PROGRESS_CODE, IN_REVIEW_CODE, IN_ADMIN_REVIEW_CODE
 from ..serializers import ChangeSerializer
 from .view_utils import handle_exception
 
@@ -115,8 +115,8 @@ def ChangeApproveRejectView(approve_or_reject):
             instance = Change.objects.get(uuid=uuid)
 
             # only a change in the pending state can be approved or rejected
-            if instance.status != PENDING_CODE:
-                raise Exception("Change is not in pending state.")
+            if instance.status != IN_ADMIN_REVIEW_CODE:
+                raise Exception("Change is not in admin review.")
 
             if approve_or_reject == APPROVE:
                 res = instance.approve(request.user, request.data.get("notes", "approved"))
