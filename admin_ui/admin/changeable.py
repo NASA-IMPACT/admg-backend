@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.utils.translation import gettext as _
 from django.contrib.contenttypes.admin import GenericTabularInline
 
-from api_app.models import Change, PENDING_CODE, IN_PROGRESS_CODE
+from api_app.models import Change, IN_PROGRESS_CODE, IN_REVIEW_CODE, IN_ADMIN_REVIEW_CODE
 
 
 class BaseChangeInline(GenericTabularInline):
@@ -22,19 +22,26 @@ class BaseChangeInline(GenericTabularInline):
         return False
 
 
-class PendingChangeInline(BaseChangeInline):
-    verbose_name_plural = "Pending Changes"
-
-    def get_queryset(self, request):
-        return super().get_queryset(request).filter(status=PENDING_CODE)
-
-
-class InProgressChangeInline(BaseChangeInline):
-    verbose_name_plural = "In Progress Changes"
+class InProgressInline(BaseChangeInline):
+    verbose_name_plural = "In Progress"
 
     def get_queryset(self, request):
         return super().get_queryset(request).filter(status=IN_PROGRESS_CODE)
 
 
+class InReviewInline(BaseChangeInline):
+    verbose_name_plural = "In Review"
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).filter(status=IN_REVIEW_CODE)
+
+
+class InAdminReviewChangeInline(BaseChangeInline):
+    verbose_name_plural = "In Admin Review"
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).filter(status=IN_ADMIN_REVIEW_CODE)
+
+
 class ChangeableAdmin(admin.ModelAdmin):
-    inlines = [PendingChangeInline, InProgressChangeInline]
+    inlines = [InProgressInline, InReviewInline, InAdminReviewChangeInline]
