@@ -20,20 +20,72 @@ PATCH = "Patch"
 IN_PROGRESS, IN_PROGRESS_CODE = "In Progress", 1
 
 # Can be approved or rejected. Rejection sends it back to the in_progress state
-PENDING, PENDING_CODE = "Pending", 2
+IN_REVIEW, IN_REVIEW_CODE = "In Review", 2
+
+# Can be approved or rejected. Rejection sends it back to the in_progress state
+IN_ADMIN_REVIEW, IN_ADMIN_REVIEW_CODE = "In Admin Review", 3
 
 # Once approved the changes in the change table is refected to the model
 # The state of the change object can not be changed from this state.
-APPROVED, APPROVED_CODE = "Approved", 3
+APPROVED, APPROVED_CODE = "Approved", 4
+
+
 AVAILABLE_STATUSES = (
-    (PENDING_CODE, PENDING),
-    (APPROVED_CODE, APPROVED),
     (IN_PROGRESS_CODE, IN_PROGRESS),
+    (IN_REVIEW_CODE, IN_REVIEW),
+    (IN_ADMIN_REVIEW_CODE, IN_ADMIN_REVIEW),
+    (APPROVED_CODE, APPROVED),
 )
 
 
 def false_success(message):
     return {"success": False, "message": message}
+
+
+def handle_review_reject(function):
+    def wrapper(self, user, notes):
+        """
+        Decorator to handle or reject changes in the change table that
+        2.) adds timestamps, approved/rejected_by user, notes to the change model
+        3.) Saves the change model
+
+        Args:
+            function (function) : decorated function
+            user (User) : The user that is reviewing the change
+            notes (string) : Notes provided by the user
+
+        Returns:
+            dict : {
+                success: True/false,
+                message: "In case success is false"
+            }
+        """
+
+        if self.status != IN_REVIEW_CODE:
+            return false_success("The change is not in reviewing state.")
+
+        # raise error from used functions
+        updated = function(self, user, notes)
+
+        # a false success might be triggered, and using not doesn't rule out None
+        if updated.get("success") == False:
+            return updated
+
+        self.status = updated["status"]  # approved/rejected
+        self.review_reject_by = user
+        self.notes = notes
+        self.review_reject_date = now()
+        self.save(post_save=True) # TODO: is this saving the co or the db instance?
+
+        return {
+            "success": True,
+            "updated_model": self.model_name,
+            "action": self.action,
+            "uuid_changed": updated["uuid"],
+            "status": self.get_status_display(),
+        }
+
+    return wrapper
 
 
 def handle_approve_reject(function):
@@ -58,10 +110,10 @@ def handle_approve_reject(function):
 
         # approving user
         if admin_user.get_role_display() != ADMIN:
-            return false_success("Only admin can approve a change")
+            return false_success("Only an admin can give final approval")
 
-        if self.status != PENDING_CODE:
-            return false_success("The change is not in pending state.")
+        if self.status != IN_ADMIN_REVIEW_CODE:
+            return false_success("The change is not in admin reviewing state.")
 
         # raise error from used functions
         updated = function(self, admin_user, notes)
@@ -113,6 +165,7 @@ class Change(models.Model):
     content_object = GenericForeignKey("content_type", "model_instance_uuid")
 
     added_date = models.DateTimeField(auto_now_add=True)
+    review_reject_date = models.DateTimeField(null=True, blank=True)
     appr_reject_date = models.DateTimeField(null=True, blank=True)
 
     status = models.IntegerField(choices=AVAILABLE_STATUSES, default=IN_PROGRESS_CODE)
@@ -128,6 +181,13 @@ class Change(models.Model):
         User,
         on_delete=models.SET_NULL,
         related_name="changed_by",
+        null=True,
+        blank=True,
+    )
+    review_reject_by = models.ForeignKey(
+        User,
+        on_delete=models.DO_NOTHING,
+        related_name="reviewed_by",
         null=True,
         blank=True,
     )
@@ -265,6 +325,12 @@ class Change(models.Model):
             response = {"uuid": self.model_instance_uuid, "status": APPROVED_CODE}
 
         return response
+
+
+    @handle_review_reject
+    def review(self, user, notes):
+        pass
+
 
     @handle_approve_reject
     def approve(self, admin_user, notes):
