@@ -1,23 +1,15 @@
 # pull official base image
 FROM python:3.8.5 AS builder
 
-# set work directory
-WORKDIR /home/app/web
+ENV PYTHONUNBUFFERED=1
 
-# set environment variables
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
-
-RUN apt-get update --fix-missing && apt-get install -y gdal-bin libgdal-dev postgis netcat
-
-# lint
-RUN pip install --upgrade pip
-RUN pip install flake8
-COPY . .
-
-# install dependencies
+WORKDIR /code
 COPY requirements/ .
 RUN pip install -r local.txt
 
+COPY . /code/
+
+RUN apt-get update --fix-missing && apt-get install -y gdal-bin libgdal-dev postgis netcat
+
 # run entrypoint.sh
-ENTRYPOINT ["/home/app/web/entrypoint.sh"]
+ENTRYPOINT [ "/code/entrypoint.sh" ]
