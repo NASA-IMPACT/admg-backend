@@ -52,10 +52,11 @@ services:
     restart: on-failure
 
   celery_worker:
-    command: sh -c "wait-for rabbitmq:5672 && wait-for web:8000 -- celery -A config worker -l info"
+    command: celery -A config worker -l info
     container_name: celery_worker
     hostname: celery_worker
-    image: admg_admin_web
+    build:
+      context: .
     restart: on-failure
     depends_on:
       - web
