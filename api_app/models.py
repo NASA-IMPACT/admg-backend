@@ -22,125 +22,53 @@ IN_PROGRESS, IN_PROGRESS_CODE = "In Progress", 1
 # Can be approved or rejected. Rejection sends it back to the in_progress state
 IN_REVIEW, IN_REVIEW_CODE = "In Review", 2
 
-# Can be approved or rejected. Rejection sends it back to the in_progress state
+# Can be published or rejected. Rejection sends it back to the in_progress state
 IN_ADMIN_REVIEW, IN_ADMIN_REVIEW_CODE = "In Admin Review", 3
 
 # Once approved the changes in the change table is refected to the model
 # The state of the change object can not be changed from this state.
-APPROVED, APPROVED_CODE = "Approved", 4
+PUBLISHED, PUBLISHED_CODE = "Published", 4
 
 
 AVAILABLE_STATUSES = (
     (IN_PROGRESS_CODE, IN_PROGRESS),
     (IN_REVIEW_CODE, IN_REVIEW),
     (IN_ADMIN_REVIEW_CODE, IN_ADMIN_REVIEW),
-    (APPROVED_CODE, APPROVED),
+    (PUBLISHED_CODE, PUBLISHED),
 )
 
+def generate_failure_message(message):
+    return {
+        'success': False,
+        'message': message
+    }
 
-def false_success(message):
-    return {"success": False, "message": message}
 
 
-def handle_review_reject(function):
+def is_admin(function):
     def wrapper(self, user, notes):
-        """
-        Decorator to handle or reject changes in the change table that
-        2.) adds timestamps, approved/rejected_by user, notes to the change model
-        3.) Saves the change model
+        
+        if user.get_role_display() != ADMIN:
+            return generate_failure_message("action failed because initiating user was not admin")
+        
+        result = function(self, user, notes)
 
-        Args:
-            function (function) : decorated function
-            user (User) : The user that is reviewing the change
-            notes (string) : Notes provided by the user
-
-        Returns:
-            dict : {
-                success: True/false,
-                message: "In case success is false"
-            }
-        """
-
-        if self.status != IN_REVIEW_CODE:
-            return false_success("The change is not in reviewing state.")
-
-        # raise error from used functions
-        updated = function(self, user, notes)
-
-        # a false success might be triggered, and using not doesn't rule out None
-        if updated.get("success") == False:
-            return updated
-
-        self.status = updated["status"]  # approved/rejected
-        self.review_reject_by = user
-        self.notes = notes
-        self.review_reject_date = now()
-        self.save(post_save=True) # TODO: is this saving the co or the db instance?
-
-        return {
-            "success": True,
-            "updated_model": self.model_name,
-            "action": self.action,
-            "uuid_changed": updated["uuid"],
-            "status": self.get_status_display(),
-        }
-
+        return result
     return wrapper
 
 
-def handle_approve_reject(function):
-    def wrapper(self, admin_user, notes):
-        """
-        Decorator to handle or reject changes in the change table that
-        1.) handles user role check
-        2.) adds timestamps, approved/rejected_by user, notes to the change model
-        3.) Saves the change model
+def is_status(accepted_statuses_list):
+    def decorator(function):
+        def wrapper(self, user, notes):
+            
+            if self.status not in accepted_statuses_list:
+                return generate_failure_message(f"action failed because status was not one of {accepted_statuses_list}")
+            
+            result = function(self, user, notes)
 
-        Args:
-            function (function) : decorated function
-            admin_user (User) : The admin user that approved or rejected the change
-            notes (string) : Notes provided by the admin user
-
-        Returns:
-            dict : {
-                success: True/false,
-                message: "In case success is false"
-            }
-        """
-
-        # approving user
-        if admin_user.get_role_display() != ADMIN:
-            return false_success("Only an admin can give final approval")
-
-        if self.status != IN_ADMIN_REVIEW_CODE:
-            return false_success("The change is not in admin reviewing state.")
-
-        # raise error from used functions
-        updated = function(self, admin_user, notes)
-
-        # a false success might be triggered, and using not doesn't rule out None
-        if updated.get("success") == False:
-            return updated
-
-        # links co to the new db instance
-        if self.action == CREATE:
-            self.model_instance_uuid = updated['uuid']
-
-        self.status = updated["status"]  # approved/rejected
-        self.appr_reject_by = admin_user
-        self.notes = notes
-        self.appr_reject_date = now()
-        self.save(post_save=True)
-
-        return {
-            "success": True,
-            "updated_model": self.model_name,
-            "action": self.action,
-            "uuid_changed": updated["uuid"],
-            "status": self.get_status_display(),
-        }
-
-    return wrapper
+            return result
+        return wrapper
+    return decorator
 
 
 class Change(models.Model):
@@ -165,8 +93,10 @@ class Change(models.Model):
     content_object = GenericForeignKey("content_type", "model_instance_uuid")
 
     added_date = models.DateTimeField(auto_now_add=True)
-    review_reject_date = models.DateTimeField(null=True, blank=True)
-    appr_reject_date = models.DateTimeField(null=True, blank=True)
+    submitted_date = models.DateTimeField(null=True, blank=True)
+    reviewed_date = models.DateTimeField(null=True, blank=True)
+    published_date = models.DateTimeField(null=True, blank=True)
+    rejected_date = models.DateTimeField(null=True, blank=True)
 
     status = models.IntegerField(choices=AVAILABLE_STATUSES, default=IN_PROGRESS_CODE)
     update = models.JSONField(default=dict, blank=True)
@@ -184,17 +114,31 @@ class Change(models.Model):
         null=True,
         blank=True,
     )
-    review_reject_by = models.ForeignKey(
+    submitted_by = models.ForeignKey(
+        User,
+        on_delete=models.DO_NOTHING,
+        related_name="submitted_by",
+        null=True,
+        blank=True,
+    )
+    reviewed_by = models.ForeignKey(
         User,
         on_delete=models.DO_NOTHING,
         related_name="reviewed_by",
         null=True,
         blank=True,
     )
-    appr_reject_by = models.ForeignKey(
+    published_by = models.ForeignKey(
         User,
         on_delete=models.DO_NOTHING,
-        related_name="approved_by",
+        related_name="published_by",
+        null=True,
+        blank=True,
+    )
+    rejected_by = models.ForeignKey(
+        User,
+        on_delete=models.DO_NOTHING,
+        related_name="rejected_by",
         null=True,
         blank=True,
     )
@@ -287,7 +231,7 @@ class Change(models.Model):
 
         if serializer.is_valid(raise_exception=True):
             new_model_instance = serializer.save()
-            response = {"uuid": new_model_instance.uuid, "status": APPROVED_CODE}
+            response = {"uuid": new_model_instance.uuid, "status": PUBLISHED_CODE}
 
         return response
 
@@ -322,18 +266,34 @@ class Change(models.Model):
             model_instance = self._get_model_instance()
             model_instance.delete()
 
-            response = {"uuid": self.model_instance_uuid, "status": APPROVED_CODE}
+            response = {"uuid": self.model_instance_uuid, "status": PUBLISHED_CODE}
 
         return response
 
+    @is_status([IN_PROGRESS_CODE])
+    def submit(self, user, notes):
+        self.notes = notes
+        self.status = IN_REVIEW_CODE
+        self.submitted_date = now()
+        self.submitted_by = user
+        self.save(post_save=True)
 
-    @handle_review_reject
+        return {"uuid": self.model_instance_uuid, "status": IN_REVIEW_CODE}
+
+    @is_status([IN_REVIEW_CODE])
     def review(self, user, notes):
-        pass
+
+        self.notes = notes
+        self.status = IN_ADMIN_REVIEW_CODE
+        self.reviewed_date = now()
+        self.reviewed_by = user
+        self.save(post_save=True)
+
+        return {"uuid": self.model_instance_uuid, "status": IN_ADMIN_REVIEW_CODE}
 
 
-    @handle_approve_reject
-    def approve(self, admin_user, notes):
+    @is_admin
+    def publish(self, admin_user, notes):
         """
         Approves a change. The change is reflected in the model.
         The user checks are taken care by the decorator
@@ -353,6 +313,7 @@ class Change(models.Model):
                 message: "In case success is False"
             }
         """
+
         if self.action == CREATE:
             response = self._create()
         elif self.action == UPDATE or self.action == PATCH:
@@ -360,10 +321,37 @@ class Change(models.Model):
         elif self.action == DELETE:
             response = self._delete()
 
-        return response
+        if response.get('success') == False:
+            return response
 
-    @handle_approve_reject
-    def reject(self, admin_user, notes):
+        # links co to the new db instance
+        # this is not what syncs the UUIDs
+        if self.action == CREATE:
+            self.model_instance_uuid = response['uuid']
+
+
+        self.notes = notes
+        self.status = PUBLISHED_CODE
+
+        self.reviewed_by = self.reviewed_by or admin_user
+        self.reviewed_date = self.reviewed_date or now()
+
+        self.published_by = admin_user
+        self.published_date = now()
+
+        self.save(post_save=True)
+
+        return {
+            "success": True,
+            "updated_model": self.model_name,
+            "action": self.action,
+            "uuid_changed": response["uuid"],
+            "status": self.get_status_display(),
+        }
+
+
+    @is_status([IN_REVIEW_CODE, IN_ADMIN_REVIEW_CODE])
+    def reject(self, user, notes):
         """
         Rejects a change. The change is not reflected in the model.
         Instead the change object is pushed to in_progress state
@@ -384,5 +372,11 @@ class Change(models.Model):
                 message: "In case success is False"
             }
         """
+
+        self.notes = notes
+        self.status = IN_PROGRESS_CODE
+        self.rejected_date = now()
+        self.rejected_by = user
+        self.save(post_save=True)
 
         return {"uuid": self.model_instance_uuid, "status": IN_PROGRESS_CODE}
