@@ -9,7 +9,13 @@ class ChangeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Change
         fields = "__all__"
-        read_only_fields = ["appr_reject_date", "appr_reject_by", "status"]
+        read_only_fields = [
+            "publish_reject_date",
+            "publish_reject_by",
+            "review_reject_date",
+            "review_reject_by",
+            "status"
+        ]
 
 
 class ImageSerializer(serializers.ModelSerializer):
