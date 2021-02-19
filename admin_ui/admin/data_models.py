@@ -5,8 +5,9 @@ from data_models import models
 from .base import EnforcedPermissions
 from .changeable import (
     ChangeableAdmin,
-    InProgressChangeInline,
-    PendingChangeInline
+    InProgressInline,
+    InReviewInline,
+    InAdminReviewInline
 )
 
 class CampaignWebsiteInline(admin.TabularInline):
@@ -81,7 +82,7 @@ class CampaignAdmin(EnforcedPermissions):
         "geophysical_concepts",
     )
 
-    inlines = (CampaignWebsiteInline, PendingChangeInline, InProgressChangeInline)
+    inlines = (CampaignWebsiteInline, InProgressInline, InReviewInline, InAdminReviewInline)
 
 @admin.register(models.Instrument)
 class InstrumentAdmin(EnforcedPermissions, ChangeableAdmin):
