@@ -6,7 +6,7 @@ from django.utils.translation import gettext as _
 from django.forms import modelform_factory, Field
 from django.forms.models import ModelForm as ModelFormType
 
-from api_app.models import APPROVED_CODE, Change, CREATE
+from api_app.models import PUBLISHED_CODE, Change, CREATE
 from .base import EnforcedPermissions
 
 
@@ -39,20 +39,22 @@ class ChangeAdmin(EnforcedPermissions):
         ModelToBeChangedFilter,
         "user",
         "added_date",
-        "appr_reject_date",
+        "reviewed_date",
+        "published_date",
     )
     readonly_fields = (
         "user",
         "previous",
         "uuid",
         "model_instance_uuid",
-        "appr_reject_date",
+        "reviewed_date",
+        "published_date",
     )
     fieldsets = (
         (None, {"fields": ("action", "content_type")}),
         (
             "Details",
-            {"classes": (), "fields": ("user", "status", "appr_reject_date", "notes")},
+            {"classes": (), "fields": ("user", "status", "published_by", "published_date", "notes")},
         ),
         (
             "Advanced",
@@ -72,8 +74,8 @@ class ChangeAdmin(EnforcedPermissions):
     def has_change_permission(self, request, obj: Change = None):
         """ Only allow changing objects if you're the author or superuser """
         if obj:
-            # Nobody can edit an approved object
-            if obj.status == APPROVED_CODE:
+            # Nobody can edit a published object
+            if obj.status == PUBLISHED_CODE:
                 return False
 
         return True
@@ -155,7 +157,7 @@ class ChangeAdmin(EnforcedPermissions):
         if readonly:
             self.message_user(
                 request,
-                "You cannot edit Drafts after they have been approved.",
+                "You cannot edit Drafts after they have been published.",
                 level=messages.WARNING,
             )
 
