@@ -6,10 +6,12 @@ from drf_yasg.views import get_schema_view
 from rest_framework import permissions
 
 from .views.change_view import (
-    ChangeApproveRejectView,
+    ChangeSubmitView,
+    ChangeReviewView,
+    ChangePublishView,
+    ChangeRejectView,
     ChangeListView,
     ChangeListUpdateView,
-    ChangePushView,
     ChangeValidationView,
     APPROVE,
     REJECT
@@ -105,20 +107,26 @@ urlpatterns += [
         ChangeValidationView.as_view(),
         name="change_request_validate"
     ),
+
     path(
-        f"change_request/<str:uuid>/{APPROVE}",
-        ChangeApproveRejectView(APPROVE),
-        name="change_request_approve"
+        "change_request/<str:uuid>/submit",
+        ChangeSubmitView.as_view(),
+        name="change_request_submit"
     ),
     path(
-        f"change_request/<str:uuid>/{REJECT}",
-        ChangeApproveRejectView(REJECT),
+        "change_request/<str:uuid>/review",
+        ChangeReviewView.as_view(),
+        name="change_request_review"
+    ),
+    path(
+        "change_request/<str:uuid>/publish",
+        ChangePublishView.as_view(),
+        name="change_request_publish"
+    ),
+    path(
+        "change_request/<str:uuid>/reject",
+        ChangeRejectView.as_view(),
         name="change_request_reject"
-    ),
-    path(
-        "change_request/<str:uuid>/push",
-        ChangePushView.as_view(),
-        name="change_request_push"
     ),
     path(
         "image",

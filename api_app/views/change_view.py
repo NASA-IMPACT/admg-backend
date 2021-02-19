@@ -13,7 +13,7 @@ from oauth2_provider.contrib.rest_framework import TokenHasScope
 
 
 from admg_webapp.users.models import ADMIN, STAFF
-from ..models import Change, IN_PROGRESS_CODE, IN_REVIEW_CODE, IN_ADMIN_REVIEW_CODE
+from ..models import Change, IN_PROGRESS_CODE, IN_REVIEW_CODE, IN_ADMIN_REVIEW_CODE, PUBLISHED_CODE
 from ..serializers import ChangeSerializer
 from .view_utils import handle_exception
 
@@ -21,13 +21,18 @@ APPROVE = 'approve'
 REJECT = 'reject'
 
 
+def is_admin(user):
+    # TODO: consider refactor to combine with models.py is_admin()
+    return user.get_role_display() == ADMIN
+
+
 def _validate_update(request, uuid):
     instance = Change.objects.get(uuid=uuid)
-    if request.user.get_role_display() != ADMIN and instance.user.pk != request.user.pk:
-        raise Exception("Only admin or the owner of the object can update the change request.")
+    # if request.user.get_role_display() != ADMIN and instance.user.pk != request.user.pk:
+    #     raise Exception("Only admin or the owner of the object can update the change request.")
     # the change object can only be changed in pending or in_progress state
-    if instance.status == APPROVED_CODE:
-        raise Exception("Change has already been approved. Make a new change request")
+    if instance.status == PUBLISHED_CODE:
+        raise Exception("Change has already been published. Make a new change request")
     return instance
 
 
@@ -77,7 +82,7 @@ notes_param = openapi.Schema(
     },
 )
 
-
+# TODO: rewrite this
 # this is only for the swagger UI and has no significance in the code
 class ChangeResponseSerializer(serializers.Serializer):
     action = serializers.CharField(
@@ -89,73 +94,84 @@ class ChangeResponseSerializer(serializers.Serializer):
         min_length=36
     )
 
+class ChangeValidationView(APIView):
+    permission_classes = [permissions.IsAuthenticated, TokenHasScope]
+    required_scopes = [STAFF]
 
-def ChangeApproveRejectView(approve_or_reject):
-    """
-    returns a view based on given parameter
+    @handle_exception
+    def post(self, request, *args, **kwargs):
+        uuid = kwargs.get('uuid')
+        instance = _validate_update(request, uuid)
+        return instance.validate()
 
-    Args:
-        approve_or_reject(string): One of approve or reject
+class ChangeSubmitView(APIView):
+    # TODO: is this going to add the dates and all that other metadata?
+    permission_classes = [permissions.IsAuthenticated, TokenHasScope]
+    required_scopes = [STAFF]
 
-    Returns:
-        view class.as_view()
-    """
+    @handle_exception
+    def post(self, request, *args, **kwargs):
+        uuid = kwargs.get('uuid')
+        instance = _validate_update(request, uuid)
+        instance.validate()
+        instance.status = IN_REVIEW_CODE
+        instance.save()
+        return Response(f"Status for uuid: {uuid} changed to 'In Review'.")
 
+class ChangeReviewView(APIView):
+    permission_classes = [permissions.IsAuthenticated, TokenHasScope]
+    required_scopes = [STAFF]
+
+    @handle_exception
+    def post(self, request, *args, **kwargs):
+        uuid = kwargs.get('uuid')
+        instance = _validate_update(request, uuid)
+        instance.validate()
+        instance.status = IN_ADMIN_REVIEW_CODE
+        instance.save()
+        return Response(f"Status for uuid: {uuid} changed to 'In Admin Review'.")
+
+
+class ChangePublishView(APIView):
     class View(APIView):
         permission_classes = [permissions.IsAuthenticated, TokenHasScope]
         required_scopes = [ADMIN]
 
-        @swagger_auto_schema(
-            request_body=notes_param,
-            responses={"201": ChangeResponseSerializer}
-        )
         @handle_exception
         def post(self, request, *args, **kwargs):
-            uuid = kwargs.get("uuid")
+            uuid = kwargs.get('uuid')
+            instance = Change.objects.get(uuid=uuid)
+
+            res = instance.approve(request.user, request.data.get('notes', 'approved'))
+            return Response(data={
+                'action': 'published',
+                'action_info': res
+            })
+
+
+class ChangeRejectView(APIView):
+    class View(APIView):
+        permission_classes = [permissions.IsAuthenticated, TokenHasScope]
+        required_scopes = [STAFF]
+
+        @handle_exception
+        def post(self, request, *args, **kwargs):
+            uuid = kwargs.get('uuid')
             instance = Change.objects.get(uuid=uuid)
 
             # only a change in the pending state can be approved or rejected
-            if instance.status != IN_ADMIN_REVIEW_CODE:
-                raise Exception("Change is not in admin review.")
+            if instance.status not in [IN_REVIEW_CODE, IN_ADMIN_REVIEW_CODE]:
+                raise Exception("Change is not in review and cannot be rejected.")
 
-            if approve_or_reject == APPROVE:
-                res = instance.approve(request.user, request.data.get("notes", "approved"))
-                return Response(data={
-                    "action": approve_or_reject,
-                    "action_info": res
-                })
-            elif approve_or_reject == REJECT:
-                notes = request.data.get("notes")
-                if not notes:
-                    raise Exception("Notes required for rejection.")
-                res = instance.reject(request.user, notes)
-                return Response(data={
-                    "action": approve_or_reject,
-                    "action_info": res,
-                })
-
-    return View.as_view()
-
-class ChangeValidationView(APIView):
-    permission_classes = [permissions.IsAuthenticated, TokenHasScope]
-    required_scopes = [STAFF]
-    
-    @handle_exception
-    def post(self, request, *args, **kwargs):
-        uuid = kwargs.get("uuid")
-        instance = _validate_update(request, uuid)
-        return instance.validate()
+            if instance.status == IN_ADMIN_REVIEW_CODE and not(is_admin(request.user)):
+                raise Exception("Only admin users can reject object in admin review")
 
 
-class ChangePushView(APIView):
-    permission_classes = [permissions.IsAuthenticated, TokenHasScope]
-    required_scopes = [STAFF]
-
-    @handle_exception
-    def post(self, request, *args, **kwargs):
-        uuid = kwargs.get("uuid")
-        instance = _validate_update(request, uuid)
-        instance.validate()
-        instance.status = PENDING_CODE
-        instance.save()
-        return Response(f"Status for uuid: {uuid} changed to pending.")
+            notes = request.data.get('notes')
+            if not notes:
+                raise Exception("Notes required for rejection.")
+            res = instance.reject(request.user, notes)
+            return Response(data={
+                'action': 'rejected',
+                'action_info': res,
+            })
