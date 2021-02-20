@@ -37,19 +37,26 @@ AVAILABLE_STATUSES = (
     (PUBLISHED_CODE, PUBLISHED),
 )
 
-def generate_failure_message(message):
+def generate_failure_response(message):
     return {
         'success': False,
         'message': message
     }
 
 
+def generate_success_response(status, data):
+    return {
+        "success": True,
+        "message": f"Change object has been moved to the '{status}' stage."
+        "data": data
+    }
+
 
 def is_admin(function):
     def wrapper(self, user, notes):
         
         if user.get_role_display() != ADMIN:
-            return generate_failure_message("action failed because initiating user was not admin")
+            return generate_failure_response("action failed because initiating user was not admin")
         
         result = function(self, user, notes)
 
@@ -62,7 +69,7 @@ def is_status(accepted_statuses_list):
         def wrapper(self, user, notes):
             
             if self.status not in accepted_statuses_list:
-                return generate_failure_message(f"action failed because status was not one of {accepted_statuses_list}")
+                return generate_failure_response(f"action failed because status was not one of {accepted_statuses_list}")
             
             result = function(self, user, notes)
 
@@ -278,7 +285,13 @@ class Change(models.Model):
         self.submitted_by = user
         self.save(post_save=True)
 
-        return {"uuid": self.model_instance_uuid, "status": IN_REVIEW_CODE}
+        return generate_success_response(
+            status_str=IN_REVIEW,
+            data={
+                "uuid": self.model_instance_uuid,
+                "status": IN_REVIEW_CODE
+            }
+        }
 
     @is_status([IN_REVIEW_CODE])
     def review(self, user, notes):
@@ -289,7 +302,13 @@ class Change(models.Model):
         self.reviewed_by = user
         self.save(post_save=True)
 
-        return {"uuid": self.model_instance_uuid, "status": IN_ADMIN_REVIEW_CODE}
+        return generate_success_response(
+            status_str=IN_ADMIN_REVIEW,
+            data={
+                "uuid": self.model_instance_uuid,
+                "status": IN_ADMIN_REVIEW_CODE
+            }
+        }
 
 
     @is_admin
@@ -341,12 +360,14 @@ class Change(models.Model):
 
         self.save(post_save=True)
 
-        return {
-            "success": True,
-            "updated_model": self.model_name,
-            "action": self.action,
-            "uuid_changed": response["uuid"],
-            "status": self.get_status_display(),
+        return generate_success_response(
+            status_str=PUBLISHED,
+            data={
+                "updated_model": self.model_name,
+                "action": self.action,
+                "uuid_changed": response["uuid"],
+                "status": PUBLISHED_CODE
+            }
         }
 
 
@@ -379,4 +400,10 @@ class Change(models.Model):
         self.rejected_by = user
         self.save(post_save=True)
 
-        return {"uuid": self.model_instance_uuid, "status": IN_PROGRESS_CODE}
+        return generate_success_response(
+            status_str=IN_PROGRESS,
+            data={
+                "uuid": self.model_instance_uuid, 
+                "status": IN_PROGRESS_CODE
+            }
+        }
