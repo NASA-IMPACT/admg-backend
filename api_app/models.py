@@ -47,7 +47,7 @@ def generate_failure_response(message):
 def generate_success_response(status, data):
     return {
         "success": True,
-        "message": f"Change object has been moved to the '{status}' stage."
+        "message": f"Change object has been moved to the '{status}' stage.",
         "data": data
     }
 
@@ -291,7 +291,7 @@ class Change(models.Model):
                 "uuid": self.model_instance_uuid,
                 "status": IN_REVIEW_CODE
             }
-        }
+        )
 
     @is_status([IN_REVIEW_CODE])
     def review(self, user, notes):
@@ -308,7 +308,7 @@ class Change(models.Model):
                 "uuid": self.model_instance_uuid,
                 "status": IN_ADMIN_REVIEW_CODE
             }
-        }
+        )
 
 
     @is_admin
@@ -368,7 +368,7 @@ class Change(models.Model):
                 "uuid_changed": response["uuid"],
                 "status": PUBLISHED_CODE
             }
-        }
+        )
 
 
     @is_status([IN_REVIEW_CODE, IN_ADMIN_REVIEW_CODE])
@@ -406,4 +406,4 @@ class Change(models.Model):
                 "uuid": self.model_instance_uuid, 
                 "status": IN_PROGRESS_CODE
             }
-        }
+        )
