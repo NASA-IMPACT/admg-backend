@@ -3,11 +3,7 @@ from django.contrib import admin
 from data_models import models
 
 from .base import EnforcedPermissions
-from .changeable import (
-    ChangeableAdmin,
-    InProgressChangeInline,
-    PendingChangeInline
-)
+from .changeable import ChangeableAdmin
 
 class CampaignWebsiteInline(admin.TabularInline):
     model = models.Campaign.websites.through
@@ -66,7 +62,7 @@ class GeophysicalConceptAdmin(EnforcedPermissions):
 
 
 @admin.register(models.Campaign)
-class CampaignAdmin(EnforcedPermissions):
+class CampaignAdmin(EnforcedPermissions, ChangeableAdmin):
     list_display = ("short_name", "long_name", "funding_agency")
     list_filter = (
         "ongoing",
@@ -81,7 +77,7 @@ class CampaignAdmin(EnforcedPermissions):
         "geophysical_concepts",
     )
 
-    inlines = (CampaignWebsiteInline, PendingChangeInline, InProgressChangeInline)
+    inlines = [CampaignWebsiteInline, ] + ChangeableAdmin.inlines
 
 @admin.register(models.Instrument)
 class InstrumentAdmin(EnforcedPermissions, ChangeableAdmin):
