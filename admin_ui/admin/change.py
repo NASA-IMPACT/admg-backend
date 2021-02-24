@@ -32,29 +32,22 @@ class ChangeAdmin(EnforcedPermissions):
     SUBMODEL_FIELDNAME_PREFIX = "submodel__"
 
     change_form_template = "admin/change_model_detail.html"
-    list_display = ("model_name", "added_date", "action", "status", "user")
+    list_display = ("model_name","action", "status")
     list_filter = (
         "status",
         "action",
         ModelToBeChangedFilter,
-        "user",
-        "added_date",
-        "reviewed_date",
-        "published_date",
     )
     readonly_fields = (
-        "user",
         "previous",
         "uuid",
         "model_instance_uuid",
-        "reviewed_date",
-        "published_date",
     )
     fieldsets = (
         (None, {"fields": ("action", "content_type")}),
         (
             "Details",
-            {"classes": (), "fields": ("user", "status", "published_by", "published_date", "notes")},
+            {"classes": (), "fields": ("status",)},
         ),
         (
             "Advanced",
@@ -90,7 +83,7 @@ class ChangeAdmin(EnforcedPermissions):
         return (
             super().get_queryset(request)
             # fetch related data to avoid followup lookups of needed data
-            .select_related("content_type", "user")
+            .select_related("content_type")
         )
 
     def get_changeform_initial_data(self, request):
