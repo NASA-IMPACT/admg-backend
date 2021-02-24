@@ -35,102 +35,41 @@
       </table>
     </div>
     <div class="col-4">
-      <!-- <div class="list-group list-group-root">
-        <a href="#" class="list-group-item">Item 1</a>
-        <div class="list-group">
-          <a href="#" class="list-group-item">Item 1.1</a>
-          <div class="list-group">
-            <a href="#" class="list-group-item">Item 1.1.1</a>
-            <a href="#" class="list-group-item">Item 1.1.2</a>
-            <a href="#" class="list-group-item">Item 1.1.3</a>
-          </div>
-
-          <a href="#" class="list-group-item">Item 1.2</a>
-          <div class="list-group">
-            <a href="#" class="list-group-item">Item 1.2.1</a>
-            <a href="#" class="list-group-item">Item 1.2.2</a>
-            <a href="#" class="list-group-item">Item 1.2.3</a>
-          </div>
-
-          <a href="#" class="list-group-item">Item 1.3</a>
-          <div class="list-group">
-            <a href="#" class="list-group-item">Item 1.3.1</a>
-            <a href="#" class="list-group-item">Item 1.3.2</a>
-            <a href="#" class="list-group-item">Item 1.3.3</a>
-          </div>
-        </div>
-
-        <a href="#" class="list-group-item">Item 2</a>
-        <div class="list-group">
-          <a href="#" class="list-group-item">Item 2.1</a>
-          <div class="list-group">
-            <a href="#" class="list-group-item">Item 2.1.1</a>
-            <a href="#" class="list-group-item">Item 2.1.2</a>
-            <a href="#" class="list-group-item">Item 2.1.3</a>
-          </div>
-
-          <a href="#" class="list-group-item">Item 2.2</a>
-          <div class="list-group">
-            <a href="#" class="list-group-item">Item 2.2.1</a>
-            <a href="#" class="list-group-item">Item 2.2.2</a>
-            <a href="#" class="list-group-item">Item 2.2.3</a>
-          </div>
-
-          <a href="#" class="list-group-item">Item 2.3</a>
-          <div class="list-group">
-            <a href="#" class="list-group-item">Item 2.3.1</a>
-            <a href="#" class="list-group-item">Item 2.3.2</a>
-            <a href="#" class="list-group-item">Item 2.3.3</a>
-          </div>
-        </div>
-
-        <a href="#" class="list-group-item">Item 3</a>
-        <div class="list-group">
-          <a href="#" class="list-group-item">Item 3.1</a>
-          <div class="list-group">
-            <a href="#" class="list-group-item">Item 3.1.1</a>
-            <a href="#" class="list-group-item">Item 3.1.2</a>
-            <a href="#" class="list-group-item">Item 3.1.3</a>
-          </div>
-
-          <a href="#" class="list-group-item">Item 3.2</a>
-          <div class="list-group">
-            <a href="#" class="list-group-item">Item 3.2.1</a>
-            <a href="#" class="list-group-item">Item 3.2.2</a>
-            <a href="#" class="list-group-item">Item 3.2.3</a>
-          </div>
-
-          <a href="#" class="list-group-item">Item 3.3</a>
-          <div class="list-group">
-            <a href="#" class="list-group-item">Item 3.3.1</a>
-            <a href="#" class="list-group-item">Item 3.3.2</a>
-            <a href="#" class="list-group-item">Item 3.3.3</a>
-          </div>
-        </div>
-      </div>
-
-      <hr /> -->
 
       <ul class="list-unstyled">
         <li>
-          <a href="">Campaign</a>
+          <a href="">{{ object }} ({{object.get_status_display}})</a>
           <ul>
+            {% for deployment in object.deployments %}
             <li>
-              <a href="">Deployment</a>
+              <a href="">{{ deployment }} ({{deployment.get_status_display}})</a>
               <ul>
+                {% for collection_period in deployment.collection_periods %}
                 <li>
-                  <a href="">Collection Period</a>
+                  <a href="">{{ collection_period }} ({{collection_period.get_status_display}})</a>
                   <ul>
+                    {% for platform in collection_period.platforms %}
                     <li>
-                      <a href="">Platform</a>
+                      <a href="">{{ platform }} ({{platform.get_status_display}})</a>
                     </li>
+                    {% endfor %}
+                    {% for homebase in collection_period.homebases %}
                     <li>
-                      <a href="">Instruments</a>
+                      <a href="">{{ homebase }} ({{homebase.get_status_display}})</a>
                     </li>
+                    {% endfor %}
+                    {% for instrument in collection_period.instruments %}
+                    <li>
+                      <a href="">{{ instrument }} ({{instrument.get_status_display}})</a>
+                    </li>
+                    {% endfor %}
                   </ul>
                 </li>
+                {% endfor %}
               </ul>
             </li>
+            {% endfor %}
+
           </ul>
         </li>
       </ul>
