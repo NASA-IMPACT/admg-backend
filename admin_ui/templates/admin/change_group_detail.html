@@ -1,0 +1,147 @@
+{% extends "base.html" %} {% block extrahead %} {{ form.media }}
+<style>
+  .list-group.list-group-root {
+    padding: 0;
+    overflow: hidden;
+  }
+
+  .list-group.list-group-root .list-group {
+    margin-bottom: 0;
+  }
+
+  .list-group.list-group-root .list-group-item {
+    border-radius: 0;
+    border-width: 1px 0 0 0;
+  }
+
+  .list-group.list-group-root > .list-group-item:first-child {
+    border-top-width: 0;
+  }
+
+  .list-group.list-group-root > .list-group > .list-group-item {
+    padding-left: 30px;
+  }
+
+  .list-group.list-group-root > .list-group > .list-group > .list-group-item {
+    padding-left: 45px;
+  }
+</style>
+{% endblock %} {% load crispy_forms_tags %} {% block content %}
+<form method="post">
+  <div class="row">
+    <div class="col-8">
+      <table class="table table-responsive">
+        {% csrf_token %} {{ form | crispy }}
+      </table>
+    </div>
+    <div class="col-4">
+      <!-- <div class="list-group list-group-root">
+        <a href="#" class="list-group-item">Item 1</a>
+        <div class="list-group">
+          <a href="#" class="list-group-item">Item 1.1</a>
+          <div class="list-group">
+            <a href="#" class="list-group-item">Item 1.1.1</a>
+            <a href="#" class="list-group-item">Item 1.1.2</a>
+            <a href="#" class="list-group-item">Item 1.1.3</a>
+          </div>
+
+          <a href="#" class="list-group-item">Item 1.2</a>
+          <div class="list-group">
+            <a href="#" class="list-group-item">Item 1.2.1</a>
+            <a href="#" class="list-group-item">Item 1.2.2</a>
+            <a href="#" class="list-group-item">Item 1.2.3</a>
+          </div>
+
+          <a href="#" class="list-group-item">Item 1.3</a>
+          <div class="list-group">
+            <a href="#" class="list-group-item">Item 1.3.1</a>
+            <a href="#" class="list-group-item">Item 1.3.2</a>
+            <a href="#" class="list-group-item">Item 1.3.3</a>
+          </div>
+        </div>
+
+        <a href="#" class="list-group-item">Item 2</a>
+        <div class="list-group">
+          <a href="#" class="list-group-item">Item 2.1</a>
+          <div class="list-group">
+            <a href="#" class="list-group-item">Item 2.1.1</a>
+            <a href="#" class="list-group-item">Item 2.1.2</a>
+            <a href="#" class="list-group-item">Item 2.1.3</a>
+          </div>
+
+          <a href="#" class="list-group-item">Item 2.2</a>
+          <div class="list-group">
+            <a href="#" class="list-group-item">Item 2.2.1</a>
+            <a href="#" class="list-group-item">Item 2.2.2</a>
+            <a href="#" class="list-group-item">Item 2.2.3</a>
+          </div>
+
+          <a href="#" class="list-group-item">Item 2.3</a>
+          <div class="list-group">
+            <a href="#" class="list-group-item">Item 2.3.1</a>
+            <a href="#" class="list-group-item">Item 2.3.2</a>
+            <a href="#" class="list-group-item">Item 2.3.3</a>
+          </div>
+        </div>
+
+        <a href="#" class="list-group-item">Item 3</a>
+        <div class="list-group">
+          <a href="#" class="list-group-item">Item 3.1</a>
+          <div class="list-group">
+            <a href="#" class="list-group-item">Item 3.1.1</a>
+            <a href="#" class="list-group-item">Item 3.1.2</a>
+            <a href="#" class="list-group-item">Item 3.1.3</a>
+          </div>
+
+          <a href="#" class="list-group-item">Item 3.2</a>
+          <div class="list-group">
+            <a href="#" class="list-group-item">Item 3.2.1</a>
+            <a href="#" class="list-group-item">Item 3.2.2</a>
+            <a href="#" class="list-group-item">Item 3.2.3</a>
+          </div>
+
+          <a href="#" class="list-group-item">Item 3.3</a>
+          <div class="list-group">
+            <a href="#" class="list-group-item">Item 3.3.1</a>
+            <a href="#" class="list-group-item">Item 3.3.2</a>
+            <a href="#" class="list-group-item">Item 3.3.3</a>
+          </div>
+        </div>
+      </div>
+
+      <hr /> -->
+
+      <ul class="list-unstyled">
+        <li>
+          <a href="">Campaign</a>
+          <ul>
+            <li>
+              <a href="">Deployment</a>
+              <ul>
+                <li>
+                  <a href="">Collection Period</a>
+                  <ul>
+                    <li>
+                      <a href="">Platform</a>
+                    </li>
+                    <li>
+                      <a href="">Instruments</a>
+                    </li>
+                  </ul>
+                </li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+      </ul>
+
+      <hr />
+      <table class="table table-responsive">
+        {{ change_form | crispy }}
+      </table>
+      <input type="submit" value="Update" class="btn btn-info" />
+    </div>
+  </div>
+</form>
+
+{% endblock %}
