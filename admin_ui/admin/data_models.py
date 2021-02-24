@@ -4,7 +4,7 @@ from django.contrib import admin
 from data_models import models
 
 from .permissions import EnforcedPermissionsMixin
-from .inlines.change import PendingChangeInline, InProgressChangeInline
+from .inlines.change import InProgressInline, InReviewInline, InAdminReviewInline
 from .inlines.doi import (
     CampaignDoiInline,
     DoiCampaignInline,
@@ -16,6 +16,7 @@ from .inlines.doi import (
     DoiCollectionPeriodInline,
 )
 
+
 class CampaignWebsiteInline(admin.TabularInline):
     model = models.Campaign.websites.through
     fields = ["website", "priority"]
@@ -24,16 +25,21 @@ class CampaignWebsiteInline(admin.TabularInline):
 
 LIMITED_INFO_LIST_FIELDS = ("short_name", "long_name")
 
-CHANGABLE_INLINES = (PendingChangeInline, InProgressChangeInline)
+CHANGABLE_INLINES = (InProgressInline, InReviewInline, InAdminReviewInline)
 
 
 @admin.register(models.Alias)
 @admin.register(models.Image)
+@admin.register(models.GcmdProject)
+@admin.register(models.GcmdInstrument)
+@admin.register(models.GcmdPlatform)
+@admin.register(models.GcmdPhenomena)
+@admin.register(models.WebsiteType)
+@admin.register(models.Website)
 class BasicAdmin(admin.ModelAdmin, EnforcedPermissionsMixin):
     ...
 
 
-@admin.register(models.CollectionPeriod)
 class CollectionPeriodAdmin(BasicAdmin):
     inlines = [CollectionPeriodDoiInline]
 
@@ -65,7 +71,6 @@ class LimitedInfoAdmin(BasicAdmin):
 @admin.register(models.Campaign)
 class CampaignAdmin(BasicAdmin):
     actions = [fetch_dois]
-    inlines = CHANGABLE_INLINES + (CampaignDoiInline, )
     list_display = ("short_name", "long_name", "funding_agency")
     list_filter = (
         "ongoing",
@@ -78,8 +83,8 @@ class CampaignAdmin(BasicAdmin):
         "partner_orgs",
         "geophysical_concepts",
     )
+    inlines = (CampaignWebsiteInline, CampaignDoiInline) + CHANGABLE_INLINES
 
-    inlines = [CampaignWebsiteInline, ] + ChangeableAdmin.inlines
 
 @admin.register(models.Deployment)
 @admin.register(models.PartnerOrg)
@@ -110,23 +115,8 @@ class ShortNameChangable(BasicAdmin):
     list_display = ("short_name",)
 
 
-@admin.register(models.PartnerOrg)
-class PartnerOrgAdmin(EnforcedPermissions, ChangeableAdmin):
-    list_display = ("short_name", "long_name")
-
-
 @admin.register(models.CampaignWebsite)
-class CampaignWebsiteAdmin(EnforcedPermissions, ChangeableAdmin):
+class CampaignWebsiteAdmin(BasicAdmin):
     list_display = ["__str__", "campaign", "priority"]
 
 
-admin.site.register(models.GcmdProject, EnforcedPermissions)
-admin.site.register(models.GcmdInstrument, EnforcedPermissions)
-admin.site.register(models.GcmdPlatform, EnforcedPermissions)
-admin.site.register(models.GcmdPhenomena, EnforcedPermissions)
-admin.site.register(models.DOI, EnforcedPermissions)
-admin.site.register(models.CollectionPeriod, EnforcedPermissions)
-admin.site.register(models.Alias, EnforcedPermissions)
-admin.site.register(models.Image, EnforcedPermissions)
-admin.site.register(models.WebsiteType, EnforcedPermissions)
-admin.site.register(models.Website, EnforcedPermissions)

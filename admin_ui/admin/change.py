@@ -8,7 +8,7 @@ from django.forms import modelform_factory, Field
 from django.forms.models import ModelForm as ModelFormType
 
 from api_app.models import PUBLISHED_CODE, Change, CREATE
-from .base import EnforcedPermissions
+from .permissions import EnforcedPermissionsMixin
 
 
 class ModelToBeChangedFilter(admin.SimpleListFilter):
