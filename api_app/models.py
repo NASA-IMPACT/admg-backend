@@ -44,20 +44,20 @@ def generate_failure_response(message):
     }
 
 
-def generate_success_response(status, data):
+def generate_success_response(status_str, data):
     return {
         "success": True,
-        "message": f"Change object has been moved to the '{status}' stage.",
+        "message": f"Change object has been moved to the '{status_str}' stage.",
         "data": data
     }
 
 
 def is_admin(function):
     def wrapper(self, user, notes):
-        
+
         if user.get_role_display() != ADMIN:
             return generate_failure_response("action failed because initiating user was not admin")
-        
+
         result = function(self, user, notes)
 
         return result
@@ -67,16 +67,55 @@ def is_admin(function):
 def is_status(accepted_statuses_list):
     def decorator(function):
         def wrapper(self, user, notes):
-            
+
             if self.status not in accepted_statuses_list:
-                return generate_failure_response(f"action failed because status was not one of {accepted_statuses_list}")
-            
+                return generate_failure_response(
+                    f"action failed because status was not one of {accepted_statuses_list}"
+                )
+
             result = function(self, user, notes)
 
             return result
         return wrapper
     return decorator
 
+
+class ChangeLog(models.Model):
+    """Keeps a log of the changes (publish, reject, etc) made to a particular draft"""
+
+    CREATE = 1
+    SUBMIT = 2
+    REVIEW = 3
+    PUBLISH = 4
+    REJECT = 5
+
+    ACTION_CHOICES = [
+        (CREATE, 'create'),
+        (SUBMIT, 'submit'),
+        (REVIEW, 'review'),
+        (PUBLISH, 'publish'),
+        (REJECT, 'reject')
+    ]
+
+    uuid = models.UUIDField(primary_key=True, default=uuid4, editable=False)
+
+    change = models.ForeignKey('Change', on_delete=models.CASCADE, blank=True)
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        related_name="submitted_by",
+        null=True,
+        blank=True,
+    )
+
+    date = models.DateTimeField(auto_now_add=True)
+
+    action = models.IntegerField(
+        choices=ACTION_CHOICES,
+        default=CREATE,
+    )
+    notes = models.TextField(blank=True, default='')
 
 class Change(models.Model):
     uuid = models.UUIDField(primary_key=True, default=uuid4, editable=False)
@@ -99,12 +138,6 @@ class Change(models.Model):
     model_instance_uuid = models.UUIDField(default=uuid4, blank=False, null=True)
     content_object = GenericForeignKey("content_type", "model_instance_uuid")
 
-    added_date = models.DateTimeField(auto_now_add=True)
-    submitted_date = models.DateTimeField(null=True, blank=True)
-    reviewed_date = models.DateTimeField(null=True, blank=True)
-    published_date = models.DateTimeField(null=True, blank=True)
-    rejected_date = models.DateTimeField(null=True, blank=True)
-
     status = models.IntegerField(choices=AVAILABLE_STATUSES, default=IN_PROGRESS_CODE)
     update = models.JSONField(default=dict, blank=True)
     previous = models.JSONField(default=dict)
@@ -114,43 +147,6 @@ class Change(models.Model):
         choices=((choice, choice) for choice in [CREATE, UPDATE, DELETE, PATCH]),
         default=UPDATE,
     )
-    user = models.ForeignKey(
-        User,
-        on_delete=models.SET_NULL,
-        related_name="changed_by",
-        null=True,
-        blank=True,
-    )
-    submitted_by = models.ForeignKey(
-        User,
-        on_delete=models.DO_NOTHING,
-        related_name="submitted_by",
-        null=True,
-        blank=True,
-    )
-    reviewed_by = models.ForeignKey(
-        User,
-        on_delete=models.DO_NOTHING,
-        related_name="reviewed_by",
-        null=True,
-        blank=True,
-    )
-    published_by = models.ForeignKey(
-        User,
-        on_delete=models.DO_NOTHING,
-        related_name="published_by",
-        null=True,
-        blank=True,
-    )
-    rejected_by = models.ForeignKey(
-        User,
-        on_delete=models.DO_NOTHING,
-        related_name="rejected_by",
-        null=True,
-        blank=True,
-    )
-    notes = models.CharField(max_length=500, blank=True)
-
     class Meta:
         verbose_name = "Draft"
 
@@ -279,33 +275,40 @@ class Change(models.Model):
 
     @is_status([IN_PROGRESS_CODE])
     def submit(self, user, notes):
-        self.notes = notes
         self.status = IN_REVIEW_CODE
-        self.submitted_date = now()
-        self.submitted_by = user
+
+        ChangeLog.objects.create(
+            change = self,
+            user = user,
+            action = ChangeLog.SUBMIT,
+            notes = notes
+        )
+
         self.save(post_save=True)
 
         return generate_success_response(
             status_str=IN_REVIEW,
             data={
-                "uuid": self.model_instance_uuid,
+                "uuid": self.uuid,
                 "status": IN_REVIEW_CODE
             }
         )
 
     @is_status([IN_REVIEW_CODE])
     def review(self, user, notes):
-
-        self.notes = notes
         self.status = IN_ADMIN_REVIEW_CODE
-        self.reviewed_date = now()
-        self.reviewed_by = user
+        ChangeLog.objects.create(
+            change = self,
+            user = user,
+            action = ChangeLog.REVIEW,
+            notes = notes
+        )
         self.save(post_save=True)
 
         return generate_success_response(
             status_str=IN_ADMIN_REVIEW,
             data={
-                "uuid": self.model_instance_uuid,
+                "uuid": self.uuid,
                 "status": IN_ADMIN_REVIEW_CODE
             }
         )
@@ -348,15 +351,21 @@ class Change(models.Model):
         if self.action == CREATE:
             self.model_instance_uuid = response['uuid']
 
+        if self.status != IN_ADMIN_REVIEW_CODE:
+            ChangeLog.objects.create(
+                change = self,
+                user = admin_user,
+                action = ChangeLog.REVIEW,
+                notes = notes
+            )
 
-        self.notes = notes
+        ChangeLog.objects.create(
+            change = self,
+            user = admin_user,
+            action = ChangeLog.PUBLISH,
+        )
+
         self.status = PUBLISHED_CODE
-
-        self.reviewed_by = self.reviewed_by or admin_user
-        self.reviewed_date = self.reviewed_date or now()
-
-        self.published_by = admin_user
-        self.published_date = now()
 
         self.save(post_save=True)
 
@@ -394,16 +403,19 @@ class Change(models.Model):
             }
         """
 
-        self.notes = notes
         self.status = IN_PROGRESS_CODE
-        self.rejected_date = now()
-        self.rejected_by = user
+        ChangeLog.objects.create(
+            change = self,
+            user = user,
+            action = ChangeLog.REJECT,
+            notes = notes
+        )
         self.save(post_save=True)
 
         return generate_success_response(
             status_str=IN_PROGRESS,
             data={
-                "uuid": self.model_instance_uuid, 
+                "uuid": self.uuid,
                 "status": IN_PROGRESS_CODE
             }
         )
