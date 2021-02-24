@@ -1,13 +1,16 @@
 import os
 import uuid
+import urllib.parse
 
-from django.apps import apps
 from django.contrib.contenttypes.fields import (GenericForeignKey,
                                                 GenericRelation)
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.gis.db import models as geomodels
 from django.contrib.postgres.search import SearchQuery, SearchVector
 from django.db import models
+
+# TODO: Mv to config
+FRONTEND_URL = "https://airborne-inventory.surge.sh/"
 
 
 class BaseModel(models.Model):
@@ -302,6 +305,9 @@ class Campaign(DataModel):
             'focus_phenomena',
         ]
 
+    def get_absolute_url(self):
+        return urllib.parse.urljoin(FRONTEND_URL, f"/campaign/{self.uuid}/")
+
 
 class Platform(DataModel):
 
@@ -334,6 +340,10 @@ class Platform(DataModel):
             'long_name',
             'description',
         ]
+
+    def get_absolute_url(self):
+        return urllib.parse.urljoin(FRONTEND_URL, f"/platform/{self.uuid}/")
+
 
 
 class Instrument(DataModel):
@@ -369,6 +379,10 @@ class Instrument(DataModel):
     @property
     def platforms(self):
         return list(set(collection_period.platform.uuid for collection_period in self.collection_periods.all()))
+
+    def get_absolute_url(self):
+        return urllib.parse.urljoin(FRONTEND_URL, f"/instrument/{self.uuid}/")
+
 
 
 class Deployment(DataModel):
@@ -468,6 +482,9 @@ class DOI(BaseModel):
 
     def __str__(self):
         return self.cmr_entry_title or self.cmr_short_name or self.doi or self.concept_id
+
+    def get_absolute_url(self):
+        return urllib.parse.urljoin("https://doi.org", self.doi)
 
     class Meta:
         verbose_name = "DOI"

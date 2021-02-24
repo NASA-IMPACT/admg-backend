@@ -1,9 +1,20 @@
+from admin_ui.admin.actions.doi import fetch_dois
 from django.contrib import admin
 
 from data_models import models
 
-from .base import EnforcedPermissions
-from .changeable import ChangeableAdmin
+from .permissions import EnforcedPermissionsMixin
+from .inlines.change import PendingChangeInline, InProgressChangeInline
+from .inlines.doi import (
+    CampaignDoiInline,
+    DoiCampaignInline,
+    InstrumentDoiInline,
+    DoiInstrumentInline,
+    PlatformDoiInline,
+    DoiPlatformInline,
+    CollectionPeriodDoiInline,
+    DoiCollectionPeriodInline,
+)
 
 class CampaignWebsiteInline(admin.TabularInline):
     model = models.Campaign.websites.through
@@ -11,58 +22,50 @@ class CampaignWebsiteInline(admin.TabularInline):
     ordering = ("priority",)
 
 
+LIMITED_INFO_LIST_FIELDS = ("short_name", "long_name")
+
+CHANGABLE_INLINES = (PendingChangeInline, InProgressChangeInline)
+
+
+@admin.register(models.Alias)
+@admin.register(models.Image)
+class BasicAdmin(admin.ModelAdmin, EnforcedPermissionsMixin):
+    ...
+
+
+@admin.register(models.CollectionPeriod)
+class CollectionPeriodAdmin(BasicAdmin):
+    inlines = [CollectionPeriodDoiInline]
+
+
+@admin.register(models.DOI)
+class DoiAdmin(BasicAdmin):
+    inlines = [
+        DoiCampaignInline,
+        DoiInstrumentInline,
+        DoiPlatformInline,
+        DoiCollectionPeriodInline,
+    ]
+
+
 @admin.register(models.PlatformType)
-class PlatformTypeAdmin(EnforcedPermissions):
-    list_display = ("short_name", "long_name")
-
-
 @admin.register(models.MeasurementStyle)
-class MeasurementStyleAdmin(EnforcedPermissions):
-    list_display = ("short_name", "long_name")
-
-
 @admin.register(models.MeasurementType)
-class MeasurementTypeAdmin(EnforcedPermissions):
-    list_display = ("short_name", "long_name")
-
-
 @admin.register(models.HomeBase)
-class HomeBaseAdmin(EnforcedPermissions):
-    list_display = ("short_name", "long_name")
-
-
 @admin.register(models.FocusArea)
-class FocusAreaAdmin(EnforcedPermissions):
-    list_display = ("short_name", "long_name")
-
-
 @admin.register(models.Season)
-class SeasonAdmin(EnforcedPermissions):
-    list_display = ("short_name", "long_name")
-
-
 @admin.register(models.Repository)
-class RepositoryAdmin(EnforcedPermissions):
-    list_display = ("short_name", "long_name")
-
-
 @admin.register(models.MeasurementRegion)
-class MeasurementRegionAdmin(EnforcedPermissions):
-    list_display = ("short_name", "long_name")
-
-
 @admin.register(models.GeographicalRegion)
-class GeographicalRegionAdmin(EnforcedPermissions):
-    list_display = ("short_name", "long_name")
-
-
 @admin.register(models.GeophysicalConcept)
-class GeophysicalConceptAdmin(EnforcedPermissions):
-    list_display = ("short_name", "long_name")
+class LimitedInfoAdmin(BasicAdmin):
+    list_display = LIMITED_INFO_LIST_FIELDS
 
 
 @admin.register(models.Campaign)
-class CampaignAdmin(EnforcedPermissions, ChangeableAdmin):
+class CampaignAdmin(BasicAdmin):
+    actions = [fetch_dois]
+    inlines = CHANGABLE_INLINES + (CampaignDoiInline, )
     list_display = ("short_name", "long_name", "funding_agency")
     list_filter = (
         "ongoing",
@@ -73,35 +76,37 @@ class CampaignAdmin(EnforcedPermissions, ChangeableAdmin):
         "repositories",
         "platform_types",
         "partner_orgs",
-        "gcmd_projects",
         "geophysical_concepts",
     )
 
     inlines = [CampaignWebsiteInline, ] + ChangeableAdmin.inlines
 
+@admin.register(models.Deployment)
+@admin.register(models.PartnerOrg)
+class LimitedInfoChangable(BasicAdmin):
+    inlines = CHANGABLE_INLINES
+    list_display = LIMITED_INFO_LIST_FIELDS
+
+
 @admin.register(models.Instrument)
-class InstrumentAdmin(EnforcedPermissions, ChangeableAdmin):
-    list_display = ("short_name", "long_name")
+class InstrumentAdmin(BasicAdmin):
+    actions = [fetch_dois]
+    inlines = CHANGABLE_INLINES + (InstrumentDoiInline,)
+    list_display = LIMITED_INFO_LIST_FIELDS
 
 
 @admin.register(models.Platform)
-class PlatformAdmin(EnforcedPermissions, ChangeableAdmin):
-    list_display = ("short_name", "long_name")
+class PlatformAdmin(BasicAdmin):
+    actions = [fetch_dois]
+    inlines = CHANGABLE_INLINES + (PlatformDoiInline,)
+    list_display = LIMITED_INFO_LIST_FIELDS
     list_filter = ("platform_type",)
 
 
-@admin.register(models.Deployment)
-class DeploymentAdmin(EnforcedPermissions, ChangeableAdmin):
-    list_display = ("short_name", "long_name")
-
-
 @admin.register(models.IOP)
-class IOPAdmin(EnforcedPermissions, ChangeableAdmin):
-    list_display = ("short_name",)
-
-
 @admin.register(models.SignificantEvent)
-class SignificantEventAdmin(EnforcedPermissions, ChangeableAdmin):
+class ShortNameChangable(BasicAdmin):
+    inlines = CHANGABLE_INLINES
     list_display = ("short_name",)
 
 

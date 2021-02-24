@@ -1,4 +1,5 @@
 from functools import partial
+import json
 
 from django.contrib import admin, messages
 from django.core.exceptions import ValidationError
@@ -23,12 +24,15 @@ class ModelToBeChangedFilter(admin.SimpleListFilter):
         ]
 
     def queryset(self, request, queryset):
-        if not self.value():
-            return queryset
-        return queryset.filter(content_type_id=self.value())
+        content_type_id = self.value()
+        return (
+            queryset.filter(content_type_id=content_type_id)
+            if content_type_id
+            else queryset
+        )
 
 
-class ChangeAdmin(EnforcedPermissions):
+class ChangeAdmin(admin.ModelAdmin, EnforcedPermissionsMixin):
     SUBMODEL_FIELDNAME_PREFIX = "submodel__"
 
     change_form_template = "admin/change_model_detail.html"
@@ -58,12 +62,6 @@ class ChangeAdmin(EnforcedPermissions):
         ),
     )
 
-    def has_module_permission(self, request):
-        return True
-
-    def has_view_permission(self, request, obj=None):
-        return True
-
     def has_change_permission(self, request, obj: Change = None):
         """ Only allow changing objects if you're the author or superuser """
         if obj:
@@ -76,9 +74,6 @@ class ChangeAdmin(EnforcedPermissions):
     def has_add_permission(self, request, obj=None):
         return True
 
-    def has_delete_permission(self, request, obj=None):
-        return self.is_admin(request)
-
     def get_queryset(self, request):
         return (
             super().get_queryset(request)
@@ -87,7 +82,7 @@ class ChangeAdmin(EnforcedPermissions):
         )
 
     def get_changeform_initial_data(self, request):
-        return {'action': CREATE}
+        return {"action": CREATE}
 
     def save_model(self, request, obj: Change, form, change: bool):
         """
@@ -139,12 +134,24 @@ class ChangeAdmin(EnforcedPermissions):
         # Buildout custom form for destination model
         ModelCls = obj.content_type.model_class()
         ModelForm = self._get_modelform_for_model_class(request, ModelCls)
-        model_form = ModelForm({
-            # some field widgets crash if passed None values
-            **{f.name: "" for f in ModelCls._meta.fields},
-            **(obj.previous or {}),
-            **(obj.update or {}),
-        })
+        model_form = ModelForm(
+            {
+                # some field widgets crash if passed None values
+                **{f.name: "" for f in ModelCls._meta.fields},
+                **(obj.previous or {}),
+                **(obj.update or {}),
+            }
+        )
+
+        # Ensure that JSONFields get data in form of raw text, not Python objects
+        for field_name, field in model_form.fields.items():
+            if field.__class__.__name__ == "JSONField":
+                try:
+                    json.loads(model_form.data[field_name])
+                except TypeError:
+                    model_form.data[field_name] = json.dumps(
+                        model_form.data[field_name]
+                    )
 
         readonly = not self.has_change_permission(request, obj)
         if readonly:

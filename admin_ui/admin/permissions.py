@@ -1,8 +1,7 @@
 from admg_webapp.users.models import ADMIN_CODE
-from django.contrib import admin
 
 
-class EnforcedPermissions(admin.ModelAdmin):
+class EnforcedPermissionsMixin:
     def has_module_permission(self, request):
         return True
 
