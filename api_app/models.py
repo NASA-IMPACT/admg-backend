@@ -16,6 +16,8 @@ UPDATE = "Update"
 DELETE = "Delete"
 PATCH = "Patch"
 
+# The change has been freshly ingested, but no one has made edits using the admin interface
+CREATED, CREATED_CODE = "Created", 0
 
 # The change is in progress, can not be approved, but the user can update the change request
 IN_PROGRESS, IN_PROGRESS_CODE = "In Progress", 1
@@ -32,6 +34,7 @@ PUBLISHED, PUBLISHED_CODE = "Published", 4
 
 
 AVAILABLE_STATUSES = (
+    (CREATED_CODE, CREATED),
     (IN_PROGRESS_CODE, IN_PROGRESS),
     (IN_REVIEW_CODE, IN_REVIEW),
     (IN_ADMIN_REVIEW_CODE, IN_ADMIN_REVIEW),
@@ -189,15 +192,17 @@ class Change(models.Model):
                 change = self,
                 user = get_current_user(),
                 action = ApprovalLog.CREATE,
-            )            
+            )
+            self.status = CREATED_CODE
         else:
             # should only log changes made to the draft while in progress
-            if self.status == IN_PROGRESS_CODE and log:
+            if (self.status in [CREATED_CODE, IN_PROGRESS_CODE]) and log:
                 ApprovalLog.objects.create(
                     change = self,
                     user = get_current_user(),
                     action = ApprovalLog.EDIT,
                 )
+                self.status = IN_PROGRESS_CODE
         return super().save(*args, **kwargs)
 
     def _run_validator(self, partial):
