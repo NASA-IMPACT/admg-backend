@@ -1,3 +1,4 @@
+from crum import get_current_user
 from uuid import uuid4
 
 from django.apps import apps
@@ -53,7 +54,7 @@ def generate_success_response(status_str, data):
 
 
 def is_admin(function):
-    def wrapper(self, user, notes):
+    def wrapper(self, user, notes=""):
 
         if user.get_role_display() != ADMIN:
             return generate_failure_response("action failed because initiating user was not admin")
@@ -66,7 +67,7 @@ def is_admin(function):
 
 def is_status(accepted_statuses_list):
     def decorator(function):
-        def wrapper(self, user, notes):
+        def wrapper(self, user, notes=""):
 
             if self.status not in accepted_statuses_list:
                 return generate_failure_response(
@@ -80,17 +81,19 @@ def is_status(accepted_statuses_list):
     return decorator
 
 
-class ChangeLog(models.Model):
+class ApprovalLog(models.Model):
     """Keeps a log of the changes (publish, reject, etc) made to a particular draft"""
 
     CREATE = 1
-    SUBMIT = 2
-    REVIEW = 3
-    PUBLISH = 4
-    REJECT = 5
+    EDIT = 2
+    SUBMIT = 3
+    REVIEW = 4
+    PUBLISH = 5
+    REJECT = 6
 
     ACTION_CHOICES = [
         (CREATE, 'create'),
+        (EDIT, 'edit'),
         (SUBMIT, 'submit'),
         (REVIEW, 'review'),
         (PUBLISH, 'publish'),
@@ -104,7 +107,7 @@ class ChangeLog(models.Model):
     user = models.ForeignKey(
         User,
         on_delete=models.SET_NULL,
-        related_name="submitted_by",
+        related_name="user",
         null=True,
         blank=True,
     )
@@ -147,6 +150,7 @@ class Change(models.Model):
         choices=((choice, choice) for choice in [CREATE, UPDATE, DELETE, PATCH]),
         default=UPDATE,
     )
+
     class Meta:
         verbose_name = "Draft"
 
@@ -172,11 +176,28 @@ class Change(models.Model):
                 serializer = serializer_class(instance)
                 self.previous = {key: serializer.data.get(key) for key in self.update}
 
-    def save(self, *args, post_save=False, **kwargs):
+    def save(self, *args, post_save=False, log=True, **kwargs):
+        """log parameter allows a calling function to disable the log, specifically reject"""
         # do not check for validity of model_name and uuid if it has been approved or rejected.
         # Check is done for the first time only
         if not post_save:
             self._check_model_and_uuid()
+
+        # change object was freshly created and has no logs
+        if not ApprovalLog.objects.filter(change=self):
+            ApprovalLog.objects.create(
+                change = self,
+                user = get_current_user(),
+                action = ApprovalLog.CREATE,
+            )            
+        else:
+            # should only log changes made to the draft while in progress
+            if self.status == IN_PROGRESS_CODE and log:
+                ApprovalLog.objects.create(
+                    change = self,
+                    user = get_current_user(),
+                    action = ApprovalLog.EDIT,
+                )
         return super().save(*args, **kwargs)
 
     def _run_validator(self, partial):
@@ -274,13 +295,13 @@ class Change(models.Model):
         return response
 
     @is_status([IN_PROGRESS_CODE])
-    def submit(self, user, notes):
+    def submit(self, user, notes=""):
         self.status = IN_REVIEW_CODE
 
-        ChangeLog.objects.create(
+        ApprovalLog.objects.create(
             change = self,
             user = user,
-            action = ChangeLog.SUBMIT,
+            action = ApprovalLog.SUBMIT,
             notes = notes
         )
 
@@ -295,12 +316,12 @@ class Change(models.Model):
         )
 
     @is_status([IN_REVIEW_CODE])
-    def review(self, user, notes):
+    def review(self, user, notes=""):
         self.status = IN_ADMIN_REVIEW_CODE
-        ChangeLog.objects.create(
+        ApprovalLog.objects.create(
             change = self,
             user = user,
-            action = ChangeLog.REVIEW,
+            action = ApprovalLog.REVIEW,
             notes = notes
         )
         self.save(post_save=True)
@@ -315,7 +336,7 @@ class Change(models.Model):
 
 
     @is_admin
-    def publish(self, admin_user, notes):
+    def publish(self, admin_user, notes=""):
         """
         Approves a change. The change is reflected in the model.
         The user checks are taken care by the decorator
@@ -352,17 +373,17 @@ class Change(models.Model):
             self.model_instance_uuid = response['uuid']
 
         if self.status != IN_ADMIN_REVIEW_CODE:
-            ChangeLog.objects.create(
+            ApprovalLog.objects.create(
                 change = self,
                 user = admin_user,
-                action = ChangeLog.REVIEW,
+                action = ApprovalLog.REVIEW,
                 notes = notes
             )
 
-        ChangeLog.objects.create(
+        ApprovalLog.objects.create(
             change = self,
             user = admin_user,
-            action = ChangeLog.PUBLISH,
+            action = ApprovalLog.PUBLISH,
         )
 
         self.status = PUBLISHED_CODE
@@ -404,13 +425,13 @@ class Change(models.Model):
         """
 
         self.status = IN_PROGRESS_CODE
-        ChangeLog.objects.create(
+        ApprovalLog.objects.create(
             change = self,
             user = user,
-            action = ChangeLog.REJECT,
+            action = ApprovalLog.REJECT,
             notes = notes
         )
-        self.save(post_save=True)
+        self.save(post_save=True, log=False)
 
         return generate_success_response(
             status_str=IN_PROGRESS,
