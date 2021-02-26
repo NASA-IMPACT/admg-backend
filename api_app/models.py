@@ -189,7 +189,7 @@ class Change(models.Model):
                 change = self,
                 user = get_current_user(),
                 action = ApprovalLog.CREATE,
-            )            
+            )
         else:
             # should only log changes made to the draft while in progress
             if self.status == IN_PROGRESS_CODE and log:

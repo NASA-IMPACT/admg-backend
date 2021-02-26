@@ -1,0 +1,5 @@
+<a class="nav-link p-0 pb-2 {% if active %}active disabled{% endif %}" href="{{change.uuid}}">
+  {{ change.model_name }}: {{ change.update.short_name }}
+  <br />
+  <em>{{change.get_status_display}}</em>
+</a>

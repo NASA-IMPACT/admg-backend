@@ -71,7 +71,7 @@ DJANGO_APPS = [
     "django.contrib.sites",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    # "django.contrib.humanize", # Handy template tags
+    "django.contrib.humanize", # Handy template tags
     "admin_ui",  # Must be before django.contrib.admin
     "django.contrib.admin",
     "django.contrib.gis",  # add this line
