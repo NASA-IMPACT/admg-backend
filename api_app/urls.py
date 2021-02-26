@@ -13,8 +13,6 @@ from .views.change_view import (
     ChangeListView,
     ChangeListUpdateView,
     ChangeValidationView,
-    APPROVE,
-    REJECT
 )
 from .views.generic_views import GenericCreateGetAllView, GenericPutPatchDeleteView
 from .views.image_view import ImageListCreateAPIView, ImageRetrieveDestroyAPIView

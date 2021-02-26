@@ -12,27 +12,37 @@
             {% change_list_item collection_period %}
             <ul class="list-unstyled ml-3">
               {% for platform in collection_period.platforms %}
-              <li class="nav-item">
-                {% change_list_item platform %}
-              </li>
+              <li class="nav-item">{% change_list_item platform %}</li>
               {% endfor %}
+              <li class="nav-item">
+                <a href="{% url 'change-add' 'platform' %}?parent={{ collection_period.uuid }}" class="btn btn-info">Add Platform</a>
+              </li>
+
               {% for homebase in collection_period.homebases %}
-              <li class="nav-item">
-                {% change_list_item homebase %}
-              </li>
+              <li class="nav-item">{% change_list_item homebase %}</li>
               {% endfor %}
+              <li class="nav-item">
+                <a href="{% url 'change-add' 'homebase' %}?parent={{ collection_period.uuid }}" class="btn btn-info">Add Homebase</a>
+              </li>
+
               {% for instrument in collection_period.instruments %}
-              <li class="nav-item">
-                {% change_list_item instrument %}
-              </li>
+              <li class="nav-item">{% change_list_item instrument %}</li>
               {% endfor %}
+              <li class="nav-item">
+                <a href="{% url 'change-add' 'instrument' %}?parent={{ collection_period.uuid }}" class="btn btn-info">Add Instrument</a>
+              </li>
             </ul>
           </li>
           {% endfor %}
+          <li class="nav-item">
+            <a href="{% url 'change-add' 'period' %}?parent={{ deployment.uuid }}" class="btn btn-info">Add Collection Period</a>
+          </li>
         </ul>
       </li>
       {% endfor %}
-
+      <li class="nav-item">
+        <a href="{% url 'change-add' 'deployment' %}?parent={{ object.uuid }}" class="btn btn-info">Add Deployment</a>
+      </li>
     </ul>
   </li>
 </ul>

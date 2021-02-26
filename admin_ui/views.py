@@ -1,17 +1,20 @@
+import json
+
 from django.conf import settings
 from django.contrib import messages
+from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.db import models
 from django.forms import modelform_factory
 from django.http import HttpResponseRedirect
 from django.utils.safestring import mark_safe
-from django.views.generic.edit import UpdateView
-from django.views import View
-from django.shortcuts import render
-from django.forms import ModelForm
-
+from django.views.generic.detail import DetailView
+from django.views.generic.edit import CreateView, UpdateView
+from django.db.models.query import QuerySet
+from rest_framework.renderers import JSONRenderer
 import requests
 
-from api_app.models import Change
+from api_app.models import Change, CREATE, UPDATE
 
 
 @login_required
@@ -46,10 +49,40 @@ def deploy_admin(request):
     return HttpResponseRedirect("/admin/")
 
 
-class CampaignGroupView(UpdateView):
-    pk_url_kwarg = "uuid"
+class ChangeCreateView(CreateView):
+    model = Change
+    fields = [
+        "content_type",
+        "model_instance_uuid",
+        "action",
+        "update",
+    ]
+    template_name_suffix = '_add_form'
+
+    def get_initial(self):
+        # TODO: given self.request.GET.get('parent'), determine correct initial data for each content_type
+        return {
+            'content_type': ContentType.objects.get(app_label='data_models', model__iexact=self.kwargs['model']).id,
+            'action': UPDATE if self.request.GET.get('uuid') else CREATE,
+            'model_instance_uuid': self.request.GET.get('uuid')
+        }
+
+    # TODO: Render destination model form
+
+
+class ChangeDetailView(DetailView):
+    model = Change
+
+
+class ChangeUpdateView(UpdateView):
     success_url = "/"
-    fields = ["action", "content_type"]
+    fields = [
+        "content_type",
+        "model_instance_uuid",
+        "action",
+        "update",
+        "status",
+    ]
 
     prefix = "change"
     destination_model_prefix = "model_form"
@@ -57,15 +90,6 @@ class CampaignGroupView(UpdateView):
     def get_queryset(self):
         # Prefetch content type for performance
         return Change.objects.select_related("content_type")
-
-    # def get_form_class(self):
-    #     # We want to render this with a form for the Change's destination model,
-    #     # not for the Change model.
-    #     return modelform_factory(self.object.content_type.model_class(), exclude=[])
-
-    # def get_initial(self):
-    #     # Populate form with Update object
-    #     return self.object.update
 
     @property
     def destination_model_form(self):
@@ -75,12 +99,13 @@ class CampaignGroupView(UpdateView):
         )
 
     def get_context_data(self, **kwargs):
+        if "model_form" not in kwargs:
+            kwargs["model_form"] = self.destination_model_form(
+                initial=self.get_object().update, prefix=self.destination_model_prefix
+            )
         return {
             **super().get_context_data(**kwargs),
             # Add approvals to context
-            "model_form": self.destination_model_form(
-                initial=self.get_object().update, prefix=self.destination_model_prefix
-            ),
             "approvals": self.get_object().approvallog_set.order_by("-date"),
         }
 
@@ -89,91 +114,41 @@ class CampaignGroupView(UpdateView):
         Handle POST requests: instantiate a form instance with the passed
         POST variables and then check if it's valid.
         """
+        self.object = self.get_object()
 
         # Validate destination model's form
         class ModelForm(self.destination_model_form):
-            def validate_unique(self):
-                # https://stackoverflow.com/a/4112531/728583
-                pass
+            def validate_unique(_self):
+                # We don't want to raise errors on unique errors for the
+                # destination model unless this is a "Create" change
+                if self.object.action == CREATE:
+                    super().validate_unique()
 
-        destination_model_form = ModelForm(
-            data=request.POST, prefix=self.destination_model_prefix
-        )
-        if not destination_model_form.is_valid():
-            return self.form_invalid(destination_model_form)
-
-        # Validate current model
+        model_form = ModelForm(data=request.POST, prefix=self.destination_model_prefix)
         form = self.get_form()
-        if not form.is_valid():
-            return self.form_invalid(form)
 
-        form.instance.update = {
-            k: v
-            for k, v in destination_model_form.data.dict().items()
-            if k != "csrfmiddlewaretoken"
-        }
+        if not all([model_form.is_valid(), form.is_valid()]):
+            return self.form_invalid(form=form, model_form=model_form)
+
+        # Populate Change's form with values from destination model's form
+        form.instance.update = json.loads(
+            JSONRenderer().render(
+                {k: serialize(v) for k, v in model_form.cleaned_data.items()}
+            )
+        )
         return self.form_valid(form)
 
-    # def form_invalid(self, form):
-    #     print("bad")
-    #     return super().form_invalid(form)
-
-    # def form_valid(self, form):
-    #     if form.is_valid():
-    #         ChangeForm = modelform_factory(Change, exclude=[])
-    #         change_form = ChangeForm(
-    #             {
-    #                 k: v
-    #                 for k, v in form.data.dict().items()
-    #                 if k != "csrfmiddlewaretoken"
-    #             }
-    #         )
-    #         if change_form.is_valid():
-    #             return super().form_valid(form)
-    #     return super().form_valid(form)
-
-
-class ChangeForm(ModelForm):
-    class Meta:
-        model = Change
-        fields = [
-            "action",
-            "status",
-            # "uuid",
-            "model_instance_uuid",
-            "content_type",
-            "model_instance_uuid",
-            "status",
-            "update",
-        ]
-
-
-class MyFormView(View):
-    change_form_class = ChangeForm
-    initial = {"key": "value"}
-    template_name = "form_template.html"
-
-    @property
-    def model_form_class(self):
-        """ Helper to return a form for the destination of the Draft object """
-        base_model_form = modelform_factory(
-            self.get_object().content_type.model_class(), exclude=[]
+    def form_invalid(self, form, model_form):
+        # Overriden to support handling both invalid Change form and an invalid
+        # destination model form
+        return self.render_to_response(
+            self.get_context_data(form=form, model_form=model_form)
         )
 
-        class ModelFormCls(base_model_form):
-            ...
 
-        return ModelFormCls
-
-    def get(self, request, *args, **kwargs):
-        form = self.change_form_class(initial=self.initial)
-        model_form = self.model_form_class(initial=)
-        return render(request, self.template_name, {"form": form})
-
-    def post(self, request, *args, **kwargs):
-        form = self.form_class(request.POST)
-        if form.is_valid():
-            # <process form cleaned data>
-            return HttpResponseRedirect("/success/")
-
-        return render(request, self.template_name, {"form": form})
+def serialize(value):
+    if isinstance(value, QuerySet):
+        return [v.uuid for v in value]
+    if isinstance(value, models.Model):
+        return value.uuid
+    return value

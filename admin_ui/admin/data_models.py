@@ -39,7 +39,7 @@ CHANGABLE_INLINES = (InProgressInline, InReviewInline, InAdminReviewInline)
 class BasicAdmin(admin.ModelAdmin, EnforcedPermissionsMixin):
     ...
 
-
+@admin.register(models.CollectionPeriod)
 class CollectionPeriodAdmin(BasicAdmin):
     inlines = [CollectionPeriodDoiInline]
 

@@ -1,5 +1,6 @@
 {% extends "api_app/base.html" %}
 {% load change_extras crispy_forms_tags static %}
+
 {% block extrahead %}
 {{ block.super }}
 {{ form.media }}
@@ -9,7 +10,8 @@
 {% block content %}
 <form method="post">
   {% csrf_token %}
-  {% for field in form %} {{ field.as_hidden }} {% endfor %}
+  {{ form | crispy }}
+  {% comment %} {% for field in form %} {{ field.as_hidden }} {% endfor %}
   <div class="row">
     {# Main Content #}
     <div class="col-8">
@@ -33,7 +35,7 @@
       <h3>History</h3>
       {% related_approval_logs approvals %}
     </div>
-  </div>
+  </div> {% endcomment %}
 </form>
 
 {% endblock %}

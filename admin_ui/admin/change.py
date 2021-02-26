@@ -16,7 +16,7 @@ class ModelToBeChangedFilter(admin.SimpleListFilter):
     parameter_name = "content_type_id"
 
     def lookups(self, request, model_admin):
-        return [
+        return [("all", "Show all")] + [
             (c.content_type_id, c.model_name)
             for c in Change.objects.distinct("content_type").select_related(
                 "content_type"
@@ -25,6 +25,7 @@ class ModelToBeChangedFilter(admin.SimpleListFilter):
 
     def queryset(self, request, queryset):
         content_type_id = self.value()
+        print(content_type_id)
         return (
             queryset.filter(content_type_id=content_type_id)
             if content_type_id
@@ -36,23 +37,12 @@ class ChangeAdmin(admin.ModelAdmin, EnforcedPermissionsMixin):
     SUBMODEL_FIELDNAME_PREFIX = "submodel__"
 
     change_form_template = "admin/change_model_detail.html"
-    list_display = ("model_name","action", "status")
-    list_filter = (
-        "status",
-        "action",
-        ModelToBeChangedFilter,
-    )
-    readonly_fields = (
-        "previous",
-        "uuid",
-        "model_instance_uuid",
-    )
+    list_display = ("model_name", "action", "status")
+    list_filter = ("status", "action", ModelToBeChangedFilter)
+    readonly_fields = ("previous", "uuid", "model_instance_uuid")
     fieldsets = (
         (None, {"fields": ("action", "content_type")}),
-        (
-            "Details",
-            {"classes": (), "fields": ("status",)},
-        ),
+        ("Details", {"classes": (), "fields": ("status",)}),
         (
             "Advanced",
             {
