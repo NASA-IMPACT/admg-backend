@@ -11,6 +11,7 @@ def change_list_item(context, change):
 
 @register.inclusion_tag("tags/related_changes.html")
 def related_changes(change):
+    # TODO: Handle case where change isn't Campaign but rather a child model
     rel_deployments = Change.objects.select_related("content_type").filter(
         content_type__model__iexact="deployment", update__campaign=str(change.uuid)
     )
@@ -18,7 +19,7 @@ def related_changes(change):
         content_type__model__iexact="collectionperiod",
         update__deployment__in=[
             str(d.uuid) for d in rel_deployments
-        ],  # TODO: Using a queryset for the lookup may be more performant
+        ],
     )
     platform_ids = set()
     homebase_ids = set()

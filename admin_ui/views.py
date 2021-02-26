@@ -126,6 +126,7 @@ class ChangeCreateView(CreateView, ChangeModelFormMixin):
     template_name_suffix = "_add_form"
 
     def get_initial(self):
+        # TODO: given self.request.GET.get('parent'), determine correct initial data for each content_type
         # Get initial form values from URL
         return {
             "content_type": self.get_model_form_content_type().id,
