@@ -1,4 +1,5 @@
 import json
+from typing import Union
 
 from django.conf import settings
 from django.contrib import messages
@@ -9,7 +10,7 @@ from django.forms import modelform_factory
 from django.http import HttpResponseRedirect
 from django.utils.safestring import mark_safe
 from django.views.generic.detail import DetailView
-from django.views.generic.edit import CreateView, UpdateView
+from django.views.generic.edit import CreateView, UpdateView, ModelFormMixin
 from django.db.models.query import QuerySet
 from rest_framework.renderers import JSONRenderer
 import requests
@@ -49,75 +50,44 @@ def deploy_admin(request):
     return HttpResponseRedirect("/admin/")
 
 
-class ChangeCreateView(CreateView):
-    model = Change
-    fields = [
-        "content_type",
-        "model_instance_uuid",
-        "action",
-        "update",
-    ]
-    template_name_suffix = '_add_form'
-
-    def get_initial(self):
-        # TODO: given self.request.GET.get('parent'), determine correct initial data for each content_type
-        return {
-            'content_type': ContentType.objects.get(app_label='data_models', model__iexact=self.kwargs['model']).id,
-            'action': UPDATE if self.request.GET.get('uuid') else CREATE,
-            'model_instance_uuid': self.request.GET.get('uuid')
-        }
-
-    # TODO: Render destination model form
-
-
-class ChangeDetailView(DetailView):
-    model = Change
-
-
-class ChangeUpdateView(UpdateView):
-    success_url = "/"
-    fields = [
-        "content_type",
-        "model_instance_uuid",
-        "action",
-        "update",
-        "status",
-    ]
-
-    prefix = "change"
+class ChangeModelFormMixin(ModelFormMixin):
+    """
+    This mixin attempts to simplify working with a second form (the model_form)
+    when editing Change objects.
+    """
     destination_model_prefix = "model_form"
-
-    def get_queryset(self):
-        # Prefetch content type for performance
-        return Change.objects.select_related("content_type")
 
     @property
     def destination_model_form(self):
         """ Helper to return a form for the destination of the Draft object """
         return modelform_factory(
-            self.get_object().content_type.model_class(), exclude=[]
+            self.get_model_form_content_type().model_class(), exclude=[]
         )
+
+    def get_model_form_content_type(self) -> ContentType:
+        raise NotImplementedError("Subclass must implement this property")
+
+    def get_model_form_intial(self):
+        return {}
 
     def get_context_data(self, **kwargs):
         if "model_form" not in kwargs:
+            # Ensure that the model_form is available in context for template
             kwargs["model_form"] = self.destination_model_form(
-                initial=self.get_object().update, prefix=self.destination_model_prefix
+                initial=self.get_model_form_intial(),
+                prefix=self.destination_model_prefix,
             )
-        return {
-            **super().get_context_data(**kwargs),
-            # Add approvals to context
-            "approvals": self.get_object().approvallog_set.order_by("-date"),
-        }
+        return super().get_context_data(**kwargs)
 
     def post(self, request, *args, **kwargs):
         """
         Handle POST requests: instantiate a form instance with the passed
         POST variables and then check if it's valid.
         """
-        self.object = self.get_object()
-
         # Validate destination model's form
-        class ModelForm(self.destination_model_form):
+        BaseModelForm = self.destination_model_form
+
+        class ModelForm(BaseModelForm):
             def validate_unique(_self):
                 # We don't want to raise errors on unique errors for the
                 # destination model unless this is a "Create" change
@@ -144,6 +114,61 @@ class ChangeUpdateView(UpdateView):
         return self.render_to_response(
             self.get_context_data(form=form, model_form=model_form)
         )
+
+
+class ChangeDetailView(DetailView):
+    model = Change
+
+
+class ChangeCreateView(CreateView, ChangeModelFormMixin):
+    model = Change
+    fields = ["content_type", "model_instance_uuid", "action", "update"]
+    template_name_suffix = "_add_form"
+
+    def get_initial(self):
+        # Get initial form values from URL
+        return {
+            "content_type": self.get_model_form_content_type().id,
+            "action": UPDATE if self.request.GET.get("uuid") else CREATE,
+            "model_instance_uuid": self.request.GET.get("uuid"),
+        }
+
+    def get_model_form_content_type(self) -> ContentType:
+        return ContentType.objects.get(
+            app_label="data_models", model__iexact=self.kwargs["model"]
+        )
+
+
+class ChangeUpdateView(UpdateView, ChangeModelFormMixin):
+    success_url = "/"
+    fields = ["content_type", "model_instance_uuid", "action", "update", "status"]
+
+    prefix = "change"
+
+    def get_queryset(self):
+        # Prefetch content type for performance
+        return Change.objects.select_related("content_type")
+
+    def get_context_data(self, **kwargs):
+        return {
+            **super().get_context_data(**kwargs),
+            # Add approvals to context
+            "approvals": self.get_object().approvallog_set.order_by("-date"),
+        }
+
+    def get_model_form_content_type(self) -> ContentType:
+        return self.object.content_type
+
+    def get_model_form_intial(self):
+        return self.object.update
+
+    def post(self, *args, **kwargs):
+        """
+        Handle POST requests: instantiate a form instance with the passed
+        POST variables and then check if it's valid.
+        """
+        self.object = self.get_object()
+        return super().post(*args, **kwargs)
 
 
 def serialize(value):
