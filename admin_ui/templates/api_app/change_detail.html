@@ -1,6 +1,12 @@
 {% extends "api_app/base.html" %}
 {% load change_extras %}
 
+{% block content %}
 <h1>{{ change }}</h1>
+
+
+<h3>Related Data</h3>
+{% related_changes change %}
+{% endblock %}
 
 {% related_changes change %}

@@ -9,13 +9,14 @@ from django.db import models
 from django.forms import modelform_factory
 from django.http import HttpResponseRedirect
 from django.utils.safestring import mark_safe
+from django.views.generic.list import ListView
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView, UpdateView, ModelFormMixin
 from django.db.models.query import QuerySet
 from rest_framework.renderers import JSONRenderer
 import requests
 
-from api_app.models import Change, CREATE, UPDATE
+from api_app.models import Change, CREATE, UPDATE, PUBLISHED_CODE
 
 
 @login_required
@@ -55,6 +56,7 @@ class ChangeModelFormMixin(ModelFormMixin):
     This mixin attempts to simplify working with a second form (the model_form)
     when editing Change objects.
     """
+
     destination_model_prefix = "model_form"
 
     @property
@@ -113,6 +115,16 @@ class ChangeModelFormMixin(ModelFormMixin):
         # destination model form
         return self.render_to_response(
             self.get_context_data(form=form, model_form=model_form)
+        )
+
+
+class ChangeListView(ListView):
+    model = Change
+    paginate_by = 50
+
+    def get_queryset(self):
+        return Change.objects.exclude(status=PUBLISHED_CODE).order_by(
+            self.request.GET.get("order_by", "-status")
         )
 
 

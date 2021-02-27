@@ -11,31 +11,6 @@
 <form method="post">
   {% csrf_token %}
   {{ form | crispy }}
-  {% comment %} {% for field in form %} {{ field.as_hidden }} {% endfor %}
-  <div class="row">
-    {# Main Content #}
-    <div class="col-8">
-      <h3>{{ object.get_action_display }} {{ object.model_name }}: {{ object.update.short_name | default:object.uuid }}</h3>
-      <table class="table table-responsive">
-        {{ model_form | crispy }}
-      </table>
-    </div>
-
-    {# Sidebar #}
-    <div class="col-4">
-
-      <h3>Actions</h3>
-      <button class="btn btn-success">Save</button>
-
-      <h3>Related Data</h3>
-      {% related_changes change %}
-
-      <hr />
-
-      <h3>History</h3>
-      {% related_approval_logs approvals %}
-    </div>
-  </div> {% endcomment %}
 </form>
 
 {% endblock %}
