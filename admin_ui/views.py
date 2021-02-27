@@ -123,9 +123,10 @@ class ChangeListView(ListView):
     paginate_by = 50
 
     def get_queryset(self):
-        return Change.objects.exclude(status=PUBLISHED_CODE).order_by(
-            self.request.GET.get("order_by", "-status")
-        )
+        return Change.objects.filter(content_type__model='campaign').order_by(self.get_ordering())
+
+    def get_ordering(self):
+        return self.request.GET.get('ordering', '-status')
 
 
 class ChangeDetailView(DetailView):
