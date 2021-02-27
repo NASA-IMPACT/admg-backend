@@ -120,7 +120,7 @@ class ChangeModelFormMixin(ModelFormMixin):
 
 class ChangeListView(ListView):
     model = Change
-    paginate_by = 50
+    paginate_by = 25
 
     def get_queryset(self):
         return Change.objects.filter(content_type__model='campaign').order_by(self.get_ordering())
