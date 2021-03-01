@@ -22,21 +22,29 @@ CREATED, CREATED_CODE = "Created", 0
 # The change is in progress, can not be approved, but the user can update the change request
 IN_PROGRESS, IN_PROGRESS_CODE = "In Progress", 1
 
-# Can be approved or rejected. Rejection sends it back to the in_progress state
-IN_REVIEW, IN_REVIEW_CODE = "In Review", 2
+# The change has been added to the review pile, but hasn't been claimed
+AWAITING_REVIEW, AWAITING_REVIEW_CODE = "Awaiting Review", 2
+
+# The change as been claimed, and can now be can now be reviewed or rejected. Rejection sends it back to the in_progress state
+IN_REVIEW, IN_REVIEW_CODE = "In Review", 3
+
+# The change has been added to the admin review pile, but hasn't been claimed
+AWAITING_ADMIN_REVIEW, AWAITING_ADMIN_REVIEW_CODE = "Awaiting Admin Review", 4
 
 # Can be published or rejected. Rejection sends it back to the in_progress state
-IN_ADMIN_REVIEW, IN_ADMIN_REVIEW_CODE = "In Admin Review", 3
+IN_ADMIN_REVIEW, IN_ADMIN_REVIEW_CODE = "In Admin Review", 5
 
 # Once approved the changes in the change table is refected to the model
 # The state of the change object can not be changed from this state.
-PUBLISHED, PUBLISHED_CODE = "Published", 4
+PUBLISHED, PUBLISHED_CODE = "Published", 6
 
 
 AVAILABLE_STATUSES = (
     (CREATED_CODE, CREATED),
     (IN_PROGRESS_CODE, IN_PROGRESS),
+    (AWAITING_REVIEW_CODE, AWAITING_REVIEW),
     (IN_REVIEW_CODE, IN_REVIEW),
+    (AWAITING_ADMIN_REVIEW_CODE, AWAITING_ADMIN_REVIEW),
     (IN_ADMIN_REVIEW_CODE, IN_ADMIN_REVIEW),
     (PUBLISHED_CODE, PUBLISHED),
 )
@@ -93,6 +101,8 @@ class ApprovalLog(models.Model):
     REVIEW = 4
     PUBLISH = 5
     REJECT = 6
+    CLAIM = 7
+    UNCLAIM = 8
 
     ACTION_CHOICES = [
         (CREATE, 'create'),
@@ -100,7 +110,9 @@ class ApprovalLog(models.Model):
         (SUBMIT, 'submit'),
         (REVIEW, 'review'),
         (PUBLISH, 'publish'),
-        (REJECT, 'reject')
+        (REJECT, 'reject'),
+        (CLAIM, 'claim'),
+        (UNCLAIM, 'unclaim'),
     ]
 
     uuid = models.UUIDField(primary_key=True, default=uuid4, editable=False)
@@ -301,7 +313,7 @@ class Change(models.Model):
 
     @is_status([IN_PROGRESS_CODE])
     def submit(self, user, notes=""):
-        self.status = IN_REVIEW_CODE
+        self.status = AWAITING_REVIEW_CODE
 
         ApprovalLog.objects.create(
             change = self,
@@ -313,16 +325,16 @@ class Change(models.Model):
         self.save(post_save=True)
 
         return generate_success_response(
-            status_str=IN_REVIEW,
+            status_str= AWAITING_REVIEW,
             data={
                 "uuid": self.uuid,
-                "status": IN_REVIEW_CODE
+                "status": AWAITING_REVIEW_CODE
             }
         )
 
     @is_status([IN_REVIEW_CODE])
     def review(self, user, notes=""):
-        self.status = IN_ADMIN_REVIEW_CODE
+        self.status = AWAITING_ADMIN_REVIEW_CODE
         ApprovalLog.objects.create(
             change = self,
             user = user,
@@ -332,10 +344,10 @@ class Change(models.Model):
         self.save(post_save=True)
 
         return generate_success_response(
-            status_str=IN_ADMIN_REVIEW,
+            status_str=AWAITING_ADMIN_REVIEW,
             data={
                 "uuid": self.uuid,
-                "status": IN_ADMIN_REVIEW_CODE
+                "status": AWAITING_ADMIN_REVIEW_CODE
             }
         )
 
@@ -443,5 +455,75 @@ class Change(models.Model):
             data={
                 "uuid": self.uuid,
                 "status": IN_PROGRESS_CODE
+            }
+        )
+
+
+    @is_status([AWAITING_REVIEW_CODE, AWAITING_ADMIN_REVIEW_CODE])
+    def claim(self, user, notes=''):
+        """Claims a change object for review or admin review for the given user 
+        and updates the log.
+
+        Args:
+            user (User): User claiming the object for review or admin review
+            notes (str, optional): Notes field. Defaults to ''.
+
+        Returns:
+            [dict]: {"success", "message", "data": {"uuid", "status"}}
+        """
+
+        # cannot use is_admin decorator
+        if self.status = AWAITING_REVIEW_CODE:
+            pass
+
+        self.status = self.status += 1
+
+        ApprovalLog.objects.create(
+            change = self,
+            user = user,
+            action = ApprovalLog.CLAIM,
+            notes = notes
+        )
+        self.save(post_save=True, log=False)
+
+        return generate_success_response(
+            status_str=AVAILABLE_STATUSES[self.status][1],
+            data={
+                "uuid": self.uuid,
+                "status": AVAILABLE_STATUSES[self.status][0]
+            }
+        )
+
+
+    @is_status([REVIEW_CODE, ADMIN_REVIEW_CODE])
+    def unclaim(self, user, notes=''):
+        """Unclaims a change object for review or admin review for the given user 
+        and updates the log. Will move the change back to the previous approval step.
+
+        Args:
+            user (User): User unclaiming the object for review or admin review
+            notes (str, optional): Notes field. Defaults to ''.
+
+        Returns:
+            [dict]: {"success", "message", "data": {"uuid", "status"}}
+        """
+
+        # check if unclaiming user is the same as the claiming user or if unclaiming user is admin
+
+        self.status = self.status -= 1
+
+        ApprovalLog.objects.create(
+            change = self,
+            user = user,
+            action = ApprovalLog.CLAIM,
+            notes = notes
+        )
+        self.save(post_save=True, log=False)
+
+        return generate_success_response(
+            status_str=AVAILABLE_STATUSES[self.status][1],
+            data={
+                "uuid": self.uuid,
+                "status": AVAILABLE_STATUSES[self.status][0]
             }
         )
