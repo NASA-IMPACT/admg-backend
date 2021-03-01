@@ -380,8 +380,9 @@ class WebsiteTitleURLRelatedField(serializers.RelatedField):
 
 class CampaignWebsiteReadSerializer(BaseSerializer):
     """
-        Serializer to read all websites for a given campaign
+    Serializer to read all websites for a given campaign
     """
+
     website = WebsiteTitleURLRelatedField(read_only=True)
 
     class Meta:
@@ -394,12 +395,13 @@ class CampaignWebsiteReadSerializer(BaseSerializer):
 
 class CampaignWebsiteSerializer(BaseSerializer):
     """
-        Serializer specifically for the linking table.
-        Can also be used to write data to the linking table directly.
+    Serializer specifically for the linking table.
+    Can also be used to write data to the linking table directly.
     """
+
     class Meta:
         model = models.CampaignWebsite
-        fields = '__all__'
+        fields = "__all__"
 
 
 class CampaignSerializer(GetAliasSerializer, GetDoiSerializer):
