@@ -3,6 +3,8 @@ from uuid import uuid4
 
 from django.apps import apps
 from django.db import models
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from django.utils.timezone import now
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
@@ -10,6 +12,7 @@ from rest_framework.response import Response
 
 from admg_webapp.users.models import ADMIN, User
 from data_models import serializers
+
 
 CREATE = "Create"
 UPDATE = "Update"
@@ -183,26 +186,18 @@ class Change(models.Model):
         """log parameter allows a calling function to disable the log, specifically reject"""
         # do not check for validity of model_name and uuid if it has been approved or rejected.
         # Check is done for the first time only
+        # post_save=False prevents self.previous from being set
         if not post_save:
             self._check_model_and_uuid()
 
         # change object was freshly created and has no logs
-        if not ApprovalLog.objects.filter(change=self):
-            ApprovalLog.objects.create(
-                change = self,
-                user = get_current_user(),
-                action = ApprovalLog.CREATE,
-            )
+        if not ApprovalLog.objects.filter(change=self).exists():
             self.status = CREATED_CODE
-        else:
-            # should only log changes made to the draft while in progress
-            if (self.status in [CREATED_CODE, IN_PROGRESS_CODE]) and log:
-                ApprovalLog.objects.create(
-                    change = self,
-                    user = get_current_user(),
-                    action = ApprovalLog.EDIT,
-                )
-                self.status = IN_PROGRESS_CODE
+            # the post_save function handles the creation of the approval log
+        # should only log changes made to the draft while in progress
+        elif self.status == CREATED_CODE:
+            self.status = IN_PROGRESS_CODE
+
         return super().save(*args, **kwargs)
 
     def _run_validator(self, partial):
@@ -445,3 +440,24 @@ class Change(models.Model):
                 "status": IN_PROGRESS_CODE
             }
         )
+
+
+# create approval logs after the Change model is saved
+@receiver(post_save, sender=Change, dispatch_uid="save")
+def create_approval_log(sender, instance, **kwargs):
+    # change object was freshly created and has no logs
+    if not ApprovalLog.objects.filter(change=instance).exists():
+        ApprovalLog.objects.create(
+            change=instance,
+            user=get_current_user(),
+            action=ApprovalLog.CREATE,
+        )
+
+    elif instance.status in [CREATED_CODE, IN_PROGRESS_CODE]:
+        # don't create an EDIT ApprovalLog for a rejection
+        if not instance.get_latest_log().action == ApprovalLog.REJECT:
+            ApprovalLog.objects.create(
+                change=instance,
+                user=get_current_user(),
+                action=ApprovalLog.EDIT,
+            )
