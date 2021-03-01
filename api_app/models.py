@@ -64,11 +64,27 @@ def generate_success_response(status_str, data):
     }
 
 
+def is_not_admin(user):
+    """Returns None if user is admin, and a failure dictionary if user
+    is not admin. Separation into a dedicated function allows usage inside
+    the decorator or within the claim function.
+
+    Args:
+        user (User): User being evaluated for admin status
+
+    Returns:
+        [dict]: {success, message}
+    """
+
+    if user.get_role_display() != ADMIN:
+        return generate_failure_response("action failed because initiating user was not admin")
+
+
 def is_admin(function):
     def wrapper(self, user, notes=""):
 
-        if user.get_role_display() != ADMIN:
-            return generate_failure_response("action failed because initiating user was not admin")
+        if not_admin := is_not_admin(user):
+            return not_admin
 
         result = function(self, user, notes)
 
@@ -190,6 +206,9 @@ class Change(models.Model):
             if self.action == UPDATE:
                 serializer = serializer_class(instance)
                 self.previous = {key: serializer.data.get(key) for key in self.update}
+
+    def get_latest_log(self):
+        return ApprovalLog.objects.filter(change=self).order_by('date').reverse().first()
 
     def save(self, *args, post_save=False, log=True, **kwargs):
         """log parameter allows a calling function to disable the log, specifically reject"""
@@ -472,11 +491,13 @@ class Change(models.Model):
             [dict]: {"success", "message", "data": {"uuid", "status"}}
         """
 
-        # cannot use is_admin decorator
-        if self.status = AWAITING_REVIEW_CODE:
-            pass
+        # cannot use is_admin decorator for this check, because claim doesn't universally
+        # require admin, only for one of the two statuses
+        if self.status == AWAITING_ADMIN_REVIEW_CODE:
+            if not_admin := is_not_admin(user):
+                return not_admin
 
-        self.status = self.status += 1
+        self.status += 1
 
         ApprovalLog.objects.create(
             change = self,
@@ -495,7 +516,7 @@ class Change(models.Model):
         )
 
 
-    @is_status([REVIEW_CODE, ADMIN_REVIEW_CODE])
+    @is_status([IN_REVIEW_CODE, IN_ADMIN_REVIEW_CODE])
     def unclaim(self, user, notes=''):
         """Unclaims a change object for review or admin review for the given user 
         and updates the log. Will move the change back to the previous approval step.
@@ -509,13 +530,19 @@ class Change(models.Model):
         """
 
         # check if unclaiming user is the same as the claiming user or if unclaiming user is admin
+        latest_log = self.get_latest_log()
+        if user.get_role_display() != ADMIN:
+            if latest_log.user != user:
+                return generate_failure_response(
+                    "To unclaim an item the user must be the same as the claiming user, or must be admin."
+                )
 
-        self.status = self.status -= 1
+        self.status -= 1
 
         ApprovalLog.objects.create(
             change = self,
             user = user,
-            action = ApprovalLog.CLAIM,
+            action = ApprovalLog.UNCLAIM,
             notes = notes
         )
         self.save(post_save=True, log=False)
