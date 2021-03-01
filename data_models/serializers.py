@@ -378,16 +378,28 @@ class WebsiteTitleURLRelatedField(serializers.RelatedField):
         return f"{value.url} ({value.title})"
 
 
-class CampaignWebsiteSerializer(BaseSerializer):
+class CampaignWebsiteReadSerializer(BaseSerializer):
+    """
+        Serializer to read all websites for a given campaign
+    """
     website = WebsiteTitleURLRelatedField(read_only=True)
 
     class Meta:
         model = models.CampaignWebsite
         fields = [
-            "campaign",
             "website",
             "priority",
         ]
+
+
+class CampaignWebsiteSerializer(BaseSerializer):
+    """
+        Serializer specifically for the linking table.
+        Can also be used to write data to the linking table directly.
+    """
+    class Meta:
+        model = models.CampaignWebsite
+        fields = '__all__'
 
 
 class CampaignSerializer(GetAliasSerializer, GetDoiSerializer):
@@ -398,7 +410,7 @@ class CampaignSerializer(GetAliasSerializer, GetDoiSerializer):
     instruments = serializers.ListField(read_only=True)
     platforms = serializers.ListField(read_only=True)
 
-    websites = CampaignWebsiteSerializer(source="campaignwebsite_set", many=True)
+    websites = CampaignWebsiteReadSerializer(source="campaignwebsite_set", many=True)
 
     def get_deployments(self, obj):
         return get_uuids(obj.deployments)
