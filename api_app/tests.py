@@ -36,8 +36,8 @@ class TestChange:
         content_type = ContentType.objects.get_for_model(model_to_query)
 
         return Change.objects.create(
-            content_type=content_type, 
-            status=CREATED_CODE, 
+            content_type=content_type,
+            status=CREATED_CODE,
             action="Create"
         )
 
@@ -157,11 +157,11 @@ class TestChange:
         change.review(staff_user_2)
 
         response = change.claim(staff_user)
-        assert response['success'] == False
+        assert response['success'] is False
         assert response['message'] == 'action failed because initiating user was not admin'
         change.claim(admin_user)
         response = change.publish(staff_user)
-        assert response['success'] == False
+        assert response['success'] is False
         assert response['message'] == 'action failed because initiating user was not admin'  
 
 
@@ -175,10 +175,10 @@ class TestChange:
 
         # can't claim IN PROGRESS
         response = change.claim(staff_user)
-        assert response['success'] == False
+        assert response['success'] is False
         assert response['message'] == 'action failed because status was not one of [2, 4]'
         response = change.claim(admin_user)
-        assert response['success'] == False
+        assert response['success'] is False
         assert response['message'] == 'action failed because status was not one of [2, 4]'
 
         change.submit(staff_user)
@@ -186,10 +186,10 @@ class TestChange:
 
         # can't claim IN REVIEW
         response = change.claim(staff_user)
-        assert response['success'] == False
+        assert response['success'] is False
         assert response['message'] == 'action failed because status was not one of [2, 4]'
         response = change.claim(admin_user)
-        assert response['success'] == False
+        assert response['success'] is False
         assert response['message'] == 'action failed because status was not one of [2, 4]'
 
         change.review(staff_user_2)
@@ -197,20 +197,20 @@ class TestChange:
 
         # can't claim IN ADMIN REVIEW
         response = change.claim(staff_user)
-        assert response['success'] == False
+        assert response['success'] is False
         assert response['message'] == 'action failed because status was not one of [2, 4]'
         response = change.claim(admin_user)
-        assert response['success'] == False
+        assert response['success'] is False
         assert response['message'] == 'action failed because status was not one of [2, 4]'
 
         change.publish(admin_user)
 
         # can't claim PUBLISHED
         response = change.claim(staff_user)
-        assert response['success'] == False
+        assert response['success'] is False
         assert response['message'] == 'action failed because status was not one of [2, 4]'
         response = change.claim(admin_user)
-        assert response['success'] == False
+        assert response['success'] is False
         assert response['message'] == 'action failed because status was not one of [2, 4]'
 
 
@@ -227,7 +227,7 @@ class TestChange:
         # test admin can unclaim in reviewing
         response = change.unclaim(admin_user)
         approval_log = change.get_latest_log()
-        assert response['success'] == True
+        assert response['success'] is True
         assert change.status == AWAITING_REVIEW_CODE
         assert approval_log.action == ApprovalLog.UNCLAIM
 
@@ -238,7 +238,7 @@ class TestChange:
         # test admin can unclaim another admin's IN ADMIN REVIEW
         response = change.unclaim(admin_user_2)
         approval_log = change.get_latest_log()
-        assert response['success'] == True
+        assert response['success'] is True
         assert change.status == AWAITING_ADMIN_REVIEW_CODE
         assert approval_log.action == ApprovalLog.UNCLAIM
 
@@ -256,7 +256,7 @@ class TestChange:
         # test staff can't unclaim in reviewing they didnt' claim
         response = change.unclaim(staff_user)
         approval_log = change.get_latest_log()
-        assert response['success'] == False
+        assert response['success'] is False
         assert change.status == IN_REVIEW_CODE
         assert approval_log.action == ApprovalLog.CLAIM
 
@@ -267,6 +267,6 @@ class TestChange:
         # test staff can unclaim an admin's IN ADMIN REVIEW
         response = change.unclaim(staff_user)
         approval_log = change.get_latest_log()
-        assert response['success'] == False
+        assert response['success'] is False
         assert change.status == IN_ADMIN_REVIEW_CODE
         assert approval_log.action == ApprovalLog.CLAIM
