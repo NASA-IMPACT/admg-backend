@@ -10,7 +10,8 @@
 {% block content %}
 <form method="post">
   {% csrf_token %}
-  {{ form | crispy }}
+  {{ model_form | crispy }}
+  <button class="btn btn-info">Submit</button>
 </form>
 
 {% endblock %}
