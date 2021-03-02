@@ -1,7 +1,7 @@
 import json
 
 import pytest
-from admg_webapp.users.models import User, ADMIN_CODE, STAFF_CODE
+from admg_webapp.users.models import ADMIN_CODE, STAFF_CODE, User
 from data_models.models import PartnerOrg
 from django.contrib.contenttypes.models import ContentType
 
