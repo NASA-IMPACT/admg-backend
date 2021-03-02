@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from api_app.models import Change
+from api_app.models import ApprovalLog, Change
 from data_models.models import Image
 
 
@@ -10,12 +10,15 @@ class ChangeSerializer(serializers.ModelSerializer):
         model = Change
         fields = "__all__"
         read_only_fields = [
-            "publish_reject_date",
-            "publish_reject_by",
-            "review_reject_date",
-            "review_reject_by",
             "status"
         ]
+
+
+class ApprovalLogSerializer(serializers.ModelSerializer):
+    model_name = serializers.CharField(read_only=True)
+    class Meta:
+        model = ApprovalLog
+        fields = "__all__"
 
 
 class ImageSerializer(serializers.ModelSerializer):
