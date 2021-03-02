@@ -88,6 +88,7 @@ THIRD_PARTY_APPS = [
     "drf_yasg",
     "oauth2_provider",
     "storages",
+    "django_tables2"
 ]
 
 LOCAL_APPS = [

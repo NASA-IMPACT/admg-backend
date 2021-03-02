@@ -1,11 +1,34 @@
-{% extends "api_app/base.html" %} {% load change_extras %} {% block content %}
-<ul>
+{% extends "api_app/base.html" %}
+{% load change_extras %}
+{% load render_table from django_tables2 %}
+
+
+{% block content %}
+
+{% render_table table %}
+
+{% comment %}
+<h1>This is the list of campaigns</h1>
+
+<table>
+  <tr>
+    <th>shortname</th>
+    <th>longname</th>
+    <th>funding agency</th>
+    <th>last edit (how to get data?)</th>
+    <th>link</th>
+  </tr>
   {% for change in object_list %}
-  <li>
-    <a href="{% url 'change-detail' change.uuid %}"> {{ change }} </a>
-  </li>
+  <tr>
+    <a href="{% url 'change-detail' change.uuid %}"
+      ><td>{{ change.content_object.short_name }}</td>
+    </a>
+    <td>{{ change.content_object.long_name }}</td>
+    <td>{{ change.content_object.funding_agency }}</td>
+    <td>{{ change }}</td>
+  </tr>
   {% endfor %}
-</ul>
+</table>
 
 <div class="pagination">
   <span class="step-links">
@@ -24,6 +47,7 @@
     {% endif %}
   </span>
 </div>
+{% endcomment %}
 {% endblock %}
 
 {% related_changes change %}

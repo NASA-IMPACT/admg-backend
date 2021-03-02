@@ -1,5 +1,7 @@
 import json
 from typing import Union
+import django_tables2 as tables
+from django_tables2 import SingleTableView, A
 
 from django.conf import settings
 from django.contrib import messages
@@ -117,6 +119,18 @@ class ChangeModelFormMixin(ModelFormMixin):
             self.get_context_data(form=form, model_form=model_form)
         )
 
+
+
+class DraftTable(tables.Table):
+    short_name = A("update__short_name")
+    class Meta:
+        model = Change
+        template_name = "django_tables2/bootstrap.html"
+
+class DraftListView(SingleTableView):
+    model = Change
+    table_class = DraftTable
+    template_name = 'api_app/change_list.html'
 
 class ChangeListView(ListView):
     model = Change
