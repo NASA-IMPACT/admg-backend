@@ -72,14 +72,14 @@ class TestChange:
 
 
     def test_normal_workflow(self):
-        admin_user, admin_user_2, staff_user, staff_user_2 = self.create_users()
+        admin_user, _, staff_user, staff_user_2 = self.create_users()
 
         # create
         change = self.make_create_change_object()
         approval_log = change.get_latest_log()
         assert change.status == CREATED_CODE
         assert approval_log.action == ApprovalLog.CREATE
-        assert approval_log.user == None
+        assert approval_log.user is None
 
         # edit
         change.update['short_name'] = 'test_short_name'
@@ -87,7 +87,7 @@ class TestChange:
         approval_log = change.get_latest_log()
         assert change.status == IN_PROGRESS_CODE
         assert approval_log.action == ApprovalLog.EDIT
-        assert approval_log.user == None
+        assert approval_log.user is None
 
         # submit
         change.submit(staff_user)
@@ -150,7 +150,7 @@ class TestChange:
 
     def test_staff_cant_publish(self):
         """check that error is thrown when staff member tries to publish or claim awaiting admin review"""
-        admin_user, admin_user_2, staff_user, staff_user_2 = self.create_users()
+        admin_user, _, staff_user, staff_user_2 = self.create_users()
 
         change = self.make_create_change_object()
         change.update['short_name'] = 'test_short_name'
@@ -170,7 +170,7 @@ class TestChange:
 
     def test_only_claim_awaiting(self):
         """test that the claim function throws errors if not used on AWAITING objects"""
-        admin_user, admin_user_2, staff_user, staff_user_2 = self.create_users()
+        admin_user, _, staff_user, staff_user_2 = self.create_users()
 
         change = self.make_create_change_object()
         change.update['short_name'] = 'test_short_name'
@@ -248,7 +248,7 @@ class TestChange:
 
     def test_staff_cant_unclaim_unowned(self):
         """test that staff can't unclaim items they didn't claim"""
-        admin_user, admin_user_2, staff_user, staff_user_2 = self.create_users()
+        admin_user, _, staff_user, staff_user_2 = self.create_users()
 
         change = self.make_create_change_object()
         change.update['short_name'] = 'test_short_name'
