@@ -462,7 +462,7 @@ class Change(models.Model):
             action = ApprovalLog.REJECT,
             notes = notes
         )
-        self.save(post_save=True, log=False)
+        self.save(post_save=True)
 
         return generate_success_response(
             status_str=IN_PROGRESS,
@@ -471,6 +471,16 @@ class Change(models.Model):
                 "status": IN_PROGRESS_CODE
             }
         )
+
+
+    def _goto_next_approval_stage(self):
+        """Do not call this, it is an internal function"""
+        self.status += 1
+
+
+    def _goto_previous_approval_stage(self):
+        """Do not call this, it is an internal function"""
+        self.status -= 1
 
 
     @is_status([AWAITING_REVIEW_CODE, AWAITING_ADMIN_REVIEW_CODE])
@@ -492,7 +502,7 @@ class Change(models.Model):
             if not_admin := is_not_admin(user):
                 return not_admin
 
-        self.status += 1
+        self.goto_next_approval_stage()
 
         ApprovalLog.objects.create(
             change = self,
@@ -500,7 +510,7 @@ class Change(models.Model):
             action = ApprovalLog.CLAIM,
             notes = notes
         )
-        self.save(post_save=True, log=False)
+        self.save(post_save=True)
 
         return generate_success_response(
             status_str=AVAILABLE_STATUSES[self.status][1],
@@ -532,7 +542,7 @@ class Change(models.Model):
                     "To unclaim an item the user must be the same as the claiming user, or must be admin."
                 )
 
-        self.status -= 1
+        self.goto_previous_approval_stage()
 
         ApprovalLog.objects.create(
             change = self,
@@ -540,7 +550,7 @@ class Change(models.Model):
             action = ApprovalLog.UNCLAIM,
             notes = notes
         )
-        self.save(post_save=True, log=False)
+        self.save(post_save=True)
 
         return generate_success_response(
             status_str=AVAILABLE_STATUSES[self.status][1],
@@ -564,7 +574,7 @@ def create_approval_log(sender, instance, **kwargs):
 
     elif instance.status in [CREATED_CODE, IN_PROGRESS_CODE]:
         # don't create an EDIT ApprovalLog for a rejection
-        if not instance.get_latest_log().action == ApprovalLog.REJECT:
+        if not instance.get_latest_log().action == [ApprovalLog.REJECT, ApprovalLog.CLAIM, ApprovalLog.UNCLAIM]:
             ApprovalLog.objects.create(
                 change=instance,
                 user=get_current_user(),
