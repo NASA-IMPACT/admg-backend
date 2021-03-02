@@ -127,7 +127,7 @@ class DraftTable(tables.Table):
     class Meta:
         model = Change
         template_name = "django_tables2/bootstrap.html"
-        exclude = ['update']
+        fields = ['short_name', 'long_name']
 
 class DraftListView(SingleTableView):
     model = Change
