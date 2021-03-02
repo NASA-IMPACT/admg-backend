@@ -87,67 +87,67 @@ class TestChange:
         change.update['short_name'] = 'test_short_name'
         change.save()
         approval_log = change.get_latest_log()
-        assert change.status == IN_PROGRESS_CODE
         assert approval_log.action == ApprovalLog.EDIT
         assert approval_log.user is None
+        assert change.status == IN_PROGRESS_CODE
 
         # submit
         change.submit(staff_user)
         approval_log = change.get_latest_log()
-        assert change.status == AWAITING_REVIEW_CODE
         assert approval_log.action == ApprovalLog.SUBMIT
         assert approval_log.user == staff_user
+        assert change.status == AWAITING_REVIEW_CODE
 
         # claim
         change.claim(staff_user_2)
         approval_log = change.get_latest_log()
-        assert change.status == IN_REVIEW_CODE
         assert approval_log.action == ApprovalLog.CLAIM
         assert approval_log.user == staff_user_2
+        assert change.status == IN_REVIEW_CODE
 
         # reject
         notes = 'rejection notes'
         change.reject(staff_user_2, notes = notes)
         approval_log = change.get_latest_log()
-        assert change.status == IN_PROGRESS_CODE
         assert approval_log.action == ApprovalLog.REJECT
         assert approval_log.notes == notes
         assert approval_log.user == staff_user_2
+        assert change.status == IN_PROGRESS_CODE
 
         # submit
         change.submit(staff_user)
         approval_log = change.get_latest_log()
-        assert change.status == AWAITING_REVIEW_CODE
         assert approval_log.action == ApprovalLog.SUBMIT
         assert approval_log.user == staff_user
+        assert change.status == AWAITING_REVIEW_CODE
 
         # claim
         change.claim(staff_user_2)
         approval_log = change.get_latest_log()
-        assert change.status == IN_REVIEW_CODE
         assert approval_log.action == ApprovalLog.CLAIM
         assert approval_log.user == staff_user_2
+        assert change.status == IN_REVIEW_CODE
 
         # review
         change.review(staff_user_2)
         approval_log = change.get_latest_log()
-        assert change.status == AWAITING_ADMIN_REVIEW_CODE
         assert approval_log.action == ApprovalLog.REVIEW
         assert approval_log.user == staff_user_2
+        assert change.status == AWAITING_ADMIN_REVIEW_CODE
 
         # claim
         change.claim(admin_user)
         approval_log = change.get_latest_log()
-        assert change.status == IN_ADMIN_REVIEW_CODE
         assert approval_log.action == ApprovalLog.CLAIM
         assert approval_log.user == admin_user
+        assert change.status == IN_ADMIN_REVIEW_CODE
 
         # publish
         change.publish(admin_user)
         approval_log = change.get_latest_log()
-        assert change.status == PUBLISHED_CODE
         assert approval_log.action == ApprovalLog.PUBLISH
         assert approval_log.user == admin_user
+        assert change.status == PUBLISHED_CODE
 
 
     def test_staff_cant_publish(self):
