@@ -122,7 +122,7 @@ class ChangeModelFormMixin(ModelFormMixin):
 
 
 class DraftTable(tables.Table):
-    short_name = tables.Column(verbose_name='Short Name', accessor="update__short_name")
+    short_name = tables.LinkColumn(viewname='change-detail', args=[A('uuid')], verbose_name='Short Name', accessor="update__short_name")
     long_name = tables.Column(verbose_name='Long name', accessor="update__long_name")
     class Meta:
         model = Change
