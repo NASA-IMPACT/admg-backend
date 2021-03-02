@@ -120,7 +120,6 @@ class ChangeModelFormMixin(ModelFormMixin):
 
 class ChangeSummaryView(ListView):
     model = Change
-    paginate_by = 25
     template_name = 'api_app/summary.html'
 
     def get_queryset(self):
@@ -166,9 +165,9 @@ class ChangeCreateView(CreateView, ChangeModelFormMixin):
         )
 
     def get_model_form_intial(self):
-        # TODO: Not currently possible to handle reverse relationships such as adding 
+        # TODO: Not currently possible to handle reverse relationships such as adding
         # models to a CollectionPeriod where the FK is on the Collection Period
-        return {k: v for k,v in self.request.GET.dict().items() if k != 'uuid'}
+        return {k: v for k, v in self.request.GET.dict().items() if k != 'uuid'}
 
 
 class ChangeUpdateView(UpdateView, ChangeModelFormMixin):
