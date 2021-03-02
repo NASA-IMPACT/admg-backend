@@ -1,11 +1,10 @@
 import json
 
-from django.apps import apps
 from django.contrib.contenttypes.models import ContentType
 from django.http import JsonResponse
 from rest_framework.response import Response
 
-from ..models import CREATE, PATCH, UPDATE, Change
+from ..models import UPDATE, Change
 
 """
     Always use requires_admin_approval after handle_exception as it will catch the
@@ -44,24 +43,18 @@ def handle_exception(function):
     format
     """
     def wrapper(self, request, *args, **kwargs):
-        data = []
-        message = ""
-        success = True
         try:
-            res = function(self, request, *args, **kwargs)
-            if 300 >= res.status_code >= 200:
-                data = res.data
-        # TODO: change this to some custom exception
+            original_response = function(self, request, *args, **kwargs)
+
         except Exception as e:
-            success = False
             try:
                 message = json.dumps(e.get_full_details())
             except AttributeError:
                 message = str(e)
 
-        return JsonResponse({
-            "success": success,
-            "message": message,
-            "data": data
-        })
+            return JsonResponse({
+                "success": False,
+                "message": message
+            })
+        return original_response
     return wrapper
