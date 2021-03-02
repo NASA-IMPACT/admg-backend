@@ -15,14 +15,16 @@ from api_app.models import (AWAITING_ADMIN_REVIEW, AWAITING_ADMIN_REVIEW_CODE,
 
 @pytest.mark.django_db
 class TestChange:
-    def dump_logs(self, change):
+    @staticmethod
+    def dump_logs(change):
         """if a test throws a hard to diagnose error, you can use this to dump
         logs for closer examination"""
         logs = [str(log) for log in ApprovalLog.objects.filter(change=change)]
         json.dump(logs, open('pytest_change_model_approval_logs.json', 'w'))
 
 
-    def create_users(self):
+    @staticmethod
+    def create_users():
         staff_user = User.objects.create(role=STAFF_CODE, username='staff')
         staff_user_2 = User.objects.create(role=STAFF_CODE, username='staff_2')
         admin_user = User.objects.create(role=ADMIN_CODE, username='admin')
@@ -30,7 +32,8 @@ class TestChange:
         return admin_user, admin_user_2, staff_user, staff_user_2
 
 
-    def make_create_change_object(self):
+    @staticmethod
+    def make_create_change_object():
         """make a CREATE PartnerOrg change object to use during testing"""
         model_to_query = PartnerOrg
         content_type = ContentType.objects.get_for_model(model_to_query)
