@@ -7,47 +7,6 @@
 
 {% render_table table %}
 
-{% comment %}
-<h1>This is the list of campaigns</h1>
-
-<table>
-  <tr>
-    <th>shortname</th>
-    <th>longname</th>
-    <th>funding agency</th>
-    <th>last edit (how to get data?)</th>
-    <th>link</th>
-  </tr>
-  {% for change in object_list %}
-  <tr>
-    <a href="{% url 'change-detail' change.uuid %}"
-      ><td>{{ change.content_object.short_name }}</td>
-    </a>
-    <td>{{ change.content_object.long_name }}</td>
-    <td>{{ change.content_object.funding_agency }}</td>
-    <td>{{ change }}</td>
-  </tr>
-  {% endfor %}
-</table>
-
-<div class="pagination">
-  <span class="step-links">
-    {% if page_obj.has_previous %}
-    <a href="?page=1">&laquo; first</a>
-    <a href="?page={{ page_obj.previous_page_number }}">previous</a>
-    {% endif %}
-
-    <span class="current">
-      Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
-    </span>
-
-    {% if page_obj.has_next %}
-    <a href="?page={{ page_obj.next_page_number }}">next</a>
-    <a href="?page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
-    {% endif %}
-  </span>
-</div>
-{% endcomment %}
 {% endblock %}
 
 {% related_changes change %}
