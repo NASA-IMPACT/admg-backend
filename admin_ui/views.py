@@ -141,7 +141,6 @@ class ChangeCreateView(CreateView, ChangeModelFormMixin):
     template_name = 'api_app/change_add_form.html'
 
     def get_initial(self):
-        # TODO: given self.request.GET.get('parent'), determine correct initial data for each content_type
         # Get initial form values from URL
         return {
             "content_type": self.get_model_form_content_type().id,
@@ -153,6 +152,11 @@ class ChangeCreateView(CreateView, ChangeModelFormMixin):
         return ContentType.objects.get(
             app_label="data_models", model__iexact=self.kwargs["model"]
         )
+
+    def get_model_form_intial(self):
+        # TODO: Not currently possible to handle reverse relationships such as adding 
+        # models to a CollectionPeriod where the FK is on the Collection Period
+        return {k: v for k,v in self.request.GET.dict().items() if k is not 'uuid'}
 
 
 class ChangeUpdateView(UpdateView, ChangeModelFormMixin):

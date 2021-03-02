@@ -2,12 +2,13 @@
 {% load change_extras %}
 
 {% block page %}
-<h1>{{ change }}</h1>
+    <h1>{{ change }}</h1>
 
-<p>This is the view where we see an overview of a Campaign Group</p>
+    <p>This is the view where we see an overview of a Campaign Group</p>
 
-<h3>Related Data</h3>
-{% related_changes change %}
+    <h3>Related Data</h3>
+    {% related_changes change %}
+
 {% endblock %}
 
 {% related_changes change %}
