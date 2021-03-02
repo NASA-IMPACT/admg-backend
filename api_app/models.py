@@ -154,6 +154,9 @@ class ApprovalLog(models.Model):
     )
     notes = models.TextField(blank=True, default='')
 
+    def __str__(self):
+        return f"{self.user} | {self.get_action_display()} | {self.notes} | {self.date}"
+
 class Change(models.Model):
     uuid = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     content_type = models.ForeignKey(
@@ -211,7 +214,7 @@ class Change(models.Model):
                 self.previous = {key: serializer.data.get(key) for key in self.update}
 
     def get_latest_log(self):
-        return ApprovalLog.objects.filter(change=self).order_by('date').reverse().first()
+        return ApprovalLog.objects.filter(change=self).order_by('date').last()
 
     def save(self, *args, post_save=False, log=True, **kwargs):
         """log parameter allows a calling function to disable the log, specifically reject"""
@@ -502,7 +505,7 @@ class Change(models.Model):
             if not_admin := is_not_admin(user):
                 return not_admin
 
-        self.goto_next_approval_stage()
+        self._goto_next_approval_stage()
 
         ApprovalLog.objects.create(
             change = self,
@@ -542,7 +545,7 @@ class Change(models.Model):
                     "To unclaim an item the user must be the same as the claiming user, or must be admin."
                 )
 
-        self.goto_previous_approval_stage()
+        self._goto_previous_approval_stage()
 
         ApprovalLog.objects.create(
             change = self,
@@ -574,7 +577,7 @@ def create_approval_log(sender, instance, **kwargs):
 
     elif instance.status in [CREATED_CODE, IN_PROGRESS_CODE]:
         # don't create an EDIT ApprovalLog for a rejection
-        if not instance.get_latest_log().action == [ApprovalLog.REJECT, ApprovalLog.CLAIM, ApprovalLog.UNCLAIM]:
+        if instance.get_latest_log().action not in [ApprovalLog.REJECT, ApprovalLog.CLAIM, ApprovalLog.UNCLAIM]:
             ApprovalLog.objects.create(
                 change=instance,
                 user=get_current_user(),
