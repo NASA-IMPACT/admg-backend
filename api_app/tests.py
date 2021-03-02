@@ -33,7 +33,8 @@ class TestChange:
         staff_user = User.objects.create(role=0, username='staff')
         staff_user_2 = User.objects.create(role=0, username='staff_2')
         admin_user = User.objects.create(role=1, username='admin')
-        return admin_user, staff_user, staff_user_2
+        admin_user_2 = User.objects.create(role=1, username='admin_2')
+        return admin_user, admin_user_2, staff_user, staff_user_2
 
 
     def make_create_change_object(self):
@@ -75,7 +76,7 @@ class TestChange:
 
 
     def test_normal_workflow(self):
-        admin_user, staff_user, staff_user_2 = self.create_users()
+        admin_user, admin_user_2, staff_user, staff_user_2 = self.create_users()
 
         # create
         change = self.make_create_change_object()
@@ -152,20 +153,127 @@ class TestChange:
 
 
     def test_staff_cant_publish(self):
-        """check that error is thrown when staff member tries to publish"""
-        pass
+        """check that error is thrown when staff member tries to publish or claim awaiting admin review"""
+        admin_user, admin_user_2, staff_user, staff_user_2 = self.create_users()
+
+        change = self.make_create_change_object()
+        change.update['short_name'] = 'test_short_name'
+        change.save()
+        change.submit(staff_user)
+        change.claim(staff_user_2)
+        change.review(staff_user_2)
+
+        response = change.claim(staff_user)
+        assert response['success'] == False
+        assert response['message'] == 'action failed because initiating user was not admin'
+        change.claim(admin_user)
+        response = change.publish(staff_user)
+        assert response['success'] == False
+        assert response['message'] == 'action failed because initiating user was not admin'  
 
 
     def test_only_claim_awaiting(self):
         """test that the claim function throws errors if not used on AWAITING objects"""
-        pass
+        admin_user, admin_user_2, staff_user, staff_user_2 = self.create_users()
+
+        change = self.make_create_change_object()
+        change.update['short_name'] = 'test_short_name'
+        change.save()
+
+        # can't claim IN PROGRESS
+        response = change.claim(staff_user)
+        assert response['success'] == False
+        assert response['message'] == 'action failed because status was not one of [2, 4]'
+        response = change.claim(admin_user)
+        assert response['success'] == False
+        assert response['message'] == 'action failed because status was not one of [2, 4]'
+
+        change.submit(staff_user)
+        change.claim(staff_user_2)
+
+        # can't claim IN REVIEW
+        response = change.claim(staff_user)
+        assert response['success'] == False
+        assert response['message'] == 'action failed because status was not one of [2, 4]'
+        response = change.claim(admin_user)
+        assert response['success'] == False
+        assert response['message'] == 'action failed because status was not one of [2, 4]'
+
+        change.review(staff_user_2)
+        change.claim(admin_user)
+
+        # can't claim IN ADMIN REVIEW
+        response = change.claim(staff_user)
+        assert response['success'] == False
+        assert response['message'] == 'action failed because status was not one of [2, 4]'
+        response = change.claim(admin_user)
+        assert response['success'] == False
+        assert response['message'] == 'action failed because status was not one of [2, 4]'
+
+        change.publish(admin_user)
+
+        # can't claim PUBLISHED
+        response = change.claim(staff_user)
+        assert response['success'] == False
+        assert response['message'] == 'action failed because status was not one of [2, 4]'
+        response = change.claim(admin_user)
+        assert response['success'] == False
+        assert response['message'] == 'action failed because status was not one of [2, 4]'
 
 
     def test_admin_unclaim_all(self):
         """test that admin can unclaim items claimed by other members"""
-        pass
-    
+        admin_user, admin_user_2, staff_user, staff_user_2 = self.create_users()
+
+        change = self.make_create_change_object()
+        change.update['short_name'] = 'test_short_name'
+        change.save()
+        change.submit(staff_user)
+        change.claim(staff_user_2)
+
+        # test admin can unclaim in reviewing
+        response = change.unclaim(admin_user)
+        approval_log = change.get_latest_log()
+        assert response['success'] == True
+        assert change.status == AWAITING_REVIEW_CODE
+        assert approval_log.action == ApprovalLog.UNCLAIM
+
+        change.claim(staff_user_2)
+        change.review(staff_user_2)
+        change.claim(admin_user)
+
+        # test admin can unclaim another admin's IN ADMIN REVIEW
+        response = change.unclaim(admin_user_2)
+        approval_log = change.get_latest_log()
+        assert response['success'] == True
+        assert change.status == AWAITING_ADMIN_REVIEW_CODE
+        assert approval_log.action == ApprovalLog.UNCLAIM
+
 
     def test_staff_cant_unclaim_unowned(self):
         """test that staff can't unclaim items they didn't claim"""
-        pass
+        admin_user, admin_user_2, staff_user, staff_user_2 = self.create_users()
+
+        change = self.make_create_change_object()
+        change.update['short_name'] = 'test_short_name'
+        change.save()
+        change.submit(staff_user)
+        change.claim(staff_user_2)
+
+        # test staff can't unclaim in reviewing they didnt' claim
+        response = change.unclaim(staff_user)
+        approval_log = change.get_latest_log()
+        assert response['success'] == False
+        assert change.status == IN_REVIEW_CODE
+        assert approval_log.action == ApprovalLog.CLAIM
+
+        change.claim(staff_user_2)
+        change.review(staff_user_2)
+        change.claim(admin_user)
+
+        # test staff can unclaim an admin's IN ADMIN REVIEW
+        response = change.unclaim(staff_user)
+        approval_log = change.get_latest_log()
+        assert response['success'] == False
+        assert change.status == IN_ADMIN_REVIEW_CODE
+        assert approval_log.action == ApprovalLog.CLAIM
