@@ -121,6 +121,7 @@ class ChangeModelFormMixin(ModelFormMixin):
 class ChangeListView(ListView):
     model = Change
     paginate_by = 25
+    template_name = 'api_app/change_list.html'
 
     def get_queryset(self):
         return Change.objects.filter(content_type__model='campaign').order_by(self.get_ordering())
@@ -131,12 +132,13 @@ class ChangeListView(ListView):
 
 class ChangeDetailView(DetailView):
     model = Change
+    template_name = 'api_app/change_detail.html'
 
 
 class ChangeCreateView(CreateView, ChangeModelFormMixin):
     model = Change
     fields = ["content_type", "model_instance_uuid", "action", "update"]
-    template_name_suffix = "_add_form"
+    template_name = 'api_app/change_add_form.html'
 
     def get_initial(self):
         # TODO: given self.request.GET.get('parent'), determine correct initial data for each content_type
@@ -158,6 +160,7 @@ class ChangeUpdateView(UpdateView, ChangeModelFormMixin):
     fields = ["content_type", "model_instance_uuid", "action", "update", "status"]
 
     prefix = "change"
+    template_name = 'api_app/change_form.html'
 
     def get_queryset(self):
         # Prefetch content type for performance
