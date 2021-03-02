@@ -1,7 +1,7 @@
 import json
 
 import pytest
-from admg_webapp.users.models import User
+from admg_webapp.users.models import User, ADMIN_CODE, STAFF_CODE
 from data_models.models import PartnerOrg
 from django.contrib.contenttypes.models import ContentType
 
@@ -23,10 +23,10 @@ class TestChange:
 
 
     def create_users(self):
-        staff_user = User.objects.create(role=0, username='staff')
-        staff_user_2 = User.objects.create(role=0, username='staff_2')
-        admin_user = User.objects.create(role=1, username='admin')
-        admin_user_2 = User.objects.create(role=1, username='admin_2')
+        staff_user = User.objects.create(role=STAFF_CODE, username='staff')
+        staff_user_2 = User.objects.create(role=STAFF_CODE, username='staff_2')
+        admin_user = User.objects.create(role=ADMIN_CODE, username='admin')
+        admin_user_2 = User.objects.create(role=ADMIN_CODE, username='admin_2')
         return admin_user, admin_user_2, staff_user, staff_user_2
 
 
