@@ -11,9 +11,36 @@ def change_list_item(context, change):
 
 @register.inclusion_tag("tags/related_changes.html")
 def related_changes(change):
+    """
+    Given a campaign change, return all descendent changes.  Each change will have its dependents
+    add as a property following the below structure:
+    - campaign
+        - deployments
+            - significant_events
+            - iops
+                - significant_events
+            - collection_periods
+                - platforms
+                - homebases
+                - instruments
+    """
     # TODO: Handle case where change isn't Campaign but rather a child model
+
+    # Follow relationships
     rel_deployments = Change.objects.select_related("content_type").filter(
         content_type__model__iexact="deployment", update__campaign=str(change.uuid)
+    )
+    rel_iops = Change.objects.select_related("content_type").filter(
+        content_type__model__iexact="iop",
+        update__deployment__in=[
+            str(d.uuid) for d in rel_deployments
+        ],
+    )
+    rel_significant_events = Change.objects.select_related("content_type").filter(
+        content_type__model__iexact="significantevent",
+        update__deployment__in=[
+            str(d.uuid) for d in rel_deployments
+        ],
     )
     rel_collection_periods = Change.objects.select_related("content_type").filter(
         content_type__model__iexact="collectionperiod",
@@ -40,17 +67,26 @@ def related_changes(change):
         content_type__model__iexact="instrument", uuid__in=instrument_ids
     )
 
-    """
-    Given a campaign, inject related Changes to follow the following dependencies:
-    - campaign
-    - deployments
-        - collection_periods
-        - platforms
-        - homebases
-        - instruments
-    """
+    # Build Tree
     change.deployments = [deployment for deployment in rel_deployments]
     for deployment in change.deployments:
+        deployment.iops = [
+            iop
+            for iop in rel_iops
+            if iop.update.get("deployment") == str(deployment.uuid)
+        ]
+        deployment.significant_events = [
+            se
+            for se in rel_significant_events
+            if se.update.get("deployment") == str(deployment.uuid) and se.update.get('iop') is None
+        ]
+        for iop in deployment.iops:
+            iop.significant_events = [
+                se
+                for se in rel_significant_events
+                if se.update.get("iop") == str(iop.uuid)
+            ]
+        
         deployment.collection_periods = [
             cp
             for cp in rel_collection_periods
