@@ -118,6 +118,18 @@ class ChangeModelFormMixin(ModelFormMixin):
         )
 
 
+class ChangeSummaryView(ListView):
+    model = Change
+    paginate_by = 25
+    template_name = 'api_app/summary.html'
+
+    def get_queryset(self):
+        return Change.objects.filter(content_type__model='campaign').order_by(self.get_ordering())
+
+    def get_ordering(self):
+        return self.request.GET.get('ordering', '-status')
+
+
 class ChangeListView(ListView):
     model = Change
     paginate_by = 25
