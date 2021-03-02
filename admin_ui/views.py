@@ -124,10 +124,14 @@ class ChangeModelFormMixin(ModelFormMixin):
 class DraftTable(tables.Table):
     short_name = tables.LinkColumn(viewname='change-detail', args=[A('uuid')], verbose_name='Short Name', accessor="update__short_name")
     long_name = tables.Column(verbose_name='Long name', accessor="update__long_name")
+    funding_agency = tables.Column(verbose_name='Funding Agency', accessor="update__funding_agency")
+    # TODO: could not find the information on last edited
+    updated_at = tables.Column(verbose_name='Last Edit Date', accessor="update__")
+
     class Meta:
         model = Change
         template_name = "django_tables2/bootstrap.html"
-        fields = ['short_name', 'long_name']
+        fields = ['short_name', 'long_name', 'funding_agency', 'updated_at']
 
 class DraftListView(SingleTableView):
     model = Change
