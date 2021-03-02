@@ -7,7 +7,7 @@
 {{ model_form.media }}
 {% endblock %}
 
-{% block content %}
+{% block page %}
 <form method="post">
   {% csrf_token %}
   {{ model_form | crispy }}
