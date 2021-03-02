@@ -1,5 +1,8 @@
 {% extends "base.html" %}
 {% load static %}
+{% block extrahead %}
+<link href="{% static 'css/admin.css' %}" rel="stylesheet">
+{% endblock %}
 {% block content %}
 <div class="row align-items-start">
   <div class="col-2">
@@ -32,5 +35,4 @@
     {% endblock page %}
   </div>
 </div>
-<link href="{% static 'css/admin.css' %}" rel="stylesheet">
 {% endblock %}
