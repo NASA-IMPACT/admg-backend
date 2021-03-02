@@ -135,7 +135,7 @@ class DraftListView(SingleTableView):
     template_name = 'api_app/change_list.html'
 
     def get_queryset(self):
-        return Change.objects.filter(content_type__model='campaign')
+        return Change.objects.filter(content_type__model='campaign', action='Create')
 
 
 class ChangeListView(ListView):
