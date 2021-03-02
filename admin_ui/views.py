@@ -134,6 +134,10 @@ class DraftListView(SingleTableView):
     table_class = DraftTable
     template_name = 'api_app/change_list.html'
 
+    def get_queryset(self):
+        return Change.objects.filter(content_type__model='campaign')
+
+
 class ChangeListView(ListView):
     model = Change
     paginate_by = 25
