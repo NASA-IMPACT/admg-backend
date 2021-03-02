@@ -1,23 +1,16 @@
+import json
+
 import pytest
-
-from django.contrib.contenttypes.models import ContentType
-
 from admg_webapp.users.models import User
 from data_models.models import PartnerOrg
+from django.contrib.contenttypes.models import ContentType
 
-from api_app.models import (
-    Change, ApprovalLog,
-    CREATED, CREATED_CODE,
-    IN_PROGRESS, IN_PROGRESS_CODE,
-    AWAITING_REVIEW, AWAITING_REVIEW_CODE,
-    IN_REVIEW, IN_REVIEW_CODE,
-    AWAITING_ADMIN_REVIEW, AWAITING_ADMIN_REVIEW_CODE,
-    IN_ADMIN_REVIEW, IN_ADMIN_REVIEW_CODE,
-    PUBLISHED, PUBLISHED_CODE,
-)
-
-import json
-import pytest
+from api_app.models import (AWAITING_ADMIN_REVIEW, AWAITING_ADMIN_REVIEW_CODE,
+                            AWAITING_REVIEW, AWAITING_REVIEW_CODE, CREATED,
+                            CREATED_CODE, IN_ADMIN_REVIEW,
+                            IN_ADMIN_REVIEW_CODE, IN_PROGRESS,
+                            IN_PROGRESS_CODE, IN_REVIEW, IN_REVIEW_CODE,
+                            PUBLISHED, PUBLISHED_CODE, ApprovalLog, Change)
 
 
 @pytest.mark.django_db
