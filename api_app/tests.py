@@ -79,6 +79,8 @@ class TestChange:
         approval_log = change.get_latest_log()
         assert change.status == CREATED_CODE
         assert approval_log.action == ApprovalLog.CREATE
+        # a user will be assigned if this action is made in the admin
+        # however no user is assigned when this action is taken from the tests
         assert approval_log.user is None
 
         # edit
