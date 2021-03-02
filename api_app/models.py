@@ -100,8 +100,9 @@ def is_status(accepted_statuses_list):
         def wrapper(self, user, notes=""):
 
             if self.status not in accepted_statuses_list:
+                status_strings = [AVAILABLE_STATUSES[status][1] for status in accepted_statuses_list]
                 return generate_failure_response(
-                    f"action failed because status was not one of {accepted_statuses_list}"
+                    f"action failed because status was not one of {status_strings}"
                 )
 
             result = function(self, user, notes)
