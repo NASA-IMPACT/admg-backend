@@ -1,6 +1,32 @@
 {% extends "base.html" %}
 {% load static %}
-
 {% block extrahead %}
 <link href="{% static 'css/admin.css' %}" rel="stylesheet">
+{% endblock %}
+{% block content %}
+<div class="row align-items-start">
+  <div class="col-2">
+    <nav>
+      <ul class="nav flex-column">
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'home' %}">Dashboard</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'change-list' %}">Campaigns</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="">Other Items</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="">Inventory Guidelines</a>
+        </li>
+      </ul>
+    </nav>
+  </div>
+  <div class="col-10">
+    {% block page %}
+    <p>page info</p>
+    {% endblock page %}
+  </div>
+</div>
 {% endblock %}
