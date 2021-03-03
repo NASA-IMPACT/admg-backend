@@ -16,6 +16,11 @@ class ChangeSerializer(serializers.ModelSerializer):
 
 class ApprovalLogSerializer(serializers.ModelSerializer):
     model_name = serializers.CharField(read_only=True)
+    action_string = serializers.SerializerMethodField()
+
+    def get_action_string(self, obj):
+        return obj.get_action_display()
+        
     class Meta:
         model = ApprovalLog
         fields = "__all__"
