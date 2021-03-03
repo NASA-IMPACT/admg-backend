@@ -418,6 +418,7 @@ class Change(models.Model):
             change = self,
             user = admin_user,
             action = ApprovalLog.PUBLISH,
+            notes = notes
         )
 
         self.status = PUBLISHED_CODE
