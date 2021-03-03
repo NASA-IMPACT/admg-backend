@@ -23,8 +23,7 @@ def requires_admin_approval(model_name, action=UPDATE):
                 content_type=content_type,
                 update=request.data,
                 model_instance_uuid=kwargs.get("uuid"),
-                action=action,
-                user=request.user
+                action=action
             )
             change_object.save()
 
@@ -49,13 +48,16 @@ def extract_response_details(original_data):
         success, message, data [bool, str, list]
     """
 
+    # TODO: The way responses are handled across the entire applcation deserves to be reconsidered
+    # responses will be a dict either because they are custom and contain a message and success
+    # or because they are for a single UUID
     if isinstance(original_data, dict):
+        # will execute when the response if for a single uuid
         if original_data.get('uuid'):
             data = original_data
-        elif new_data := original_data.get('data'):
-            data = new_data
+        # will execute when the response gave a custom dictionary
         else:
-            data = []
+            data = original_data.get('data', [])
 
         message = original_data.get('message', '')
         success = original_data.get('success', True)
