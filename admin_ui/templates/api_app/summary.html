@@ -52,7 +52,7 @@
   <li>
     <span title={{ activity.date|date:"c" }}>{{ activity.date | naturaltime }}</span>:
     {{ activity.get_action_display }}
-    <a href="{% url 'change-detail' activity.change.uuid %}">
+    <a href="{% url 'change-form' activity.change.uuid %}">
       {{ activity.change.model_name }}
       {% firstof activity.change.update.short_name activity.change.update.long_name activity.change.uuid %}
     </a>
