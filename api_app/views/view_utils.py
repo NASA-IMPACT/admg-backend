@@ -37,24 +37,57 @@ def requires_admin_approval(model_name, action=UPDATE):
     return outer_wrapper
 
 
+def extract_response_details(original_data):
+    """This function allows the extraction of the original message
+    and data so they can be used by the handle_exception wrapper instead
+    of being overwritten or left blank
+
+    Args:
+        original_data (dict/list): This should be a dict or a list
+
+    Returns:
+        success, message, data [bool, str, list]
+    """
+
+    if isinstance(original_data, dict):
+        data = original_data.get('data', [])
+        message = original_data.get('message', '')
+        success = original_data.get('success', True)
+    else:
+        data = original_data
+        message = ''
+        success = True
+
+    return success, message, data
+
+
 def handle_exception(function):
     """
     Decorator function for handing error and returning data in the required
     format
     """
-    def wrapper(self, request, *args, **kwargs):
-        try:
-            original_response = function(self, request, *args, **kwargs)
 
+    def wrapper(self, request, *args, **kwargs):
+        data = []
+        message = ""
+        success = True
+        try:
+            res = function(self, request, *args, **kwargs)
+            if 300 >= res.status_code >= 200:
+                original_data = res.data
+                print(original_data)
+                success, message, data = extract_response_details(original_data)
+              
         except Exception as e:
+            success = False
             try:
                 message = json.dumps(e.get_full_details())
             except AttributeError:
                 message = str(e)
 
-            return JsonResponse({
-                "success": False,
-                "message": message
-            })
-        return original_response
+        return JsonResponse({
+            "success": success,
+            "message": message,
+            "data": data
+        })
     return wrapper
