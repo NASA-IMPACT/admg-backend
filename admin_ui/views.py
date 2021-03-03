@@ -128,7 +128,6 @@ class ChangeSummaryView(ListView):
     def get_queryset(self):
         return (
             Change.objects.filter(content_type__model="campaign", action=CREATE)
-            .select_related("content_type")
             .annotate(updated_at=Max("approvallog__date"))
             .order_by("-updated_at")
         )
@@ -139,13 +138,15 @@ class ChangeSummaryView(ListView):
             "change_counts": {
                 k: v
                 for (k, v) in Change.objects.filter(
+                    action=CREATE,
                     content_type__model__in=[
                         "campaign",
                         "deployment",
                         "instrument",
                         "platform",
-                    ]
+                    ],
                 )
+                .exclude(status=PUBLISHED_CODE)
                 .values_list("content_type__model")
                 .annotate(total=Count("content_type"))
             },
@@ -153,7 +154,9 @@ class ChangeSummaryView(ListView):
                 Model.__name__.lower(): Model.objects.count()
                 for Model in [Campaign, Deployment, Instrument, Platform]
             },
-            "activity_list": ApprovalLog.objects.order_by("-date")[: self.paginate_by],
+            "activity_list": ApprovalLog.objects.prefetch_related(
+                "change__content_type"
+            ).order_by("-date")[: self.paginate_by],
         }
 
 

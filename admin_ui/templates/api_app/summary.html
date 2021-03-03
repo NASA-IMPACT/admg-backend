@@ -1,4 +1,7 @@
-{% extends "api_app/base.html" %} {% block page %}
+{% extends "api_app/base.html" %}
+{% load humanize %}
+
+{% block page %}
 
 <h3>Draft Counts</h3>
 <ul>
@@ -32,17 +35,29 @@
   </li>
 </ul>
 
-<h3>Recent Drafts</h3>
+<h3>Recent Draft Campaigns</h3>
 <ul>
   {% for change in change_list %}
-  <li>{{ change }}</li>
+  <li>
+    <a href="{% url 'change-detail' change.uuid %}">
+      {% firstof change.update.short_name change.update.long_name change.uuid %}
+    </a>
+  </li>
   {% endfor %}
 </ul>
 
 <h3>Recent Activities</h3>
 <ul>
   {% for activity in activity_list %}
-  <li>{{ activity }}</li>
+  <li>
+    <span title={{ activity.date|date:"c" }}>{{ activity.date | naturaltime }}</span>:
+    {{ activity.get_action_display }}
+    <a href="{% url 'change-detail' activity.change.uuid %}">
+      {{ activity.change.model_name }}
+      {% firstof activity.change.update.short_name activity.change.update.long_name activity.change.uuid %}
+    </a>
+    {% if activity.user %} by {{ activity.user }}{% endif %}
+  </li>
   {% endfor %}
 </ul>
 {% endblock %}
