@@ -85,7 +85,6 @@ notes_param = openapi.Schema(
 )
 
 
-
 class ChangeValidationView(APIView):
     permission_classes = [permissions.IsAuthenticated, TokenHasScope]
     required_scopes = [STAFF]
@@ -105,7 +104,7 @@ class ChangeSubmitView(APIView):
         instance = Change.objects.get(uuid=kwargs.get('uuid'))
         response = instance.submit(
             user = request.auth.user,
-            notes= kwargs.get('notes', '')
+            notes= request.data.get('notes', '')
         )
         return Response(response)
 
@@ -118,7 +117,7 @@ class ChangeClaimView(APIView):
         instance = Change.objects.get(uuid=kwargs.get('uuid'))
         response = instance.claim(
             user = request.auth.user,
-            notes= kwargs.get('notes', '')
+            notes= request.data.get('notes', '')
         )
         return Response(response)
 
@@ -131,7 +130,7 @@ class ChangeUnclaimView(APIView):
         instance = Change.objects.get(uuid=kwargs.get('uuid'))
         response = instance.unclaim(
             user = request.auth.user,
-            notes= kwargs.get('notes', '')
+            notes= request.data.get('notes', '')
         )
         return Response(response)
 
@@ -144,7 +143,7 @@ class ChangeReviewView(APIView):
         instance = Change.objects.get(uuid=kwargs.get('uuid'))
         response = instance.review(
             user = request.auth.user,
-            notes= kwargs.get('notes', '')
+            notes= request.data.get('notes', '')
         )
         return Response(response)
 
@@ -158,7 +157,7 @@ class ChangeRejectView(APIView):
         instance = Change.objects.get(uuid=kwargs.get('uuid'))
         response = instance.reject(
             user = request.auth.user,
-            notes= kwargs.get('notes', '')
+            notes= request.data.get('notes', '')
         )
         return Response(response)
 
@@ -172,6 +171,6 @@ class ChangePublishView(APIView):
         instance = Change.objects.get(uuid=kwargs.get('uuid'))
         response = instance.publish(
             user = request.auth.user,
-            notes= kwargs.get('notes', '')
+            notes= request.data.get('notes', '')
         )
         return Response(response)
