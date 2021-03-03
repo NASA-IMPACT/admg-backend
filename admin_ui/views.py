@@ -122,7 +122,18 @@ class ChangeModelFormMixin(ModelFormMixin):
 
 class ChangeSummaryView(ListView):
     model = Change
+    paginate_by = 25
     template_name = "api_app/summary.html"
+
+    def get_queryset(self):
+        return (
+            Change.objects.filter(content_type__model="campaign", action=CREATE)
+            .annotate(updated_at=Max("approvallog__date"))
+            .order_by(self.get_ordering())
+        )
+
+    def get_ordering(self):
+        return self.request.GET.get("ordering", "-updated_at")
 
     def get_context_data(self, **kwargs):
         return {
@@ -144,10 +155,7 @@ class ChangeSummaryView(ListView):
                 Model.__name__.lower(): Model.objects.count()
                 for Model in [Campaign, Deployment, Instrument, Platform]
             },
-            "recent_changes": Change.objects.annotate(
-                updated_at=Max("approvallog__date")
-            ).order_by("-updated_at")[:20],
-            "recent_activities": ApprovalLog.objects.order_by("-date")[:20],
+            "activities": ApprovalLog.objects.order_by("-date")[:self.paginate_by],
         }
 
 
@@ -157,9 +165,9 @@ class ChangeListView(ListView):
     template_name = "api_app/change_list.html"
 
     def get_queryset(self):
-        return Change.objects.filter(content_type__model="campaign").order_by(
-            self.get_ordering()
-        )
+        return Change.objects.filter(
+            content_type__model="campaign", action=CREATE
+        ).order_by(self.get_ordering())
 
     def get_ordering(self):
         return self.request.GET.get("ordering", "-status")
