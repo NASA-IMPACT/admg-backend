@@ -217,8 +217,7 @@ class Change(models.Model):
     def get_latest_log(self):
         return ApprovalLog.objects.filter(change=self).order_by('date').last()
 
-    def save(self, *args, post_save=False, log=True, **kwargs):
-        """log parameter allows a calling function to disable the log, specifically reject"""
+    def save(self, *args, post_save=False, **kwargs):
         # do not check for validity of model_name and uuid if it has been approved or rejected.
         # Check is done for the first time only
         # post_save=False prevents self.previous from being set
@@ -329,7 +328,7 @@ class Change(models.Model):
 
         return response
 
-    @is_status([IN_PROGRESS_CODE])
+    @is_status([CREATED_CODE, IN_PROGRESS_CODE])
     def submit(self, user, notes=""):
         self.status = AWAITING_REVIEW_CODE
 
