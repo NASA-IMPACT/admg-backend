@@ -129,11 +129,8 @@ class ChangeSummaryView(ListView):
         return (
             Change.objects.filter(content_type__model="campaign", action=CREATE)
             .annotate(updated_at=Max("approvallog__date"))
-            .order_by(self.get_ordering())
+            .order_by("-updated_at")
         )
-
-    def get_ordering(self):
-        return self.request.GET.get("ordering", "-updated_at")
 
     def get_context_data(self, **kwargs):
         return {
@@ -155,7 +152,7 @@ class ChangeSummaryView(ListView):
                 Model.__name__.lower(): Model.objects.count()
                 for Model in [Campaign, Deployment, Instrument, Platform]
             },
-            "activities": ApprovalLog.objects.order_by("-date")[:self.paginate_by],
+            "activity_list": ApprovalLog.objects.order_by("-date")[: self.paginate_by],
         }
 
 
@@ -170,7 +167,7 @@ class ChangeListView(ListView):
         ).order_by(self.get_ordering())
 
     def get_ordering(self):
-        return self.request.GET.get("ordering", "-status")
+        return self.request.GET.get("sort", "-status")
 
 
 class ChangeDetailView(DetailView):

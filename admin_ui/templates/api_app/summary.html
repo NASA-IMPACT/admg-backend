@@ -1,21 +1,48 @@
 {% extends "api_app/base.html" %} {% block page %}
+
+<h3>Draft Counts</h3>
 <ul>
   <li>
-    Campaigns: {{ object_list|length }}
+    Campaigns: {{ change_counts.campaign }}
   </li>
   <li>
-    <p>Deployments: </p>
+    Deployments: {{ change_counts.deployment }}
   </li>
   <li>
-    <p>Platforms: </p>
+    Platforms: {{ change_counts.platform }}
   </li>
   <li>
-    <p>Instruments: </p>
+    Instruments: {{ change_counts.instrument }}
   </li>
 </ul>
 
-<div>
-  Recent Drafts
-</div>
-{% endblock %}
+<h3>Published Counts</h3>
+<ul>
+  <li>
+    Campaigns: {{ published_counts.campaign }}
+  </li>
+  <li>
+    Deployments: {{ published_counts.deployment }}
+  </li>
+  <li>
+    Platforms: {{ published_counts.platform }}
+  </li>
+  <li>
+    Instruments: {{ published_counts.instrument }}
+  </li>
+</ul>
 
+<h3>Recent Drafts</h3>
+<ul>
+  {% for change in change_list %}
+  <li>{{ change }}</li>
+  {% endfor %}
+</ul>
+
+<h3>Recent Activities</h3>
+<ul>
+  {% for activity in activity_list %}
+  <li>{{ activity }}</li>
+  {% endfor %}
+</ul>
+{% endblock %}
