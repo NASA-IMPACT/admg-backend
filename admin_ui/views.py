@@ -128,6 +128,7 @@ class ChangeSummaryView(ListView):
     def get_queryset(self):
         return (
             Change.objects.filter(content_type__model="campaign", action=CREATE)
+            .select_related("content_type")
             .annotate(updated_at=Max("approvallog__date"))
             .order_by("-updated_at")
         )
