@@ -6,6 +6,7 @@ from django.contrib import messages
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.db import models
+from django.db.models.aggregates import Count, Max
 from django.forms import modelform_factory
 from django.http import HttpResponseRedirect
 from django.utils.safestring import mark_safe
@@ -16,7 +17,8 @@ from django.db.models.query import QuerySet
 from rest_framework.renderers import JSONRenderer
 import requests
 
-from api_app.models import Change, CREATE, UPDATE, PUBLISHED_CODE
+from api_app.models import ApprovalLog, Change, CREATE, UPDATE, PUBLISHED_CODE
+from data_models.models import Campaign, Instrument, Platform, Deployment
 
 
 @login_required
@@ -120,36 +122,58 @@ class ChangeModelFormMixin(ModelFormMixin):
 
 class ChangeSummaryView(ListView):
     model = Change
-    template_name = 'api_app/summary.html'
+    template_name = "api_app/summary.html"
 
-    def get_queryset(self):
-        return Change.objects.filter(content_type__model='campaign').order_by(self.get_ordering())
-
-    def get_ordering(self):
-        return self.request.GET.get('ordering', '-status')
+    def get_context_data(self, **kwargs):
+        return {
+            **super().get_context_data(**kwargs),
+            "change_counts": {
+                k: v
+                for (k, v) in Change.objects.filter(
+                    content_type__model__in=[
+                        "campaign",
+                        "deployment",
+                        "instrument",
+                        "platform",
+                    ]
+                )
+                .values_list("content_type__model")
+                .annotate(total=Count("content_type"))
+            },
+            "published_counts": {
+                Model.__name__.lower(): Model.objects.count()
+                for Model in [Campaign, Deployment, Instrument, Platform]
+            },
+            "recent_changes": Change.objects.annotate(
+                updated_at=Max("approvallog__date")
+            ).order_by("-updated_at")[:20],
+            "recent_activities": ApprovalLog.objects.order_by("-date")[:20],
+        }
 
 
 class ChangeListView(ListView):
     model = Change
     paginate_by = 25
-    template_name = 'api_app/change_list.html'
+    template_name = "api_app/change_list.html"
 
     def get_queryset(self):
-        return Change.objects.filter(content_type__model='campaign').order_by(self.get_ordering())
+        return Change.objects.filter(content_type__model="campaign").order_by(
+            self.get_ordering()
+        )
 
     def get_ordering(self):
-        return self.request.GET.get('ordering', '-status')
+        return self.request.GET.get("ordering", "-status")
 
 
 class ChangeDetailView(DetailView):
     model = Change
-    template_name = 'api_app/change_detail.html'
+    template_name = "api_app/change_detail.html"
 
 
 class ChangeCreateView(CreateView, ChangeModelFormMixin):
     model = Change
     fields = ["content_type", "model_instance_uuid", "action", "update"]
-    template_name = 'api_app/change_add_form.html'
+    template_name = "api_app/change_add_form.html"
 
     def get_initial(self):
         # Get initial form values from URL
@@ -167,7 +191,7 @@ class ChangeCreateView(CreateView, ChangeModelFormMixin):
     def get_model_form_intial(self):
         # TODO: Not currently possible to handle reverse relationships such as adding
         # models to a CollectionPeriod where the FK is on the Collection Period
-        return {k: v for k, v in self.request.GET.dict().items() if k != 'uuid'}
+        return {k: v for k, v in self.request.GET.dict().items() if k != "uuid"}
 
 
 class ChangeUpdateView(UpdateView, ChangeModelFormMixin):
@@ -175,7 +199,7 @@ class ChangeUpdateView(UpdateView, ChangeModelFormMixin):
     fields = ["content_type", "model_instance_uuid", "action", "update", "status"]
 
     prefix = "change"
-    template_name = 'api_app/change_form.html'
+    template_name = "api_app/change_form.html"
 
     def get_queryset(self):
         # Prefetch content type for performance
