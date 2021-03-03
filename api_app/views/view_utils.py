@@ -50,7 +50,13 @@ def extract_response_details(original_data):
     """
 
     if isinstance(original_data, dict):
-        data = original_data.get('data', [])
+        if original_data.get('uuid'):
+            data = original_data
+        elif new_data := original_data.get('data'):
+            data = new_data
+        else:
+            data = []
+
         message = original_data.get('message', '')
         success = original_data.get('success', True)
     else:
