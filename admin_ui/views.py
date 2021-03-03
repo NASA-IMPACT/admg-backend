@@ -92,6 +92,8 @@ class ChangeModelFormMixin(ModelFormMixin):
         BaseModelForm = self.destination_model_form
 
         class ModelForm(BaseModelForm):
+            # TODO: This may be a mistake, I don't know if we ever want to actually ignore validation errors.
+            # Instead, we still may want to save the form but also render the validation errors.
             def validate_unique(_self):
                 # We don't want to raise errors on unique errors for the
                 # destination model unless this is a "Create" change
