@@ -10,4 +10,5 @@ urlpatterns = [
     path("drafts/<uuid:pk>", views.ChangeDetailView.as_view(), name="change-detail"),
     path("drafts/add/<str:model>", views.ChangeCreateView.as_view(), name="change-add"),
     path("drafts/edit/<uuid:pk>", views.ChangeUpdateView.as_view(), name="change-form"),
+    path("tbd", views.to_be_developed, name="to-be-developed"),
 ]
