@@ -28,7 +28,7 @@
         <div class="col p-0">
             <ul class="list-group">
                 {% for deployment in object_list %}
-                <li class="list-group-item deployment" data-id="{{ deployment.uuid }}">
+                <li class="list-group-item list-group-item-action deployment" data-id="{{ deployment.uuid }}">
                     {{ deployment }}
                     <a href="{% url 'change-form' deployment.uuid %}">(link)</a>
                 </li>
@@ -85,6 +85,7 @@
                                 aria-expanded="false" aria-controls="significant-events">
                                 Significant events
                             </button>
+                            <span id="significant-events-badge" class="badge badge-primary badge-pill"></span>
                         </h5>
                     </div>
 
@@ -109,6 +110,7 @@
                                 aria-expanded="false" aria-controls="iops">
                                 Iops
                             </button>
+                            <span id="iops-badge" class="badge badge-primary badge-pill"></span>
                         </h5>
                     </div>
                     <div id="iops" class="collapse" aria-labelledby="iops-header" data-parent="#accordion">
@@ -131,6 +133,7 @@
                                 aria-controls="collection-periods">
                                 CDPIs
                             </button>
+                            <span id="collection-periods-badge" aria-expanded="false-badge" class="badge badge-primary badge-pill"></span>
                         </h5>
                     </div>
                     <div id="collection-periods" class="collapse" aria-labelledby="collection-periods-header"
@@ -169,16 +172,10 @@
         $('.deployment-child:not(' + childLookup + ')').hide();
         $('.deployment-child' + childLookup).show();
 
-        // Update accordian buttons
+        // Update count badges
         ['significant-events', 'iops', 'collection-periods'].forEach(function (value) {
-            var headerId = '#' + value + '-header';
             var count = $('#' + value + ' li' + childLookup).length;
-            $(headerId + ' button').text(
-                $(headerId)
-                    .text()
-                    .replace(/ \(.*\)/g, "") // Rm current count if present
-                    + ' (' + count + ')'
-            );
+            $('#' + value + '-badge').text(count);
         })
     })
 
