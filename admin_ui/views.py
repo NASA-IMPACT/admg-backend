@@ -1,5 +1,7 @@
 import json
 from typing import Union
+import django_tables2 as tables
+from django_tables2 import SingleTableView, A
 
 from django.conf import settings
 from django.contrib import messages
@@ -12,6 +14,7 @@ from django.utils.safestring import mark_safe
 from django.views.generic.list import ListView
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView, UpdateView, ModelFormMixin
+from django.db.models import Max
 from django.db.models.query import QuerySet
 from rest_framework.renderers import JSONRenderer
 import requests
@@ -120,27 +123,46 @@ class ChangeModelFormMixin(ModelFormMixin):
         )
 
 
-class ChangeListView(ListView):
+class ChangeTable(tables.Table):
+    short_name = tables.LinkColumn(
+        viewname="change-detail",
+        args=[A("uuid")],
+        verbose_name="Short Name",
+        accessor="update__short_name",
+    )
+    long_name = tables.Column(verbose_name="Long name", accessor="update__long_name")
+    status = tables.Column(verbose_name="Status", accessor="status")
+    funding_agency = tables.Column(
+        verbose_name="Funding Agency", accessor="update__funding_agency"
+    )
+    updated_at = tables.Column(verbose_name="Last Edit Date")
+
+    class Meta:
+        attrs = {"class": "table table-striped", "thead": {"class": "thead-dark"}}
+        model = Change
+        fields = ["short_name", "long_name", "funding_agency", "status", "updated_at"]
+
+
+class ChangeListView(SingleTableView):
     model = Change
-    paginate_by = 25
-    template_name = 'api_app/change_list.html'
+    table_class = ChangeTable
+    template_name = "api_app/change_list.html"
 
     def get_queryset(self):
-        return Change.objects.filter(content_type__model='campaign').order_by(self.get_ordering())
-
-    def get_ordering(self):
-        return self.request.GET.get('ordering', '-status')
+        return Change.objects.filter(
+            content_type__model="campaign", action="Create"
+        ).annotate(updated_at=Max("approvallog__date"))
 
 
 class ChangeDetailView(DetailView):
     model = Change
-    template_name = 'api_app/change_detail.html'
+    template_name = "api_app/change_detail.html"
 
 
 class ChangeCreateView(CreateView, ChangeModelFormMixin):
     model = Change
     fields = ["content_type", "model_instance_uuid", "action", "update"]
-    template_name = 'api_app/change_add_form.html'
+    template_name = "api_app/change_add_form.html"
 
     def get_initial(self):
         # Get initial form values from URL
@@ -166,7 +188,7 @@ class ChangeUpdateView(UpdateView, ChangeModelFormMixin):
     fields = ["content_type", "model_instance_uuid", "action", "update", "status"]
 
     prefix = "change"
-    template_name = 'api_app/change_form.html'
+    template_name = "api_app/change_form.html"
 
     def get_queryset(self):
         # Prefetch content type for performance
