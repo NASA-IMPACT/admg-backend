@@ -10,6 +10,16 @@ from django.contrib.postgres.search import SearchQuery, SearchVector
 from django.db import models
 
 
+def fetch_related_distinct_data(queryset, related_data_string):
+    """Fetches related data from a given object using the related data string
+
+    Args:
+        queryset (QuerySet): A queryset of related objects. E.g. my_campaign.deployments
+        related_data_string (str): Django-formatted string of related data E.g. instrument__uuid
+    """
+
+    return queryset.fetch_related().values_list(related_data_string, flat=True).distinct()
+
 class BaseModel(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False, unique=True)
 
@@ -257,11 +267,11 @@ class Campaign(DataModel):
 
     @property
     def significant_events(self):
-        return self.deployments.fetch_related().values_list('significant_events__uuid', flat=True).distinct()
+        return fetch_related_distinct_data(self.deployments, 'significant_events__uuid')
 
     @property
     def iops(self):
-        return self.deployments.fetch_related().values_list('iops__uuid', flat=True).distinct()
+        return fetch_related_distinct_data(self.deployments, 'iops__uuid')
 
     @property
     def number_deployments(self):
@@ -269,11 +279,11 @@ class Campaign(DataModel):
 
     @property
     def instruments(self):
-        return self.deployments.fetch_related().values_list('collection_periods__instruments__uuid', flat=True).distinct()
+        return fetch_related_distinct_data(self.deployments, 'collection_periods__instruments__uuid')
 
     @property
     def platforms(self):
-        return self.deployments.fetch_related().values_list('collection_periods__platform__uuid', flat=True).distinct()
+        return fetch_related_distinct_data(self.deployments, 'collection_periods__platform__uuid')
 
     @staticmethod
     def search_fields():
@@ -300,11 +310,11 @@ class Platform(DataModel):
 
     @property
     def campaigns(self):
-        return self.collection_periods.fetch_related().values_list('deployment__campaign__uuid', flat=True).distinct()
+        return fetch_related_distinct_data(self.collection_periods, 'deployment__campaign__uuid')
 
     @property
     def instruments(self):
-        return self.collection_periods.fetch_related().values_list('instruments', flat=True).distinct()
+        return fetch_related_distinct_data(self.collection_periods, 'instruments')
 
     @staticmethod
     def search_fields():
@@ -343,11 +353,11 @@ class Instrument(DataModel):
 
     @property
     def campaigns(self):
-        return self.collection_periods.fetch_related().values_list('deployment__campaign__uuid', flat=True).distinct()
+        return fetch_related_distinct_data(self.collection_periods, 'deployment__campaign__uuid')
 
     @property
     def platforms(self):
-        return self.collection_periods.fetch_related().values_list('platform__uuid', flat=True).distinct()
+        return fetch_related_distinct_data(self.collection_periods, 'platform__uuid')
 
 
 class Deployment(DataModel):
@@ -374,7 +384,7 @@ class Deployment(DataModel):
 
     @property
     def platforms(self):
-        return self.collection_periods.fetch_related().values_list('platform__uuid', flat=True).distinct()
+        return fetch_related_distinct_data(self.collection_periods, 'platform__uuid')
 
 
 class IopSe(BaseModel):
