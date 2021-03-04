@@ -130,7 +130,6 @@ class DraftTable(tables.Table):
 
     class Meta:
         model = Change
-        template_name = "django_tables2/bootstrap.html"
         fields = ['short_name', 'long_name', 'funding_agency', 'updated_at']
 
 class DraftListView(SingleTableView):
