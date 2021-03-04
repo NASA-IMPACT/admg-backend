@@ -3,38 +3,60 @@
 
 {% block content %}
 <div class="container-fluid">
-    <div class="row pt-4 pb-5">
+    <div class="row mt-4 mb-5">
         <div class="col-auto mr-auto">
-            <h1>Campaign {{ change }}</h1>
+            <a href="">&larr; Back</a> <!-- TODO: add back href -->
+
+            <div class="d-flex align-items-baseline">
+                <h1>Campaign {% firstof object.update.short_name object.update.uuid %}</h1> <a href="" class="ml-3">Edit campaign details</a>
+            </div>
+            <p>
+                <span class="badge badge-pill badge-light">
+                    &bull; Status: {{ object.status }} <!-- TODO: add status as text -->
+                </span>
+            </p>
+
+            <button class="btn btn-primary">Submit for review</button> <!-- TODO: add onclick -->
         </div>
         <div class="col-auto">
-            <button class="btn btn-primary">Add new item + </button>
-        </div>
-    </div>
-    <div class="row">
-        <div class="col">
-            <a href="">View campaign details</a>
-        </div>
-    </div>
-    <div class="row pt-4 pb-5">
-        <div class="col">
-            <button class="btn btn-primary">Submit for review</button>
+            <button class="btn btn-primary">Add new item + </button> <!-- TODO: add onclick -->
         </div>
     </div>
 </div>
 
 <div class="container-fluid">
-    <div class="row pt-4">
-        <div class="col p-0">
+    <div class="row mt-4">
+        <div class="col">
             <ul class="list-group">
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">Deployments</h4>
+                    <button class="btn btn-primary">+</button> <!-- TODO: add onclick -->
+                </li>
                 {% for deployment in object_list %}
-                <li class="list-group-item list-group-item-action deployment cursor-pointer" data-id="{{ deployment.uuid }}">
-                    {{ deployment }}
-                    <a href="{% url 'change-form' deployment.uuid %}">(link)</a>
+                <li
+                    class="list-group-item list-group-item-action d-flex justify-content-between deployment cursor-pointer" data-id="{{ deployment.uuid }}"
+                >
+                    <div>
+                        <h5>
+                        {% firstof deployment.update.short_name deployment.update.uuid %}
+                        <small>
+                            <a href="{% url 'change-form' deployment.uuid %}">
+                                edit &rarr;
+                            </a>
+                        </small>
+                        </h5>
+
+                        <span class="text-muted">Status: {{ object.status }}</span> <!-- TODO: add status as text -->
+                        <small class="text-muted ml-3">
+                            Last update by user <a href="">Username</a> <!-- TODO: add user -->
+                        </small>
+                    </div>
+                    <div><span class="caret">&rsaquo;</span></div>
                 </li>
                 {% endfor %}
             </ul>
 
+            {% if page_obj.paginator.page_range > 1 %}
             <nav aria-label="Navigate list of deployments" class="mt-5">
                 <ul class="pagination">
                     {% if page_obj.has_previous %}
@@ -74,37 +96,42 @@
                     {% endif %}
                 </ul>
             </nav>
+            {% endif %}
         </div>
 
-        <div class="col p-0">
+        <div class="col">
             <div id="accordion">
                 <div class="card">
-                    <div class="card-header" id="significant-events-header">
+                    <div class="card-header d-flex justify-content-between" id="significant-events-header">
                         <h5 class="mb-0">
-                            <button class="btn btn-link" data-toggle="collapse" data-target="#significant-events"
+                            <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#significant-events"
                                 aria-expanded="false" aria-controls="significant-events">
                                 Significant events
                             </button>
                             <span id="significant-events-badge" class="badge badge-primary badge-pill"></span>
                         </h5>
+                        <button class="btn btn-primary">+</button> <!-- TODO: add onclick -->
                     </div>
 
-                    <div id="significant-events" class="collapse show" aria-labelledby="significant-events-header"
+                    <div id="significant-events" class="collapse" aria-labelledby="significant-events-header"
                         data-parent="#accordion">
                         <ul class="list-group">
                             {% for event in significant_events %}
                             <li class="list-group-item deployment-child"
                                 data-deployment="{{ event.update.deployment }}">
-                                <a href="{% url 'change-form' event.uuid %}">
-                                    {{ event }}
-                                </a>
+                                {% firstof event.update.short_name event.update.uuid %}
+                                <small>
+                                    <a href="{% url 'change-form' event.uuid %}">
+                                        edit &rarr;
+                                    </a>
+                                </small>
                             </li>
                             {% endfor %}
                         </ul>
                     </div>
                 </div>
                 <div class="card">
-                    <div class="card-header" id="iops-header">
+                    <div class="card-header d-flex justify-content-between" id="iops-header">
                         <h5 class="mb-0">
                             <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#iops"
                                 aria-expanded="false" aria-controls="iops">
@@ -112,39 +139,47 @@
                             </button>
                             <span id="iops-badge" class="badge badge-primary badge-pill"></span>
                         </h5>
+                        <button class="btn btn-primary">+</button> <!-- TODO: add onclick -->
                     </div>
                     <div id="iops" class="collapse" aria-labelledby="iops-header" data-parent="#accordion">
                         <ul class="list-group">
                             {% for iop in iops %}
                             <li class="list-group-item deployment-child" data-deployment="{{ iop.update.deployment }}">
-                                <a href="{% url 'change-form' iop.uuid %}">
-                                    {{ iop }}
-                                </a>
+                                {% firstof iop.update.short_name iop.update.uuid %}
+                                <small>
+                                    <a href="{% url 'change-form' iop.uuid %}">
+                                        edit &rarr;
+                                    </a>
+                                </small>
                             </li>
                             {% endfor %}
                         </ul>
                     </div>
                 </div>
                 <div class="card">
-                    <div class="card-header" id="collection-periods-header">
+                    <div class="card-header d-flex justify-content-between" id="collection-periods-header">
                         <h5 class="mb-0">
-                            <button class="btn btn-link collapsed" data-toggle="collapse"
-                                data-target="#collection-periods" aria-expanded="false"
+                            <button class="btn btn-link" data-toggle="collapse"
+                                data-target="#collection-periods" aria-expanded="true"
                                 aria-controls="collection-periods">
                                 CDPIs
                             </button>
-                            <span id="collection-periods-badge" aria-expanded="false-badge" class="badge badge-primary badge-pill"></span>
+                            <span id="collection-periods-badge" class="badge badge-primary badge-pill"></span>
                         </h5>
+                        <button class="btn btn-primary">+</button> <!-- TODO: add onclick -->
                     </div>
-                    <div id="collection-periods" class="collapse" aria-labelledby="collection-periods-header"
+                    <div id="collection-periods" class="collapse show" aria-labelledby="collection-periods-header"
                         data-parent="#accordion">
                         <ul class="list-group">
                             {% for period in collection_periods %}
                             <li class="list-group-item deployment-child"
                                 data-deployment="{{ period.update.deployment }}">
-                                <a href="{% url 'change-form' period.uuid %}">
-                                    {{ period }}
-                                </a>
+                                {% firstof period.update.short_name period.update.uuid %}
+                                <small>
+                                    <a href="{% url 'change-form' period.uuid %}">
+                                        edit &rarr;
+                                    </a>
+                                </small>
                             </li>
                             {% endfor %}
                         </ul>
@@ -164,8 +199,8 @@
 <script>
     $(".deployment").click(function () {
         // Mark as active
-        $('.deployment').removeClass('active');
-        $(this).addClass('active');
+        $('.deployment').removeClass('list-group-item-primary');
+        $(this).addClass('list-group-item-primary');
 
         // Display children
         var childLookup = '[data-deployment=' + $(this).attr('data-id') + ']';
@@ -176,6 +211,10 @@
         ['significant-events', 'iops', 'collection-periods'].forEach(function (value) {
             var count = $('#' + value + ' li' + childLookup).length;
             $('#' + value + '-badge').text(count);
+            if (count === 0) {
+                $('#' + value + '-header > * > button').addClass('disabled')
+                $('#' + value + '-badge').addClass('bg-secondary')
+            }
         })
     })
 
