@@ -116,9 +116,9 @@ class ChangeModelFormMixin(ModelFormMixin):
         return self.render_to_response(
             self.get_context_data(form=form, model_form=model_form)
         )
-        # return HttpResponseRedirect(self.get_success_url())
 
     def form_invalid(self, form, model_form):
+        # TODO: Can't save SignificantEvent instances
         # Overriden to support handling both invalid Change form and an invalid
         # destination model form
         messages.error(self.request, 'Unable to save.')
