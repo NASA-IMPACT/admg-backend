@@ -407,7 +407,7 @@ class CollectionPeriod(BaseModel):
 
     deployment = models.ForeignKey(Deployment, on_delete=models.CASCADE, related_name='collection_periods')
     platform = models.ForeignKey(Platform, on_delete=models.CASCADE, related_name='collection_periods')
-    home_base = models.ForeignKey(HomeBase, on_delete=models.CASCADE, related_name='collection_periods', null=True)
+    home_base = models.ForeignKey(HomeBase, on_delete=models.CASCADE, related_name='collection_periods', blank=True, null=True)
 
     asp_long_name = models.CharField(max_length=512, default='', blank=True)
     platform_identifier = models.CharField(max_length=128, default='', blank=True)
@@ -424,8 +424,10 @@ class CollectionPeriod(BaseModel):
     instruments = models.ManyToManyField(Instrument, related_name='collection_periods')
 
     def __str__(self):
-        # TODO: maybe come up with something better? dep_plat_uuid?
-        return str(self.uuid)
+        platform_id = f'({self.platform_identifier})' if self.platform_identifier else ''
+        campaign = str(self.deployment.campaign)
+        deployment = str(self.deployment).replace(campaign + '_', '')
+        return f'{campaign} | {deployment} | {self.platform} {platform_id}'
 
 
 class DOI(BaseModel):
