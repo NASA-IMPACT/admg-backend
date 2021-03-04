@@ -8,6 +8,7 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.db import models
 from django.forms import modelform_factory
 from django.http import HttpResponseRedirect
+from django.shortcuts import render
 from django.utils.safestring import mark_safe
 from django.views.generic.list import ListView
 from django.views.generic.detail import DetailView
@@ -123,24 +124,26 @@ class ChangeModelFormMixin(ModelFormMixin):
 class ChangeListView(ListView):
     model = Change
     paginate_by = 25
-    template_name = 'api_app/change_list.html'
+    template_name = "api_app/change_list.html"
 
     def get_queryset(self):
-        return Change.objects.filter(content_type__model='campaign').order_by(self.get_ordering())
+        return Change.objects.filter(content_type__model="campaign").order_by(
+            self.get_ordering()
+        )
 
     def get_ordering(self):
-        return self.request.GET.get('ordering', '-status')
+        return self.request.GET.get("ordering", "-status")
 
 
 class ChangeDetailView(DetailView):
     model = Change
-    template_name = 'api_app/change_detail.html'
+    template_name = "api_app/change_detail.html"
 
 
 class ChangeCreateView(CreateView, ChangeModelFormMixin):
     model = Change
     fields = ["content_type", "model_instance_uuid", "action", "update"]
-    template_name = 'api_app/change_add_form.html'
+    template_name = "api_app/change_add_form.html"
 
     def get_initial(self):
         # Get initial form values from URL
@@ -156,9 +159,9 @@ class ChangeCreateView(CreateView, ChangeModelFormMixin):
         )
 
     def get_model_form_intial(self):
-        # TODO: Not currently possible to handle reverse relationships such as adding 
+        # TODO: Not currently possible to handle reverse relationships such as adding
         # models to a CollectionPeriod where the FK is on the Collection Period
-        return {k: v for k,v in self.request.GET.dict().items() if k != 'uuid'}
+        return {k: v for k, v in self.request.GET.dict().items() if k != "uuid"}
 
 
 class ChangeUpdateView(UpdateView, ChangeModelFormMixin):
@@ -166,7 +169,7 @@ class ChangeUpdateView(UpdateView, ChangeModelFormMixin):
     fields = ["content_type", "model_instance_uuid", "action", "update", "status"]
 
     prefix = "change"
-    template_name = 'api_app/change_form.html'
+    template_name = "api_app/change_form.html"
 
     def get_queryset(self):
         # Prefetch content type for performance
@@ -200,3 +203,8 @@ def serialize(value):
     if isinstance(value, models.Model):
         return value.uuid
     return value
+
+
+def to_be_developed(request):
+    return render(request, "api_app/to_be_developed.html")
+
