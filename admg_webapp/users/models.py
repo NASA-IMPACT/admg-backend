@@ -19,10 +19,10 @@ class User(AbstractUser):
     user model for admg users
     """
 
-    # First Name and Last Name do not cover name patterns
-    # around the globe.
     id = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False, unique=True)
 
+    # First Name and Last Name do not cover name patterns
+    # around the globe.
     name = CharField(_("Name of User"), max_length=255)
     role = IntegerField(choices=AVAILABLE_ROLES, default=2)
 

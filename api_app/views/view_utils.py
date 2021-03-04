@@ -1,11 +1,10 @@
 import json
 
-from django.apps import apps
 from django.contrib.contenttypes.models import ContentType
 from django.http import JsonResponse
 from rest_framework.response import Response
 
-from ..models import CREATE, PATCH, UPDATE, Change
+from ..models import UPDATE, Change
 
 """
     Always use requires_admin_approval after handle_exception as it will catch the
@@ -24,8 +23,7 @@ def requires_admin_approval(model_name, action=UPDATE):
                 content_type=content_type,
                 update=request.data,
                 model_instance_uuid=kwargs.get("uuid"),
-                action=action,
-                user=request.user
+                action=action
             )
             change_object.save()
 
@@ -38,11 +36,45 @@ def requires_admin_approval(model_name, action=UPDATE):
     return outer_wrapper
 
 
+def extract_response_details(original_data):
+    """This function allows the extraction of the original message
+    and data so they can be used by the handle_exception wrapper instead
+    of being overwritten or left blank
+
+    Args:
+        original_data (dict/list): This should be a dict or a list
+
+    Returns:
+        success, message, data [bool, str, list]
+    """
+
+    # TODO: The way responses are handled across the entire applcation deserves to be reconsidered
+    # responses will be a dict either because they are custom and contain a message and success
+    # or because they are for a single UUID
+    if isinstance(original_data, dict):
+        # will execute when the response if for a single uuid
+        if original_data.get('uuid'):
+            data = original_data
+        # will execute when the response gave a custom dictionary
+        else:
+            data = original_data.get('data', [])
+
+        message = original_data.get('message', '')
+        success = original_data.get('success', True)
+    else:
+        data = original_data
+        message = ''
+        success = True
+
+    return success, message, data
+
+
 def handle_exception(function):
     """
     Decorator function for handing error and returning data in the required
     format
     """
+
     def wrapper(self, request, *args, **kwargs):
         data = []
         message = ""
@@ -50,8 +82,10 @@ def handle_exception(function):
         try:
             res = function(self, request, *args, **kwargs)
             if 300 >= res.status_code >= 200:
-                data = res.data
-        # TODO: change this to some custom exception
+                original_data = res.data
+                print(original_data)
+                success, message, data = extract_response_details(original_data)
+              
         except Exception as e:
             success = False
             try:

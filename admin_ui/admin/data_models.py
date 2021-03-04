@@ -5,6 +5,11 @@ from data_models import models
 from .base import EnforcedPermissions
 from .changeable import ChangeableAdmin
 
+class CampaignWebsiteInline(admin.TabularInline):
+    model = models.Campaign.websites.through
+    fields = ["website", "priority"]
+    ordering = ("priority",)
+
 
 @admin.register(models.PlatformType)
 class PlatformTypeAdmin(EnforcedPermissions):
@@ -72,6 +77,7 @@ class CampaignAdmin(EnforcedPermissions, ChangeableAdmin):
         "geophysical_concepts",
     )
 
+    inlines = [CampaignWebsiteInline, ] + ChangeableAdmin.inlines
 
 @admin.register(models.Instrument)
 class InstrumentAdmin(EnforcedPermissions, ChangeableAdmin):
@@ -104,6 +110,11 @@ class PartnerOrgAdmin(EnforcedPermissions, ChangeableAdmin):
     list_display = ("short_name", "long_name")
 
 
+@admin.register(models.CampaignWebsite)
+class CampaignWebsiteAdmin(EnforcedPermissions, ChangeableAdmin):
+    list_display = ["__str__", "campaign", "priority"]
+
+
 admin.site.register(models.GcmdProject, EnforcedPermissions)
 admin.site.register(models.GcmdInstrument, EnforcedPermissions)
 admin.site.register(models.GcmdPlatform, EnforcedPermissions)
@@ -112,3 +123,5 @@ admin.site.register(models.DOI, EnforcedPermissions)
 admin.site.register(models.CollectionPeriod, EnforcedPermissions)
 admin.site.register(models.Alias, EnforcedPermissions)
 admin.site.register(models.Image, EnforcedPermissions)
+admin.site.register(models.WebsiteType, EnforcedPermissions)
+admin.site.register(models.Website, EnforcedPermissions)
