@@ -257,19 +257,11 @@ class Campaign(DataModel):
 
     @property
     def significant_events(self):
-        return list(set([
-            event.uuid
-                for dep in self.deployments.all()
-                    for event in dep.significant_events.all()
-        ]))
+        return self.deployments.fetch_related().values_list('significant_events__uuid', flat=True).distinct()
 
     @property
     def iops(self):
-        return list(set([
-            iop.uuid
-                for dep in self.deployments.all()
-                    for iop in dep.iops.all()
-        ]))
+        return self.deployments.fetch_related().values_list('iops__uuid', flat=True).distinct()
 
     @property
     def number_deployments(self):
@@ -277,20 +269,11 @@ class Campaign(DataModel):
 
     @property
     def instruments(self):
-        return list(set([
-            inst.uuid
-                for dep in self.deployments.all()
-                    for collection_period in dep.collection_periods.all()
-                        for inst in collection_period.instruments.all()
-        ]))
+        return self.deployments.fetch_related().values_list('collection_periods__instruments__uuid', flat=True).distinct()
 
     @property
     def platforms(self):
-        return list(set([
-            collection_period.platform.uuid
-                for dep in self.deployments.all()
-                    for collection_period in dep.collection_periods.all()
-        ]))
+        return self.deployments.fetch_related().values_list('collection_periods__platform__uuid', flat=True).distinct()
 
     @staticmethod
     def search_fields():
@@ -317,15 +300,11 @@ class Platform(DataModel):
 
     @property
     def campaigns(self):
-        return list(set(collection_period.deployment.campaign.uuid for collection_period in self.collection_periods.all()))
+        return self.collection_periods.fetch_related().values_list('deployment__campaign__uuid', flat=True).distinct()
 
     @property
     def instruments(self):
-        return list(set(
-            inst.uuid
-                for collection_period in self.collection_periods.all()
-                    for inst in collection_period.instruments.all()
-        ))
+        return self.collection_periods.fetch_related().values_list('instruments', flat=True).distinct()
 
     @staticmethod
     def search_fields():
@@ -364,11 +343,11 @@ class Instrument(DataModel):
 
     @property
     def campaigns(self):
-        return list(set(collection_period.deployment.campaign.uuid for collection_period in self.collection_periods.all()))
+        return self.collection_periods.fetch_related().values_list('deployment__campaign__uuid', flat=True).distinct()
 
     @property
     def platforms(self):
-        return list(set(collection_period.platform.uuid for collection_period in self.collection_periods.all()))
+        return self.collection_periods.fetch_related().values_list('platform__uuid', flat=True).distinct()
 
 
 class Deployment(DataModel):
@@ -386,7 +365,8 @@ class Deployment(DataModel):
     geographical_regions = models.ManyToManyField(
         GeographicalRegion,
         related_name='deployments',
-        default='', blank=True
+        default='',
+        blank=True
         )
 
     def __str__(self):
@@ -394,7 +374,7 @@ class Deployment(DataModel):
 
     @property
     def platforms(self):
-        return list(set(collection_period.platform.uuid for collection_period in self.collection_periods.all()))
+        return self.collection_periods.fetch_related().values_list('platform__uuid', flat=True).distinct()
 
 
 class IopSe(BaseModel):
