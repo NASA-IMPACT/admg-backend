@@ -14,6 +14,7 @@ from django.utils.safestring import mark_safe
 from django.views.generic.list import ListView
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView, UpdateView, ModelFormMixin
+from django.db.models import Max
 from django.db.models.query import QuerySet
 from rest_framework.renderers import JSONRenderer
 import requests
@@ -125,8 +126,7 @@ class DraftTable(tables.Table):
     short_name = tables.LinkColumn(viewname='change-detail', args=[A('uuid')], verbose_name='Short Name', accessor="update__short_name")
     long_name = tables.Column(verbose_name='Long name', accessor="update__long_name")
     funding_agency = tables.Column(verbose_name='Funding Agency', accessor="update__funding_agency")
-    # TODO: could not find the information on last edited
-    updated_at = tables.Column(verbose_name='Last Edit Date', accessor="update__")
+    updated_at = tables.Column(verbose_name='Last Edit Date')
 
     class Meta:
         model = Change
@@ -138,7 +138,9 @@ class DraftListView(SingleTableView):
     template_name = 'api_app/change_list.html'
 
     def get_queryset(self):
-        return Change.objects.filter(content_type__model='campaign', action='Create')
+        return Change.objects.filter(
+            content_type__model='campaign', action='Create'
+        ).annotate(updated_at=Max('approvallog__date'))
 
 
 class ChangeListView(ListView):
