@@ -129,6 +129,10 @@ class ChangeTable(tables.Table):
     updated_at = tables.Column(verbose_name='Last Edit Date')
 
     class Meta:
+        attrs = {
+            "class": "table table-striped",
+            "thead": {"class": "thead-dark"}
+        }
         model = Change
         fields = ['short_name', 'long_name', 'funding_agency', 'updated_at']
 
