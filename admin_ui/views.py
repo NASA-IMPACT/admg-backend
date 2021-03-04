@@ -151,7 +151,7 @@ class SummaryTable(tables.Table):
 class ChangeSummaryView(SingleTableView):
     model = Change
     table_class = SummaryTable
-    paginate_by = 25
+    paginate_by = 10
     template_name = "api_app/summary.html"
 
     def get_queryset(self):
@@ -218,7 +218,6 @@ class ChangeListView(SingleTableView):
         return Change.objects.filter(
             content_type__model="campaign", action=CREATE
         ).annotate(updated_at=Max("approvallog__date"))
-
 
 
 class ChangeDetailView(DetailView):
