@@ -13,7 +13,7 @@
     </div>
     <div class="row">
         <div class="col">
-            <a href="" >View campaign details</button>
+            <a href="">View campaign details</a>
         </div>
     </div>
     <div class="row pt-4 pb-5">
@@ -25,11 +25,11 @@
 
 <div class="container-fluid">
     <div class="row pt-4">
-        <div class="col">
+        <div class="col p-0">
             <ul class="list-group">
-                {% for change in object_list %}
-                <li class="list-group-item">
-                  <a href="{% url 'change-detail' change.uuid %}"> {{ change }} </a>
+                {% for deployment in object_list %}
+                <li class="list-group-item deployment">
+                  {{ deployment }}
                 </li>
                 {% endfor %}
             </ul>
@@ -74,12 +74,116 @@
                 </ul>
             </nav>
         </div>
-        <div class="col">
-            Related items (should be filtered by the selected deployment)
-        </div>
+
+        <div class="col p-0">
+            <div id="accordion">
+              <div class="card">
+                <div class="card-header" id="significat-events-header">
+                  <h5 class="mb-0">
+                    <button
+                      class="btn btn-link"
+                      data-toggle="collapse"
+                      data-target="#significat-events"
+                      aria-expanded="false"
+                      aria-controls="significat-events"
+                    >
+                      Significant events
+                    </button>
+                  </h5>
+                </div>
+      
+                <div
+                  id="significat-events"
+                  class="collapse show"
+                  aria-labelledby="significat-events-header"
+                  data-parent="#accordion"
+                >
+                    <ul class="list-group">
+                      {% for event in significant_events %}
+                      <li class="list-group-item">
+                        <a href="{% url 'change-detail' change.uuid %}">
+                          {{ event }}
+                        </a>
+                      </li>
+                      {% endfor %}
+                    </ul>
+                </div>
+              </div>
+              <div class="card">
+                <div class="card-header" id="iops-header">
+                  <h5 class="mb-0">
+                    <button
+                      class="btn btn-link collapsed"
+                      data-toggle="collapse"
+                      data-target="#iops"
+                      aria-expanded="false"
+                      aria-controls="iops"
+                    >
+                      Iops
+                    </button>
+                  </h5>
+                </div>
+                <div
+                  id="iops"
+                  class="collapse"
+                  aria-labelledby="iops-header"
+                  data-parent="#accordion"
+                >
+                    <ul class="list-group">
+                        {% for change in object_list %}
+                        <li class="list-group-item">
+                        <a href="{% url 'change-detail' change.uuid %}">
+                            {{ change }}
+                        </a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+              </div>
+              <div class="card">
+                <div class="card-header" id="collection-periods-header">
+                  <h5 class="mb-0">
+                    <button
+                      class="btn btn-link collapsed"
+                      data-toggle="collapse"
+                      data-target="#collection-periods"
+                      aria-expanded="false"
+                      aria-controls="collection-periods"
+                    >
+                      CDPI
+                    </button>
+                  </h5>
+                </div>
+                <div
+                  id="collection-periods"
+                  class="collapse"
+                  aria-labelledby="collection-periods-header"
+                  data-parent="#accordion"
+                >
+                    <ul class="list-group">
+                        {% for period in collection_periods %}
+                        <li class="list-group-item">
+                            {{ period }}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+              </div>
+            </div>
+          </div>
     </div>
 </div>
 
 {% endblock %}
 
 {% related_changes change %}
+
+{% block javascript %}
+{{ block.super }}
+<script>
+
+$(".deployment")
+
+
+</script>
+{% endblock %}

@@ -12,7 +12,7 @@ from django.forms import modelform_factory
 from django.http import HttpResponseRedirect
 from django.utils.safestring import mark_safe
 from django.views.generic.list import ListView
-from django.views.generic.detail import DetailView
+from django.views.generic.detail import DetailView, SingleObjectMixin
 from django.views.generic.edit import CreateView, UpdateView, ModelFormMixin
 from django.db.models import Max
 from django.db.models.query import QuerySet
@@ -148,13 +148,42 @@ class ChangeListView(SingleTableView):
         ).annotate(updated_at=Max("approvallog__date"))
 
 
-class ChangeDetailView(ListView):
+class ChangeDetailView(ListView, SingleObjectMixin):
     model = Change
     paginate_by = 25
     template_name = 'api_app/change_detail.html'
 
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object(queryset=Change.objects.all())
+        return super().get(request, *args, **kwargs)
+
     def get_queryset(self):
-        return Change.objects.filter(content_type__model='deployment').order_by(self.get_ordering())
+        return Change.objects.filter(
+            content_type__model='deployment', update__campaign=str(self.kwargs[self.pk_url_kwarg])
+        ).order_by(self.get_ordering())
+
+    def get_context_data(self, **kwargs):
+        return {
+            **super().get_context_data(**kwargs),
+            "significant_events": Change.objects.select_related("content_type").filter(
+                content_type__model__iexact="significantevent",
+                update__deployment__in=[
+                    str(d.uuid) for d in self.object_list
+                ],
+            ),
+            "iops": Change.objects.select_related("content_type").filter(
+                content_type__model__iexact="iop",
+                update__deployment__in=[
+                    str(d.uuid) for d in self.object_list
+                ],
+            ),
+            "collection_periods": Change.objects.select_related("content_type").filter(
+                content_type__model__iexact="collectionperiod",
+                update__deployment__in=[
+                    str(d.uuid) for d in self.object_list
+                ],
+            )
+        }
 
     def get_ordering(self):
         return self.request.GET.get('ordering', '-status')
