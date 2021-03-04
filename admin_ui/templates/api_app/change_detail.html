@@ -3,6 +3,7 @@
 
 {% block page %}
     <h1>{{ change }}</h1>
+    <a href="{% url 'change-form' change.uuid %}">Edit this Campaign</a>
 
     <p>This is the view where we see an overview of a Campaign Group</p>
 
