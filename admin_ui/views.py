@@ -123,10 +123,10 @@ class ChangeModelFormMixin(ModelFormMixin):
 
 
 class ChangeTable(tables.Table):
-    short_name = tables.LinkColumn(viewname='change-detail', args=[A('uuid')], verbose_name='Short Name', accessor="update__short_name")
-    long_name = tables.Column(verbose_name='Long name', accessor="update__long_name")
-    funding_agency = tables.Column(verbose_name='Funding Agency', accessor="update__funding_agency")
-    updated_at = tables.Column(verbose_name='Last Edit Date')
+    short_name = tables.LinkColumn(viewname="change-detail", args=[A("uuid")], verbose_name="Short Name", accessor="update__short_name")
+    long_name = tables.Column(verbose_name="Long name", accessor="update__long_name")
+    funding_agency = tables.Column(verbose_name="Funding Agency", accessor="update__funding_agency")
+    updated_at = tables.Column(verbose_name="Last Edit Date")
 
     class Meta:
         attrs = {
@@ -134,7 +134,7 @@ class ChangeTable(tables.Table):
             "thead": {"class": "thead-dark"}
         }
         model = Change
-        fields = ['short_name', 'long_name', 'funding_agency', 'updated_at']
+        fields = ["short_name", "long_name", "funding_agency", "updated_at"]
 
 
 class ChangeListView(SingleTableView):
@@ -144,13 +144,32 @@ class ChangeListView(SingleTableView):
 
     def get_queryset(self):
         return Change.objects.filter(
-            content_type__model='campaign', action='Create'
-        ).annotate(updated_at=Max('approvallog__date'))
+            content_type__model="campaign", action=CREATE
+        ).annotate(updated_at=Max("approvallog__date"))
 
 
-class ChangeDetailView(DetailView):
+class RelatedDeploymentsTable(tables.Table):
+    deployments = tables.Column(verbose_name="Deployments")
+    status = tables.Column(verbose_name="Status", accessor="update__status")
+
+    class Meta:
+        attrs = {
+            "class": "table table-striped",
+            "thead": {"class": "thead-dark"}
+        }
+        model = Change
+        fields=["deployments", "status", "updated_at"]
+
+
+class ChangeDetailView(SingleTableView):
     model = Change
+    table_class = RelatedDeploymentsTable
     template_name = 'api_app/change_detail.html'
+
+    def get_queryset(self):
+        return Change.objects.filter(
+            content_type__model="deployment", action=CREATE
+        ).annotate(updated_at=Max("approvallog__date"))
 
 
 class ChangeCreateView(CreateView, ChangeModelFormMixin):
