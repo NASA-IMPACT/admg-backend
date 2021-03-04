@@ -7,22 +7,49 @@
 <div class="container-fluid">
   <div class="row mt-4 mb-5">
     <div class="col-auto mr-auto">
-      <h3>Draft Counts</h3>
-      <ul>
-        <li>
-          Campaigns: {{ published_counts.campaign }}
-        </li>
-        <li>
-          Deployments: {{ change_counts.deployment }}
-        </li>
-        <li>
-          Platforms: {{ change_counts.platform }}
-        </li>
-        <li>
-          Instruments: {{ change_counts.instrument }}
-        </li>
-      </ul>
-      <h3>Published Counts</h3>
+      <div class="row">
+        <div class="col card" style="min-width:12rem; margin-right:6px;">
+          <div class="card-body" style="padding:.3rem;">
+            <small class="text-uppercase" style="font-weight: bold;">
+              Campaigns: 
+            </small>
+            <p style="font-size:x-large; font-weight: bold; margin-bottom: 0;">
+              {{ published_counts.campaign }}
+            </p>
+          </div>
+        </div>
+        <div class="col card" style="min-width:12rem; margin-right: 6px;">
+          <div class="card-body" style="padding:.3rem;">
+            <small class="text-uppercase" style="font-weight: bold;">
+              Deployments: 
+            </small>
+            <p style="font-size:x-large; font-weight: bold; margin-bottom: 0;">
+              {{ change_counts.deployment }}
+            </p>
+          </div>
+        </div>
+        <div class="col card" style="min-width:12rem; margin-right: 6px;">
+          <div class="card-body" style="padding:.3rem;">
+            <small class="text-uppercase" style="font-weight: bold;">
+              Platforms: 
+            </small>
+            <p style="font-size:x-large; font-weight: bold; margin-bottom: 0;">
+              {{ change_counts.platform }}
+            </p>
+          </div>
+        </div>
+        <div class="col card" style="min-width:12rem;">
+          <div class="card-body" style="padding:.3rem;">
+            <small class="text-uppercase" style="font-weight: bold;">
+              Instruments: 
+            </small>
+            <p style="font-size:x-large; font-weight: bold; margin-bottom: 0;">
+              {{ change_counts.instrument }}
+            </p>
+          </div>
+        </div>
+      </div>
+      <!-- <h3>Published Counts</h3>
         <ul>
           <li>
             Campaigns: {{ published_counts.campaign }}
@@ -36,7 +63,7 @@
           <li>
             Instruments: {{ published_counts.instrument }}
           </li>
-        </ul> 
+        </ul>  -->
     </div>
     <div class="col-auto">
       <a class="btn btn-primary" href="/admin/drafts/add/campaign">Add new campaign + </a>
