@@ -65,7 +65,7 @@
                     {% endfor %}
 
                     {% if page_obj.has_next %}
-                    <li class="page-item">
+                    <li class=" page-item">
                             <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next &rang;</a>
                     </li>
                     <li class="page-item">
@@ -79,20 +79,21 @@
         <div class="col p-0">
             <div id="accordion">
                 <div class="card">
-                    <div class="card-header" id="significat-events-header">
+                    <div class="card-header" id="significant-events-header">
                         <h5 class="mb-0">
-                            <button class="btn btn-link" data-toggle="collapse" data-target="#significat-events"
-                                aria-expanded="false" aria-controls="significat-events">
+                            <button class="btn btn-link" data-toggle="collapse" data-target="#significant-events"
+                                aria-expanded="false" aria-controls="significant-events">
                                 Significant events
                             </button>
                         </h5>
                     </div>
 
-                    <div id="significat-events" class="collapse show" aria-labelledby="significat-events-header"
+                    <div id="significant-events" class="collapse show" aria-labelledby="significant-events-header"
                         data-parent="#accordion">
                         <ul class="list-group">
                             {% for event in significant_events %}
-                            <li class="list-group-item deployment-child" data-deployment="{{ event.update.deployment }}">
+                            <li class="list-group-item deployment-child"
+                                data-deployment="{{ event.update.deployment }}">
                                 <a href="{% url 'change-form' event.uuid %}">
                                     {{ event }}
                                 </a>
@@ -128,7 +129,7 @@
                             <button class="btn btn-link collapsed" data-toggle="collapse"
                                 data-target="#collection-periods" aria-expanded="false"
                                 aria-controls="collection-periods">
-                                CDPI
+                                CDPIs
                             </button>
                         </h5>
                     </div>
@@ -136,7 +137,8 @@
                         data-parent="#accordion">
                         <ul class="list-group">
                             {% for period in collection_periods %}
-                            <li class="list-group-item deployment-child" data-deployment="{{ period.update.deployment }}">
+                            <li class="list-group-item deployment-child"
+                                data-deployment="{{ period.update.deployment }}">
                                 <a href="{% url 'change-form' period.uuid %}">
                                     {{ period }}
                                 </a>
@@ -157,18 +159,30 @@
 {% block javascript %}
 {{ block.super }}
 <script>
-    $('.deployment-child').hide();
     $(".deployment").click(function () {
         // Mark as active
         $('.deployment').removeClass('active');
         $(this).addClass('active');
 
-        // Display Children
+        // Display children
         var childLookup = '[data-deployment=' + $(this).attr('data-id') + ']';
         $('.deployment-child:not(' + childLookup + ')').hide();
         $('.deployment-child' + childLookup).show();
+
+        // Update accordian buttons
+        ['significant-events', 'iops', 'collection-periods'].forEach(function (value) {
+            var headerId = '#' + value + '-header';
+            var count = $('#' + value + ' li' + childLookup).length;
+            $(headerId + ' button').text(
+                $(headerId)
+                    .text()
+                    .replace(/ \(.*\)/g, "") // Rm current count if present
+                    + ' (' + count + ')'
+            );
+        })
     })
 
-
+    // Select first
+    $('.deployment:first').click() 
 </script>
 {% endblock %}
