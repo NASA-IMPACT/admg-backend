@@ -30,6 +30,7 @@
                 {% for deployment in object_list %}
                 <li class="list-group-item deployment" data-id="{{ deployment.uuid }}">
                     {{ deployment }}
+                    <a href="{% url 'change-form' deployment.uuid %}">(link)</a>
                 </li>
                 {% endfor %}
             </ul>
@@ -156,7 +157,7 @@
 {% block javascript %}
 {{ block.super }}
 <script>
-
+    $('.deployment-child').hide();
     $(".deployment").click(function () {
         // Mark as active
         $('.deployment').removeClass('active');
