@@ -11,6 +11,7 @@ from django.db import models
 from django.db.models.aggregates import Count, Max
 from django.forms import modelform_factory
 from django.http import HttpResponseRedirect
+from django.shortcuts import render
 from django.utils.safestring import mark_safe
 from django.views.generic.list import ListView
 from django.views.generic.detail import DetailView
@@ -288,3 +289,8 @@ def serialize(value):
     if isinstance(value, models.Model):
         return value.uuid
     return value
+
+
+def to_be_developed(request):
+    return render(request, "api_app/to_be_developed.html")
+
