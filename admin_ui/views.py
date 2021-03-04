@@ -10,6 +10,7 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.db import models
 from django.forms import modelform_factory
 from django.http import HttpResponseRedirect
+from django.shortcuts import render
 from django.utils.safestring import mark_safe
 from django.views.generic.list import ListView
 from django.views.generic.detail import DetailView
@@ -178,9 +179,9 @@ class ChangeCreateView(CreateView, ChangeModelFormMixin):
         )
 
     def get_model_form_intial(self):
-        # TODO: Not currently possible to handle reverse relationships such as adding 
+        # TODO: Not currently possible to handle reverse relationships such as adding
         # models to a CollectionPeriod where the FK is on the Collection Period
-        return {k: v for k,v in self.request.GET.dict().items() if k != 'uuid'}
+        return {k: v for k, v in self.request.GET.dict().items() if k != "uuid"}
 
 
 class ChangeUpdateView(UpdateView, ChangeModelFormMixin):
@@ -222,3 +223,8 @@ def serialize(value):
     if isinstance(value, models.Model):
         return value.uuid
     return value
+
+
+def to_be_developed(request):
+    return render(request, "api_app/to_be_developed.html")
+
