@@ -62,7 +62,7 @@ class GetAliasSerializer(BaseSerializer):
     aliases = serializers.SerializerMethodField(read_only=True)
 
     def get_aliases(self, obj):
-        return [alias.uuid for alias in obj.aliases.all()]
+        return get_uuids(obj.aliases)
 
 class GetDoiSerializer(BaseSerializer):
     dois = serializers.SerializerMethodField(read_only=True)    
@@ -317,7 +317,7 @@ class PlatformSerializer(GetAliasSerializer, GetDoiSerializer):
     campaigns = serializers.ListField(read_only=True)
 
     def get_collection_periods(self, obj):
-        return get_uuids(obj.collection_periods) 
+        return get_uuids(obj.collection_periods)
 
     class Meta:
         model = models.Platform
