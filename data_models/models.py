@@ -15,10 +15,11 @@ def fetch_related_distinct_data(queryset, related_data_string):
 
     Args:
         queryset (QuerySet): A queryset of related objects. E.g. my_campaign.deployments
-        related_data_string (str): Django-formatted string of related data E.g. instrument__uuid
+        related_data_string (str): Django-formatted string of related data. E.g. instrument__uuid
     """
 
     return queryset.fetch_related().values_list(related_data_string, flat=True).distinct()
+
 
 class BaseModel(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False, unique=True)
