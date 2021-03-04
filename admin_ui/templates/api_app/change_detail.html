@@ -28,7 +28,7 @@
         <div class="col p-0">
             <ul class="list-group">
                 {% for deployment in object_list %}
-                <li class="list-group-item list-group-item-action deployment" data-id="{{ deployment.uuid }}">
+                <li class="list-group-item list-group-item-action deployment cursor-pointer" data-id="{{ deployment.uuid }}">
                     {{ deployment }}
                     <a href="{% url 'change-form' deployment.uuid %}">(link)</a>
                 </li>
