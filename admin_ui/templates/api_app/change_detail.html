@@ -28,7 +28,7 @@
         <div class="col p-0">
             <ul class="list-group">
                 {% for deployment in object_list %}
-                <li class="list-group-item deployment">
+                <li class="list-group-item deployment" data-id="{{ deployment.uuid }}">
                     {{ deployment }}
                 </li>
                 {% endfor %}
@@ -64,8 +64,8 @@
                     {% endfor %}
 
                     {% if page_obj.has_next %}
-                    <li class=" page-item">
-                        <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next &rang;</a>
+                    <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next &rang;</a>
                     </li>
                     <li class="page-item">
                         <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last &rang;&rang;</a>
@@ -91,8 +91,8 @@
                         data-parent="#accordion">
                         <ul class="list-group">
                             {% for event in significant_events %}
-                            <li class="list-group-item">
-                                <a href="{% url 'change-detail' change.uuid %}">
+                            <li class="list-group-item deployment-child" data-deployment="{{ event.update.deployment }}">
+                                <a href="{% url 'change-form' event.uuid %}">
                                     {{ event }}
                                 </a>
                             </li>
@@ -111,10 +111,10 @@
                     </div>
                     <div id="iops" class="collapse" aria-labelledby="iops-header" data-parent="#accordion">
                         <ul class="list-group">
-                            {% for change in object_list %}
-                            <li class="list-group-item">
-                                <a href="{% url 'change-detail' change.uuid %}">
-                                    {{ change }}
+                            {% for iop in iops %}
+                            <li class="list-group-item deployment-child" data-deployment="{{ iop.update.deployment }}">
+                                <a href="{% url 'change-form' iop.uuid %}">
+                                    {{ iop }}
                                 </a>
                             </li>
                             {% endfor %}
@@ -135,8 +135,10 @@
                         data-parent="#accordion">
                         <ul class="list-group">
                             {% for period in collection_periods %}
-                            <li class="list-group-item">
-                                {{ period }}
+                            <li class="list-group-item deployment-child" data-deployment="{{ period.update.deployment }}">
+                                <a href="{% url 'change-form' period.uuid %}">
+                                    {{ period }}
+                                </a>
                             </li>
                             {% endfor %}
                         </ul>
@@ -155,7 +157,16 @@
 {{ block.super }}
 <script>
 
-    $(".deployment")
+    $(".deployment").click(function () {
+        // Mark as active
+        $('.deployment').removeClass('active');
+        $(this).addClass('active');
+
+        // Display Children
+        var childLookup = '[data-deployment=' + $(this).attr('data-id') + ']';
+        $('.deployment-child:not(' + childLookup + ')').hide();
+        $('.deployment-child' + childLookup).show();
+    })
 
 
 </script>
