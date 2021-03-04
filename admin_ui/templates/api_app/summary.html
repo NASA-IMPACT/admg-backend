@@ -1,50 +1,53 @@
 {% extends "api_app/base.html" %}
+{% load render_table from django_tables2 %}
 {% load humanize %}
 
 {% block page %}
 
-<h3>Draft Counts</h3>
-<ul>
-  <li>
-    Campaigns: {{ change_counts.campaign }}
-  </li>
-  <li>
-    Deployments: {{ change_counts.deployment }}
-  </li>
-  <li>
-    Platforms: {{ change_counts.platform }}
-  </li>
-  <li>
-    Instruments: {{ change_counts.instrument }}
-  </li>
-</ul>
-
-<h3>Published Counts</h3>
-<ul>
-  <li>
-    Campaigns: {{ published_counts.campaign }}
-  </li>
-  <li>
-    Deployments: {{ published_counts.deployment }}
-  </li>
-  <li>
-    Platforms: {{ published_counts.platform }}
-  </li>
-  <li>
-    Instruments: {{ published_counts.instrument }}
-  </li>
-</ul>
+<div class="container-fluid">
+  <div class="row mt-4 mb-5">
+    <div class="col-auto mr-auto">
+      <h3>Draft Counts</h3>
+      <ul>
+        <li>
+          Campaigns: {{ published_counts.campaign }}
+        </li>
+        <li>
+          Deployments: {{ change_counts.deployment }}
+        </li>
+        <li>
+          Platforms: {{ change_counts.platform }}
+        </li>
+        <li>
+          Instruments: {{ change_counts.instrument }}
+        </li>
+      </ul>
+      <h3>Published Counts</h3>
+        <ul>
+          <li>
+            Campaigns: {{ published_counts.campaign }}
+          </li>
+          <li>
+            Deployments: {{ published_counts.deployment }}
+          </li>
+          <li>
+            Platforms: {{ published_counts.platform }}
+          </li>
+          <li>
+            Instruments: {{ published_counts.instrument }}
+          </li>
+        </ul> 
+    </div>
+    <div class="col-auto">
+      <a class="btn btn-primary" href="/admin/drafts/add/campaign">Add new campaign + </a>
+    </div>
+  </div>
+</div>
 
 <h3>Recent Draft Campaigns</h3>
-<ul>
-  {% for change in change_list %}
-  <li>
-    <a href="{% url 'change-detail' change.uuid %}">
-      {% firstof change.update.short_name change.update.long_name change.uuid %}
-    </a>
-  </li>
-  {% endfor %}
-</ul>
+<div class="container-fluid">
+  {% render_table table %}
+</div>
 
 <h3>Recent Activities</h3>
 <ul>

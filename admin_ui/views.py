@@ -1,5 +1,7 @@
 import json
 from typing import Union
+import django_tables2 as tables
+from django_tables2 import SingleTableView, A
 
 from django.conf import settings
 from django.contrib import messages
@@ -122,8 +124,32 @@ class ChangeModelFormMixin(ModelFormMixin):
         )
 
 
-class ChangeSummaryView(ListView):
+class SummaryTable(tables.Table):
+    name = tables.LinkColumn(
+        viewname="change-detail",
+        args=[A("uuid")],
+        verbose_name="Name",
+        accessor="update__short_name",
+    )
+    short_name = tables.Column(
+        verbose_name="Campaign",
+        accessor="update__short_name",
+    )
+    content_type__model = tables.Column(
+        verbose_name="Model Type", accessor="content_type__model"
+    )
+    updated_at = tables.Column(verbose_name="Last Edit Date")
+    status = tables.Column(verbose_name="Status", accessor="status")
+
+    class Meta:
+        attrs = {"class": "table table-striped", "thead": {"class": "thead-dark"}}
+        model = Change
+        fields = ["name", "content_type__model", "updated_at", "short_name", "status"]
+
+
+class ChangeSummaryView(SingleTableView):
     model = Change
+    table_class = SummaryTable
     paginate_by = 25
     template_name = "api_app/summary.html"
 
