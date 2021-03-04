@@ -121,42 +121,46 @@ class ChangeModelFormMixin(ModelFormMixin):
         )
 
 
-
 class ChangeTable(tables.Table):
-    short_name = tables.LinkColumn(viewname='change-detail', args=[A('uuid')], verbose_name='Short Name', accessor="update__short_name")
-    long_name = tables.Column(verbose_name='Long name', accessor="update__long_name")
-    funding_agency = tables.Column(verbose_name='Funding Agency', accessor="update__funding_agency")
-    updated_at = tables.Column(verbose_name='Last Edit Date')
+    short_name = tables.LinkColumn(
+        viewname="change-detail",
+        args=[A("uuid")],
+        verbose_name="Short Name",
+        accessor="update__short_name",
+    )
+    long_name = tables.Column(verbose_name="Long name", accessor="update__long_name")
+    status = tables.Column(verbose_name="Status", accessor="status")
+    funding_agency = tables.Column(
+        verbose_name="Funding Agency", accessor="update__funding_agency"
+    )
+    updated_at = tables.Column(verbose_name="Last Edit Date")
 
     class Meta:
-        attrs = {
-            "class": "table table-striped",
-            "thead": {"class": "thead-dark"}
-        }
+        attrs = {"class": "table table-striped", "thead": {"class": "thead-dark"}}
         model = Change
-        fields = ['short_name', 'long_name', 'funding_agency', 'updated_at']
+        fields = ["short_name", "long_name", "funding_agency", "status", "updated_at"]
 
 
 class ChangeListView(SingleTableView):
     model = Change
     table_class = ChangeTable
-    template_name = 'api_app/change_list.html'
+    template_name = "api_app/change_list.html"
 
     def get_queryset(self):
         return Change.objects.filter(
-            content_type__model='campaign', action='Create'
-        ).annotate(updated_at=Max('approvallog__date'))
+            content_type__model="campaign", action="Create"
+        ).annotate(updated_at=Max("approvallog__date"))
 
 
 class ChangeDetailView(DetailView):
     model = Change
-    template_name = 'api_app/change_detail.html'
+    template_name = "api_app/change_detail.html"
 
 
 class ChangeCreateView(CreateView, ChangeModelFormMixin):
     model = Change
     fields = ["content_type", "model_instance_uuid", "action", "update"]
-    template_name = 'api_app/change_add_form.html'
+    template_name = "api_app/change_add_form.html"
 
     def get_initial(self):
         # TODO: given self.request.GET.get('parent'), determine correct initial data for each content_type
@@ -178,7 +182,7 @@ class ChangeUpdateView(UpdateView, ChangeModelFormMixin):
     fields = ["content_type", "model_instance_uuid", "action", "update", "status"]
 
     prefix = "change"
-    template_name = 'api_app/change_form.html'
+    template_name = "api_app/change_form.html"
 
     def get_queryset(self):
         # Prefetch content type for performance
