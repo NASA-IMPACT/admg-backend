@@ -148,28 +148,16 @@ class ChangeListView(SingleTableView):
         ).annotate(updated_at=Max("approvallog__date"))
 
 
-class RelatedDeploymentsTable(tables.Table):
-    deployments = tables.Column(verbose_name="Deployments")
-    status = tables.Column(verbose_name="Status", accessor="update__status")
-
-    class Meta:
-        attrs = {
-            "class": "table table-striped",
-            "thead": {"class": "thead-dark"}
-        }
-        model = Change
-        fields=["deployments", "status", "updated_at"]
-
-
-class ChangeDetailView(SingleTableView):
+class ChangeDetailView(ListView):
     model = Change
-    table_class = RelatedDeploymentsTable
+    paginate_by = 25
     template_name = 'api_app/change_detail.html'
 
     def get_queryset(self):
-        return Change.objects.filter(
-            content_type__model="deployment", action=CREATE
-        ).annotate(updated_at=Max("approvallog__date"))
+        return Change.objects.filter(content_type__model='deployment').order_by(self.get_ordering())
+
+    def get_ordering(self):
+        return self.request.GET.get('ordering', '-status')
 
 
 class ChangeCreateView(CreateView, ChangeModelFormMixin):

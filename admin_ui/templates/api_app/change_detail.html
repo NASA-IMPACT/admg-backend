@@ -1,6 +1,5 @@
 {% extends "api_app/base.html" %}
 {% load change_extras %}
-{% load render_table from django_tables2 %}
 
 {% block content %}
 <div class="container-fluid">
@@ -27,7 +26,53 @@
 <div class="container-fluid">
     <div class="row pt-4">
         <div class="col">
-            {% render_table table %}
+            <ul class="list-group">
+                {% for change in object_list %}
+                <li class="list-group-item">
+                  <a href="{% url 'change-detail' change.uuid %}"> {{ change }} </a>
+                </li>
+                {% endfor %}
+            </ul>
+
+            <nav aria-label="Navigate list of deployments" class="mt-5">
+                <ul class="pagination">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1">&lang;&lang;  First</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}">&lang; Previous</a>
+                    </li>
+                    {% endif %}
+
+                    {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                    <li class="page-item active">
+                        <span class="page-link">
+                            {{ num }}
+                            <span class="sr-only">(current)</span>
+                        </span>
+                    </li>
+                    {% else %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{num}}"">
+                            {{ num }}
+                        </a>
+                    </li>
+                    {% endif %}
+
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next &rang;</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last &rang;&rang;</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
         </div>
         <div class="col">
             Related items (should be filtered by the selected deployment)
