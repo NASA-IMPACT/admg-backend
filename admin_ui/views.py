@@ -122,7 +122,7 @@ class ChangeModelFormMixin(ModelFormMixin):
 
 
 
-class DraftTable(tables.Table):
+class ChangeTable(tables.Table):
     short_name = tables.LinkColumn(viewname='change-detail', args=[A('uuid')], verbose_name='Short Name', accessor="update__short_name")
     long_name = tables.Column(verbose_name='Long name', accessor="update__long_name")
     funding_agency = tables.Column(verbose_name='Funding Agency', accessor="update__funding_agency")
@@ -132,27 +132,16 @@ class DraftTable(tables.Table):
         model = Change
         fields = ['short_name', 'long_name', 'funding_agency', 'updated_at']
 
-class DraftListView(SingleTableView):
+
+class ChangeListView(SingleTableView):
     model = Change
-    table_class = DraftTable
+    table_class = ChangeTable
     template_name = 'api_app/change_list.html'
 
     def get_queryset(self):
         return Change.objects.filter(
             content_type__model='campaign', action='Create'
         ).annotate(updated_at=Max('approvallog__date'))
-
-
-class ChangeListView(ListView):
-    model = Change
-    paginate_by = 25
-    template_name = 'api_app/change_list.html'
-
-    def get_queryset(self):
-        return Change.objects.filter(content_type__model='campaign').order_by(self.get_ordering())
-
-    def get_ordering(self):
-        return self.request.GET.get('ordering', '-status')
 
 
 class ChangeDetailView(DetailView):
