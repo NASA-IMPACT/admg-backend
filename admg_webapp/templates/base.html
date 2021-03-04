@@ -47,9 +47,6 @@
         <a class="navbar-brand" href="{% url 'home' %}">NASA | CASEI STAFF</a>
         {% endif %}
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
-          {% if request.user.is_authenticated %}
-          <span> Welcome, {{request.user.username |title }}.</span>
-          {% endif %}
           <ul class="navbar-nav mr-auto">
             <li class="nav-item">
               <a class="nav-link" href="https://airborne-inventory.surge.sh/">View Site</a>
