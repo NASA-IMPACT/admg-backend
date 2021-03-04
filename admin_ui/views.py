@@ -8,6 +8,7 @@ from django.contrib import messages
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.db import models
+from django.db.models.aggregates import Count, Max
 from django.forms import modelform_factory
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
@@ -20,7 +21,8 @@ from django.db.models.query import QuerySet
 from rest_framework.renderers import JSONRenderer
 import requests
 
-from api_app.models import Change, CREATE, UPDATE, PUBLISHED_CODE
+from api_app.models import ApprovalLog, Change, CREATE, UPDATE, PUBLISHED_CODE
+from data_models.models import Campaign, Instrument, Platform, Deployment
 
 
 @login_required
@@ -124,6 +126,70 @@ class ChangeModelFormMixin(ModelFormMixin):
         )
 
 
+class SummaryTable(tables.Table):
+    name = tables.LinkColumn(
+        viewname="change-detail",
+        args=[A("uuid")],
+        verbose_name="Name",
+        accessor="update__short_name",
+    )
+    short_name = tables.Column(
+        verbose_name="Campaign",
+        accessor="update__short_name",
+    )
+    content_type__model = tables.Column(
+        verbose_name="Model Type", accessor="content_type__model"
+    )
+    updated_at = tables.Column(verbose_name="Last Edit Date")
+    status = tables.Column(verbose_name="Status", accessor="status")
+
+    class Meta:
+        attrs = {"class": "table table-striped", "thead": {"class": "thead-dark"}}
+        model = Change
+        fields = ["name", "content_type__model", "updated_at", "short_name", "status"]
+
+
+class ChangeSummaryView(SingleTableView):
+    model = Change
+    table_class = SummaryTable
+    paginate_by = 10
+    template_name = "api_app/summary.html"
+
+    def get_queryset(self):
+        return (
+            Change.objects.filter(content_type__model="campaign", action=CREATE)
+            .annotate(updated_at=Max("approvallog__date"))
+            .order_by("-updated_at")
+        )
+
+    def get_context_data(self, **kwargs):
+        return {
+            **super().get_context_data(**kwargs),
+            "change_counts": {
+                k: v
+                for (k, v) in Change.objects.filter(
+                    action=CREATE,
+                    content_type__model__in=[
+                        "campaign",
+                        "deployment",
+                        "instrument",
+                        "platform",
+                    ],
+                )
+                .exclude(status=PUBLISHED_CODE)
+                .values_list("content_type__model")
+                .annotate(total=Count("content_type"))
+            },
+            "published_counts": {
+                Model.__name__.lower(): Model.objects.count()
+                for Model in [Campaign, Deployment, Instrument, Platform]
+            },
+            "activity_list": ApprovalLog.objects.prefetch_related(
+                "change__content_type"
+            ).order_by("-date")[: self.paginate_by],
+        }
+
+
 class ChangeTable(tables.Table):
     short_name = tables.LinkColumn(
         viewname="change-detail",
@@ -151,7 +217,7 @@ class ChangeListView(SingleTableView):
 
     def get_queryset(self):
         return Change.objects.filter(
-            content_type__model="campaign", action="Create"
+            content_type__model="campaign", action=CREATE
         ).annotate(updated_at=Max("approvallog__date"))
 
 
