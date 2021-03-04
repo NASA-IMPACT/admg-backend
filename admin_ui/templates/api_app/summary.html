@@ -61,23 +61,33 @@
   </div>
 </div>
 
-<h3>My Drafts</h3>
-<div class="container-fluid">
-  {% render_table table %}
+<div class="row">
+  <div class="col-8">
+    <h3>My Drafts</h3>
+    <div class="container-fluid">
+      {% render_table table %}
+    </div>
+  </div>
+  
+  <div class="col-4">
+    <h3>Inventory Activities</h3>
+    <div class="card" style="width: 20rem;">
+      <ul class="list-group list-group-flush">
+        {% for activity in activity_list %}
+        <li class="list-group-item">
+          <a href="{% url 'change-form' activity.change.uuid %}">
+            {{ activity.change.model_name }}
+            {% firstof activity.change.update.short_name activity.change.update.long_name activity.change.uuid %}
+          </a>
+          <br/>
+          <span style="font-weight: bold;">{{ activity.get_action_display }}</span>
+          <br/>
+          <span title={{ activity.date|date:"c" }}>{{ activity.date | naturaltime }}</span>
+          {% if activity.user %} by {{ activity.user }}{% endif %}
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
 </div>
-
-<h3>Recent Activities</h3>
-<ul>
-  {% for activity in activity_list %}
-  <li>
-    <span title={{ activity.date|date:"c" }}>{{ activity.date | naturaltime }}</span>:
-    {{ activity.get_action_display }}
-    <a href="{% url 'change-form' activity.change.uuid %}">
-      {{ activity.change.model_name }}
-      {% firstof activity.change.update.short_name activity.change.update.long_name activity.change.uuid %}
-    </a>
-    {% if activity.user %} by {{ activity.user }}{% endif %}
-  </li>
-  {% endfor %}
-</ul>
 {% endblock %}
