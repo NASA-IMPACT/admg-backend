@@ -93,6 +93,8 @@ class ChangeModelFormMixin(ModelFormMixin):
         BaseModelForm = self.destination_model_form
 
         class ModelForm(BaseModelForm):
+            # TODO: This may be a mistake, I don't know if we ever want to actually ignore validation errors.
+            # Instead, we still may want to save the form but also render the validation errors.
             def validate_unique(_self):
                 # We don't want to raise errors on unique errors for the
                 # destination model unless this is a "Create" change
@@ -163,7 +165,6 @@ class ChangeCreateView(CreateView, ChangeModelFormMixin):
     template_name = "api_app/change_add_form.html"
 
     def get_initial(self):
-        # TODO: given self.request.GET.get('parent'), determine correct initial data for each content_type
         # Get initial form values from URL
         return {
             "content_type": self.get_model_form_content_type().id,
@@ -175,6 +176,11 @@ class ChangeCreateView(CreateView, ChangeModelFormMixin):
         return ContentType.objects.get(
             app_label="data_models", model__iexact=self.kwargs["model"]
         )
+
+    def get_model_form_intial(self):
+        # TODO: Not currently possible to handle reverse relationships such as adding 
+        # models to a CollectionPeriod where the FK is on the Collection Period
+        return {k: v for k,v in self.request.GET.dict().items() if k != 'uuid'}
 
 
 class ChangeUpdateView(UpdateView, ChangeModelFormMixin):
