@@ -32,7 +32,7 @@ class ChangeAdmin(EnforcedPermissions):
     SUBMODEL_FIELDNAME_PREFIX = "submodel__"
 
     change_form_template = "admin/change_model_detail.html"
-    list_display = ("model_name","action", "status")
+    list_display = ("model_name", "action", "status")
     list_filter = (
         "status",
         "action",
