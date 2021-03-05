@@ -20,54 +20,55 @@
 
   <div class="row mx-3 my-5">
     <div class="col-8 row">
-      <div class="col card mx-1 p-0">
+      <div class="col card m-1 p-0">
         <div class="card-body">
-          <p class="text-uppercase mb-0 d-flex justify-content-between align-items-baseline">
+          <span class="text-uppercase col-auto mr-auto p-0 text-nowrap">
             Campaigns
-            <span class="badge badge-pill badge-secondary">
-              +{{ change_counts.campaign }}
-            </span>
-          </p>
-          <p class="mb-0 display-4">
+          </span>
+          <span class="badge badge-pill badge-secondary col-auto">
+            +{{ change_counts.campaign }}
+          </span>
+          <p class="mb-0 display-4 text-nowrap">
             {{ published_counts.campaign }}
           </p>
         </div>
       </div>
-      <div class="col card mx-1 p-0">
+      <div class="col card m-1 p-0">
         <div class="card-body">
-          <p class="text-uppercase mb-0 d-flex justify-content-between align-items-baseline">
+          <span class="text-uppercase col-auto mr-auto p-0 text-nowrap">
             Deployments
-            <span class="badge badge-pill badge-secondary">
-              +{{ change_counts.deployment }}
-            </span>
-          </p>
-          <p class="mb-0 display-4">
+          </span>
+          <span class="badge badge-pill badge-secondary col-auto">
+            +{{ change_counts.deployment }}
+          </span>
+          <p class="mb-0 display-4 text-nowrap">
             {{ published_counts.deployment }}
           </p>
         </div>
       </div>
-      <div class="col card mx-1 p-0">
+      <div class="w-100 d-lg-none"></div>
+      <div class="col card m-1 p-0">
         <div class="card-body">
-          <p class="text-uppercase mb-0 d-flex justify-content-between align-items-baseline">
+          <span class="text-uppercase col-auto mr-auto p-0 text-nowrap">
             Platforms
-            <span class="badge badge-pill badge-secondary">
-              +{{ change_counts.platform }}
-            </span>
-          </p>
-          <p class="mb-0 display-4">
+          </span>
+          <span class="badge badge-pill badge-secondary col-auto">
+            +{{ change_counts.platform }}
+          </span>
+          <p class="mb-0 display-4 text-nowrap">
             {{ published_counts.platform }}
           </p>
         </div>
       </div>
-      <div class="col card mx-1 p-0">
+      <div class="col card m-1 p-0">
         <div class="card-body">
-          <p class="text-uppercase mb-0 d-flex justify-content-between align-items-baseline">
-            Instruments
-            <span class="badge badge-pill badge-secondary">
-              +{{ change_counts.instrument }}
-            </span>
-          </p>
-          <p class="mb-0 display-4">
+          <span class="text-uppercase col-auto mr-auto p-0 text-nowrap">
+            Instrument
+          </span>
+          <span class="badge badge-pill badge-secondary col-auto">
+            +{{ change_counts.instrument }}
+          </span>
+          <p class="mb-0 display-4 text-nowrap">
             {{ published_counts.instrument }}
           </p>
         </div>
