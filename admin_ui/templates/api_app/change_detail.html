@@ -13,7 +13,7 @@
             </div>
             <p>
                 <span class="badge badge-pill badge-light">
-                    &bull; Status: {{ object.status }}
+                    &bull; Status: {{ object.get_status_display }}
                 </span>
             </p>
 
@@ -43,7 +43,7 @@
                             </small>
                         </h5>
 
-                        <span class="text-muted">Status: {{ object.status }}</span> <!-- TODO: add status as text -->
+                        <span class="text-muted">Status: {{ object.get_status_display }}</span>
                         <small class="text-muted ml-3">
                             Last update by user <a href="">Username</a> <!-- TODO: add user -->
                         </small>
