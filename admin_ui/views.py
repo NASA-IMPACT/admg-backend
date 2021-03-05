@@ -402,7 +402,7 @@ class ChangeTransition(DetailView):
             response = change.review(self.request.user, self.request.POST.get("notes"))
             self.check_for_error(response)
         else:
-            raise Exception("invalid transition argument")
+            return HttpResponseBadRequest("invalid transition argument")
 
         return HttpResponseRedirect("/")
         # return HttpResponseRedirect("api_app/change_list.html")
