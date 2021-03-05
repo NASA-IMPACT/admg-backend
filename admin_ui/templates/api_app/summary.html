@@ -75,12 +75,12 @@
       <ul class="list-group list-group-flush">
         {% for activity in activity_list %}
         <li class="list-group-item">
-          <a href="{% url 'change-form' activity.change.uuid %}">
+          <a class="inline-link" href="{% url 'change-form' activity.change.uuid %}">
             {{ activity.change.model_name }}
             {% firstof activity.change.update.short_name activity.change.update.long_name activity.change.uuid %}
           </a>
           <br/>
-          <span style="font-weight: bold;">{{ activity.get_action_display }}</span>
+          <strong>{{ activity.get_action_display }}</strong>
           <br/>
           <span title={{ activity.date|date:"c" }}>{{ activity.date | naturaltime }}</span>
           {% if activity.user %} by {{ activity.user }}{% endif %}
