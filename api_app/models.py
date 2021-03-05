@@ -228,22 +228,6 @@ class Change(models.Model):
             self._check_model_and_uuid()
 
         # change object was freshly created and has no logs
-<<<<<<< HEAD
-        if not ApprovalLog.objects.filter(change=self):
-            ApprovalLog.objects.create(
-                change = self,
-                user = get_current_user(),
-                action = ApprovalLog.CREATE,
-            )
-        else:
-            # should only log changes made to the draft while in progress
-            if self.status == IN_PROGRESS_CODE and log:
-                ApprovalLog.objects.create(
-                    change = self,
-                    user = get_current_user(),
-                    action = ApprovalLog.EDIT,
-                )
-=======
         if not ApprovalLog.objects.filter(change=self).exists():
             self.status = CREATED_CODE
             # the post_save function handles the creation of the approval log
@@ -251,7 +235,6 @@ class Change(models.Model):
         elif self.status == CREATED_CODE:
             self.status = IN_PROGRESS_CODE
 
->>>>>>> @{-1}
         return super().save(*args, **kwargs)
 
     def _run_validator(self, partial):
