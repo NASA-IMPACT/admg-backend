@@ -33,7 +33,7 @@
     {% if object.status == 0 %}
     <form action="{% url 'change-transitions' change.uuid 'edit' %}" method="post">
       {% csrf_token %}
-      <button class="btn btn-success"> Claim for Compling </button><br>
+      <button class="btn btn-success"> Claim for Compiling </button><br>
       <p>Status change notes:</p>
       <textarea name="notes"></textarea>
       {% elif object.status == 1 %}
