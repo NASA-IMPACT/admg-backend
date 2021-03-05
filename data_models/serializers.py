@@ -66,7 +66,7 @@ class GetAliasSerializer(BaseSerializer):
     aliases = serializers.SerializerMethodField(read_only=True)
 
     def get_aliases(self, obj):
-        return [alias.uuid for alias in obj.aliases.all()]
+        return get_uuids(obj.aliases)
 
 
 class GetDoiSerializer(BaseSerializer):

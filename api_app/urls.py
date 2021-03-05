@@ -6,13 +6,16 @@ from drf_yasg.views import get_schema_view
 from rest_framework import permissions
 
 from .views.change_view import (
-    ChangeApproveRejectView,
+    ApprovalLogListView,
+    ChangeSubmitView,
+    ChangeReviewView,
+    ChangePublishView,
+    ChangeRejectView,
+    ChangeClaimView,
+    ChangeUnclaimView,
     ChangeListView,
     ChangeListUpdateView,
-    ChangePushView,
     ChangeValidationView,
-    APPROVE,
-    REJECT
 )
 from .views.generic_views import GenericCreateGetAllView, GenericPutPatchDeleteView
 from .views.image_view import ImageListCreateAPIView, ImageRetrieveDestroyAPIView
@@ -91,6 +94,11 @@ for url in urls:
 
 urlpatterns += [
     path(
+        "approval_log",
+        ApprovalLogListView.as_view(),
+        name="approval_log_list"
+    ),
+    path(
         "change_request",
         ChangeListView.as_view(),
         name="change_request_list"
@@ -106,19 +114,34 @@ urlpatterns += [
         name="change_request_validate"
     ),
     path(
-        f"change_request/<str:uuid>/{APPROVE}",
-        ChangeApproveRejectView(APPROVE),
-        name="change_request_approve"
+        "change_request/<str:uuid>/submit",
+        ChangeSubmitView.as_view(),
+        name="change_request_submit"
     ),
     path(
-        f"change_request/<str:uuid>/{REJECT}",
-        ChangeApproveRejectView(REJECT),
+        "change_request/<str:uuid>/review",
+        ChangeReviewView.as_view(),
+        name="change_request_review"
+    ),
+    path(
+        "change_request/<str:uuid>/publish",
+        ChangePublishView.as_view(),
+        name="change_request_publish"
+    ),
+    path(
+        "change_request/<str:uuid>/reject",
+        ChangeRejectView.as_view(),
         name="change_request_reject"
     ),
     path(
-        "change_request/<str:uuid>/push",
-        ChangePushView.as_view(),
-        name="change_request_push"
+        "change_request/<str:uuid>/claim",
+        ChangeClaimView.as_view(),
+        name="change_request_claim"
+    ),
+    path(
+        "change_request/<str:uuid>/unclaim",
+        ChangeUnclaimView.as_view(),
+        name="change_request_unclaim"
     ),
     path(
         "image",
