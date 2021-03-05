@@ -12,6 +12,10 @@ urlpatterns = [
     path("drafts/add/<str:model>", views.ChangeCreateView.as_view(), name="change-add"),
     path("drafts/edit/<uuid:pk>", views.ChangeUpdateView.as_view(), name="change-form"),
     # TODO: Consider restraining transitions via Regex or something else
-    path("drafts/edit/<uuid:pk>/transitions/<str:transition>", views.ChangeTransition.as_view(), name="change-transitions"),
+    path(
+        "drafts/edit/<uuid:pk>/transitions/<str:transition>",
+        views.ChangeTransition.as_view(),
+        name="change-transitions",
+    ),
     path("tbd", views.to_be_developed, name="to-be-developed"),
 ]

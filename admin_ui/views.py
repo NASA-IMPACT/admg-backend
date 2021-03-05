@@ -133,10 +133,7 @@ class SummaryTable(tables.Table):
         verbose_name="Name",
         accessor="update__short_name",
     )
-    short_name = tables.Column(
-        verbose_name="Campaign",
-        accessor="update__short_name",
-    )
+    short_name = tables.Column(verbose_name="Campaign", accessor="update__short_name")
     content_type__model = tables.Column(
         verbose_name="Model Type", accessor="content_type__model"
     )
@@ -303,12 +300,25 @@ class ChangeTransition(DetailView):
             return HttpResponseForbidden("You must be logged in!")
         change: Change = self.get_object()
         if kwargs["transition"] == "edit":
-            messages.warning(self.request, "Edit button not yet supported!")
+            messages.warning(self.request, "Claim for Compiling not yet supported")
         elif kwargs["transition"] == "submit":
             response = change.submit(self.request.user, self.request.POST.get("notes"))
-            if response["success"]:
-                messages.success(self.request, "Congrats!")
-            else:
-                messages.error(self.request, response["message"])
+            self.check_for_error(response)
+        elif kwargs["transition"] == "claim":
+            response = change.claim(self.request.user, self.request.POST.get("notes"))
+            self.check_for_error(response)
+        elif kwargs["transition"] == "review":
+            response = change.review(self.request.user, self.request.POST.get("notes"))
+            self.check_for_error(response)
+        else:
+            raise Exception("invalid transition argument")
 
         return HttpResponseRedirect("/")
+        # return HttpResponseRedirect("api_app/change_list.html")
+
+    def check_for_error(self, response):
+        if response["success"]:
+            messages.success(self.request, "Status successfully changed.")
+        else:
+            messages.error(self.request, response["message"])
+
