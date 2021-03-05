@@ -37,8 +37,10 @@
       <h3>Actions</h3>
       <button class="btn btn-success">Save</button>
 
+      {% if object.model_name == "Campaign" %}
       <h3>Related Data</h3>
       {% related_changes change %}
+      {% endif %}
 
       <hr />
 
