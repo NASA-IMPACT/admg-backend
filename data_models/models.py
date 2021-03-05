@@ -10,6 +10,17 @@ from django.contrib.postgres.search import SearchQuery, SearchVector
 from django.db import models
 
 
+def fetch_related_distinct_data(queryset, related_data_string):
+    """Fetches related data from a given object using the related data string
+
+    Args:
+        queryset (QuerySet): A queryset of related objects. E.g. my_campaign.deployments
+        related_data_string (str): Django-formatted string of related data. E.g. instrument__uuid
+    """
+
+    return queryset.fetch_related().values_list(related_data_string, flat=True).distinct()
+
+
 class BaseModel(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False, unique=True)
 
@@ -97,6 +108,14 @@ class GeophysicalConcept(LimitedInfo):
     example = models.CharField(max_length=1024, blank=True, default='')
 
 
+class WebsiteType(BaseModel):
+    long_name = models.TextField()
+    description = models.TextField()
+
+    def __str__(self):
+        return self.long_name
+
+
 class Alias(BaseModel):
 
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, blank=True)
@@ -166,6 +185,16 @@ class GcmdPhenomena(BaseModel):
         return self.variable_3 or self.variable_2 or self.variable_1 or self.term or self.topic or self.category
 
 
+class Website(BaseModel):
+    url = models.URLField(unique=True)
+    title = models.TextField()
+    description = models.TextField(default='', blank=True)
+    website_type = models.ManyToManyField(WebsiteType, related_name='websites')
+
+    def __str__(self):
+        return self.title
+
+
 ###############
 # Core Models #
 ###############
@@ -224,12 +253,6 @@ class Campaign(DataModel):
     number_data_products = models.PositiveIntegerField(null=True, blank=True)
     data_volume = models.CharField(max_length=256, null=True, blank=True)
 
-    repository_website = models.CharField(max_length=512, default='', blank=True) # repository homepage
-    project_website = models.CharField(max_length=512, default='', blank=True) # dedicated homepage
-    tertiary_website = models.CharField(max_length=512, default='', blank=True)
-    publication_links = models.CharField(max_length=2048, default='', blank=True)
-    other_resources = models.CharField(max_length=2048, default='', blank=True) # other urls
-
     ongoing = models.BooleanField()
     nasa_led = models.BooleanField()
     nasa_missions = models.TextField(default='', blank=True)
@@ -241,22 +264,15 @@ class Campaign(DataModel):
     partner_orgs = models.ManyToManyField(PartnerOrg, related_name='campaigns', default='', blank=True)
     gcmd_projects = models.ManyToManyField(GcmdProject, related_name='campaigns', default='', blank=True)
     geophysical_concepts = models.ManyToManyField(GeophysicalConcept, related_name='campaigns')
+    websites = models.ManyToManyField(Website, related_name='campaigns', through='CampaignWebsite', default='', blank=True)
 
     @property
     def significant_events(self):
-        return list(set([
-            event.uuid
-                for dep in self.deployments.all()
-                    for event in dep.significant_events.all()
-        ]))
+        return fetch_related_distinct_data(self.deployments, 'significant_events__uuid')
 
     @property
     def iops(self):
-        return list(set([
-            iop.uuid
-                for dep in self.deployments.all()
-                    for iop in dep.iops.all()
-        ]))
+        return fetch_related_distinct_data(self.deployments, 'iops__uuid')
 
     @property
     def number_deployments(self):
@@ -264,20 +280,11 @@ class Campaign(DataModel):
 
     @property
     def instruments(self):
-        return list(set([
-            inst.uuid
-                for dep in self.deployments.all()
-                    for collection_period in dep.collection_periods.all()
-                        for inst in collection_period.instruments.all()
-        ]))
+        return fetch_related_distinct_data(self.deployments, 'collection_periods__instruments__uuid')
 
     @property
     def platforms(self):
-        return list(set([
-            collection_period.platform.uuid
-                for dep in self.deployments.all()
-                    for collection_period in dep.collection_periods.all()
-        ]))
+        return fetch_related_distinct_data(self.deployments, 'collection_periods__platform__uuid')
 
     @staticmethod
     def search_fields():
@@ -304,15 +311,11 @@ class Platform(DataModel):
 
     @property
     def campaigns(self):
-        return list(set(collection_period.deployment.campaign.uuid for collection_period in self.collection_periods.all()))
+        return fetch_related_distinct_data(self.collection_periods, 'deployment__campaign__uuid')
 
     @property
     def instruments(self):
-        return list(set(
-            inst.uuid
-                for collection_period in self.collection_periods.all()
-                    for inst in collection_period.instruments.all()
-        ))
+        return fetch_related_distinct_data(self.collection_periods, 'instruments')
 
     @staticmethod
     def search_fields():
@@ -351,11 +354,11 @@ class Instrument(DataModel):
 
     @property
     def campaigns(self):
-        return list(set(collection_period.deployment.campaign.uuid for collection_period in self.collection_periods.all()))
+        return fetch_related_distinct_data(self.collection_periods, 'deployment__campaign__uuid')
 
     @property
     def platforms(self):
-        return list(set(collection_period.platform.uuid for collection_period in self.collection_periods.all()))
+        return fetch_related_distinct_data(self.collection_periods, 'platform__uuid')
 
 
 class Deployment(DataModel):
@@ -373,7 +376,8 @@ class Deployment(DataModel):
     geographical_regions = models.ManyToManyField(
         GeographicalRegion,
         related_name='deployments',
-        default='', blank=True
+        default='',
+        blank=True
         )
 
     def __str__(self):
@@ -381,7 +385,7 @@ class Deployment(DataModel):
 
     @property
     def platforms(self):
-        return list(set(collection_period.platform.uuid for collection_period in self.collection_periods.all()))
+        return fetch_related_distinct_data(self.collection_periods, 'platform__uuid')
 
 
 class IopSe(BaseModel):
@@ -458,3 +462,20 @@ class DOI(BaseModel):
 
     class Meta:
         verbose_name = "DOI"
+
+
+##################
+# Linking Tables #
+##################
+
+class CampaignWebsite(BaseModel):
+    campaign = models.ForeignKey(Campaign, on_delete=models.CASCADE)
+    website = models.ForeignKey(Website, on_delete=models.CASCADE)
+    priority = models.IntegerField()
+
+
+    def __str__(self):
+        return f"{self.campaign} has {self.website}"
+
+    class Meta:
+        unique_together = [("campaign", "website"), ("campaign", "priority")]
