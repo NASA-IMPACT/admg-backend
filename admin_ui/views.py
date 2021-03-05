@@ -12,6 +12,7 @@ from django.db.models.aggregates import Count, Max
 from django.forms import modelform_factory
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
+from django.utils.decorators import method_decorator
 from django.utils.safestring import mark_safe
 from django.views.generic.list import ListView
 from django.views.generic.detail import DetailView, SingleObjectMixin
@@ -149,6 +150,7 @@ class SummaryTable(tables.Table):
         fields = ["name", "content_type__model", "updated_at", "short_name", "status"]
 
 
+@method_decorator(login_required, name='dispatch')
 class ChangeSummaryView(SingleTableView):
     model = Change
     table_class = SummaryTable
@@ -210,6 +212,7 @@ class ChangeTable(tables.Table):
         fields = ["short_name", "long_name", "funding_agency", "status", "updated_at"]
 
 
+@method_decorator(login_required, name='dispatch')
 class ChangeListView(SingleTableView):
     model = Change
     table_class = ChangeTable
@@ -221,6 +224,7 @@ class ChangeListView(SingleTableView):
         ).annotate(updated_at=Max("approvallog__date"))
 
 
+@method_decorator(login_required, name='dispatch')
 class ChangeDetailView(SingleObjectMixin, ListView):
     model = Change
     paginate_by = 25
@@ -301,6 +305,7 @@ class ChangeDetailView(SingleObjectMixin, ListView):
         return self.request.GET.get("ordering", "-status")
 
 
+@method_decorator(login_required, name='dispatch')
 class ChangeCreateView(CreateView, ChangeModelFormMixin):
     model = Change
     fields = ["content_type", "model_instance_uuid", "action", "update"]
@@ -325,6 +330,7 @@ class ChangeCreateView(CreateView, ChangeModelFormMixin):
         return {k: v for k, v in self.request.GET.dict().items() if k != "uuid"}
 
 
+@method_decorator(login_required, name='dispatch')
 class ChangeUpdateView(UpdateView, ChangeModelFormMixin):
     success_url = "/"
     fields = ["content_type", "model_instance_uuid", "action", "update", "status"]
@@ -366,5 +372,6 @@ def serialize(value):
     return value
 
 
+@method_decorator(login_required, name='dispatch')
 def to_be_developed(request):
     return render(request, "api_app/to_be_developed.html")
