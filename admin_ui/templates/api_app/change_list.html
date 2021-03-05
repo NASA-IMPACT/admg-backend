@@ -2,16 +2,15 @@
 {% load change_extras %}
 {% load render_table from django_tables2 %}
 
-
-{% block content %}
+{% block page %}
 
 <div class="container-fluid">
   <div class="row mt-4 mb-5">
     <div class="col-auto mr-auto">
-      <h1>Campaigns</h1>
+      <h1>Campaigns Drafts</h1>
     </div>
     <div class="col-auto">
-      <button class="btn btn-primary">Add new campaign + </button>
+      <a class="btn btn-primary" href="{% url 'change-add' 'campaign' %}">Add new campaign + </a>
     </div>
   </div>
 </div>

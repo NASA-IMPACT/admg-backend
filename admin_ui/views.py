@@ -8,8 +8,10 @@ from django.contrib import messages
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.db import models
+from django.db.models.aggregates import Count, Max
 from django.forms import modelform_factory
 from django.http import HttpResponseRedirect
+from django.shortcuts import render
 from django.utils.safestring import mark_safe
 from django.views.generic.list import ListView
 from django.views.generic.detail import DetailView, SingleObjectMixin
@@ -19,7 +21,8 @@ from django.db.models.query import QuerySet
 from rest_framework.renderers import JSONRenderer
 import requests
 
-from api_app.models import Change, CREATE, UPDATE, PUBLISHED_CODE
+from api_app.models import ApprovalLog, Change, CREATE, UPDATE, PUBLISHED_CODE
+from data_models.models import Campaign, Instrument, Platform, Deployment
 
 
 @login_required
@@ -93,6 +96,8 @@ class ChangeModelFormMixin(ModelFormMixin):
         BaseModelForm = self.destination_model_form
 
         class ModelForm(BaseModelForm):
+            # TODO: This may be a mistake, I don't know if we ever want to actually ignore validation errors.
+            # Instead, we still may want to save the form but also render the validation errors.
             def validate_unique(_self):
                 # We don't want to raise errors on unique errors for the
                 # destination model unless this is a "Create" change
@@ -121,26 +126,94 @@ class ChangeModelFormMixin(ModelFormMixin):
         )
 
 
+class SummaryTable(tables.Table):
+    name = tables.LinkColumn(
+        viewname="change-detail",
+        args=[A("uuid")],
+        verbose_name="Name",
+        accessor="update__short_name",
+    )
+    short_name = tables.Column(
+        verbose_name="Campaign",
+        accessor="update__short_name",
+    )
+    content_type__model = tables.Column(
+        verbose_name="Model Type", accessor="content_type__model"
+    )
+    updated_at = tables.Column(verbose_name="Last Edit Date")
+    status = tables.Column(verbose_name="Status", accessor="status")
+
+    class Meta:
+        attrs = {"class": "table table-striped", "thead": {"class": "thead-dark"}}
+        model = Change
+        fields = ["name", "content_type__model", "updated_at", "short_name", "status"]
+
+
+class ChangeSummaryView(SingleTableView):
+    model = Change
+    table_class = SummaryTable
+    paginate_by = 10
+    template_name = "api_app/summary.html"
+
+    def get_queryset(self):
+        return (
+            Change.objects.filter(content_type__model="campaign", action=CREATE)
+            .annotate(updated_at=Max("approvallog__date"))
+            .order_by("-updated_at")
+        )
+
+    def get_context_data(self, **kwargs):
+        return {
+            **super().get_context_data(**kwargs),
+            "change_counts": {
+                k: v
+                for (k, v) in Change.objects.filter(
+                    action=CREATE,
+                    content_type__model__in=[
+                        "campaign",
+                        "deployment",
+                        "instrument",
+                        "platform",
+                    ],
+                )
+                .exclude(status=PUBLISHED_CODE)
+                .values_list("content_type__model")
+                .annotate(total=Count("content_type"))
+            },
+            "published_counts": {
+                Model.__name__.lower(): Model.objects.count()
+                for Model in [Campaign, Deployment, Instrument, Platform]
+            },
+            "activity_list": ApprovalLog.objects.prefetch_related(
+                "change__content_type"
+            ).order_by("-date")[: self.paginate_by],
+        }
+
 
 class ChangeTable(tables.Table):
-    short_name = tables.LinkColumn(viewname="change-detail", args=[A("uuid")], verbose_name="Short Name", accessor="update__short_name")
+    short_name = tables.LinkColumn(
+        viewname="change-detail",
+        args=[A("uuid")],
+        verbose_name="Short Name",
+        accessor="update__short_name",
+    )
     long_name = tables.Column(verbose_name="Long name", accessor="update__long_name")
-    funding_agency = tables.Column(verbose_name="Funding Agency", accessor="update__funding_agency")
+    status = tables.Column(verbose_name="Status", accessor="status")
+    funding_agency = tables.Column(
+        verbose_name="Funding Agency", accessor="update__funding_agency"
+    )
     updated_at = tables.Column(verbose_name="Last Edit Date")
 
     class Meta:
-        attrs = {
-            "class": "table table-striped",
-            "thead": {"class": "thead-dark"}
-        }
+        attrs = {"class": "table table-striped", "thead": {"class": "thead-dark"}}
         model = Change
-        fields = ["short_name", "long_name", "funding_agency", "updated_at"]
+        fields = ["short_name", "long_name", "funding_agency", "status", "updated_at"]
 
 
 class ChangeListView(SingleTableView):
     model = Change
     table_class = ChangeTable
-    template_name = 'api_app/change_list.html'
+    template_name = "api_app/change_list.html"
 
     def get_queryset(self):
         return Change.objects.filter(
@@ -151,7 +224,7 @@ class ChangeListView(SingleTableView):
 class ChangeDetailView(ListView, SingleObjectMixin):
     model = Change
     paginate_by = 25
-    template_name = 'api_app/change_detail.html'
+    template_name = "api_app/change_detail.html"
 
     def get(self, request, *args, **kwargs):
         self.object = self.get_object(queryset=Change.objects.all())
@@ -192,10 +265,9 @@ class ChangeDetailView(ListView, SingleObjectMixin):
 class ChangeCreateView(CreateView, ChangeModelFormMixin):
     model = Change
     fields = ["content_type", "model_instance_uuid", "action", "update"]
-    template_name = 'api_app/change_add_form.html'
+    template_name = "api_app/change_add_form.html"
 
     def get_initial(self):
-        # TODO: given self.request.GET.get('parent'), determine correct initial data for each content_type
         # Get initial form values from URL
         return {
             "content_type": self.get_model_form_content_type().id,
@@ -208,13 +280,18 @@ class ChangeCreateView(CreateView, ChangeModelFormMixin):
             app_label="data_models", model__iexact=self.kwargs["model"]
         )
 
+    def get_model_form_intial(self):
+        # TODO: Not currently possible to handle reverse relationships such as adding
+        # models to a CollectionPeriod where the FK is on the Collection Period
+        return {k: v for k, v in self.request.GET.dict().items() if k != "uuid"}
+
 
 class ChangeUpdateView(UpdateView, ChangeModelFormMixin):
     success_url = "/"
     fields = ["content_type", "model_instance_uuid", "action", "update", "status"]
 
     prefix = "change"
-    template_name = 'api_app/change_form.html'
+    template_name = "api_app/change_form.html"
 
     def get_queryset(self):
         # Prefetch content type for performance
@@ -248,3 +325,8 @@ def serialize(value):
     if isinstance(value, models.Model):
         return value.uuid
     return value
+
+
+def to_be_developed(request):
+    return render(request, "api_app/to_be_developed.html")
+
