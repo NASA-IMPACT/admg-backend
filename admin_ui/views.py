@@ -381,6 +381,8 @@ def serialize(value):
 def to_be_developed(request):
     return render(request, "api_app/to_be_developed.html")
 
+
+@method_decorator(login_required, name="dispatch")
 class ChangeTransition(DetailView):
     model = Change
 
