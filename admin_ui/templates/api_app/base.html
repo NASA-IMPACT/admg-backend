@@ -7,18 +7,18 @@
 {% block content %}
 <div class="row align-items-start">
   <div class="col-2">
-    <nav>
-      <ul class="nav flex-column">
-        <li class="nav-item">
+    <nav class="card">
+      <ul class="nav flex-column list-group">
+        <li class="nav-item list-group-item">
           <a class="nav-link {% active_link 'summary' 'active' %}" href="{% url 'summary' %}">Summary</a>
         </li>
-        <li class="nav-item">
+        <li class="nav-item list-group-item">
           <a class="nav-link {% active_link 'change-list' 'active' %}" href="{% url 'change-list' %}">Campaigns</a>
         </li>
-        <li class="nav-item">
+        <li class="nav-item list-group-item">
           <a class="nav-link" href="{% url 'to-be-developed' %}">Other Items</a>
         </li>
-        <li class="nav-item">
+        <li class="nav-item list-group-item">
           <a class="nav-link" href="{% url 'to-be-developed' %}">Inventory Guidelines</a>
         </li>
       </ul>
