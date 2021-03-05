@@ -10,10 +10,15 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.db import models
 from django.db.models.aggregates import Count, Max
 from django.forms import modelform_factory
-from django.http import HttpResponseRedirect
+from django.http import (
+    HttpResponseRedirect,
+    HttpResponseForbidden,
+    HttpResponseBadRequest,
+)
 from django.shortcuts import render
 from django.utils.decorators import method_decorator
 from django.utils.safestring import mark_safe
+from django.urls import reverse
 from django.views.generic.list import ListView
 from django.views.generic.detail import DetailView, SingleObjectMixin
 from django.views.generic.edit import CreateView, UpdateView, ModelFormMixin
@@ -135,10 +140,7 @@ class SummaryTable(tables.Table):
         verbose_name="Name",
         accessor="update__short_name",
     )
-    short_name = tables.Column(
-        verbose_name="Campaign",
-        accessor="update__short_name",
-    )
+    short_name = tables.Column(verbose_name="Campaign", accessor="update__short_name")
     content_type__model = tables.Column(
         verbose_name="Model Type", accessor="content_type__model"
     )
@@ -151,7 +153,7 @@ class SummaryTable(tables.Table):
         fields = ["name", "content_type__model", "updated_at", "short_name", "status"]
 
 
-@method_decorator(login_required, name='dispatch')
+@method_decorator(login_required, name="dispatch")
 class ChangeSummaryView(SingleTableView):
     model = Change
     table_class = SummaryTable
@@ -213,7 +215,7 @@ class ChangeTable(tables.Table):
         fields = ["short_name", "long_name", "funding_agency", "status", "updated_at"]
 
 
-@method_decorator(login_required, name='dispatch')
+@method_decorator(login_required, name="dispatch")
 class ChangeListView(SingleTableView):
     model = Change
     table_class = ChangeTable
@@ -225,7 +227,7 @@ class ChangeListView(SingleTableView):
         ).annotate(updated_at=Max("approvallog__date"))
 
 
-@method_decorator(login_required, name='dispatch')
+@method_decorator(login_required, name="dispatch")
 class ChangeDetailView(SingleObjectMixin, ListView):
     model = Change
     paginate_by = 25
@@ -308,6 +310,7 @@ class ChangeDetailView(SingleObjectMixin, ListView):
 
 @method_decorator(login_required, name='dispatch')
 class ChangeCreateView(ChangeModelFormMixin, CreateView):
+
     model = Change
     fields = ["content_type", "model_instance_uuid", "action", "update"]
     template_name = "api_app/change_add_form.html"
@@ -389,6 +392,39 @@ def serialize(value):
     return value
 
 
-@method_decorator(login_required, name='dispatch')
+@method_decorator(login_required, name="dispatch")
 def to_be_developed(request):
     return render(request, "api_app/to_be_developed.html")
+
+
+@method_decorator(login_required, name="dispatch")
+class ChangeTransition(DetailView):
+    model = Change
+
+    def post(self, *args, **kwargs):
+        if not self.request.user:
+            return HttpResponseForbidden("You must be logged in!")
+        change: Change = self.get_object()
+        if kwargs["transition"] == "edit":
+            messages.warning(self.request, "Claim for Compiling not yet supported")
+        elif kwargs["transition"] == "submit":
+            response = change.submit(self.request.user, self.request.POST.get("notes"))
+            self.check_for_error(response)
+        elif kwargs["transition"] == "claim":
+            response = change.claim(self.request.user, self.request.POST.get("notes"))
+            self.check_for_error(response)
+        elif kwargs["transition"] == "review":
+            response = change.review(self.request.user, self.request.POST.get("notes"))
+            self.check_for_error(response)
+        else:
+            return HttpResponseBadRequest("invalid transition argument")
+
+        return HttpResponseRedirect(
+            reverse("change-form", kwargs={"pk": change.uuid})
+        )
+
+    def check_for_error(self, response):
+        if response["success"]:
+            messages.success(self.request, "Status successfully changed.")
+        else:
+            messages.error(self.request, response["message"])

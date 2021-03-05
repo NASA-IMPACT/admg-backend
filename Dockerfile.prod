@@ -15,8 +15,6 @@ RUN pip install --upgrade pip
 RUN pip install flake8
 COPY . .
 
-RUN pip install pandas
-
 # install dependencies
 COPY requirements/ .
 RUN pip install -r production.txt

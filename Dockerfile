@@ -1,11 +1,15 @@
-FROM python:3
-RUN apt-get update --fix-missing && apt-get install -y gdal-bin libgdal-dev postgis netcat
-ENV PYTHONUNBUFFERED 1
-RUN mkdir /code
+# pull official base image
+FROM python:3.8.5 AS builder
+
+ENV PYTHONUNBUFFERED=1
+
 WORKDIR /code
-COPY requirements/ /code/
-RUN pip install -r base.txt
+COPY requirements/ .
 RUN pip install -r local.txt
-RUN pip install -r production.txt
+
 COPY . /code/
-ENTRYPOINT ["/code/entrypoint.sh"]
+
+RUN apt-get update --fix-missing && apt-get install -y gdal-bin libgdal-dev postgis netcat
+
+# run entrypoint.sh
+ENTRYPOINT [ "/code/entrypoint.sh" ]

@@ -3,6 +3,8 @@ from uuid import uuid4
 
 from django.apps import apps
 from django.db import models
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from django.utils.timezone import now
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
@@ -11,29 +13,41 @@ from rest_framework.response import Response
 from admg_webapp.users.models import ADMIN, User
 from data_models import serializers
 
+
 CREATE = "Create"
 UPDATE = "Update"
 DELETE = "Delete"
 PATCH = "Patch"
 
+# The change has been freshly ingested, but no one has made edits using the admin interface
+CREATED, CREATED_CODE = "Created", 0
 
 # The change is in progress, can not be approved, but the user can update the change request
 IN_PROGRESS, IN_PROGRESS_CODE = "In Progress", 1
 
-# Can be approved or rejected. Rejection sends it back to the in_progress state
-IN_REVIEW, IN_REVIEW_CODE = "In Review", 2
+# The change has been added to the review pile, but hasn't been claimed
+AWAITING_REVIEW, AWAITING_REVIEW_CODE = "Awaiting Review", 2
+
+# The change as been claimed, and can now be can now be reviewed or rejected. Rejection sends it back to the in_progress state
+IN_REVIEW, IN_REVIEW_CODE = "In Review", 3
+
+# The change has been added to the admin review pile, but hasn't been claimed
+AWAITING_ADMIN_REVIEW, AWAITING_ADMIN_REVIEW_CODE = "Awaiting Admin Review", 4
 
 # Can be published or rejected. Rejection sends it back to the in_progress state
-IN_ADMIN_REVIEW, IN_ADMIN_REVIEW_CODE = "In Admin Review", 3
+IN_ADMIN_REVIEW, IN_ADMIN_REVIEW_CODE = "In Admin Review", 5
 
 # Once approved the changes in the change table is refected to the model
 # The state of the change object can not be changed from this state.
-PUBLISHED, PUBLISHED_CODE = "Published", 4
+PUBLISHED, PUBLISHED_CODE = "Published", 6
 
 
 AVAILABLE_STATUSES = (
+    (CREATED_CODE, CREATED),
     (IN_PROGRESS_CODE, IN_PROGRESS),
+    (AWAITING_REVIEW_CODE, AWAITING_REVIEW),
     (IN_REVIEW_CODE, IN_REVIEW),
+    (AWAITING_ADMIN_REVIEW_CODE, AWAITING_ADMIN_REVIEW),
     (IN_ADMIN_REVIEW_CODE, IN_ADMIN_REVIEW),
     (PUBLISHED_CODE, PUBLISHED),
 )
@@ -53,11 +67,27 @@ def generate_success_response(status_str, data):
     }
 
 
+def is_not_admin(user):
+    """Returns None if user is admin, and a failure dictionary if user
+    is not admin. Separation into a dedicated function allows usage inside
+    the decorator or within the claim function.
+
+    Args:
+        user (User): User being evaluated for admin status
+
+    Returns:
+        [dict]: {success, message}
+    """
+
+    if user.get_role_display() != ADMIN:
+        return generate_failure_response("action failed because initiating user was not admin")
+
+
 def is_admin(function):
     def wrapper(self, user, notes=""):
 
-        if user.get_role_display() != ADMIN:
-            return generate_failure_response("action failed because initiating user was not admin")
+        if not_admin := is_not_admin(user):
+            return not_admin
 
         result = function(self, user, notes)
 
@@ -70,8 +100,9 @@ def is_status(accepted_statuses_list):
         def wrapper(self, user, notes=""):
 
             if self.status not in accepted_statuses_list:
+                status_strings = [AVAILABLE_STATUSES[status][1] for status in accepted_statuses_list]
                 return generate_failure_response(
-                    f"action failed because status was not one of {accepted_statuses_list}"
+                    f"action failed because status was not one of {status_strings}"
                 )
 
             result = function(self, user, notes)
@@ -90,6 +121,8 @@ class ApprovalLog(models.Model):
     REVIEW = 4
     PUBLISH = 5
     REJECT = 6
+    CLAIM = 7
+    UNCLAIM = 8
 
     ACTION_CHOICES = [
         (CREATE, 'create'),
@@ -97,7 +130,9 @@ class ApprovalLog(models.Model):
         (SUBMIT, 'submit'),
         (REVIEW, 'review'),
         (PUBLISH, 'publish'),
-        (REJECT, 'reject')
+        (REJECT, 'reject'),
+        (CLAIM, 'claim'),
+        (UNCLAIM, 'unclaim'),
     ]
 
     uuid = models.UUIDField(primary_key=True, default=uuid4, editable=False)
@@ -119,6 +154,12 @@ class ApprovalLog(models.Model):
         default=CREATE,
     )
     notes = models.TextField(blank=True, default='')
+
+    def __str__(self):
+        return f"{self.user} | {self.get_action_display()} | {self.notes} | {self.date}"
+
+    class Meta:
+        ordering = ['-date']
 
 class Change(models.Model):
     uuid = models.UUIDField(primary_key=True, default=uuid4, editable=False)
@@ -165,28 +206,24 @@ class Change(models.Model):
                 serializer = serializer_class(instance)
                 self.previous = {key: serializer.data.get(key) for key in self.update}
 
-    def save(self, *args, post_save=False, log=True, **kwargs):
-        """log parameter allows a calling function to disable the log, specifically reject"""
+    def get_latest_log(self):
+        return ApprovalLog.objects.filter(change=self).order_by('date').last()
+
+    def save(self, *args, post_save=False, **kwargs):
         # do not check for validity of model_name and uuid if it has been approved or rejected.
         # Check is done for the first time only
+        # post_save=False prevents self.previous from being set
         if not post_save:
             self._check_model_and_uuid()
 
         # change object was freshly created and has no logs
-        if not ApprovalLog.objects.filter(change=self):
-            ApprovalLog.objects.create(
-                change = self,
-                user = get_current_user(),
-                action = ApprovalLog.CREATE,
-            )
-        else:
-            # should only log changes made to the draft while in progress
-            if self.status == IN_PROGRESS_CODE and log:
-                ApprovalLog.objects.create(
-                    change = self,
-                    user = get_current_user(),
-                    action = ApprovalLog.EDIT,
-                )
+        if not ApprovalLog.objects.filter(change=self).exists():
+            self.status = CREATED_CODE
+            # the post_save function handles the creation of the approval log
+        # should only log changes made to the draft while in progress
+        elif self.status == CREATED_CODE:
+            self.status = IN_PROGRESS_CODE
+
         return super().save(*args, **kwargs)
 
     def _run_validator(self, partial):
@@ -283,9 +320,9 @@ class Change(models.Model):
 
         return response
 
-    @is_status([IN_PROGRESS_CODE])
+    @is_status([CREATED_CODE, IN_PROGRESS_CODE])
     def submit(self, user, notes=""):
-        self.status = IN_REVIEW_CODE
+        self.status = AWAITING_REVIEW_CODE
 
         ApprovalLog.objects.create(
             change = self,
@@ -297,16 +334,16 @@ class Change(models.Model):
         self.save(post_save=True)
 
         return generate_success_response(
-            status_str=IN_REVIEW,
+            status_str= AWAITING_REVIEW,
             data={
                 "uuid": self.uuid,
-                "status": IN_REVIEW_CODE
+                "status": AWAITING_REVIEW_CODE
             }
         )
 
     @is_status([IN_REVIEW_CODE])
     def review(self, user, notes=""):
-        self.status = IN_ADMIN_REVIEW_CODE
+        self.status = AWAITING_ADMIN_REVIEW_CODE
         ApprovalLog.objects.create(
             change = self,
             user = user,
@@ -316,10 +353,10 @@ class Change(models.Model):
         self.save(post_save=True)
 
         return generate_success_response(
-            status_str=IN_ADMIN_REVIEW,
+            status_str=AWAITING_ADMIN_REVIEW,
             data={
                 "uuid": self.uuid,
-                "status": IN_ADMIN_REVIEW_CODE
+                "status": AWAITING_ADMIN_REVIEW_CODE
             }
         )
 
@@ -373,6 +410,7 @@ class Change(models.Model):
             change = self,
             user = admin_user,
             action = ApprovalLog.PUBLISH,
+            notes = notes
         )
 
         self.status = PUBLISHED_CODE
@@ -420,7 +458,7 @@ class Change(models.Model):
             action = ApprovalLog.REJECT,
             notes = notes
         )
-        self.save(post_save=True, log=False)
+        self.save(post_save=True)
 
         return generate_success_response(
             status_str=IN_PROGRESS,
@@ -429,3 +467,120 @@ class Change(models.Model):
                 "status": IN_PROGRESS_CODE
             }
         )
+
+
+    def _goto_next_approval_stage(self):
+        """Do not call this, it is an internal function"""
+        self.status += 1
+
+
+    def _goto_previous_approval_stage(self):
+        """Do not call this, it is an internal function"""
+        self.status -= 1
+
+
+    @is_status([AWAITING_REVIEW_CODE, AWAITING_ADMIN_REVIEW_CODE])
+    def claim(self, user, notes=''):
+        """Claims a change object for review or admin review for the given user 
+        and updates the log.
+
+        Args:
+            user (User): User claiming the object for review or admin review
+            notes (str, optional): Notes field. Defaults to ''.
+
+        Returns:
+            [dict]: {"success", "message", "data": {"uuid", "status"}}
+        """
+
+        # cannot use is_admin decorator for this check, because claim doesn't universally
+        # require admin, only for one of the two statuses
+        if self.status == AWAITING_ADMIN_REVIEW_CODE:
+            if not_admin := is_not_admin(user):
+                return not_admin
+
+        self._goto_next_approval_stage()
+
+        ApprovalLog.objects.create(
+            change = self,
+            user = user,
+            action = ApprovalLog.CLAIM,
+            notes = notes
+        )
+        self.save(post_save=True)
+
+        return generate_success_response(
+            status_str=AVAILABLE_STATUSES[self.status][1],
+            data={
+                "uuid": self.uuid,
+                "status": AVAILABLE_STATUSES[self.status][0]
+            }
+        )
+
+
+    @is_status([IN_REVIEW_CODE, IN_ADMIN_REVIEW_CODE])
+    def unclaim(self, user, notes=''):
+        """Unclaims a change object for review or admin review for the given user 
+        and updates the log. Will move the change back to the previous approval step.
+
+        Args:
+            user (User): User unclaiming the object for review or admin review
+            notes (str, optional): Notes field. Defaults to ''.
+
+        Returns:
+            [dict]: {"success", "message", "data": {"uuid", "status"}}
+        """
+
+        # check if unclaiming user is the same as the claiming user or if unclaiming user is admin
+        latest_log = self.get_latest_log()
+        if user.get_role_display() != ADMIN:
+            if latest_log.user != user:
+                return generate_failure_response(
+                    "To unclaim an item the user must be the same as the claiming user, or must be admin."
+                )
+
+        self._goto_previous_approval_stage()
+
+        ApprovalLog.objects.create(
+            change = self,
+            user = user,
+            action = ApprovalLog.UNCLAIM,
+            notes = notes
+        )
+        self.save(post_save=True)
+
+        return generate_success_response(
+            status_str=AVAILABLE_STATUSES[self.status][1],
+            data={
+                "uuid": self.uuid,
+                "status": AVAILABLE_STATUSES[self.status][0]
+            }
+        )
+
+    def _add_create_edit_approval_log(self):
+        """
+            Adds a CREATE or EDIT approval log to the change object
+            based on conditions
+        """
+
+        # change object was freshly created and has no logs
+        if not ApprovalLog.objects.filter(change=self).exists():
+            ApprovalLog.objects.create(
+                change=self,
+                user=get_current_user(),
+                action=ApprovalLog.CREATE,
+            )
+
+        elif self.status in [CREATED_CODE, IN_PROGRESS_CODE]:
+            # don't create an EDIT ApprovalLog for a rejection, claim, or unclaim
+            if self.get_latest_log().action not in [ApprovalLog.REJECT, ApprovalLog.CLAIM, ApprovalLog.UNCLAIM]:
+                ApprovalLog.objects.create(
+                    change=self,
+                    user=get_current_user(),
+                    action=ApprovalLog.EDIT,
+                )
+
+
+# create approval logs after the Change model is saved
+@receiver(post_save, sender=Change, dispatch_uid="save")
+def create_approval_log_dispatcher(sender, instance, **kwargs):
+    instance._add_create_edit_approval_log()

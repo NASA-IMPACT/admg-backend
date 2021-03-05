@@ -1,17 +1,20 @@
-version: '3.7'
+version: "3.7"
 
 services:
   web:
-    build: ./
-    command: python manage.py runserver 0.0.0.0:8000
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    command: python manage.py runserver 0.0.0.0:8001
     volumes:
-      - ./:/usr/src/app/
+      - .:/code
     ports:
-      - 8000:8000
+      - 8001:8001
     env_file:
       - ./.env
     depends_on:
       - db
+
   db:
     image: kartoza/postgis
     volumes:
@@ -21,5 +24,30 @@ services:
       - POSTGRES_PASS=yourpasswordhere
       - POSTGRES_DBNAME=admg_dev
 
+  rabbitmq:
+    container_name: rabbitmq
+    hostname: rabbitmq
+    image: rabbitmq:latest
+    ports:
+      - "5672:5672"
+    restart: on-failure
+
+  celery_worker:
+    command: celery -A config worker -l info
+    container_name: celery_worker
+    hostname: celery_worker
+    build:
+      context: .
+    volumes:
+      - .:/code
+    restart: on-failure
+    env_file:
+      - ./.env
+    depends_on:
+      - web
+      - rabbitmq
+
 volumes:
   postgres_data:
+  static_volume:
+  media_volume:

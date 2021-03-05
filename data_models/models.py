@@ -13,6 +13,17 @@ from django.db import models
 FRONTEND_URL = "https://airborne-inventory.surge.sh/"
 
 
+def fetch_related_distinct_data(queryset, related_data_string):
+    """Fetches related data from a given object using the related data string
+
+    Args:
+        queryset (QuerySet): A queryset of related objects. E.g. my_campaign.deployments
+        related_data_string (str): Django-formatted string of related data. E.g. instrument__uuid
+    """
+
+    return queryset.fetch_related().values_list(related_data_string, flat=True).distinct()
+
+
 class BaseModel(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False, unique=True)
 
@@ -260,19 +271,11 @@ class Campaign(DataModel):
 
     @property
     def significant_events(self):
-        return list(set([
-            event.uuid
-                for dep in self.deployments.all()
-                    for event in dep.significant_events.all()
-        ]))
+        return fetch_related_distinct_data(self.deployments, 'significant_events__uuid')
 
     @property
     def iops(self):
-        return list(set([
-            iop.uuid
-                for dep in self.deployments.all()
-                    for iop in dep.iops.all()
-        ]))
+        return fetch_related_distinct_data(self.deployments, 'iops__uuid')
 
     @property
     def number_deployments(self):
@@ -280,20 +283,11 @@ class Campaign(DataModel):
 
     @property
     def instruments(self):
-        return list(set([
-            inst.uuid
-                for dep in self.deployments.all()
-                    for collection_period in dep.collection_periods.all()
-                        for inst in collection_period.instruments.all()
-        ]))
+        return fetch_related_distinct_data(self.deployments, 'collection_periods__instruments__uuid')
 
     @property
     def platforms(self):
-        return list(set([
-            collection_period.platform.uuid
-                for dep in self.deployments.all()
-                    for collection_period in dep.collection_periods.all()
-        ]))
+        return fetch_related_distinct_data(self.deployments, 'collection_periods__platform__uuid')
 
     @staticmethod
     def search_fields():
@@ -323,15 +317,11 @@ class Platform(DataModel):
 
     @property
     def campaigns(self):
-        return list(set(collection_period.deployment.campaign.uuid for collection_period in self.collection_periods.all()))
+        return fetch_related_distinct_data(self.collection_periods, 'deployment__campaign__uuid')
 
     @property
     def instruments(self):
-        return list(set(
-            inst.uuid
-                for collection_period in self.collection_periods.all()
-                    for inst in collection_period.instruments.all()
-        ))
+        return fetch_related_distinct_data(self.collection_periods, 'instruments')
 
     @staticmethod
     def search_fields():
@@ -374,11 +364,11 @@ class Instrument(DataModel):
 
     @property
     def campaigns(self):
-        return list(set(collection_period.deployment.campaign.uuid for collection_period in self.collection_periods.all()))
+        return fetch_related_distinct_data(self.collection_periods, 'deployment__campaign__uuid')
 
     @property
     def platforms(self):
-        return list(set(collection_period.platform.uuid for collection_period in self.collection_periods.all()))
+        return fetch_related_distinct_data(self.collection_periods, 'platform__uuid')
 
     def get_absolute_url(self):
         return urllib.parse.urljoin(FRONTEND_URL, f"/instrument/{self.uuid}/")
@@ -400,7 +390,8 @@ class Deployment(DataModel):
     geographical_regions = models.ManyToManyField(
         GeographicalRegion,
         related_name='deployments',
-        default='', blank=True
+        default='',
+        blank=True
         )
 
     def __str__(self):
@@ -408,7 +399,7 @@ class Deployment(DataModel):
 
     @property
     def platforms(self):
-        return list(set(collection_period.platform.uuid for collection_period in self.collection_periods.all()))
+        return fetch_related_distinct_data(self.collection_periods, 'platform__uuid')
 
 
 class IopSe(BaseModel):
@@ -441,7 +432,7 @@ class CollectionPeriod(BaseModel):
 
     deployment = models.ForeignKey(Deployment, on_delete=models.CASCADE, related_name='collection_periods')
     platform = models.ForeignKey(Platform, on_delete=models.CASCADE, related_name='collection_periods')
-    home_base = models.ForeignKey(HomeBase, on_delete=models.CASCADE, related_name='collection_periods', null=True)
+    home_base = models.ForeignKey(HomeBase, on_delete=models.CASCADE, related_name='collection_periods', blank=True, null=True)
 
     asp_long_name = models.CharField(max_length=512, default='', blank=True)
     platform_identifier = models.CharField(max_length=128, default='', blank=True)
@@ -458,8 +449,10 @@ class CollectionPeriod(BaseModel):
     instruments = models.ManyToManyField(Instrument, related_name='collection_periods')
 
     def __str__(self):
-        # TODO: maybe come up with something better? dep_plat_uuid?
-        return str(self.uuid)
+        platform_id = f'({self.platform_identifier})' if self.platform_identifier else ''
+        campaign = str(self.deployment.campaign)
+        deployment = str(self.deployment).replace(campaign + '_', '')
+        return f'{campaign} | {deployment} | {self.platform} {platform_id}'
 
 
 class DOI(BaseModel):
