@@ -244,10 +244,18 @@ class ChangeCreateView(CreateView, ChangeModelFormMixin):
             "model_instance_uuid": self.request.GET.get("uuid"),
         }
 
+    def get_context_data(self):
+        return {
+            **super().get_context_data(),
+            "content_type_name": self.get_model_form_content_type().model_class().__name__
+        }
+
     def get_model_form_content_type(self) -> ContentType:
-        return ContentType.objects.get(
-            app_label="data_models", model__iexact=self.kwargs["model"]
-        )
+        if not hasattr(self, "model_form_content_type"):
+            self.model_form_content_type = ContentType.objects.get(
+                app_label="data_models", model__iexact=self.kwargs["model"]
+            )
+        return self.model_form_content_type
 
     def get_model_form_intial(self):
         # TODO: Not currently possible to handle reverse relationships such as adding
@@ -300,4 +308,3 @@ def serialize(value):
 @method_decorator(login_required, name='dispatch')
 def to_be_developed(request):
     return render(request, "api_app/to_be_developed.html")
-
