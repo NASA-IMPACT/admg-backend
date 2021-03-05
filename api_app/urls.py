@@ -6,15 +6,16 @@ from drf_yasg.views import get_schema_view
 from rest_framework import permissions
 
 from .views.change_view import (
+    ApprovalLogListView,
     ChangeSubmitView,
     ChangeReviewView,
     ChangePublishView,
     ChangeRejectView,
+    ChangeClaimView,
+    ChangeUnclaimView,
     ChangeListView,
     ChangeListUpdateView,
     ChangeValidationView,
-    APPROVE,
-    REJECT
 )
 from .views.generic_views import GenericCreateGetAllView, GenericPutPatchDeleteView
 from .views.image_view import ImageListCreateAPIView, ImageRetrieveDestroyAPIView
@@ -93,6 +94,11 @@ for url in urls:
 
 urlpatterns += [
     path(
+        "approval_log",
+        ApprovalLogListView.as_view(),
+        name="approval_log_list"
+    ),
+    path(
         "change_request",
         ChangeListView.as_view(),
         name="change_request_list"
@@ -107,7 +113,6 @@ urlpatterns += [
         ChangeValidationView.as_view(),
         name="change_request_validate"
     ),
-
     path(
         "change_request/<str:uuid>/submit",
         ChangeSubmitView.as_view(),
@@ -127,6 +132,16 @@ urlpatterns += [
         "change_request/<str:uuid>/reject",
         ChangeRejectView.as_view(),
         name="change_request_reject"
+    ),
+    path(
+        "change_request/<str:uuid>/claim",
+        ChangeClaimView.as_view(),
+        name="change_request_claim"
+    ),
+    path(
+        "change_request/<str:uuid>/unclaim",
+        ChangeUnclaimView.as_view(),
+        name="change_request_unclaim"
     ),
     path(
         "image",
