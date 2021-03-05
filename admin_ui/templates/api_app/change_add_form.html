@@ -12,9 +12,10 @@
   {% csrf_token %}
   <h3>Create {{ content_type_name }} draft</h3>
   {{ model_form | crispy }}
+  {% for field in form %} {{ field.as_hidden }} {% endfor %}
   <button class="btn btn-info">Submit</button>
 </form>
-
+{{ form.errors }}
 
 {% endblock %}
 

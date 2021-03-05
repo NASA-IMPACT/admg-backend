@@ -307,7 +307,7 @@ class ChangeDetailView(SingleObjectMixin, ListView):
 
 
 @method_decorator(login_required, name='dispatch')
-class ChangeCreateView(CreateView, ChangeModelFormMixin):
+class ChangeCreateView(ChangeModelFormMixin, CreateView):
     model = Change
     fields = ["content_type", "model_instance_uuid", "action", "update"]
     template_name = "api_app/change_add_form.html"
@@ -315,14 +315,14 @@ class ChangeCreateView(CreateView, ChangeModelFormMixin):
     def get_initial(self):
         # Get initial form values from URL
         return {
-            "content_type": self.get_model_form_content_type().id,
+            "content_type": self.get_model_form_content_type(),
             "action": UPDATE if self.request.GET.get("uuid") else CREATE,
             "model_instance_uuid": self.request.GET.get("uuid"),
         }
 
-    def get_context_data(self):
+    def get_context_data(self, **kwargs):
         return {
-            **super().get_context_data(),
+            **super().get_context_data(**kwargs),
             "content_type_name": self.get_model_form_content_type().model_class().__name__
         }
 
@@ -338,9 +338,17 @@ class ChangeCreateView(CreateView, ChangeModelFormMixin):
         # models to a CollectionPeriod where the FK is on the Collection Period
         return {k: v for k, v in self.request.GET.dict().items() if k != "uuid"}
 
+    def post(self, *args, **kwargs):
+        """
+        Handle POST requests: instantiate a form instance with the passed
+        POST variables and then check if it's valid.
+        """
+        self.object = None
+        return super().post(*args, **kwargs)
+
 
 @method_decorator(login_required, name='dispatch')
-class ChangeUpdateView(UpdateView, ChangeModelFormMixin):
+class ChangeUpdateView(ChangeModelFormMixin, UpdateView):
     success_url = "/"
     fields = ["content_type", "model_instance_uuid", "action", "update", "status"]
 
