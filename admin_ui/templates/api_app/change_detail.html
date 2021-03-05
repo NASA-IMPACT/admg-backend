@@ -14,7 +14,7 @@
             </div>
             <p>
                 <span class="badge badge-pill badge-light">
-                    &bull; Status: {{ object.get_status_display }}
+                    &bull; {{ object.get_status_display }}
                 </span>
             </p>
 
@@ -45,7 +45,7 @@
                             </small>
                         </h5>
 
-                        <div class="small text-muted">Status: {{ deployment.get_status_display }}</div>
+                        <div class="small text-muted">{{ deployment.get_status_display }}</div>
                         <div class="small text-muted">
                             Last updated 
                             <span title={{ deployment.approvals.0.date|date:"c" }}>{{ deployment.approvals.0.date | naturaltime }}</span>
@@ -128,7 +128,7 @@
                                     </a>
                                 </small>
 
-                                <div class="small text-muted">Status: {{ event.get_status_display }}</div>
+                                <div class="small text-muted">{{ event.get_status_display }}</div>
                                 <div class="small text-muted">
                                     Last updated 
                                     <span title={{ event.approvals.0.date|date:"c" }}>{{ event.approvals.0.date | naturaltime }}</span>
@@ -161,7 +161,7 @@
                                     </a>
                                 </small>
 
-                                <div class="small text-muted">Status: {{ iop.get_status_display }}</div>
+                                <div class="small text-muted">{{ iop.get_status_display }}</div>
                                 <div class="small text-muted">
                                     Last updated 
                                     <span title={{ iop.approvals.0.date|date:"c" }}>{{ iop.approvals.0.date | naturaltime }}</span>
@@ -196,7 +196,7 @@
                                     </a>
                                 </small>
 
-                                <div class="small text-muted">Status: {{ period.get_status_display }}</div>
+                                <div class="small text-muted">{{ period.get_status_display }}</div>
                                 <div class="small text-muted">
                                     Last updated 
                                     <span title={{ period.approvals.0.date|date:"c" }}>{{ period.approvals.0.date | naturaltime }}</span>
