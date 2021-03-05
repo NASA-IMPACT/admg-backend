@@ -100,8 +100,9 @@ def is_status(accepted_statuses_list):
         def wrapper(self, user, notes=""):
 
             if self.status not in accepted_statuses_list:
+                status_strings = [AVAILABLE_STATUSES[status][1] for status in accepted_statuses_list]
                 return generate_failure_response(
-                    f"action failed because status was not one of {accepted_statuses_list}"
+                    f"action failed because status was not one of {status_strings}"
                 )
 
             result = function(self, user, notes)
@@ -156,6 +157,9 @@ class ApprovalLog(models.Model):
 
     def __str__(self):
         return f"{self.user} | {self.get_action_display()} | {self.notes} | {self.date}"
+
+    class Meta:
+        ordering = ['-date']
 
 class Change(models.Model):
     uuid = models.UUIDField(primary_key=True, default=uuid4, editable=False)
@@ -216,8 +220,7 @@ class Change(models.Model):
     def get_latest_log(self):
         return ApprovalLog.objects.filter(change=self).order_by('date').last()
 
-    def save(self, *args, post_save=False, log=True, **kwargs):
-        """log parameter allows a calling function to disable the log, specifically reject"""
+    def save(self, *args, post_save=False, **kwargs):
         # do not check for validity of model_name and uuid if it has been approved or rejected.
         # Check is done for the first time only
         # post_save=False prevents self.previous from being set
@@ -225,6 +228,7 @@ class Change(models.Model):
             self._check_model_and_uuid()
 
         # change object was freshly created and has no logs
+<<<<<<< HEAD
         if not ApprovalLog.objects.filter(change=self):
             ApprovalLog.objects.create(
                 change = self,
@@ -239,6 +243,15 @@ class Change(models.Model):
                     user = get_current_user(),
                     action = ApprovalLog.EDIT,
                 )
+=======
+        if not ApprovalLog.objects.filter(change=self).exists():
+            self.status = CREATED_CODE
+            # the post_save function handles the creation of the approval log
+        # should only log changes made to the draft while in progress
+        elif self.status == CREATED_CODE:
+            self.status = IN_PROGRESS_CODE
+
+>>>>>>> @{-1}
         return super().save(*args, **kwargs)
 
     def _run_validator(self, partial):
@@ -335,7 +348,7 @@ class Change(models.Model):
 
         return response
 
-    @is_status([IN_PROGRESS_CODE])
+    @is_status([CREATED_CODE, IN_PROGRESS_CODE])
     def submit(self, user, notes=""):
         self.status = AWAITING_REVIEW_CODE
 
@@ -425,6 +438,7 @@ class Change(models.Model):
             change = self,
             user = admin_user,
             action = ApprovalLog.PUBLISH,
+            notes = notes
         )
 
         self.status = PUBLISHED_CODE
@@ -570,23 +584,31 @@ class Change(models.Model):
             }
         )
 
+    def _add_create_edit_approval_log(self):
+        """
+            Adds a CREATE or EDIT approval log to the change object
+            based on conditions
+        """
+
+        # change object was freshly created and has no logs
+        if not ApprovalLog.objects.filter(change=self).exists():
+            ApprovalLog.objects.create(
+                change=self,
+                user=get_current_user(),
+                action=ApprovalLog.CREATE,
+            )
+
+        elif self.status in [CREATED_CODE, IN_PROGRESS_CODE]:
+            # don't create an EDIT ApprovalLog for a rejection, claim, or unclaim
+            if self.get_latest_log().action not in [ApprovalLog.REJECT, ApprovalLog.CLAIM, ApprovalLog.UNCLAIM]:
+                ApprovalLog.objects.create(
+                    change=self,
+                    user=get_current_user(),
+                    action=ApprovalLog.EDIT,
+                )
+
 
 # create approval logs after the Change model is saved
 @receiver(post_save, sender=Change, dispatch_uid="save")
-def create_approval_log(sender, instance, **kwargs):
-    # change object was freshly created and has no logs
-    if not ApprovalLog.objects.filter(change=instance).exists():
-        ApprovalLog.objects.create(
-            change=instance,
-            user=get_current_user(),
-            action=ApprovalLog.CREATE,
-        )
-
-    elif instance.status in [CREATED_CODE, IN_PROGRESS_CODE]:
-        # don't create an EDIT ApprovalLog for a rejection
-        if instance.get_latest_log().action not in [ApprovalLog.REJECT, ApprovalLog.CLAIM, ApprovalLog.UNCLAIM]:
-            ApprovalLog.objects.create(
-                change=instance,
-                user=get_current_user(),
-                action=ApprovalLog.EDIT,
-            )
+def create_approval_log_dispatcher(sender, instance, **kwargs):
+    instance._add_create_edit_approval_log()
