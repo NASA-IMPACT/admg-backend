@@ -157,6 +157,9 @@ class ApprovalLog(models.Model):
     def __str__(self):
         return f"{self.user} | {self.get_action_display()} | {self.notes} | {self.date}"
 
+    class Meta:
+        ordering = ['-date']
+
 class Change(models.Model):
     uuid = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     content_type = models.ForeignKey(
@@ -563,23 +566,31 @@ class Change(models.Model):
             }
         )
 
+    def _add_create_edit_approval_log(self):
+        """
+            Adds a CREATE or EDIT approval log to the change object
+            based on conditions
+        """
+
+        # change object was freshly created and has no logs
+        if not ApprovalLog.objects.filter(change=self).exists():
+            ApprovalLog.objects.create(
+                change=self,
+                user=get_current_user(),
+                action=ApprovalLog.CREATE,
+            )
+
+        elif self.status in [CREATED_CODE, IN_PROGRESS_CODE]:
+            # don't create an EDIT ApprovalLog for a rejection, claim, or unclaim
+            if self.get_latest_log().action not in [ApprovalLog.REJECT, ApprovalLog.CLAIM, ApprovalLog.UNCLAIM]:
+                ApprovalLog.objects.create(
+                    change=self,
+                    user=get_current_user(),
+                    action=ApprovalLog.EDIT,
+                )
+
 
 # create approval logs after the Change model is saved
 @receiver(post_save, sender=Change, dispatch_uid="save")
-def create_approval_log(sender, instance, **kwargs):
-    # change object was freshly created and has no logs
-    if not ApprovalLog.objects.filter(change=instance).exists():
-        ApprovalLog.objects.create(
-            change=instance,
-            user=get_current_user(),
-            action=ApprovalLog.CREATE,
-        )
-
-    elif instance.status in [CREATED_CODE, IN_PROGRESS_CODE]:
-        # don't create an EDIT ApprovalLog for a rejection
-        if instance.get_latest_log().action not in [ApprovalLog.REJECT, ApprovalLog.CLAIM, ApprovalLog.UNCLAIM]:
-            ApprovalLog.objects.create(
-                change=instance,
-                user=get_current_user(),
-                action=ApprovalLog.EDIT,
-            )
+def create_approval_log_dispatcher(sender, instance, **kwargs):
+    instance._add_create_edit_approval_log()
