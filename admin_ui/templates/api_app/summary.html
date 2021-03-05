@@ -1,0 +1,112 @@
+{% extends "api_app/base.html" %}
+{% load render_table from django_tables2 %}
+{% load humanize %}
+
+{% block page %}
+
+<div class="container-fluid">
+  <div class="row mx-3 my-5">
+    <div class="col-auto mr-auto">
+      <div class="row">
+        <div>
+          <h1> Welcome, {{request.user.username |title }}.</h1>
+        </div>
+      </div>
+    </div>
+    <div class="col-auto">
+      <a class="btn btn-dark" href="/admin/drafts/add/campaign">Add New Campaign + </a>
+    </div>
+  </div>
+
+  <div class="row mx-3 my-5">
+    <div class="col-8 row">
+      <div class="col card m-1 p-0">
+        <div class="card-body">
+          <span class="text-uppercase col-auto mr-auto p-0 text-nowrap">
+            Campaigns
+          </span>
+          <!-- <span class="badge badge-pill badge-secondary col-auto">
+            +{{ change_counts.campaign }}
+          </span> -->
+          <p class="mb-0 display-4 text-nowrap">
+            {{ published_counts.campaign }}
+          </p>
+        </div>
+      </div>
+      <div class="col card m-1 p-0">
+        <div class="card-body">
+          <span class="text-uppercase col-auto mr-auto p-0 text-nowrap">
+            Deployments
+          </span>
+          <!-- <span class="badge badge-pill badge-secondary col-auto">
+            +{{ change_counts.deployment }}
+          </span> -->
+          <p class="mb-0 display-4 text-nowrap">
+            {{ published_counts.deployment }}
+          </p>
+        </div>
+      </div>
+      <div class="w-100 d-lg-none"></div>
+      <div class="col card m-1 p-0">
+        <div class="card-body">
+          <span class="text-uppercase col-auto mr-auto p-0 text-nowrap">
+            Platforms
+          </span>
+          <!-- <span class="badge badge-pill badge-secondary col-auto">
+            +{{ change_counts.platform }}
+          </span> -->
+          <p class="mb-0 display-4 text-nowrap">
+            {{ published_counts.platform }}
+          </p>
+        </div>
+      </div>
+      <div class="col card m-1 p-0">
+        <div class="card-body">
+          <span class="text-uppercase col-auto mr-auto p-0 text-nowrap">
+            Instruments
+          </span>
+          <!-- <span class="badge badge-pill badge-secondary col-auto">
+            +{{ change_counts.instrument }}
+          </span> -->
+          <p class="mb-0 display-4 text-nowrap">
+            {{ published_counts.instrument }}
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="container-fluid mt-5">
+  <div class="row mx-3 my-5">
+    <div class="col-8">
+      <h3>My Drafts</h3>
+      <div class="mt-4">
+        {% render_table table %}
+      </div>
+    </div>
+
+    <div class="col-4">
+      <h3>Inventory Activities</h3>
+      <div class="card">
+        <ul class="list-group list-group-flush">
+          {% for activity in activity_list %}
+          <li class="list-group-item">
+            <a class="inline-link mr-1" href="{% url 'change-form' activity.change.uuid %}">
+              {{ activity.change.model_name }}
+              {% firstof activity.change.update.short_name activity.change.update.long_name activity.change.uuid %}
+            </a>
+            <strong>{{ activity.get_action_display }}</strong>
+            <span>{% if activity.user %} by {{ activity.user }}{% endif %}</span>
+
+            <p title={{ activity.date|date:"c" }} class="mb-0">
+              {{ activity.date | naturaltime }}
+            </p>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

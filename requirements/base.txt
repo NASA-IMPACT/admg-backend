@@ -12,6 +12,7 @@ django-model-utils==3.2.0  # https://github.com/jazzband/django-model-utils
 django-allauth==0.43.0  # https://github.com/pennersr/django-allauth
 django-crispy-forms==1.9.1  # https://github.com/django-crispy-forms/django-crispy-forms
 django-redis==4.10.0  # https://github.com/niwinz/django-redis
+django-active-link==0.1.7 # https://django-active-link.readthedocs.io/en/latest/readme.html#quick-start
 
 # Django REST Framework
 djangorestframework==3.12.1  # https://github.com/encode/django-rest-framework
@@ -34,3 +35,6 @@ celery==5.0.5
 
 # current user logging
 django-crum==0.7.9
+
+# Tables
+django-tables2==2.3.4 # https://django-tables2.readthedocs.io/en/latest/
