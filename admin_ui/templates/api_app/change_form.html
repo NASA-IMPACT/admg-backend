@@ -2,45 +2,57 @@
 {% load change_extras crispy_forms_tags static %}
 
 {% block extrahead %}
-  {{ block.super }}
-  {{ form.media }}
-  {{ model_form.media }}
+{{ block.super }}
+{{ form.media }}
+{{ model_form.media }}
 {% endblock %}
 
 {% block page %}
-  <form method="post">
-    {% csrf_token %}
-    {% for field in form %} {{ field.as_hidden }} {% endfor %}
-    <div class="row">
-      {# Main Content #}
-      <div class="col-8">
-        <h3>{{ object.get_action_display }} {{ object.model_name }}: {{ object.update.short_name | default:object.uuid }}</h3>
-        <table class="table table-responsive">
-          {{ model_form | crispy }}
-        </table>
-      </div>
-
-      {# Sidebar #}
-      <div class="col-4">
-
-        <h3>Actions</h3>
-        <button class="btn btn-success">Save</button>
-
-        <h3>Related Data</h3>
-        {% related_changes change %}
-
-        <hr />
-
-        <h3>History</h3>
-        {% related_approval_logs approvals %}
-
-        <hr />
-
-        <h3>Raw Data</h3>
-        <code>{{ object.update | pprint }}</code>
-
-      </div>
+<form method="post">
+  {% csrf_token %}
+  {% for field in form %} {{ field.as_hidden }} {% endfor %}
+  <div class="row">
+    {# Main Content #}
+    <div class="col-8">
+      <h3> {{ object.model_name }}: {{ object.update.short_name | default:object.uuid }}
+      </h3>
+      <table class="table table-responsive">
+        {{ model_form | crispy }}
+      </table>
     </div>
-  </form>
+
+    {# Sidebar #}
+    <div class="col-4">
+      <h3>Draft Details</h3>
+      <dl>
+        <dt>Item Type:</dt>
+        <dd>{{ object.model_name }}</dd>
+        <dt>Action:</dt>
+        <dd>{{ object.get_action_display }}</dd>
+        <dt>Status:</dt>
+        <dd>{{ object.get_status_display }}</dd>
+      </dl>
+
+      <h3>Actions</h3>
+      <button class="btn btn-success">Save</button>
+
+      {% if object.model_name == "Campaign" %}
+      <h3>Related Data</h3>
+      {% related_changes change %}
+      {% endif %}
+
+      <hr />
+
+      <h3>History</h3>
+      {% related_approval_logs approvals %}
+
+      <hr />
+
+      <h3>Raw Data</h3>
+      <code>{{ object.update | pprint }}</code>
+
+    </div>
+  </div>
+</form>
 
 {% endblock %}

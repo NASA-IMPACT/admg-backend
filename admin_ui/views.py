@@ -15,7 +15,7 @@ from django.shortcuts import render
 from django.utils.decorators import method_decorator
 from django.utils.safestring import mark_safe
 from django.views.generic.list import ListView
-from django.views.generic.detail import DetailView
+from django.views.generic.detail import DetailView, SingleObjectMixin
 from django.views.generic.edit import CreateView, UpdateView, ModelFormMixin
 from django.db.models import Max
 from django.db.models.query import QuerySet
@@ -225,9 +225,84 @@ class ChangeListView(SingleTableView):
 
 
 @method_decorator(login_required, name='dispatch')
-class ChangeDetailView(DetailView):
+class ChangeDetailView(SingleObjectMixin, ListView):
     model = Change
+    paginate_by = 25
     template_name = "api_app/change_detail.html"
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object(queryset=Change.objects.all())
+        return super().get(request, *args, **kwargs)
+
+    def get_queryset(self):
+        return (
+            Change.objects.filter(
+                content_type__model="deployment",
+                update__campaign=str(self.kwargs[self.pk_url_kwarg]),
+            )
+            .prefetch_related(
+                models.Prefetch(
+                    "approvallog_set",
+                    queryset=ApprovalLog.objects.order_by("-date").select_related(
+                        "user"
+                    ),
+                    to_attr="approvals",
+                )
+            )
+            .order_by(self.get_ordering())
+        )
+
+    def get_context_data(self, **kwargs):
+        return {
+            **super().get_context_data(**kwargs),
+            "significant_events": (
+                Change.objects.select_related("content_type")
+                .filter(
+                    content_type__model__iexact="significantevent",
+                    update__deployment__in=[str(d.uuid) for d in self.object_list],
+                )
+                .prefetch_related(
+                    models.Prefetch(
+                        "approvallog_set",
+                        queryset=ApprovalLog.objects.order_by("-date").select_related(
+                            "user"
+                        ),
+                        to_attr="approvals",
+                    )
+                )
+            ),
+            "iops": Change.objects.select_related("content_type")
+            .filter(
+                content_type__model__iexact="iop",
+                update__deployment__in=[str(d.uuid) for d in self.object_list],
+            )
+            .prefetch_related(
+                models.Prefetch(
+                    "approvallog_set",
+                    queryset=ApprovalLog.objects.order_by("-date").select_related(
+                        "user"
+                    ),
+                    to_attr="approvals",
+                )
+            ),
+            "collection_periods": Change.objects.select_related("content_type")
+            .filter(
+                content_type__model__iexact="collectionperiod",
+                update__deployment__in=[str(d.uuid) for d in self.object_list],
+            )
+            .prefetch_related(
+                models.Prefetch(
+                    "approvallog_set",
+                    queryset=ApprovalLog.objects.order_by("-date").select_related(
+                        "user"
+                    ),
+                    to_attr="approvals",
+                )
+            ),
+        }
+
+    def get_ordering(self):
+        return self.request.GET.get("ordering", "-status")
 
 
 @method_decorator(login_required, name='dispatch')
@@ -244,10 +319,18 @@ class ChangeCreateView(CreateView, ChangeModelFormMixin):
             "model_instance_uuid": self.request.GET.get("uuid"),
         }
 
+    def get_context_data(self):
+        return {
+            **super().get_context_data(),
+            "content_type_name": self.get_model_form_content_type().model_class().__name__
+        }
+
     def get_model_form_content_type(self) -> ContentType:
-        return ContentType.objects.get(
-            app_label="data_models", model__iexact=self.kwargs["model"]
-        )
+        if not hasattr(self, "model_form_content_type"):
+            self.model_form_content_type = ContentType.objects.get(
+                app_label="data_models", model__iexact=self.kwargs["model"]
+            )
+        return self.model_form_content_type
 
     def get_model_form_intial(self):
         # TODO: Not currently possible to handle reverse relationships such as adding
@@ -300,4 +383,3 @@ def serialize(value):
 @method_decorator(login_required, name='dispatch')
 def to_be_developed(request):
     return render(request, "api_app/to_be_developed.html")
-

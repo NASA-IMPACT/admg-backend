@@ -21,3 +21,7 @@ td a {
   color: black;
   text-decoration: underline;
 }
+
+.cursor-pointer {
+  cursor: pointer;
+}
