@@ -83,7 +83,6 @@ def handle_exception(function):
             res = function(self, request, *args, **kwargs)
             if 300 >= res.status_code >= 200:
                 original_data = res.data
-                print(original_data)
                 success, message, data = extract_response_details(original_data)
               
         except Exception as e:
