@@ -15,3 +15,15 @@
 </form>
 
 {% endblock %}
+
+{% block javascript %}
+{{ block.super }}
+<script>
+  // Mark all required inputs as not-required (but store required as data-required attribute)
+  ['input', 'textarea', 'select'].forEach(function (value) {
+    $(value + '[required]')
+      .attr('data-required', true)
+      .attr('required', false);
+  })
+</script>
+{% endblock %}
