@@ -30,5 +30,7 @@ boto3==1.14.9
 botocore==1.17.9
 django-storages==1.11.1
 
+celery==5.0.5
+
 # current user logging
 django-crum==0.7.9
