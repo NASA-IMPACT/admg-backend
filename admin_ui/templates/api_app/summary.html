@@ -5,7 +5,7 @@
 {% block page %}
 
 <div class="container-fluid">
-  <div class="row mt-4 mb-5">
+  <div class="row mx-3 my-5">
     <div class="col-auto mr-auto">
       <div class="row">
         <div>
@@ -16,43 +16,46 @@
     <div class="col-auto">
       <a class="btn btn-dark" href="/admin/drafts/add/campaign">Add New Campaign + </a>
     </div>
-    <div class="row" style="margin-left: .5rem;">
-      <div class="col card" style="min-width:12rem; margin-right:6px;">
-        <div class="card-body" style="padding:.3rem;">
-          <small class="text-uppercase" style="font-weight: bold;">
-            Campaigns: 
-          </small>
-          <p style="font-size:x-large; font-weight: bold; margin-bottom: 0;">
+  </div>
+
+  <div class="row mx-3 my-5">
+    <div class="col-8 row">
+      <div class="col card mx-1">
+        <div class="card-body">
+          <span class="text-uppercase">
+            Campaigns
+          </span>
+          <p class="mb-0 display-4">
             {{ published_counts.campaign }}
           </p>
         </div>
       </div>
-      <div class="col card" style="min-width:12rem; margin-right: 6px;">
-        <div class="card-body" style="padding:.3rem;">
-          <small class="text-uppercase" style="font-weight: bold;">
-            Deployments: 
-          </small>
-          <p style="font-size:x-large; font-weight: bold; margin-bottom: 0;">
+      <div class="col card mx-1">
+        <div class="card-body">
+          <span class="text-uppercase">
+            Deployments
+          </span>
+          <p class="mb-0 display-4">
             {{ change_counts.deployment }}
           </p>
         </div>
       </div>
-      <div class="col card" style="min-width:12rem; margin-right: 6px;">
-        <div class="card-body" style="padding:.3rem;">
-          <small class="text-uppercase" style="font-weight: bold;">
-            Platforms: 
-          </small>
-          <p style="font-size:x-large; font-weight: bold; margin-bottom: 0;">
+      <div class="col card mx-1">
+        <div class="card-body">
+          <span class="text-uppercase">
+            Platforms
+          </span>
+          <p class="mb-0 display-4">
             {{ change_counts.platform }}
           </p>
         </div>
       </div>
-      <div class="col card" style="min-width:12rem;">
-        <div class="card-body" style="padding:.3rem;">
-          <small class="text-uppercase" style="font-weight: bold;">
-            Instruments: 
-          </small>
-          <p style="font-size:x-large; font-weight: bold; margin-bottom: 0;">
+      <div class="col card mx-1">
+        <div class="card-body">
+          <span class="text-uppercase">
+            Instruments
+          </span>
+          <p class="mb-0 display-4">
             {{ change_counts.instrument }}
           </p>
         </div>
@@ -61,32 +64,35 @@
   </div>
 </div>
 
-<div class="row">
-  <div class="col-8">
-    <h3>My Drafts</h3>
-    <div class="container-fluid">
-      {% render_table table %}
+<div class="container-fluid mt-5">
+  <div class="row mx-3 my-5">
+    <div class="col-8">
+      <h3>My Drafts</h3>
+      <div class="mt-4">
+        {% render_table table %}
+      </div>
     </div>
-  </div>
-  
-  <div class="col-4">
-    <h3>Inventory Activities</h3>
-    <div class="card" style="width: 20rem;">
-      <ul class="list-group list-group-flush">
-        {% for activity in activity_list %}
-        <li class="list-group-item">
-          <a class="inline-link" href="{% url 'change-form' activity.change.uuid %}">
-            {{ activity.change.model_name }}
-            {% firstof activity.change.update.short_name activity.change.update.long_name activity.change.uuid %}
-          </a>
-          <br/>
-          <strong>{{ activity.get_action_display }}</strong>
-          <br/>
-          <span title={{ activity.date|date:"c" }}>{{ activity.date | naturaltime }}</span>
-          {% if activity.user %} by {{ activity.user }}{% endif %}
-        </li>
-        {% endfor %}
-      </ul>
+
+    <div class="col-4">
+      <h3>Inventory Activities</h3>
+      <div class="card">
+        <ul class="list-group list-group-flush">
+          {% for activity in activity_list %}
+          <li class="list-group-item">
+            <a class="inline-link mr-1" href="{% url 'change-form' activity.change.uuid %}">
+              {{ activity.change.model_name }}
+              {% firstof activity.change.update.short_name activity.change.update.long_name activity.change.uuid %}
+            </a>
+            <strong>{{ activity.get_action_display }}</strong>
+            <span>{% if activity.user %} by {{ activity.user }}{% endif %}</span>
+
+            <p title={{ activity.date|date:"c" }} class="mb-0">
+              {{ activity.date | naturaltime }}
+            </p>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
     </div>
   </div>
 </div>
