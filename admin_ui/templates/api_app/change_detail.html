@@ -1,14 +1,255 @@
 {% extends "api_app/base.html" %}
 {% load change_extras %}
+{% load humanize %}
 
 {% block page %}
-    <h1>{{ change }}</h1>
+<div class="container-fluid">
+    <div class="row mt-4 mb-5">
+        <div class="col-auto mr-auto">
+            <a href="{% url 'change-list' %}">&larr; Back</a>
 
-    <p>This is the view where we see an overview of a Campaign Group</p>
+            <div class="d-flex align-items-baseline">
+                <h1>Campaign {% firstof object.update.short_name object.update.uuid %}</h1> <a
+                    href="{% url 'change-form' object.uuid %}" class="ml-3">Edit campaign details</a>
+            </div>
+            <p>
+                <span class="badge badge-pill badge-light">
+                    &bull; {{ object.get_status_display }}
+                </span>
+            </p>
 
-    <h3>Related Data</h3>
-    {% related_changes change %}
+            <button class="btn btn-primary">Submit for review</button> <!-- TODO: add onclick -->
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid">
+    <div class="row mt-4">
+        <div class="col">
+            <ul class="list-group">
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">Deployments</h4>
+                    <a class="btn btn-primary"
+                        href="{% url 'change-add' 'deployment' %}?campaign={{ object.uuid }}">+</a>
+                </li>
+                {% for deployment in object_list %}
+                <li class="list-group-item list-group-item-action d-flex justify-content-between deployment cursor-pointer"
+                    data-id="{{ deployment.uuid }}">
+                    <div>
+                        <h5>
+                            {% firstof deployment.update.short_name deployment.update.uuid %}
+                            <small>
+                                <a href="{% url 'change-form' deployment.uuid %}">
+                                    edit &rarr;
+                                </a>
+                            </small>
+                        </h5>
+
+                        <div class="small text-muted">{{ deployment.get_status_display }}</div>
+                        <div class="small text-muted">
+                            Last updated 
+                            <span title={{ deployment.approvals.0.date|date:"c" }}>{{ deployment.approvals.0.date | naturaltime }}</span>
+                            {% if deployment.approvals.0.user %} by {% firstof deployment.approvals.0.user.get_full_name deployment.approvals.0.user.username %}{% endif %}
+                        </div>
+                    </div>
+                    <div><span class="caret">&rsaquo;</span></div>
+                </li>
+                {% endfor %}
+            </ul>
+
+            {% if page_obj.paginator.page_range > 1 %}
+            <nav aria-label="Navigate list of deployments" class="mt-5">
+                <ul class="pagination">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1">&lang;&lang; First</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}">&lang; Previous</a>
+                    </li>
+                    {% endif %}
+
+                    {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                    <li class="page-item active">
+                        <span class="page-link">
+                            {{ num }}
+                            <span class="sr-only">(current)</span>
+                        </span>
+                    </li>
+                    {% else %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{num}}"">
+                            {{ num }}
+                        </a>
+                    </li>
+                    {% endif %}
+
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                    <li class=" page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next &rang;</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last &rang;&rang;</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+
+        <div class="col">
+            <div id="accordion">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between" id="significant-events-header">
+                        <h5 class="mb-0">
+                            <button class="btn btn-link collapsed" data-toggle="collapse"
+                                data-target="#significant-events" aria-expanded="false"
+                                aria-controls="significant-events">
+                                Significant events
+                            </button>
+                            <span id="significant-events-badge" class="badge badge-primary badge-pill"></span>
+                        </h5>
+                        <a class="add-deployment-child btn btn-primary" href="{% url 'change-add' 'significantevent' %}">+</a>
+                    </div>
+
+                    <div id="significant-events" class="collapse" aria-labelledby="significant-events-header"
+                        data-parent="#accordion">
+                        <ul class="list-group">
+                            {% for event in significant_events %}
+                            <li class="list-group-item deployment-child"
+                                data-deployment="{{ event.update.deployment }}">
+                                {% firstof event.update.short_name event.update.uuid %}
+                                <small>
+                                    <a href="{% url 'change-form' event.uuid %}">
+                                        edit &rarr;
+                                    </a>
+                                </small>
+
+                                <div class="small text-muted">{{ event.get_status_display }}</div>
+                                <div class="small text-muted">
+                                    Last updated 
+                                    <span title={{ event.approvals.0.date|date:"c" }}>{{ event.approvals.0.date | naturaltime }}</span>
+                                    {% if event.approvals.0.user %} by {% firstof event.approvals.0.user.get_full_name event.approvals.0.user.username %}{% endif %}
+                                </div>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between" id="iops-header">
+                        <h5 class="mb-0">
+                            <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#iops"
+                                aria-expanded="false" aria-controls="iops">
+                                Iops
+                            </button>
+                            <span id="iops-badge" class="badge badge-primary badge-pill"></span>
+                        </h5>
+                        <a class="add-deployment-child btn btn-primary" href="{% url 'change-add' 'iop' %}">+</a>
+                    </div>
+                    <div id="iops" class="collapse" aria-labelledby="iops-header" data-parent="#accordion">
+                        <ul class="list-group">
+                            {% for iop in iops %}
+                            <li class="list-group-item deployment-child" data-deployment="{{ iop.update.deployment }}">
+                                {% firstof iop.update.short_name iop.update.uuid %}
+                                <small>
+                                    <a href="{% url 'change-form' iop.uuid %}">
+                                        edit &rarr;
+                                    </a>
+                                </small>
+
+                                <div class="small text-muted">{{ iop.get_status_display }}</div>
+                                <div class="small text-muted">
+                                    Last updated 
+                                    <span title={{ iop.approvals.0.date|date:"c" }}>{{ iop.approvals.0.date | naturaltime }}</span>
+                                    {% if iop.approvals.0.user %} by {% firstof iop.approvals.0.user.get_full_name iop.approvals.0.user.username %}{% endif %}
+                                </div>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between" id="collection-periods-header">
+                        <h5 class="mb-0">
+                            <button class="btn btn-link" data-toggle="collapse" data-target="#collection-periods"
+                                aria-expanded="true" aria-controls="collection-periods">
+                                CDPIs
+                            </button>
+                            <span id="collection-periods-badge" class="badge badge-primary badge-pill"></span>
+                        </h5>
+                        <a class="add-deployment-child btn btn-primary" href="{% url 'change-add' 'collectionperiod' %}">+</a>
+                    </div>
+                    <div id="collection-periods" class="collapse show" aria-labelledby="collection-periods-header"
+                        data-parent="#accordion">
+                        <ul class="list-group">
+                            {% for period in collection_periods %}
+                            <li class="list-group-item deployment-child"
+                                data-deployment="{{ period.update.deployment }}">
+                                {% firstof period.update.short_name period.update.uuid %}
+                                <small>
+                                    <a href="{% url 'change-form' period.uuid %}">
+                                        edit &rarr;
+                                    </a>
+                                </small>
+
+                                <div class="small text-muted">{{ period.get_status_display }}</div>
+                                <div class="small text-muted">
+                                    Last updated 
+                                    <span title={{ period.approvals.0.date|date:"c" }}>{{ period.approvals.0.date | naturaltime }}</span>
+                                    {% if period.approvals.0.user %} by {% firstof period.approvals.0.user.get_full_name period.approvals.0.user.username %}{% endif %}
+                                </div>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 {% endblock %}
 
 {% related_changes change %}
+
+{% block javascript %}
+{{ block.super }}
+<script>
+    $(".deployment").click(function () {
+        // Mark as active
+        $('.deployment').removeClass('list-group-item-primary');
+        $(this).addClass('list-group-item-primary');
+
+        // Display children
+        var deploymentId = $(this).attr('data-id');
+        var childLookup = '[data-deployment=' + deploymentId + ']';
+        $('.deployment-child:not(' + childLookup + ')').hide();
+        $('.deployment-child' + childLookup).show();
+
+        // Update count badges
+        ['#significant-events', '#iops', '#collection-periods'].forEach(function (value) {
+            var count = $(value + ' li' + childLookup).length;
+            $(value + '-badge').text(count);
+            if (count === 0) {
+                $(value + '-header > * > button').addClass('disabled')
+                $(value + '-badge').addClass('bg-secondary')
+            }
+
+        });
+        
+        // Update add buttons
+        $('.add-deployment-child').attr('href', function(index, href) {
+            var url = new URL(href, window.location);
+            url.searchParams.set('deployment', deploymentId);
+            return url.pathname + url.search;
+        })
+    })
+
+    // Select first
+    $('.deployment:first').click() 
+</script>
+{% endblock %}
