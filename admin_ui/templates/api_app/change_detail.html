@@ -5,14 +5,15 @@
 <div class="container-fluid">
     <div class="row mt-4 mb-5">
         <div class="col-auto mr-auto">
-            <a href="">&larr; Back</a> <!-- TODO: add back href -->
+            <a href="{% url 'change-list' %}">&larr; Back</a>
 
             <div class="d-flex align-items-baseline">
-                <h1>Campaign {% firstof object.update.short_name object.update.uuid %}</h1> <a href="" class="ml-3">Edit campaign details</a>
+                <h1>Campaign {% firstof object.update.short_name object.update.uuid %}</h1> <a
+                    href="{% url 'change-form' object.uuid %}" class="ml-3">Edit campaign details</a>
             </div>
             <p>
                 <span class="badge badge-pill badge-light">
-                    &bull; Status: {{ object.status }} <!-- TODO: add status as text -->
+                    &bull; Status: {{ object.status }}
                 </span>
             </p>
 
@@ -30,20 +31,19 @@
             <ul class="list-group">
                 <li class="list-group-item d-flex justify-content-between align-items-center">
                     <h4 class="mb-0">Deployments</h4>
-                    <button class="btn btn-primary">+</button> <!-- TODO: add onclick -->
+                    <a href="{% url 'change-add' 'deployment' %}"><button class="btn btn-primary">+</button></a>
                 </li>
                 {% for deployment in object_list %}
-                <li
-                    class="list-group-item list-group-item-action d-flex justify-content-between deployment cursor-pointer" data-id="{{ deployment.uuid }}"
-                >
+                <li class="list-group-item list-group-item-action d-flex justify-content-between deployment cursor-pointer"
+                    data-id="{{ deployment.uuid }}">
                     <div>
                         <h5>
-                        {% firstof deployment.update.short_name deployment.update.uuid %}
-                        <small>
-                            <a href="{% url 'change-form' deployment.uuid %}">
-                                edit &rarr;
-                            </a>
-                        </small>
+                            {% firstof deployment.update.short_name deployment.update.uuid %}
+                            <small>
+                                <a href="{% url 'change-form' deployment.uuid %}">
+                                    edit &rarr;
+                                </a>
+                            </small>
                         </h5>
 
                         <span class="text-muted">Status: {{ object.status }}</span> <!-- TODO: add status as text -->
@@ -104,13 +104,15 @@
                 <div class="card">
                     <div class="card-header d-flex justify-content-between" id="significant-events-header">
                         <h5 class="mb-0">
-                            <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#significant-events"
-                                aria-expanded="false" aria-controls="significant-events">
+                            <button class="btn btn-link collapsed" data-toggle="collapse"
+                                data-target="#significant-events" aria-expanded="false"
+                                aria-controls="significant-events">
                                 Significant events
                             </button>
                             <span id="significant-events-badge" class="badge badge-primary badge-pill"></span>
                         </h5>
-                        <button class="btn btn-primary">+</button> <!-- TODO: add onclick -->
+                        <a href="{% url 'change-add' 'significantevent' %}"><button
+                                class="btn btn-primary">+</button></a>
                     </div>
 
                     <div id="significant-events" class="collapse" aria-labelledby="significant-events-header"
@@ -139,7 +141,7 @@
                             </button>
                             <span id="iops-badge" class="badge badge-primary badge-pill"></span>
                         </h5>
-                        <button class="btn btn-primary">+</button> <!-- TODO: add onclick -->
+                        <a href="{% url 'change-add' 'iop' %}"><button class="btn btn-primary">+</button></a>
                     </div>
                     <div id="iops" class="collapse" aria-labelledby="iops-header" data-parent="#accordion">
                         <ul class="list-group">
@@ -159,14 +161,14 @@
                 <div class="card">
                     <div class="card-header d-flex justify-content-between" id="collection-periods-header">
                         <h5 class="mb-0">
-                            <button class="btn btn-link" data-toggle="collapse"
-                                data-target="#collection-periods" aria-expanded="true"
-                                aria-controls="collection-periods">
+                            <button class="btn btn-link" data-toggle="collapse" data-target="#collection-periods"
+                                aria-expanded="true" aria-controls="collection-periods">
                                 CDPIs
                             </button>
                             <span id="collection-periods-badge" class="badge badge-primary badge-pill"></span>
                         </h5>
-                        <button class="btn btn-primary">+</button> <!-- TODO: add onclick -->
+                        <a href="{% url 'change-add' 'collectionperiod' %}"><button
+                                class="btn btn-primary">+</button></a>
                     </div>
                     <div id="collection-periods" class="collapse show" aria-labelledby="collection-periods-header"
                         data-parent="#accordion">
