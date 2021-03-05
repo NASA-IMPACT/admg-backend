@@ -10,7 +10,7 @@
 {% block page %}
 <form method="post">
   {% csrf_token %}
-  <h3>Create Item: {{ model.content_type }}</h3> <!-- TODO This doesn't work -->
+  <h3>Create {{ content_type_name }} draft</h3>
   {{ model_form | crispy }}
   <button class="btn btn-info">Submit</button>
 </form>
