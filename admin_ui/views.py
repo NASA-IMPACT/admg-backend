@@ -221,7 +221,7 @@ class ChangeListView(SingleTableView):
         ).annotate(updated_at=Max("approvallog__date"))
 
 
-class ChangeDetailView(ListView, SingleObjectMixin):
+class ChangeDetailView(SingleObjectMixin, ListView):
     model = Change
     paginate_by = 25
     template_name = "api_app/change_detail.html"
@@ -231,35 +231,74 @@ class ChangeDetailView(ListView, SingleObjectMixin):
         return super().get(request, *args, **kwargs)
 
     def get_queryset(self):
-        return Change.objects.filter(
-            content_type__model='deployment', update__campaign=str(self.kwargs[self.pk_url_kwarg])
-        ).order_by(self.get_ordering())
+        return (
+            Change.objects.filter(
+                content_type__model="deployment",
+                update__campaign=str(self.kwargs[self.pk_url_kwarg]),
+            )
+            .prefetch_related(
+                models.Prefetch(
+                    "approvallog_set",
+                    queryset=ApprovalLog.objects.order_by("-date").select_related(
+                        "user"
+                    ),
+                    to_attr="approvals",
+                )
+            )
+            .order_by(self.get_ordering())
+        )
 
     def get_context_data(self, **kwargs):
         return {
             **super().get_context_data(**kwargs),
-            "significant_events": Change.objects.select_related("content_type").filter(
-                content_type__model__iexact="significantevent",
-                update__deployment__in=[
-                    str(d.uuid) for d in self.object_list
-                ],
+            "significant_events": (
+                Change.objects.select_related("content_type")
+                .filter(
+                    content_type__model__iexact="significantevent",
+                    update__deployment__in=[str(d.uuid) for d in self.object_list],
+                )
+                .prefetch_related(
+                    models.Prefetch(
+                        "approvallog_set",
+                        queryset=ApprovalLog.objects.order_by("-date").select_related(
+                            "user"
+                        ),
+                        to_attr="approvals",
+                    )
+                )
             ),
-            "iops": Change.objects.select_related("content_type").filter(
+            "iops": Change.objects.select_related("content_type")
+            .filter(
                 content_type__model__iexact="iop",
-                update__deployment__in=[
-                    str(d.uuid) for d in self.object_list
-                ],
-            ),
-            "collection_periods": Change.objects.select_related("content_type").filter(
-                content_type__model__iexact="collectionperiod",
-                update__deployment__in=[
-                    str(d.uuid) for d in self.object_list
-                ],
+                update__deployment__in=[str(d.uuid) for d in self.object_list],
             )
+            .prefetch_related(
+                models.Prefetch(
+                    "approvallog_set",
+                    queryset=ApprovalLog.objects.order_by("-date").select_related(
+                        "user"
+                    ),
+                    to_attr="approvals",
+                )
+            ),
+            "collection_periods": Change.objects.select_related("content_type")
+            .filter(
+                content_type__model__iexact="collectionperiod",
+                update__deployment__in=[str(d.uuid) for d in self.object_list],
+            )
+            .prefetch_related(
+                models.Prefetch(
+                    "approvallog_set",
+                    queryset=ApprovalLog.objects.order_by("-date").select_related(
+                        "user"
+                    ),
+                    to_attr="approvals",
+                )
+            ),
         }
 
     def get_ordering(self):
-        return self.request.GET.get('ordering', '-status')
+        return self.request.GET.get("ordering", "-status")
 
 
 class ChangeCreateView(CreateView, ChangeModelFormMixin):
@@ -329,4 +368,3 @@ def serialize(value):
 
 def to_be_developed(request):
     return render(request, "api_app/to_be_developed.html")
-
