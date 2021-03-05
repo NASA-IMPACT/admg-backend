@@ -36,7 +36,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='change',
             name='content_type',
-            field=models.ForeignKey(help_text='Model for which the draft pertains.', limit_choices_to={'app_label': 'data_models', 'model__in': ['campaign', 'instrument', 'platform', 'iop', 'deployment', 'partnerorg']}, on_delete=django.db.models.deletion.CASCADE, to='contenttypes.contenttype'),
+            field=models.ForeignKey(help_text='Model for which the draft pertains.', on_delete=django.db.models.deletion.CASCADE, to='contenttypes.contenttype'),
         ),
         migrations.AlterField(
             model_name='change',

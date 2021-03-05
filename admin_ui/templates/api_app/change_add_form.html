@@ -12,7 +12,21 @@
   {% csrf_token %}
   <h3>Create {{ content_type_name }} draft</h3>
   {{ model_form | crispy }}
+  {% for field in form %} {{ field.as_hidden }} {% endfor %}
   <button class="btn btn-info">Submit</button>
 </form>
+{{ form.errors }}
 
+{% endblock %}
+
+{% block javascript %}
+{{ block.super }}
+<script>
+  // Mark all required inputs as not-required (but store required as data-required attribute)
+  ['input', 'textarea', 'select'].forEach(function (value) {
+    $(value + '[required]')
+      .attr('data-required', true)
+      .attr('required', false);
+  })
+</script>
 {% endblock %}

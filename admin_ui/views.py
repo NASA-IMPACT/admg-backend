@@ -98,22 +98,13 @@ class ChangeModelFormMixin(ModelFormMixin):
         Handle POST requests: instantiate a form instance with the passed
         POST variables and then check if it's valid.
         """
-        # Validate destination model's form
-        BaseModelForm = self.destination_model_form
-
-        class ModelForm(BaseModelForm):
-            # TODO: This may be a mistake, I don't know if we ever want to actually ignore validation errors.
-            # Instead, we still may want to save the form but also render the validation errors.
-            def validate_unique(_self):
-                # We don't want to raise errors on unique errors for the
-                # destination model unless this is a "Create" change
-                if self.object.action == CREATE:
-                    super().validate_unique()
-
-        model_form = ModelForm(data=request.POST, prefix=self.destination_model_prefix)
         form = self.get_form()
+        form.full_clean()
 
-        if not all([model_form.is_valid(), form.is_valid()]):
+        model_form = self.destination_model_form(data=request.POST, prefix=self.destination_model_prefix)
+        model_form.full_clean()
+        
+        if not form.is_valid():
             return self.form_invalid(form=form, model_form=model_form)
 
         # Populate Change's form with values from destination model's form
@@ -122,11 +113,21 @@ class ChangeModelFormMixin(ModelFormMixin):
                 {k: serialize(v) for k, v in model_form.cleaned_data.items()}
             )
         )
-        return self.form_valid(form)
+        return self.form_valid(form, model_form)
+    
+    def form_valid(self, form, model_form):
+        # Save object
+        messages.success(self.request, 'Successfully updated form.')
+        self.object = form.save()
+        return self.render_to_response(
+            self.get_context_data(form=form, model_form=model_form)
+        )
 
     def form_invalid(self, form, model_form):
+        # TODO: Can't save SignificantEvent instances
         # Overriden to support handling both invalid Change form and an invalid
         # destination model form
+        messages.error(self.request, 'Unable to save.')
         return self.render_to_response(
             self.get_context_data(form=form, model_form=model_form)
         )
@@ -307,8 +308,9 @@ class ChangeDetailView(SingleObjectMixin, ListView):
         return self.request.GET.get("ordering", "-status")
 
 
-@method_decorator(login_required, name="dispatch")
-class ChangeCreateView(CreateView, ChangeModelFormMixin):
+@method_decorator(login_required, name='dispatch')
+class ChangeCreateView(ChangeModelFormMixin, CreateView):
+
     model = Change
     fields = ["content_type", "model_instance_uuid", "action", "update"]
     template_name = "api_app/change_add_form.html"
@@ -316,17 +318,15 @@ class ChangeCreateView(CreateView, ChangeModelFormMixin):
     def get_initial(self):
         # Get initial form values from URL
         return {
-            "content_type": self.get_model_form_content_type().id,
+            "content_type": self.get_model_form_content_type(),
             "action": UPDATE if self.request.GET.get("uuid") else CREATE,
             "model_instance_uuid": self.request.GET.get("uuid"),
         }
 
-    def get_context_data(self):
+    def get_context_data(self, **kwargs):
         return {
-            **super().get_context_data(),
-            "content_type_name": self.get_model_form_content_type()
-            .model_class()
-            .__name__,
+            **super().get_context_data(**kwargs),
+            "content_type_name": self.get_model_form_content_type().model_class().__name__
         }
 
     def get_model_form_content_type(self) -> ContentType:
@@ -341,9 +341,17 @@ class ChangeCreateView(CreateView, ChangeModelFormMixin):
         # models to a CollectionPeriod where the FK is on the Collection Period
         return {k: v for k, v in self.request.GET.dict().items() if k != "uuid"}
 
+    def post(self, *args, **kwargs):
+        """
+        Handle POST requests: instantiate a form instance with the passed
+        POST variables and then check if it's valid.
+        """
+        self.object = None
+        return super().post(*args, **kwargs)
 
-@method_decorator(login_required, name="dispatch")
-class ChangeUpdateView(UpdateView, ChangeModelFormMixin):
+
+@method_decorator(login_required, name='dispatch')
+class ChangeUpdateView(ChangeModelFormMixin, UpdateView):
     success_url = "/"
     fields = ["content_type", "model_instance_uuid", "action", "update", "status"]
 

@@ -45,42 +45,58 @@
       <button class="btn btn-success"> Claim for Compiling </button><br>
       <p>Status change notes:</p>
       <textarea name="notes"></textarea>
-      {% elif object.status == 1 %}
-      <form action="{% url 'change-transitions' change.uuid 'submit' %}" method="post">
-        {% csrf_token %}
-        <button class="btn btn-success"> Submit for Review </button><br>
-        <p>Status change notes:</p>
-        <textarea name="notes"></textarea>
-        {% elif object.status == 2 %}
-        <form action="{% url 'change-transitions' change.uuid 'claim' %}" method="post">
-          {% csrf_token %}
-          <button class="btn btn-success"> Claim for Review </button><br>
-          <p>Status change notes:</p>
-          <textarea name="notes"></textarea>
-          {% elif object.status == 3 %}
-          <form action="{% url 'change-transitions' change.uuid 'review' %}" method="post">
-            {% csrf_token %}
-            <button class="btn btn-success"> Submit for Admin Review </button><br>
-            <p>Status change notes:</p>
-            <textarea name="notes"></textarea>
-            {% else %} <em>Awaiting Admin Review</em>
-            {% endif %}
-          </form>
+    
+    {% elif object.status == 1 %}
+    <form action="{% url 'change-transitions' change.uuid 'submit' %}" method="post">
+      {% csrf_token %}
+      <button class="btn btn-success"> Submit for Review </button><br>
+      <p>Status change notes:</p>
+      <textarea name="notes"></textarea>
+    
+      {% elif object.status == 2 %}
+    <form action="{% url 'change-transitions' change.uuid 'claim' %}" method="post">
+      {% csrf_token %}
+      <button class="btn btn-success"> Claim for Review </button><br>
+      <p>Status change notes:</p>
+      <textarea name="notes"></textarea>
 
-          <h3>Related Data</h3>
-          {% related_changes change %}
+    {% elif object.status == 3 %}
+    <form action="{% url 'change-transitions' change.uuid 'review' %}" method="post">
+      {% csrf_token %}
+      <button class="btn btn-success"> Submit for Admin Review </button><br>
+      <p>Status change notes:</p>
+      <textarea name="notes"></textarea>
+      {% else %} <em>Awaiting Admin Review</em>
+    
+    {% endif %}
+    </form>
 
-          <hr />
+    <h3>Related Data</h3>
+    {% related_changes change %}
 
-          <h3>History</h3>
-          {% related_approval_logs approvals %}
+    <hr />
 
-          <hr />
+    <h3>History</h3>
+    {% related_approval_logs approvals %}
 
-          <h3>Raw Data</h3>
-          <code>{{ object.update | pprint }}</code>
+    <hr />
 
+    <h3>Raw Data</h3>
+    {{ form.errors }}
+    <code>{{ object.update | pprint }}</code>
   </div>
 </div>
 
+{% endblock %}
+
+{% block javascript %}
+{{ block.super }}
+<script>
+  // Mark all required inputs as not-required (but store required as data-required attribute)
+  ['input', 'textarea', 'select'].forEach(function (value) {
+    $(value + '[required]')
+      .attr('data-required', true)
+      .attr('required', false);
+  })
+</script>
 {% endblock %}
