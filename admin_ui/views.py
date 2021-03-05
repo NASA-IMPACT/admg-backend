@@ -10,7 +10,7 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.db import models
 from django.db.models.aggregates import Count, Max
 from django.forms import modelform_factory
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponseForbidden
 from django.shortcuts import render
 from django.utils.safestring import mark_safe
 from django.views.generic.list import ListView
@@ -294,3 +294,21 @@ def serialize(value):
 def to_be_developed(request):
     return render(request, "api_app/to_be_developed.html")
 
+
+class ChangeTransition(DetailView):
+    model = Change
+
+    def post(self, *args, **kwargs):
+        if not self.request.user:
+            return HttpResponseForbidden("You must be logged in!")
+        change: Change = self.get_object()
+        if kwargs["transition"] == "edit":
+            messages.warning(self.request, "Edit button not yet supported!")
+        elif kwargs["transition"] == "submit":
+            response = change.submit(self.request.user, self.request.POST.get("notes"))
+            if response["success"]:
+                messages.success(self.request, "Congrats!")
+            else:
+                messages.error(self.request, response["message"])
+
+        return HttpResponseRedirect("/")
