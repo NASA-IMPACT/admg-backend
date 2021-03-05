@@ -404,8 +404,9 @@ class ChangeTransition(DetailView):
         else:
             return HttpResponseBadRequest("invalid transition argument")
 
-        return HttpResponseRedirect("/")
-        # return HttpResponseRedirect("api_app/change_list.html")
+        return HttpResponseRedirect(
+            reverse("change-form", kwargs={"pk": change.uuid})
+        )
 
     def check_for_error(self, response):
         if response["success"]:
