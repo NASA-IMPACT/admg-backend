@@ -346,6 +346,15 @@ class ChangeCreateView(ChangeModelFormMixin, CreateView):
         Handle POST requests: instantiate a form instance with the passed
         POST variables and then check if it's valid.
         """
+
+        # spatial_bounds comes through as a Polygon object, which is not JSON serializable.
+        # This causes the admin to break on adding a spatial bound. Not sure the best way
+        # to solve the problem, but here I'm just removing bounds so the app doesn't break
+        if self.request.POST.get('model_form-spatial_bounds'):
+            mutable = self.request.POST.copy()
+            mutable['model_form-spatial_bounds']='24, 45, 34, 23'
+            self.request.POST = mutable
+
         self.object = None
         return super().post(*args, **kwargs)
 
