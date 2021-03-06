@@ -6,7 +6,7 @@ from django.utils.translation import gettext as _
 from django.forms import modelform_factory, Field
 from django.forms.models import ModelForm as ModelFormType
 
-from api_app.models import APPROVED_CODE, Change, CREATE
+from api_app.models import PUBLISHED_CODE, Change, CREATE
 from .base import EnforcedPermissions
 
 
@@ -32,27 +32,22 @@ class ChangeAdmin(EnforcedPermissions):
     SUBMODEL_FIELDNAME_PREFIX = "submodel__"
 
     change_form_template = "admin/change_model_detail.html"
-    list_display = ("model_name", "added_date", "action", "status", "user")
+    list_display = ("model_name", "action", "status")
     list_filter = (
         "status",
         "action",
         ModelToBeChangedFilter,
-        "user",
-        "added_date",
-        "appr_reject_date",
     )
     readonly_fields = (
-        "user",
         "previous",
         "uuid",
         "model_instance_uuid",
-        "appr_reject_date",
     )
     fieldsets = (
         (None, {"fields": ("action", "content_type")}),
         (
             "Details",
-            {"classes": (), "fields": ("user", "status", "appr_reject_date", "notes")},
+            {"classes": (), "fields": ("status",)},
         ),
         (
             "Advanced",
@@ -72,8 +67,8 @@ class ChangeAdmin(EnforcedPermissions):
     def has_change_permission(self, request, obj: Change = None):
         """ Only allow changing objects if you're the author or superuser """
         if obj:
-            # Nobody can edit an approved object
-            if obj.status == APPROVED_CODE:
+            # Nobody can edit a published object
+            if obj.status == PUBLISHED_CODE:
                 return False
 
         return True
@@ -88,7 +83,7 @@ class ChangeAdmin(EnforcedPermissions):
         return (
             super().get_queryset(request)
             # fetch related data to avoid followup lookups of needed data
-            .select_related("content_type", "user")
+            .select_related("content_type")
         )
 
     def get_changeform_initial_data(self, request):
@@ -155,7 +150,7 @@ class ChangeAdmin(EnforcedPermissions):
         if readonly:
             self.message_user(
                 request,
-                "You cannot edit Drafts after they have been approved.",
+                "You cannot edit Drafts after they have been published.",
                 level=messages.WARNING,
             )
 

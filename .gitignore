@@ -68,6 +68,7 @@ target/
 .venv
 venv/
 ENV/
+env/
 
 # Rope project settings
 .ropeproject
@@ -281,6 +282,7 @@ pip-selfcheck.json
 ### Project template
 
 admg_webapp/media/
+cmr/config.py
 
 .pytest_cache/
 .ipynb_checkpoints/
