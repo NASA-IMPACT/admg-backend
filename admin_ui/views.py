@@ -391,8 +391,7 @@ def serialize(value):
         return value.uuid
     return value
 
-
-@method_decorator(login_required, name="dispatch")
+@login_required
 def to_be_developed(request):
     return render(request, "api_app/to_be_developed.html")
 
