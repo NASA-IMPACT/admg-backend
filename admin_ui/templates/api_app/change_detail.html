@@ -48,10 +48,8 @@
                         <div class="small text-muted">{{ deployment.get_status_display }}</div>
                         <div class="small text-muted">
                             Last updated
-                            <span title={{ deployment.approvals.0.date|date:"c" }}>{{ deployment.approvals.0.date |
-                                naturaltime }}</span>
-                            {% if deployment.approvals.0.user %} by {% firstof deployment.approvals.0.user.get_full_name
-                            deployment.approvals.0.user.username %}{% endif %}
+                            <span title={{ deployment.approvals.0.date|date:"c" }}>{{ deployment.approvals.0.date | naturaltime }}</span>
+                            {% if deployment.approvals.0.user %} by {% firstof deployment.approvals.0.user.get_full_name deployment.approvals.0.user.username %}{% endif %}
                         </div>
                     </div>
                     <div><span class="caret">&rsaquo;</span></div>
@@ -134,10 +132,8 @@
                                 <div class="small text-muted">{{ event.get_status_display }}</div>
                                 <div class="small text-muted">
                                     Last updated
-                                    <span title={{ event.approvals.0.date|date:"c" }}>{{ event.approvals.0.date |
-                                        naturaltime }}</span>
-                                    {% if event.approvals.0.user %} by {% firstof event.approvals.0.user.get_full_name
-                                    event.approvals.0.user.username %}{% endif %}
+                                    <span title={{ event.approvals.0.date|date:"c" }}>{{ event.approvals.0.date | naturaltime }}</span>
+                                    {% if event.approvals.0.user %} by {% firstof event.approvals.0.user.get_full_name event.approvals.0.user.username %}{% endif %}
                                 </div>
                             </li>
                             {% endfor %}
@@ -169,10 +165,8 @@
                                 <div class="small text-muted">{{ iop.get_status_display }}</div>
                                 <div class="small text-muted">
                                     Last updated
-                                    <span title={{ iop.approvals.0.date|date:"c" }}>{{ iop.approvals.0.date |
-                                        naturaltime }}</span>
-                                    {% if iop.approvals.0.user %} by {% firstof iop.approvals.0.user.get_full_name
-                                    iop.approvals.0.user.username %}{% endif %}
+                                    <span title={{ iop.approvals.0.date|date:"c" }}>{{ iop.approvals.0.date | naturaltime }}</span>
+                                    {% if iop.approvals.0.user %} by {% firstof iop.approvals.0.user.get_full_name iop.approvals.0.user.username %}{% endif %}
                                 </div>
                             </li>
                             {% endfor %}
@@ -207,10 +201,8 @@
                                 <div class="small text-muted">{{ period.get_status_display }}</div>
                                 <div class="small text-muted">
                                     Last updated
-                                    <span title={{ period.approvals.0.date|date:"c" }}>{{ period.approvals.0.date |
-                                        naturaltime }}</span>
-                                    {% if period.approvals.0.user %} by {% firstof period.approvals.0.user.get_full_name
-                                    period.approvals.0.user.username %}{% endif %}
+                                    <span title={{ period.approvals.0.date|date:"c" }}>{{ period.approvals.0.date | naturaltime }}</span>
+                                    {% if period.approvals.0.user %} by {% firstof period.approvals.0.user.get_full_name period.approvals.0.user.username %}{% endif %}
                                 </div>
                             </li>
                             {% endfor %}
