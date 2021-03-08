@@ -1,5 +1,3 @@
-import json
-from typing import Union
 import django_tables2 as tables
 from django_tables2 import SingleTableView, A
 
@@ -9,7 +7,6 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.db import models
 from django.db.models.aggregates import Count, Max
-from django.forms import modelform_factory
 from django.http import (
     HttpResponseRedirect,
     HttpResponseForbidden,
@@ -21,14 +18,12 @@ from django.utils.safestring import mark_safe
 from django.urls import reverse
 from django.views.generic.list import ListView
 from django.views.generic.detail import DetailView, SingleObjectMixin
-from django.views.generic.edit import CreateView, UpdateView, ModelFormMixin
-from django.db.models import Max
-from django.db.models.query import QuerySet
-from rest_framework.renderers import JSONRenderer
+from django.views.generic.edit import CreateView, UpdateView
 import requests
 
 from api_app.models import ApprovalLog, Change, CREATE, UPDATE, PUBLISHED_CODE
 from data_models.models import Campaign, Instrument, Platform, Deployment
+from .mixins import ChangeModelFormMixin
 
 
 @login_required
@@ -61,76 +56,6 @@ def deploy_admin(request):
     # TODO: Redirect back to origin of request
     # TODO: Use dynamic admin route (either from URL router or from settings)
     return HttpResponseRedirect("/admin/")
-
-
-class ChangeModelFormMixin(ModelFormMixin):
-    """
-    This mixin attempts to simplify working with a second form (the model_form)
-    when editing Change objects.
-    """
-
-    destination_model_prefix = "model_form"
-
-    @property
-    def destination_model_form(self):
-        """ Helper to return a form for the destination of the Draft object """
-        return modelform_factory(
-            self.get_model_form_content_type().model_class(), exclude=[]
-        )
-
-    def get_model_form_content_type(self) -> ContentType:
-        raise NotImplementedError("Subclass must implement this property")
-
-    def get_model_form_intial(self):
-        return {}
-
-    def get_context_data(self, **kwargs):
-        if "model_form" not in kwargs:
-            # Ensure that the model_form is available in context for template
-            kwargs["model_form"] = self.destination_model_form(
-                initial=self.get_model_form_intial(),
-                prefix=self.destination_model_prefix,
-            )
-        return super().get_context_data(**kwargs)
-
-    def post(self, request, *args, **kwargs):
-        """
-        Handle POST requests: instantiate a form instance with the passed
-        POST variables and then check if it's valid.
-        """
-        form = self.get_form()
-        form.full_clean()
-
-        model_form = self.destination_model_form(data=request.POST, prefix=self.destination_model_prefix)
-        model_form.full_clean()
-        
-        if not form.is_valid():
-            return self.form_invalid(form=form, model_form=model_form)
-
-        # Populate Change's form with values from destination model's form
-        form.instance.update = json.loads(
-            JSONRenderer().render(
-                {k: serialize(v) for k, v in model_form.cleaned_data.items()}
-            )
-        )
-        return self.form_valid(form, model_form)
-    
-    def form_valid(self, form, model_form):
-        # Save object
-        messages.success(self.request, 'Successfully updated form.')
-        self.object = form.save()
-        return self.render_to_response(
-            self.get_context_data(form=form, model_form=model_form)
-        )
-
-    def form_invalid(self, form, model_form):
-        # TODO: Can't save SignificantEvent instances
-        # Overriden to support handling both invalid Change form and an invalid
-        # destination model form
-        messages.error(self.request, 'Unable to save.')
-        return self.render_to_response(
-            self.get_context_data(form=form, model_form=model_form)
-        )
 
 
 class SummaryTable(tables.Table):
@@ -346,15 +271,6 @@ class ChangeCreateView(ChangeModelFormMixin, CreateView):
         Handle POST requests: instantiate a form instance with the passed
         POST variables and then check if it's valid.
         """
-
-        # spatial_bounds comes through as a Polygon object, which is not JSON serializable.
-        # This causes the admin to break on adding a spatial bound. Not sure the best way
-        # to solve the problem, but here I'm just removing bounds so the app doesn't break
-        if self.request.POST.get('model_form-spatial_bounds'):
-            mutable = self.request.POST.copy()
-            mutable['model_form-spatial_bounds']='24, 45, 34, 23'
-            self.request.POST = mutable
-
         self.object = None
         return super().post(*args, **kwargs)
 
@@ -393,13 +309,6 @@ class ChangeUpdateView(ChangeModelFormMixin, UpdateView):
         return super().post(*args, **kwargs)
 
 
-def serialize(value):
-    if isinstance(value, QuerySet):
-        return [v.uuid for v in value]
-    if isinstance(value, models.Model):
-        return value.uuid
-    return value
-
 @login_required
 def to_be_developed(request):
     return render(request, "api_app/to_be_developed.html")
@@ -410,9 +319,8 @@ class ChangeTransition(DetailView):
     model = Change
 
     def post(self, *args, **kwargs):
-        if not self.request.user:
-            return HttpResponseForbidden("You must be logged in!")
         change: Change = self.get_object()
+        
         if kwargs["transition"] == "edit":
             messages.warning(self.request, "Claim for Compiling not yet supported")
         elif kwargs["transition"] == "submit":
