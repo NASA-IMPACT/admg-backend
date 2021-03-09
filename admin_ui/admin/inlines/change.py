@@ -1,13 +1,14 @@
-from django.contrib import admin
 from django.utils.translation import gettext as _
 from django.contrib.contenttypes.admin import GenericTabularInline
+from django.contrib.admin import ModelAdmin
 
-from api_app.models import Change, IN_PROGRESS_CODE, IN_REVIEW_CODE, IN_ADMIN_REVIEW_CODE, PUBLISHED_CODE
+from api_app.models import Change, IN_PROGRESS_CODE, IN_REVIEW_CODE, IN_ADMIN_REVIEW_CODE
 
 
 class BaseChangeInline(GenericTabularInline):
     model = Change
     ct_fk_field = "model_instance_uuid"
+    classes = ('collapse',)
 
     extra = 0
 
@@ -41,7 +42,3 @@ class InAdminReviewInline(BaseChangeInline):
 
     def get_queryset(self, request):
         return super().get_queryset(request).filter(status=IN_ADMIN_REVIEW_CODE)
-
-
-class ChangeableAdmin(admin.ModelAdmin):
-    inlines = [InProgressInline, InReviewInline, InAdminReviewInline]

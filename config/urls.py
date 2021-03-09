@@ -6,6 +6,7 @@ from django.views import defaults as default_views
 from api_app.utils import CustomTokenView
 
 urlpatterns = [
+    # TODO: redirect from homr to /admin/summary if logged in
     path("", TemplateView.as_view(template_name="pages/home.html"), name="home"),
     path(
         "about/", TemplateView.as_view(template_name="pages/about.html"), name="about"

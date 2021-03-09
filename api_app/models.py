@@ -167,19 +167,8 @@ class Change(models.Model):
         ContentType,
         help_text="Model for which the draft pertains.",
         on_delete=models.CASCADE,
-        limit_choices_to={
-            "app_label": "data_models",
-            "model__in": [
-                "campaign",
-                "instrument",
-                "platform",
-                "iop",
-                "deployment",
-                "partnerorg",
-            ],
-        },
     )
-    model_instance_uuid = models.UUIDField(default=uuid4, blank=False, null=True)
+    model_instance_uuid = models.UUIDField(default=uuid4, blank=True, null=True)
     content_object = GenericForeignKey("content_type", "model_instance_uuid")
 
     status = models.IntegerField(choices=AVAILABLE_STATUSES, default=IN_PROGRESS_CODE)

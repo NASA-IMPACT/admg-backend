@@ -1,0 +1,24 @@
+{% extends "api_app/base.html" %}
+{% load change_extras %}
+{% load render_table from django_tables2 %}
+
+{% block page %}
+
+<div class="container-fluid">
+  <div class="row mt-4 mb-5">
+    <div class="col-auto mr-auto">
+      <h1>Campaigns Drafts</h1>
+    </div>
+    <div class="col-auto">
+      <a class="btn btn-dark" href="{% url 'change-add' 'campaign' %}">Add New Campaign + </a>
+    </div>
+  </div>
+</div>
+
+<div class="container-fluid">
+  {% render_table table %}
+</div>
+
+{% endblock %}
+
+{% related_changes change %}

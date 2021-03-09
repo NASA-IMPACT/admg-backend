@@ -1,0 +1,102 @@
+{% extends "api_app/base.html" %}
+{% load change_extras crispy_forms_tags static %}
+
+{% block extrahead %}
+{{ block.super }}
+{{ form.media }}
+{{ model_form.media }}
+{% endblock %}
+
+{% block page %}
+<div class="row">
+  {# Main Content #}
+  <div class="col-8">
+    <h3>{{ object.model_name }}: {{ object.update.short_name | default:object.uuid }}
+    </h3>
+    <table class="table table-responsive">
+      <form method="post" id="model-form">
+        {% csrf_token %}
+        {% for field in form %} {{ field.as_hidden }} {% endfor %}
+        {{ model_form | crispy }}
+      </form>
+
+    </table>
+  </div>
+
+  {# Sidebar #}
+  <div class="col-4">
+    <h3>Draft Details</h3>
+    <dl>
+      <dt>Item Type:</dt>
+      <dd>{{ object.model_name }}</dd>
+      <dt>Action:</dt>
+      <dd>{{ object.get_action_display }}</dd>
+      <dt>Status:</dt>
+      <dd>{{ object.get_status_display }}</dd>
+    </dl>
+
+    <h3>Actions</h3>
+    <button form="model-form" class="btn btn-success">Save</button>
+    <h5>Update status</h5>
+    <!-- The most ridiculuous if statement you've ever seen -->
+    {% if object.status == 0 %}
+    <form action="{% url 'change-transitions' change.uuid 'edit' %}" method="post">
+      {% csrf_token %}
+      <button class="btn btn-success"> Claim for Compiling </button><br>
+      <p>Status change notes:</p>
+      <textarea name="notes"></textarea>
+    
+    {% elif object.status == 1 %}
+    <form action="{% url 'change-transitions' change.uuid 'submit' %}" method="post">
+      {% csrf_token %}
+      <button class="btn btn-success"> Submit for Review </button><br>
+      <p>Status change notes:</p>
+      <textarea name="notes"></textarea>
+    
+      {% elif object.status == 2 %}
+    <form action="{% url 'change-transitions' change.uuid 'claim' %}" method="post">
+      {% csrf_token %}
+      <button class="btn btn-success"> Claim for Review </button><br>
+      <p>Status change notes:</p>
+      <textarea name="notes"></textarea>
+
+    {% elif object.status == 3 %}
+    <form action="{% url 'change-transitions' change.uuid 'review' %}" method="post">
+      {% csrf_token %}
+      <button class="btn btn-success"> Submit for Admin Review </button><br>
+      <p>Status change notes:</p>
+      <textarea name="notes"></textarea>
+      {% else %} <em>Awaiting Admin Review</em>
+    
+    {% endif %}
+    </form>
+
+    <h3>Related Data</h3>
+    {% related_changes change %}
+
+    <hr />
+
+    <h3>History</h3>
+    {% related_approval_logs approvals %}
+
+    <hr />
+
+    <h3>Raw Data</h3>
+    {{ form.errors }}
+    <code>{{ object.update | pprint }}</code>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block javascript %}
+{{ block.super }}
+<script>
+  // Mark all required inputs as not-required (but store required as data-required attribute)
+  ['input', 'textarea', 'select'].forEach(function (value) {
+    $(value + '[required]')
+      .attr('data-required', true)
+      .attr('required', false);
+  })
+</script>
+{% endblock %}

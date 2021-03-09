@@ -1,0 +1,27 @@
+.active {
+  font-weight: 700;
+  color: white;
+}
+
+.nav-link {
+  color: black;
+}
+
+th a {
+  color: white;
+}
+
+td a {
+  color: white;
+  color: black;
+  text-decoration: underline;
+}
+
+.inline-link {
+  color: black;
+  text-decoration: underline;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}

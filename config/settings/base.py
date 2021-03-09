@@ -71,10 +71,11 @@ DJANGO_APPS = [
     "django.contrib.sites",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    # "django.contrib.humanize", # Handy template tags
+    "django.contrib.humanize",  # Handy template tags
     "admin_ui",  # Must be before django.contrib.admin
     "django.contrib.admin",
     "django.contrib.gis",  # add this line
+    'active_link',  # for formating navigation links
 ]
 
 THIRD_PARTY_APPS = [
@@ -88,6 +89,7 @@ THIRD_PARTY_APPS = [
     "drf_yasg",
     "oauth2_provider",
     "storages",
+    "django_tables2"
 ]
 
 LOCAL_APPS = [
@@ -209,6 +211,9 @@ TEMPLATES = [
 ]
 # http://django-crispy-forms.readthedocs.io/en/latest/install.html#template-packs
 CRISPY_TEMPLATE_PACK = "bootstrap4"
+
+# https://django-tables2.readthedocs.io/en/latest/pages/custom-rendering.html?highlight=DJANGO_TABLES2_TEMPLATE#available-templates
+DJANGO_TABLES2_TEMPLATE = "django_tables2/bootstrap4.html"
 
 # FIXTURES
 # ------------------------------------------------------------------------------

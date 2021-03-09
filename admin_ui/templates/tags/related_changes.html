@@ -1,0 +1,84 @@
+{% load change_extras %}
+<ul class="nav list-unstyled">
+  <li class="nav-item">
+    {% change_list_item object %}
+    <ul class="list-unstyled ml-3">
+
+      {% for deployment in object.deployments %}
+      <li class="nav-item">
+        {% change_list_item deployment %}
+        <ul class="list-unstyled ml-3">
+
+          {% for significant_event in deployment.significant_events %}
+          <li class="nav-item">{% change_list_item significant_event %}</li>
+          {% endfor %}
+
+          <li class="nav-item">
+            <a href="{% url 'change-add' 'significantevent' %}?deployment={{ deployment.uuid }}"
+              class="btn btn-info btn-sm">
+              Add related Significant Event
+            </a>
+          </li>
+
+          {% for iop in deployment.iops %}
+          <li class="nav-item">
+            {% change_list_item iop %}
+
+            <ul class="list-unstyled ml-3">
+              {% for significant_event in iop.significant_events %}
+              <li class="nav-item">{% change_list_item significant_event %}</li>
+              {% endfor %}
+
+              <li class="nav-item">
+                <a href="{% url 'change-add' 'significantevent' %}?iop={{ iop.uuid }}&deployment={{ deployment.uuid }}"
+                  class="btn btn-info btn-sm">Add related Significant Event</a>
+              </li>
+            </ul>
+          </li>
+          {% endfor %}
+
+          <li class="nav-item">
+            <a href="{% url 'change-add' 'iop' %}?deployment={{ deployment.uuid }}" class="btn btn-info btn-sm">Add
+              related IOP</a>
+          </li>
+
+          {% for collection_period in deployment.collection_periods %}
+          <li class="nav-item">
+            {% change_list_item collection_period %}
+            <ul class="list-unstyled ml-3">
+
+              {% for platform in collection_period.platforms %}
+              <li class="nav-item">{% change_list_item platform %}</li>
+              {% endfor %}
+
+              {% for homebase in collection_period.homebases %}
+              <li class="nav-item">{% change_list_item homebase %}</li>
+              {% endfor %}
+
+              {% for instrument in collection_period.instruments %}
+              <li class="nav-item">{% change_list_item instrument %}</li>
+              {% empty %}
+              <li class="nav-item">
+                <a href="{% url 'change-add' 'instrument' %}?collection_period={{ collection_period.uuid }}"
+                  class="btn btn-info btn-sm">Add related Instrument</a>
+              </li>
+              {% endfor %}
+
+            </ul>
+          </li>
+          {% endfor %}
+
+          <li class="nav-item">
+            <a href="{% url 'change-add' 'collectionperiod' %}?deployment={{ deployment.uuid }}"
+              class="btn btn-info btn-sm">Add related Collection Period</a>
+          </li>
+        </ul>
+      </li>
+      {% endfor %}
+      <li class="nav-item">
+        <a href="{% url 'change-add' 'deployment' %}?object={{ object.uuid }}" class="btn btn-info btn-sm">Add related
+          Deployment</a>
+      </li>
+    </ul>
+  </li>
+</ul>
