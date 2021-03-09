@@ -1,6 +1,3 @@
-import django_tables2 as tables
-from django_tables2 import SingleTableView, A
-
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.contenttypes.models import ContentType
@@ -19,11 +16,13 @@ from django.urls import reverse
 from django.views.generic.list import ListView
 from django.views.generic.detail import DetailView, SingleObjectMixin
 from django.views.generic.edit import CreateView, UpdateView
+import django_tables2
 import requests
 
 from api_app.models import ApprovalLog, Change, CREATE, UPDATE, PUBLISHED_CODE
 from data_models.models import Campaign, Instrument, Platform, Deployment
 from .mixins import ChangeModelFormMixin
+from . import tables
 
 
 @login_required
@@ -58,30 +57,10 @@ def deploy_admin(request):
     return HttpResponseRedirect("/admin/")
 
 
-class SummaryTable(tables.Table):
-    name = tables.LinkColumn(
-        viewname="change-detail",
-        args=[A("uuid")],
-        verbose_name="Name",
-        accessor="update__short_name",
-    )
-    short_name = tables.Column(verbose_name="Campaign", accessor="update__short_name")
-    content_type__model = tables.Column(
-        verbose_name="Model Type", accessor="content_type__model"
-    )
-    updated_at = tables.Column(verbose_name="Last Edit Date")
-    status = tables.Column(verbose_name="Status", accessor="status")
-
-    class Meta:
-        attrs = {"class": "table table-striped", "thead": {"class": "thead-dark"}}
-        model = Change
-        fields = ["name", "content_type__model", "updated_at", "short_name", "status"]
-
-
 @method_decorator(login_required, name="dispatch")
-class ChangeSummaryView(SingleTableView):
+class ChangeSummaryView(django_tables2.SingleTableView):
     model = Change
-    table_class = SummaryTable
+    table_class = tables.ChangeSummaryTable
     paginate_by = 10
     template_name = "api_app/summary.html"
 
@@ -120,30 +99,10 @@ class ChangeSummaryView(SingleTableView):
         }
 
 
-class ChangeTable(tables.Table):
-    short_name = tables.LinkColumn(
-        viewname="change-detail",
-        args=[A("uuid")],
-        verbose_name="Short Name",
-        accessor="update__short_name",
-    )
-    long_name = tables.Column(verbose_name="Long name", accessor="update__long_name")
-    status = tables.Column(verbose_name="Status", accessor="status")
-    funding_agency = tables.Column(
-        verbose_name="Funding Agency", accessor="update__funding_agency"
-    )
-    updated_at = tables.Column(verbose_name="Last Edit Date")
-
-    class Meta:
-        attrs = {"class": "table table-striped", "thead": {"class": "thead-dark"}}
-        model = Change
-        fields = ["short_name", "long_name", "funding_agency", "status", "updated_at"]
-
-
 @method_decorator(login_required, name="dispatch")
-class ChangeListView(SingleTableView):
+class ChangeListView(django_tables2.SingleTableView):
     model = Change
-    table_class = ChangeTable
+    table_class = tables.ChangeListTable
     template_name = "api_app/change_list.html"
 
     def get_queryset(self):
@@ -233,7 +192,7 @@ class ChangeDetailView(SingleObjectMixin, ListView):
         return self.request.GET.get("ordering", "-status")
 
 
-@method_decorator(login_required, name='dispatch')
+@method_decorator(login_required, name="dispatch")
 class ChangeCreateView(ChangeModelFormMixin, CreateView):
 
     model = Change
@@ -251,7 +210,9 @@ class ChangeCreateView(ChangeModelFormMixin, CreateView):
     def get_context_data(self, **kwargs):
         return {
             **super().get_context_data(**kwargs),
-            "content_type_name": self.get_model_form_content_type().model_class().__name__
+            "content_type_name": self.get_model_form_content_type()
+            .model_class()
+            .__name__,
         }
 
     def get_model_form_content_type(self) -> ContentType:
@@ -275,7 +236,7 @@ class ChangeCreateView(ChangeModelFormMixin, CreateView):
         return super().post(*args, **kwargs)
 
 
-@method_decorator(login_required, name='dispatch')
+@method_decorator(login_required, name="dispatch")
 class ChangeUpdateView(ChangeModelFormMixin, UpdateView):
     success_url = "/"
     fields = ["content_type", "model_instance_uuid", "action", "update", "status"]
@@ -320,7 +281,7 @@ class ChangeTransition(DetailView):
 
     def post(self, *args, **kwargs):
         change: Change = self.get_object()
-        
+
         if kwargs["transition"] == "edit":
             messages.warning(self.request, "Claim for Compiling not yet supported")
         elif kwargs["transition"] == "submit":
@@ -335,9 +296,7 @@ class ChangeTransition(DetailView):
         else:
             return HttpResponseBadRequest("invalid transition argument")
 
-        return HttpResponseRedirect(
-            reverse("change-form", kwargs={"pk": change.uuid})
-        )
+        return HttpResponseRedirect(reverse("change-form", kwargs={"pk": change.uuid}))
 
     def check_for_error(self, response):
         if response["success"]:
