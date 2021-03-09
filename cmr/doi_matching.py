@@ -127,9 +127,9 @@ class DoiMatcher():
         change_requests = self._get_change_requests()
 
         # get all create items of any approval status from the given table
-        created = [c for c in change_requests if self.filter_change_object(c, 'create', [1,2,3], table_name, query_parameter, query_value)]
+        created = [c for c in change_requests if self.filter_change_object(c, 'create', [0,1,2,3,4,5,6], table_name, query_parameter, query_value)]
         # get all approved deleted objects
-        deleted = [c for c in change_requests if self.filter_change_object(c, 'delete', [3], table_name, query_parameter, query_value)]
+        deleted = [c for c in change_requests if self.filter_change_object(c, 'delete', [6], table_name, query_parameter, query_value)]
 
         # filter out the approved deletes from the approved and in progress create list
         deleted_uuids = [d['model_instance_uuid'] for d in deleted]
