@@ -4,7 +4,7 @@ services:
   web:
     build:
       context: ./
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.local
     command: python manage.py runserver 0.0.0.0:8001
     volumes:
       - .:/code
@@ -46,6 +46,12 @@ services:
     depends_on:
       - web
       - rabbitmq
+
+  flower:
+    image: mher/flower:0.9.5
+    command: ["flower", "--broker=pyamqp://rabbitmq:5672", "--port=8888"]
+    ports:
+      - 8888:8888
 
 volumes:
   postgres_data:
