@@ -9,104 +9,145 @@
     <div class="col-auto mr-auto">
       <div class="row">
         <div>
-          <h1> Welcome, {{request.user.username |title }}.</h1>
+          <h1>Welcome, {{ request.user.username | title }}.</h1>
         </div>
       </div>
     </div>
     <div class="col-auto">
-      <a class="btn btn-dark" href="/admin/drafts/add/campaign">Add New Campaign + </a>
+      <a class="btn btn-dark" href="/admin/drafts/add/campaign">
+        Add New Campaign +
+      </a>
     </div>
   </div>
 
   <div class="row mx-3 my-5">
-    <div class="col-8 row">
-      <div class="col card m-1 p-0">
-        <div class="card-body">
-          <span class="text-uppercase col-auto mr-auto p-0 text-nowrap">
-            Campaigns
+    <div class="col-auto col-lg-4 px-4 border">
+      <p class="text-uppercase my-3">Campaigns</p>
+      <div class="row">
+        <div class="col-sm-3">
+          <span class="lead font-weight-bold text-nowrap">
+            {{ total_counts.campaign }}
           </span>
-          <!-- <span class="badge badge-pill badge-secondary col-auto">
-            +{{ change_counts.campaign }}
-          </span> -->
-          <p class="mb-0 display-4 text-nowrap">
+          <p>Total</p>
+        </div>
+        <div class="col-sm-3">
+          <span class="lead font-weight-bold text-nowrap">
+            {{ change_counts.campaign }}
+          </span>
+          <p>In review</p>
+        </div>
+        <div class="col-sm-3">
+          <span class="lead font-weight-bold text-nowrap">
+            {{ admin_review_counts.campaign }}
+          </span>
+          <p>In admin review</p>
+        </div>
+        <div class="col-sm-3">
+          <span class="lead font-weight-bold text-nowrap">
             {{ published_counts.campaign }}
-          </p>
+          </span>
+          <p>Published</p>
         </div>
       </div>
-      <div class="col card m-1 p-0">
-        <div class="card-body">
-          <span class="text-uppercase col-auto mr-auto p-0 text-nowrap">
-            Deployments
+    </div>
+
+    <div class="col-auto col-lg-4 px-4 border">
+      <p class="text-uppercase my-3">Platforms</p>
+      <div class="row">
+        <div class="col-sm-3">
+          <span class="lead font-weight-bold text-nowrap">
+            {{ total_counts.platform }}
           </span>
-          <!-- <span class="badge badge-pill badge-secondary col-auto">
-            +{{ change_counts.deployment }}
-          </span> -->
-          <p class="mb-0 display-4 text-nowrap">
-            {{ published_counts.deployment }}
-          </p>
+          <p>Total</p>
         </div>
-      </div>
-      <div class="w-100 d-lg-none"></div>
-      <div class="col card m-1 p-0">
-        <div class="card-body">
-          <span class="text-uppercase col-auto mr-auto p-0 text-nowrap">
-            Platforms
+        <div class="col-sm-3">
+          <span class="lead font-weight-bold text-nowrap">
+            {{ change_counts.platform }}
           </span>
-          <!-- <span class="badge badge-pill badge-secondary col-auto">
-            +{{ change_counts.platform }}
-          </span> -->
-          <p class="mb-0 display-4 text-nowrap">
+          <p>In review</p>
+        </div>
+        <div class="col-sm-3">
+          <span class="lead font-weight-bold text-nowrap">
+            {{ admin_review_counts.platform }}
+          </span>
+          <p>In admin review</p>
+        </div>
+        <div class="col-sm-3">
+          <span class="lead font-weight-bold text-nowrap">
             {{ published_counts.platform }}
-          </p>
-        </div>
-      </div>
-      <div class="col card m-1 p-0">
-        <div class="card-body">
-          <span class="text-uppercase col-auto mr-auto p-0 text-nowrap">
-            Instruments
           </span>
-          <!-- <span class="badge badge-pill badge-secondary col-auto">
-            +{{ change_counts.instrument }}
-          </span> -->
-          <p class="mb-0 display-4 text-nowrap">
+          <p>Published</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-auto col-lg-4 px-4 border">
+      <p class="text-uppercase my-3">Instruments</p>
+      <div class="row">
+        <div class="col-sm-3">
+          <span class="lead font-weight-bold text-nowrap">
+            {{ total_counts.instrument }}
+          </span>
+          <p>Total</p>
+        </div>
+        <div class="col-sm-3">
+          <span class="lead font-weight-bold text-nowrap">
+            {{ change_counts.instrument }}
+          </span>
+          <p>In review</p>
+        </div>
+        <div class="col-sm-3">
+          <span class="lead font-weight-bold text-nowrap">
+            {{ admin_review_counts.instrument }}
+          </span>
+          <p>In admin review</p>
+        </div>
+        <div class="col-sm-3">
+          <span class="lead font-weight-bold text-nowrap">
             {{ published_counts.instrument }}
-          </p>
+          </span>
+          <p>Published</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container-fluid mt-5">
+    <div class="row mx-3 my-5">
+      <div class="col-8">
+        <h3>My Drafts</h3>
+        <div class="mt-4">{% render_table table %}</div>
+      </div>
+
+      <div class="col-4">
+        <h3>Inventory Activities</h3>
+        <div class="card">
+          <ul class="list-group list-group-flush">
+            {% for activity in activity_list %}
+            <li class="list-group-item">
+              <a
+                class="inline-link mr-1"
+                href="{% url 'change-form' activity.change.uuid %}"
+              >
+                {{ activity.change.model_name }} {% firstof
+                activity.change.update.short_name
+                activity.change.update.long_name activity.change.uuid %}
+              </a>
+              <strong>{{ activity.get_action_display }}</strong>
+              <span>
+                {% if activity.user %} by {{ activity.user }}{% endif %}
+              </span>
+
+              <p title="{{ activity.date|date:'c' }}" class="mb-0">
+                {{ activity.date | naturaltime }}
+              </p>
+            </li>
+            {% endfor %}
+          </ul>
         </div>
       </div>
     </div>
   </div>
 </div>
 
-<div class="container-fluid mt-5">
-  <div class="row mx-3 my-5">
-    <div class="col-8">
-      <h3>My Drafts</h3>
-      <div class="mt-4">
-        {% render_table table %}
-      </div>
-    </div>
-
-    <div class="col-4">
-      <h3>Inventory Activities</h3>
-      <div class="card">
-        <ul class="list-group list-group-flush">
-          {% for activity in activity_list %}
-          <li class="list-group-item">
-            <a class="inline-link mr-1" href="{% url 'change-form' activity.change.uuid %}">
-              {{ activity.change.model_name }}
-              {% firstof activity.change.update.short_name activity.change.update.long_name activity.change.uuid %}
-            </a>
-            <strong>{{ activity.get_action_display }}</strong>
-            <span>{% if activity.user %} by {{ activity.user }}{% endif %}</span>
-
-            <p title={{ activity.date|date:"c" }} class="mb-0">
-              {{ activity.date | naturaltime }}
-            </p>
-          </li>
-          {% endfor %}
-        </ul>
-      </div>
-    </div>
-  </div>
-</div>
 {% endblock %}

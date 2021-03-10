@@ -74,6 +74,9 @@ class ChangeSummaryView(django_tables2.SingleTableView):
     def get_context_data(self, **kwargs):
         return {
             **super().get_context_data(**kwargs),
+            "total_counts": {
+                42 #TODO
+            },
             "change_counts": {
                 k: v
                 for (k, v) in Change.objects.filter(
@@ -88,6 +91,9 @@ class ChangeSummaryView(django_tables2.SingleTableView):
                 .exclude(status=PUBLISHED_CODE)
                 .values_list("content_type__model")
                 .annotate(total=Count("content_type"))
+            },
+            "admin_review_counts": {
+                42 #TODO
             },
             "published_counts": {
                 Model.__name__.lower(): Model.objects.count()
