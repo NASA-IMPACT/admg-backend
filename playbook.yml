@@ -13,15 +13,16 @@
 
     - name: Install required system packages
       apt: name={{ item }} state=latest update_cache=yes
-      loop: [
-        'apt-transport-https',
-        'ca-certificates',
-        'curl',
-        'git',
-        'python3-pip',
-        'python3-setuptools',
-        'software-properties-common',
-      ]
+      loop:
+        [
+          "apt-transport-https",
+          "ca-certificates",
+          "curl",
+          "git",
+          "python3-pip",
+          "python3-setuptools",
+          "software-properties-common",
+        ]
 
     - name: Add Docker GPG apt Key
       apt_key:
@@ -46,7 +47,7 @@
         path: "/home/{{ user }}/.ssh/id_rsa"
 
     - name: Link to the github
-      become_user: '{{ user }}'
+      become_user: "{{ user }}"
       git:
         accept_hostkey: yes
         repo: "{{ git_repo }}"
@@ -56,6 +57,7 @@
     - name: Tear down existing services
       docker_compose:
         project_src: "{{ project_src }}"
+        files: ["docker-compose.prod.yml"]
         state: absent
 
     # making sure we don't run out of space because of older images
@@ -73,6 +75,7 @@
     - name: Create and start services
       docker_compose:
         project_src: "{{ project_src }}"
+        files: ["docker-compose.prod.yml"]
         build: yes
       register: output
 
@@ -82,6 +85,7 @@
     - name: Stop all services
       docker_compose:
         project_src: "{{ project_src }}"
+        files: ["docker-compose.prod.yml"]
         build: no
         stopped: yes
       register: output
@@ -97,6 +101,7 @@
     - name: Restart services
       docker_compose:
         project_src: "{{ project_src }}"
+        files: ["docker-compose.prod.yml"]
         build: no
         restarted: yes
       register: output
