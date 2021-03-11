@@ -57,7 +57,6 @@
     - name: Tear down existing services
       docker_compose:
         project_src: "{{ project_src }}"
-        files: ["docker-compose.prod.yml"]
         state: absent
 
     # making sure we don't run out of space because of older images
@@ -75,7 +74,6 @@
     - name: Create and start services
       docker_compose:
         project_src: "{{ project_src }}"
-        files: ["docker-compose.prod.yml"]
         build: yes
       register: output
 
@@ -85,7 +83,6 @@
     - name: Stop all services
       docker_compose:
         project_src: "{{ project_src }}"
-        files: ["docker-compose.prod.yml"]
         build: no
         stopped: yes
       register: output
@@ -101,7 +98,6 @@
     - name: Restart services
       docker_compose:
         project_src: "{{ project_src }}"
-        files: ["docker-compose.prod.yml"]
         build: no
         restarted: yes
       register: output
