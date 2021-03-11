@@ -32,13 +32,13 @@
         </div>
         <div class="col-sm-3">
           <span class="lead font-weight-bold text-nowrap">
-            {{ change_counts.campaign }}
+            {{ review_counts.campaign.In_Review }}
           </span>
           <p>In review</p>
         </div>
         <div class="col-sm-3">
           <span class="lead font-weight-bold text-nowrap">
-            {{ admin_review_counts.campaign }}
+            {{ review_counts.campaign.In_Admin_Review }}
           </span>
           <p>In admin review</p>
         </div>
@@ -62,13 +62,13 @@
         </div>
         <div class="col-sm-3">
           <span class="lead font-weight-bold text-nowrap">
-            {{ change_counts.platform }}
+            {{ review_counts.platform.In_Review }}
           </span>
           <p>In review</p>
         </div>
         <div class="col-sm-3">
           <span class="lead font-weight-bold text-nowrap">
-            {{ admin_review_counts.platform }}
+            {{ review_counts.platform.In_Admin_Review }}
           </span>
           <p>In admin review</p>
         </div>
@@ -92,13 +92,13 @@
         </div>
         <div class="col-sm-3">
           <span class="lead font-weight-bold text-nowrap">
-            {{ change_counts.instrument }}
+            {{ review_counts.instrument.In_Review }}
           </span>
           <p>In review</p>
         </div>
         <div class="col-sm-3">
           <span class="lead font-weight-bold text-nowrap">
-            {{ admin_review_counts.instrument }}
+            {{ review_counts.instrument.In_Admin_Review }}
           </span>
           <p>In admin review</p>
         </div>
@@ -125,10 +125,7 @@
           <ul class="list-group list-group-flush">
             {% for activity in activity_list %}
             <li class="list-group-item">
-              <a
-                class="inline-link mr-1"
-                href="{% url 'change-form' activity.change.uuid %}"
-              >
+              <a class="inline-link mr-1" href="{% url 'change-form' activity.change.uuid %}">
                 {{ activity.change.model_name }} {% firstof
                 activity.change.update.short_name
                 activity.change.update.long_name activity.change.uuid %}

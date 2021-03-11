@@ -18,11 +18,24 @@ from django.views.generic.detail import DetailView, SingleObjectMixin
 from django.views.generic.edit import CreateView, UpdateView
 import django_tables2
 import requests
+import copy
 
-from api_app.models import ApprovalLog, Change, CREATE, UPDATE, PUBLISHED_CODE
+from api_app.models import (
+    ApprovalLog,
+    Change,
+    CREATE,
+    UPDATE,
+    PUBLISHED_CODE,
+    AVAILABLE_STATUSES,
+)
 from data_models.models import Campaign, Instrument, Platform, Deployment
 from .mixins import ChangeModelFormMixin
 from . import tables
+
+AVAILABLE_STATUSES_DICT = dict(AVAILABLE_STATUSES)
+AVAILABLE_STATUSES_DICT = {
+    k: v.replace(" ", "_") for k, v in AVAILABLE_STATUSES_DICT.items()
+}
 
 
 @login_required
@@ -72,11 +85,28 @@ class ChangeSummaryView(django_tables2.SingleTableView):
         )
 
     def get_context_data(self, **kwargs):
+        # Create a blank dictionary with appropriate fields
+        default_status = {}
+        for model in ["campaign", "platform", "instrument"]:
+            default_status.setdefault(model, {})[AVAILABLE_STATUSES_DICT[3]] = 0
+            default_status.setdefault(model, {})[AVAILABLE_STATUSES_DICT[5]] = 0
+
+        review_counts = copy.deepcopy(default_status)
+        for obj in (
+            Change.objects.filter(
+                action=CREATE,
+                content_type__model__in=["campaign", "instrument", "platform"],
+                status__in=[3, 5],
+            )
+            .values_list("content_type__model", "status")
+            .annotate(Count("content_type"))
+        ):
+            review_counts[obj[0]][AVAILABLE_STATUSES_DICT[obj[1]]] = obj[2]
+
         return {
             **super().get_context_data(**kwargs),
-            "total_counts": {
-                42 #TODO
-            },
+            # These values for total_counts will be given to us by ADMG
+            "total_counts": {"campaign": None, "platform": None, "instrument": None},
             "change_counts": {
                 k: v
                 for (k, v) in Change.objects.filter(
@@ -92,9 +122,7 @@ class ChangeSummaryView(django_tables2.SingleTableView):
                 .values_list("content_type__model")
                 .annotate(total=Count("content_type"))
             },
-            "admin_review_counts": {
-                42 #TODO
-            },
+            "review_counts": review_counts,
             "published_counts": {
                 Model.__name__.lower(): Model.objects.count()
                 for Model in [Campaign, Deployment, Instrument, Platform]
