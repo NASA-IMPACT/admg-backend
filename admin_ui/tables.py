@@ -33,7 +33,7 @@ class PlatformChangeListTable(tables.Table):
     status = tables.Column(verbose_name="Status", accessor="status")
     updated_at = tables.Column(verbose_name="Last Edit Date")
     platform_type = tables.Column(
-        verbose_name="Platform Type", accessor="update__platform_type"
+        verbose_name="Platform Type", accessor="platform_type_name"
     )
 
     class Meta:

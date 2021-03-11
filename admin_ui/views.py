@@ -3,7 +3,8 @@ from django.contrib import messages
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.db import models
-from django.db.models.aggregates import Count, Max
+from django.db.models import functions, expressions, aggregates
+from django.db.models.fields.json import KeyTextTransform
 from django.http import (
     HttpResponseRedirect,
     HttpResponseForbidden,
@@ -20,7 +21,7 @@ import django_tables2
 import requests
 
 from api_app.models import ApprovalLog, Change, CREATE, UPDATE, PUBLISHED_CODE
-from data_models.models import Campaign, Instrument, Platform, Deployment
+from data_models.models import Campaign, Instrument, Platform, Deployment, PlatformType
 from .mixins import ChangeModelFormMixin
 from . import tables
 
@@ -67,8 +68,10 @@ class ChangeSummaryView(django_tables2.SingleTableView):
     def get_queryset(self):
         return (
             Change.objects.filter(content_type__model="campaign", action=CREATE)
-            .annotate(updated_at=Max("approvallog__date"))
-            .order_by("-updated_at")
+            # Add last related ApprovalLog's date
+            .annotate(updated_at=aggregates.Max("approvallog__date")).order_by(
+                "-updated_at"
+            )
         )
 
     def get_context_data(self, **kwargs):
@@ -87,7 +90,7 @@ class ChangeSummaryView(django_tables2.SingleTableView):
                 )
                 .exclude(status=PUBLISHED_CODE)
                 .values_list("content_type__model")
-                .annotate(total=Count("content_type"))
+                .annotate(total=aggregates.Count("content_type"))
             },
             "published_counts": {
                 Model.__name__.lower(): Model.objects.count()
@@ -106,16 +109,19 @@ class ChangeListView(django_tables2.SingleTableView):
     template_name = "api_app/change_list.html"
 
     def get_queryset(self):
-        return Change.objects.filter(
-            content_type__model="campaign", action=CREATE
-        ).annotate(updated_at=Max("approvallog__date"))
+        return (
+            Change.objects.filter(content_type__model="campaign", action=CREATE)
+            # Add last related ApprovalLog's date
+            .annotate(updated_at=aggregates.Max("approvallog__date"))
+        )
 
     def get_context_data(self, **kwargs):
         return {
             **super().get_context_data(**kwargs),
             "display_name": "Campaign",
-            "model": "campaign"
+            "model": "campaign",
         }
+
 
 @method_decorator(login_required, name="dispatch")
 class ChangeDetailView(SingleObjectMixin, ListView):
@@ -283,16 +289,30 @@ class PlatformListView(django_tables2.SingleTableView):
     template_name = "api_app/change_list.html"
 
     def get_queryset(self):
-        return Change.objects.filter(
-            content_type__model="platform", action=CREATE
-        ).annotate(updated_at=Max("approvallog__date"))
+        return (
+            Change.objects.filter(content_type__model="platform", action=CREATE)
+            # Add last related ApprovalLog's date
+            .annotate(updated_at=aggregates.Max("approvallog__date"))
+            # Add related PlatformType's short_name
+            .annotate(
+                platform_type_uuid=functions.Cast(
+                    KeyTextTransform("platform_type", "update"), models.UUIDField()
+                ),
+                platform_type_name=expressions.Subquery(
+                    PlatformType.objects.filter(
+                        uuid=expressions.OuterRef("platform_type_uuid")
+                    ).values("short_name"),
+                ),
+            )
+        )
 
     def get_context_data(self, **kwargs):
         return {
             **super().get_context_data(**kwargs),
             "display_name": "Platform",
-            "model": "platform"
+            "model": "platform",
         }
+
 
 @login_required
 def to_be_developed(request):
