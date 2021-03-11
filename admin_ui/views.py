@@ -110,6 +110,11 @@ class ChangeListView(django_tables2.SingleTableView):
             content_type__model="campaign", action=CREATE
         ).annotate(updated_at=Max("approvallog__date"))
 
+    def get_context_data(self, **kwargs):
+        return {
+            **super().get_context_data(**kwargs),
+            "model_name": "Campaign"
+        }
 
 @method_decorator(login_required, name="dispatch")
 class ChangeDetailView(SingleObjectMixin, ListView):
@@ -269,6 +274,23 @@ class ChangeUpdateView(ChangeModelFormMixin, UpdateView):
         self.object = self.get_object()
         return super().post(*args, **kwargs)
 
+
+@method_decorator(login_required, name="dispatch")
+class PlatformListView(django_tables2.SingleTableView):
+    model = Change
+    table_class = tables.ChangeListTable
+    template_name = "api_app/change_list.html"
+
+    def get_queryset(self):
+        return Change.objects.filter(
+            content_type__model="platform", action=CREATE
+        ).annotate(updated_at=Max("approvallog__date"))
+
+    def get_context_data(self, **kwargs):
+        return {
+            **super().get_context_data(**kwargs),
+            "model_name": "Platform"
+        }
 
 @login_required
 def to_be_developed(request):
