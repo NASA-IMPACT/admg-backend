@@ -17,10 +17,13 @@ from django.views.generic.list import ListView
 from django.views.generic.detail import DetailView, SingleObjectMixin
 from django.views.generic.edit import CreateView, UpdateView
 import django_tables2
+from django_tables2.views import SingleTableMixin
+from django_filters.views import FilterView
 import requests
 
 from api_app.models import ApprovalLog, Change, CREATE, UPDATE, PUBLISHED_CODE
 from data_models.models import Campaign, Instrument, Platform, Deployment
+from admin_ui.filters import ChangeStatusFilter
 from .mixins import ChangeModelFormMixin
 from . import tables
 
@@ -105,6 +108,8 @@ class ChangeListView(django_tables2.SingleTableView):
     table_class = tables.CampaignChangeListTable
     template_name = "api_app/change_list.html"
 
+    filterset_class = ChangeStatusFilter
+
     def get_queryset(self):
         return Change.objects.filter(
             content_type__model="campaign", action=CREATE
@@ -114,8 +119,17 @@ class ChangeListView(django_tables2.SingleTableView):
         return {
             **super().get_context_data(**kwargs),
             "display_name": "Campaign",
-            "model": "campaign"
+            "model": "campaign",
         }
+
+
+# class FilteredPersonListView(SingleTableMixin, FilterView):
+#     table_class = tables.CampaignChangeListTable
+#     model = Change
+#     template_name = "template.html"
+
+#     filterset_class = ChangeStatusFilter
+
 
 @method_decorator(login_required, name="dispatch")
 class ChangeDetailView(SingleObjectMixin, ListView):
@@ -291,8 +305,9 @@ class PlatformListView(django_tables2.SingleTableView):
         return {
             **super().get_context_data(**kwargs),
             "display_name": "Platform",
-            "model": "platform"
+            "model": "platform",
         }
+
 
 @login_required
 def to_be_developed(request):
