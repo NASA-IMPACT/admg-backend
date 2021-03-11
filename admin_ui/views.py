@@ -113,7 +113,8 @@ class ChangeListView(django_tables2.SingleTableView):
     def get_context_data(self, **kwargs):
         return {
             **super().get_context_data(**kwargs),
-            "model_name": "Campaign"
+            "display_name": "Campaign",
+            "model": "campaign"
         }
 
 @method_decorator(login_required, name="dispatch")
@@ -289,7 +290,8 @@ class PlatformListView(django_tables2.SingleTableView):
     def get_context_data(self, **kwargs):
         return {
             **super().get_context_data(**kwargs),
-            "model_name": "Platform"
+            "display_name": "Platform",
+            "model": "platform"
         }
 
 @login_required
