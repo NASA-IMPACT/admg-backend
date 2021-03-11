@@ -1,0 +1,21 @@
+<button class="btn btn-secondary dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true"
+    aria-expanded="false">{{ description }}
+</button>
+
+<div class="dropdown-menu">
+    <form action="{% url 'change-transition' %}" method="post" class="px-4 py-3">
+        <div class="form-group">
+            {% csrf_token %}
+            <input type="hidden" name="change" value="{{ uuid }}" />
+
+            <label form="notes">Status change notes:</label>
+            <textarea class="form-control" name="notes"></textarea>
+            <small id="emailHelp" class="form-text text-muted">Notes for other team members.</small>
+            
+        </div>
+
+        <!-- <button class='btn btn-primary'>{{ description }}</input> -->
+        <button name="progress" value="approve">Approved!</button>
+        <button name="action" value="reject">Sorry, rejected</button>
+    </form>
+</div>

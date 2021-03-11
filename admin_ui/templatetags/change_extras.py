@@ -32,21 +32,15 @@ def related_changes(change):
     )
     rel_iops = Change.objects.select_related("content_type").filter(
         content_type__model__iexact="iop",
-        update__deployment__in=[
-            str(d.uuid) for d in rel_deployments
-        ],
+        update__deployment__in=[str(d.uuid) for d in rel_deployments],
     )
     rel_significant_events = Change.objects.select_related("content_type").filter(
         content_type__model__iexact="significantevent",
-        update__deployment__in=[
-            str(d.uuid) for d in rel_deployments
-        ],
+        update__deployment__in=[str(d.uuid) for d in rel_deployments],
     )
     rel_collection_periods = Change.objects.select_related("content_type").filter(
         content_type__model__iexact="collectionperiod",
-        update__deployment__in=[
-            str(d.uuid) for d in rel_deployments
-        ],
+        update__deployment__in=[str(d.uuid) for d in rel_deployments],
     )
     platform_ids = set()
     homebase_ids = set()
@@ -55,7 +49,7 @@ def related_changes(change):
         update = collect_period.update
         platform_ids.add(update.get("platform"))
         homebase_ids.add(update.get("home_base"))
-        instrument_ids.update(update.get("instruments"))
+        instrument_ids.update(update.get("instruments", []))
 
     rel_platforms = Change.objects.select_related("content_type").filter(
         content_type__model__iexact="platform", uuid__in=platform_ids
@@ -78,7 +72,8 @@ def related_changes(change):
         deployment.significant_events = [
             se
             for se in rel_significant_events
-            if se.update.get("deployment") == str(deployment.uuid) and se.update.get('iop') is None
+            if se.update.get("deployment") == str(deployment.uuid)
+            and se.update.get("iop") is None
         ]
         for iop in deployment.iops:
             iop.significant_events = [
@@ -86,7 +81,7 @@ def related_changes(change):
                 for se in rel_significant_events
                 if se.update.get("iop") == str(iop.uuid)
             ]
-        
+
         deployment.collection_periods = [
             cp
             for cp in rel_collection_periods
@@ -106,7 +101,7 @@ def related_changes(change):
             collection_period.instruments = [
                 i
                 for i in rel_instruments
-                if str(i.uuid) in collection_period.update.get("instruments")
+                if str(i.uuid) in collection_period.update.get("instruments", [])
             ]
 
     return {
@@ -124,3 +119,11 @@ def related_changes(change):
 def related_approval_logs(approval_logs):
     return {"approval_logs": approval_logs}
 
+
+@register.inclusion_tag("tags/transition_form.html", takes_context=True)
+def transition_form(context, description, *, state_change=1):
+    return dict(
+        uuid=context['object'].uuid,
+        to=context['object'].status + state_change,
+        description=description,
+    )

@@ -15,14 +15,13 @@ from django.utils.safestring import mark_safe
 from django.urls import reverse
 from django.views.generic.list import ListView
 from django.views.generic.detail import DetailView, SingleObjectMixin
-from django.views.generic.edit import CreateView, UpdateView
+from django.views.generic.edit import CreateView, UpdateView, FormView, View
 import django_tables2
 import requests
 
 from api_app.models import ApprovalLog, Change, CREATE, UPDATE, PUBLISHED_CODE
 from data_models.models import Campaign, Instrument, Platform, Deployment
-from .mixins import ChangeModelFormMixin
-from . import tables
+from . import tables, forms, mixins
 
 
 @login_required
@@ -193,7 +192,7 @@ class ChangeDetailView(SingleObjectMixin, ListView):
 
 
 @method_decorator(login_required, name="dispatch")
-class ChangeCreateView(ChangeModelFormMixin, CreateView):
+class ChangeCreateView(mixins.ChangeModelFormMixin, CreateView):
 
     model = Change
     fields = ["content_type", "model_instance_uuid", "action", "update"]
@@ -214,6 +213,9 @@ class ChangeCreateView(ChangeModelFormMixin, CreateView):
             .model_class()
             .__name__,
         }
+
+    # def generate_success_response(self):
+    #     return HttpResponseRedirect(reverse('change-detail', args=('1418ec45-2a77-4d47-99ec-6f95c553aaba')))
 
     def get_model_form_content_type(self) -> ContentType:
         if not hasattr(self, "model_form_content_type"):
@@ -237,7 +239,7 @@ class ChangeCreateView(ChangeModelFormMixin, CreateView):
 
 
 @method_decorator(login_required, name="dispatch")
-class ChangeUpdateView(ChangeModelFormMixin, UpdateView):
+class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
     success_url = "/"
     fields = ["content_type", "model_instance_uuid", "action", "update", "status"]
 
@@ -276,30 +278,45 @@ def to_be_developed(request):
 
 
 @method_decorator(login_required, name="dispatch")
-class ChangeTransition(DetailView):
-    model = Change
+class ChangeTransition(View):
+    form_class = forms.TransitionForm
 
     def post(self, *args, **kwargs):
-        change: Change = self.get_object()
-
-        if kwargs["transition"] == "edit":
-            messages.warning(self.request, "Claim for Compiling not yet supported")
-        elif kwargs["transition"] == "submit":
-            response = change.submit(self.request.user, self.request.POST.get("notes"))
-            self.check_for_error(response)
-        elif kwargs["transition"] == "claim":
-            response = change.claim(self.request.user, self.request.POST.get("notes"))
-            self.check_for_error(response)
-        elif kwargs["transition"] == "review":
-            response = change.review(self.request.user, self.request.POST.get("notes"))
-            self.check_for_error(response)
+        form = forms.TransitionForm(self.request.POST)
+        if form.is_valid():
+            # messages.success(self.request, "Success")
+            c = form.cleaned_data["change"]
+            next_state = form.cleaned_data["to"]
+            # {
+            #     '1': c.claim,
+            #     '2': c.unclaim,
+            #     '3': c.
+            # }
         else:
-            return HttpResponseBadRequest("invalid transition argument")
+            messages.error(self.request, form.errors.as_text())
 
-        return HttpResponseRedirect(reverse("change-form", kwargs={"pk": change.uuid}))
+        # change = Change.objects.
 
-    def check_for_error(self, response):
-        if response["success"]:
-            messages.success(self.request, "Status successfully changed.")
-        else:
-            messages.error(self.request, response["message"])
+        #     if kwargs["transition"] == "edit":
+        #         messages.warning(self.request, "Claim for Compiling not yet supported")
+        #     elif kwargs["transition"] == "submit":
+        #         response = change.submit(self.request.user, self.request.POST.get("notes"))
+        #         self.check_for_error(response)
+        #     elif kwargs["transition"] == "claim":
+        #         response = change.claim(self.request.user, self.request.POST.get("notes"))
+        #         self.check_for_error(response)
+        #     elif kwargs["transition"] == "review":
+        #         response = change.review(self.request.user, self.request.POST.get("notes"))
+        #         self.check_for_error(response)
+        #     else:
+        #         return HttpResponseBadRequest("invalid transition argument")
+
+        return HttpResponseRedirect(
+            reverse("change-form", kwargs={"pk": form.data.get("change")})
+        )
+
+    # def check_for_error(self, response):
+    #     if response["success"]:
+    #         messages.success(self.request, "Status successfully changed.")
+    #     else:
+    #         messages.error(self.request, response["message"])
