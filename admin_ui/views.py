@@ -102,7 +102,7 @@ class ChangeSummaryView(django_tables2.SingleTableView):
 @method_decorator(login_required, name="dispatch")
 class ChangeListView(django_tables2.SingleTableView):
     model = Change
-    table_class = tables.ChangeListTable
+    table_class = tables.CampaignChangeListTable
     template_name = "api_app/change_list.html"
 
     def get_queryset(self):
@@ -279,7 +279,7 @@ class ChangeUpdateView(ChangeModelFormMixin, UpdateView):
 @method_decorator(login_required, name="dispatch")
 class PlatformListView(django_tables2.SingleTableView):
     model = Change
-    table_class = tables.ChangeListTable
+    table_class = tables.PlatformChangeListTable
     template_name = "api_app/change_list.html"
 
     def get_queryset(self):
