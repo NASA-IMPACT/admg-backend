@@ -68,6 +68,8 @@ class ChangeSummaryView(django_tables2.SingleTableView):
     def get_queryset(self):
         return (
             Change.objects.filter(content_type__model="campaign", action=CREATE)
+            # Prefetch related ContentType (used when displaying output model type)
+            .select_related("content_type")
             # Add last related ApprovalLog's date
             .annotate(updated_at=aggregates.Max("approvallog__date")).order_by(
                 "-updated_at"
@@ -97,7 +99,7 @@ class ChangeSummaryView(django_tables2.SingleTableView):
                 for Model in [Campaign, Deployment, Instrument, Platform]
             },
             "activity_list": ApprovalLog.objects.prefetch_related(
-                "change__content_type"
+                "change__content_type", "user"
             ).order_by("-date")[: self.paginate_by],
         }
 
@@ -301,7 +303,7 @@ class PlatformListView(django_tables2.SingleTableView):
                 platform_type_name=expressions.Subquery(
                     PlatformType.objects.filter(
                         uuid=expressions.OuterRef("platform_type_uuid")
-                    ).values("short_name"),
+                    ).values("short_name")[:1],
                 ),
             )
         )
