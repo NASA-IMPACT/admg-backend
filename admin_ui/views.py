@@ -294,6 +294,26 @@ class PlatformListView(django_tables2.SingleTableView):
             "model": "platform"
         }
 
+
+@method_decorator(login_required, name="dispatch")
+class InstrumentListView(django_tables2.SingleTableView):
+    model = Change
+    table_class = tables.InstrumentChangeListTable
+    template_name = "api_app/change_list.html"
+
+    def get_queryset(self):
+        return Change.objects.filter(
+            content_type__model="instrument", action=CREATE
+        ).annotate(updated_at=Max("approvallog__date"))
+
+    def get_context_data(self, **kwargs):
+        return {
+            **super().get_context_data(**kwargs),
+            "display_name": "Instrument",
+            "model": "instrument"
+        }
+
+
 @login_required
 def to_be_developed(request):
     return render(request, "api_app/to_be_developed.html")
