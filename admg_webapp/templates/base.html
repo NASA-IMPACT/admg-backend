@@ -41,31 +41,49 @@
         <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
           <span class="navbar-toggler-icon"></span>
         </button>
-        <a class="navbar-brand" href="{% url 'summary' %}">NASA | CASEI STAFF</a>
-        <div class="collapse navbar-collapse" id="navbarSupportedContent">
-          <ul class="navbar-nav mr-auto">
+        <a class="navbar-brand" href="{% url 'summary' %}">
+          <img src="{% static 'images/logo.svg' %}" class="mr-3">NASA | CASEI Staff
+        </a>
+        <div class="collapse navbar-collapse d-flex justify-content-end" id="navbarSupportedContent">
+          <ul class="navbar-nav">
             <li class="nav-item">
-              <a class="nav-link" href="https://airborne-inventory.surge.sh/">View Site</a>
-            </li>
-            {% if request.user.is_authenticated %}
+              <div class="dropdown">
+                <button class="btn nav-link dropdown-toggle text-capitalize" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                  {% if request.user.is_authenticated %}
+                  {{ request.user.username }}
+                  {% else %}
+                  Account
+                  {% endif %}
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                  {% if request.user.is_authenticated %}
               <li class="nav-item">
                 {# URL provided by django-allauth/account/urls.py #}
-                <a class="nav-link" href="{% url 'users:detail' request.user.username  %}">{% trans "My Profile" %}</a>
+                <a class="dropdown-item" href="{% url 'users:detail' request.user.username  %}">{% trans "My Profile" %}</a>
               </li>
               <li class="nav-item">
                 {# URL provided by django-allauth/account/urls.py #}
-                <a class="nav-link" href="{% url 'account_logout' %}">{% trans "Sign Out" %}</a>
+                <a class="dropdown-item" href="{% url 'account_logout' %}">{% trans "Sign Out" %}</a>
               </li>
             {% else %}
               <li class="nav-item">
                 {# URL provided by django-allauth/account/urls.py #}
-                <a id="sign-up-link" class="nav-link" href="{% url 'account_signup' %}">{% trans "Sign Up" %}</a>
+                <a class="dropdown-item" id="sign-up-link" href="{% url 'account_signup' %}">{% trans "Sign Up" %}</a>
               </li>
               <li class="nav-item">
                 {# URL provided by django-allauth/account/urls.py #}
-                <a id="log-in-link" class="nav-link" href="{% url 'account_login' %}">{% trans "Sign In" %}</a>
+                <a class="dropdown-item" id="log-in-link" href="{% url 'account_login' %}">{% trans "Sign In" %}</a>
               </li>
             {% endif %}
+                </ul>
+              </div>
+            </li>
+            <li class="nav-item">
+              <button class="nav-link btn btn-outline-secondary" href="https://airborne-inventory.surge.sh/">Visit Website</button>
+            </li>
+            <li class="nav-item">
+              <button class="nav-link btn btn-light" style="color: black; margin-left: 8px;" disabled >Deploy Website</button>
+            </li>
           </ul>
         </div>
       </nav>
