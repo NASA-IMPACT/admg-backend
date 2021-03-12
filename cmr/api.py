@@ -5,8 +5,6 @@ import sys
 import environ
 import requests
 
-from cmr.config import credentials as CREDENTIALS
-
 ROOT_DIR = environ.Path(__file__)-2
 env = environ.Env()
 env.read_env(str(ROOT_DIR.path('.env')))
