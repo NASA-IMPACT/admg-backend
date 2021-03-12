@@ -2,9 +2,14 @@ import json
 import os
 import sys
 
+import environ
 import requests
 
 from cmr.config import credentials as CREDENTIALS
+
+ROOT_DIR = environ.Path(__file__)-2
+env = environ.Env()
+env.read_env(str(ROOT_DIR.path('.env')))
 
 DEFAULT_APPROVAL_NOTE = 'this action was perfomed using the API'
 
@@ -17,7 +22,7 @@ class Api:
 
 
         self.credentials = CREDENTIALS
-        self.base_url = f"{self.credentials['server']}/api/"
+        self.base_url = f"{env('INGEST_API_SERVER')}/api/"
         self._make_connection()
 
 
@@ -27,12 +32,17 @@ class Api:
         Raises:
             ValueError: Will raise error if connection fails.
         """
+        data = {
+            'grant_type': env('INGEST_API_GRANT_TYPE'),
+            'username': env('INGEST_API_USERNAME'),
+            'password': env('INGEST_API_PASSWORD')
+        }
 
-        token_url = f"{self.credentials['server']}/authenticate/token/"
+        token_url = f"{env('INGEST_API_SERVER')}/authenticate/token/"
         response = requests.post(
             token_url,
-            data=self.credentials['data'],
-            auth=(self.credentials['client_id'], self.credentials['client_secret']),
+            data=data,
+            auth=(env('INGEST_API_CLIENT_ID'), env('INGEST_API_CLIENT_SECRET')),
         )
 
         response_dict = self._generate_response_dict(response)
