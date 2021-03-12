@@ -126,9 +126,7 @@
             {% for activity in activity_list %}
             <li class="list-group-item">
               <a class="inline-link mr-1" href="{% url 'change-form' activity.change.uuid %}">
-                {{ activity.change.model_name }} {% firstof
-                activity.change.update.short_name
-                activity.change.update.long_name activity.change.uuid %}
+                {{ activity.change.model_name }} {% firstof activity.change.update.short_name activity.change.update.long_name activity.change.uuid %}
               </a>
               <strong>{{ activity.get_action_display }}</strong>
               <span>
