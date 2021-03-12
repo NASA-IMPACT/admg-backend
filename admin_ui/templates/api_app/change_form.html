@@ -9,24 +9,35 @@
 
 {% block page %}
 
-<header class="row mx-3 my-3 py-2 sticky-top bg-white">
-  <div class="col-auto mr-auto px-0">
-    <!-- TODO: go back to previous -->
-    <a href="{% url 'change-list' %}">&larr; Back</a>
+<header class="mx-3 my-3 py-2 sticky-top bg-white">
+  <div class="row">
+    <div class="col">
+      <a href="{% url 'change-list' %}">&larr; Back</a>
+      <h1>{{ object.update.short_name | default:object.uuid }}</h1>
+    </div>
+  </div>
 
-    <h1>{{ object.model_name }}: {{ object.update.short_name | default:object.uuid }}</h1>
-
-    <p>
-      <span class="badge badge-pill badge-light">
-        &bull; {{ object.get_status_display }}
-      </span>
-    </p>
+  <div class="row">
+    <div class="col-sm-2">
+      <h6>STATUS</h6>
+      <p>{{ object.get_status_display }}</p>
+    </div>
+    
+    <div class="col-sm-2">
+      <h6>ITEM TYPE</h6>
+      <p>{{ object.model_name }} </p>
+    </div>
+    
+    <div class="col-sm-2">
+      <h6>ACTION</h6>
+      <p>{{ object.action }}</p>
+    </div>
   </div>
 </header>
 
 <div class="row mx-3 my-3 py-2 ">
   {# Main Content #}
-  <main class="col-sm-8 pl-0">
+  <main class="col-8 pl-0">
     <table class="table table-responsive">
       <form method="post" id="model-form">
         {% csrf_token %}
@@ -36,71 +47,83 @@
     </table>
   </main>
 
-  {# Sidebar #}
-  <aside class="col-sm-4">
-    <h3>Actions</h3>
-    <button form="model-form" class="btn btn-primary">Save</button>
-    <h5>Update status</h5>
-    <!-- The most ridiculuous if statement you've ever seen -->
-    {% if object.status == 0 %}
-    <form action="{% url 'change-transitions' change.uuid 'edit' %}" method="post">
-      {% csrf_token %}
-      <button class="btn btn-primary"> Claim for Compiling </button><br>
-      <p>Status change notes:</p>
-      <textarea name="notes"></textarea>
-    </form>
-    {% elif object.status == 1 %}
-    <form action="{% url 'change-transitions' change.uuid 'submit' %}" method="post">
-      {% csrf_token %}
-      <button class="btn btn-primary"> Submit for Review </button><br>
-      <p>Status change notes:</p>
-      <textarea name="notes"></textarea>
-    </form>
-    {% elif object.status == 2 %}
-    <form action="{% url 'change-transitions' change.uuid 'claim' %}" method="post">
-      {% csrf_token %}
-      <button class="btn btn-primary"> Claim for Review </button>
-      <br>
-      <p>Status change notes:</p>
-      <textarea name="notes"></textarea>
-    </form>
-    {% elif object.status == 3 %}
-    <form action="{% url 'change-transitions' change.uuid 'review' %}" method="post">
-      {% csrf_token %}
-      <button class="btn btn-primary"> Submit for Admin Review </button><br>
-      <p>Status change notes:</p>
-      <textarea name="notes"></textarea>
-      {% else %} <em>Awaiting Admin Review</em>
-    </form>
-    {% endif %}
+  <div class="row mx-3 my-3 py-2 ">
+    {# Main Content #}
+    <main class="col-sm-8 pl-0">
+      <table class="table table-responsive">
+        <form method="post" id="model-form">
+          {% csrf_token %}
+          {% for field in form %} {{ field.as_hidden }} {% endfor %}
+          {{ model_form | crispy }}
+        </form>
+      </table>
+    </main>
 
-    <h3>Related Data</h3>
-    {% related_changes change %}
+    {# Sidebar #}
+    <aside class="col-sm-4">
+      <h3>Actions</h3>
+      <button form="model-form" class="btn btn-primary">Save</button>
+      <h5>Update status</h5>
+      <!-- The most ridiculuous if statement you've ever seen -->
+      {% if object.status == 0 %}
+      <form action="{% url 'change-transitions' change.uuid 'edit' %}" method="post">
+        {% csrf_token %}
+        <button class="btn btn-primary"> Claim for Compiling </button><br>
+        <p>Status change notes:</p>
+        <textarea name="notes"></textarea>
+      </form>
+      {% elif object.status == 1 %}
+      <form action="{% url 'change-transitions' change.uuid 'submit' %}" method="post">
+        {% csrf_token %}
+        <button class="btn btn-primary"> Submit for Review </button><br>
+        <p>Status change notes:</p>
+        <textarea name="notes"></textarea>
+      </form>
+      {% elif object.status == 2 %}
+      <form action="{% url 'change-transitions' change.uuid 'claim' %}" method="post">
+        {% csrf_token %}
+        <button class="btn btn-primary"> Claim for Review </button>
+        <br>
+        <p>Status change notes:</p>
+        <textarea name="notes"></textarea>
+      </form>
+      {% elif object.status == 3 %}
+      <form action="{% url 'change-transitions' change.uuid 'review' %}" method="post">
+        {% csrf_token %}
+        <button class="btn btn-primary"> Submit for Admin Review </button><br>
+        <p>Status change notes:</p>
+        <textarea name="notes"></textarea>
+        {% else %} <em>Awaiting Admin Review</em>
+      </form>
+      {% endif %}
 
-    <hr />
+      <h3>Related Data</h3>
+      {% related_changes change %}
 
-    <h3>History</h3>
-    {% related_approval_logs approvals %}
+      <hr />
 
-    <hr />
+      <h3>History</h3>
+      {% related_approval_logs approvals %}
 
-    <h3>Raw Data</h3>
-    {{ form.errors }}
-    <code>{{ object.update | pprint }}</code>
+      <hr />
 
-  </aside>
-</div>
+      <h3>Raw Data</h3>
+      {{ form.errors }}
+      <code>{{ object.update | pprint }}</code>
 
-{% endblock %}
+    </aside>
+  </div>
 
-{% block javascript %}
-{{ block.super }}
-<script>
-  // Mark all required inputs as not-required (but store required as data-required attribute)
-  ['input', 'textarea', 'select'].forEach(function (value) {
-    $(value + '[required]')
-      .attr('data-required', true)
-      .attr('required', false);
-  })
-</script>
-{% endblock %}
+  {% endblock %}
+
+  {% block javascript %}
+  {{ block.super }}
+  <script>
+    // Mark all required inputs as not-required (but store required as data-required attribute)
+    ['input', 'textarea', 'select'].forEach(function (value) {
+      $(value + '[required]')
+        .attr('data-required', true)
+        .attr('required', false);
+    })
+  </script>
+  {% endblock %}
