@@ -3,7 +3,7 @@ from django.contrib import messages
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.db import models
-from django.db.models import functions, expressions, aggregates
+from django.db.models import functions, expressions, aggregates, Max
 from django.db.models.fields.json import KeyTextTransform
 from django.http import (
     HttpResponseRedirect,
@@ -303,7 +303,7 @@ class PlatformListView(django_tables2.SingleTableView):
                 platform_type_name=expressions.Subquery(
                     PlatformType.objects.filter(
                         uuid=expressions.OuterRef("platform_type_uuid")
-                    ).values("short_name")[:1],
+                    ).values("short_name")[:1]
                 ),
             )
         )
@@ -331,7 +331,7 @@ class InstrumentListView(django_tables2.SingleTableView):
         return {
             **super().get_context_data(**kwargs),
             "display_name": "Instrument",
-            "model": "instrument"
+            "model": "instrument",
         }
 
 
