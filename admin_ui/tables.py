@@ -51,14 +51,14 @@ class InstrumentChangeListTable(tables.Table):
     long_name = tables.Column(verbose_name="Long name", accessor="update__long_name")
     status = tables.Column(verbose_name="Status", accessor="status")
     updated_at = tables.Column(verbose_name="Last Edit Date")
-    instrument_type = tables.Column(
-        verbose_name="Instrument Type", accessor="update__instrument_type"
+    measurement_type = tables.Column(
+        verbose_name="Measurement Type", accessor="update__measurement_type"
     )
 
     class Meta:
         attrs = {"class": "table table-striped", "thead": {"class": "thead-dark"}}
         model = Change
-        fields = ["short_name", "long_name", "instrument_type", "status", "updated_at"]
+        fields = ["short_name", "long_name", "measurement_type", "status", "updated_at"]
 
 
 class ChangeSummaryTable(tables.Table):
