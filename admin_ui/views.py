@@ -3,24 +3,31 @@ from django.contrib import messages
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.db import models
-from django.db.models.aggregates import Count, Max
-from django.http import (
-    HttpResponseRedirect,
-    HttpResponseForbidden,
-    HttpResponseBadRequest,
-)
+from django.db.models import functions, expressions, aggregates, Max
+from django.db.models.fields.json import KeyTextTransform
+from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.utils.decorators import method_decorator
 from django.utils.safestring import mark_safe
 from django.urls import reverse
 from django.views.generic.list import ListView
-from django.views.generic.detail import DetailView, SingleObjectMixin
-from django.views.generic.edit import CreateView, UpdateView, FormView, View
+from django.views.generic.detail import SingleObjectMixin
+from django.views.generic.edit import CreateView, UpdateView, View
 import django_tables2
 import requests
 
-from api_app.models import ApprovalLog, Change, CREATE, UPDATE, PUBLISHED_CODE
-from data_models.models import Campaign, Instrument, Platform, Deployment
+
+from api_app.models import (
+    ApprovalLog,
+    Change,
+    CREATE,
+    UPDATE,
+    IN_REVIEW_CODE,
+    IN_ADMIN_REVIEW_CODE,
+    PUBLISHED_CODE,
+    AVAILABLE_STATUSES,
+)
+from data_models.models import Campaign, Instrument, Platform, PlatformType
 from . import tables, forms, mixins
 
 
@@ -66,34 +73,54 @@ class ChangeSummaryView(django_tables2.SingleTableView):
     def get_queryset(self):
         return (
             Change.objects.filter(content_type__model="campaign", action=CREATE)
-            .annotate(updated_at=Max("approvallog__date"))
-            .order_by("-updated_at")
+            # Prefetch related ContentType (used when displaying output model type)
+            .select_related("content_type")
+            # Add last related ApprovalLog's date
+            .annotate(updated_at=aggregates.Max("approvallog__date")).order_by(
+                "-updated_at"
+            )
         )
+
+    @staticmethod
+    def get_draft_status_count():
+        status_ids = [IN_REVIEW_CODE, IN_ADMIN_REVIEW_CODE, PUBLISHED_CODE]
+        model_names = [M._meta.model_name for M in (Campaign, Platform, Instrument)]
+        status_translations = {
+            status_id: status_name.replace(" ", "_")
+            for status_id, status_name in AVAILABLE_STATUSES
+        }
+
+        # Setup dict with 0 counts
+        review_counts = {
+            model: {
+                status.replace(" ", "_"): 0 for status in status_translations.values()
+            }
+            for model in model_names
+        }
+
+        # Populate with actual counts
+        model_status_counts = (
+            Change.objects.filter(
+                action=CREATE,
+                content_type__model__in=model_names,
+                status__in=status_ids,
+            )
+            .values_list("content_type__model", "status")
+            .annotate(aggregates.Count("content_type"))
+        )
+        for (model, status_id, count) in model_status_counts:
+            review_counts.setdefault(model, {})[status_translations[status_id]] = count
+
+        return review_counts
 
     def get_context_data(self, **kwargs):
         return {
             **super().get_context_data(**kwargs),
-            "change_counts": {
-                k: v
-                for (k, v) in Change.objects.filter(
-                    action=CREATE,
-                    content_type__model__in=[
-                        "campaign",
-                        "deployment",
-                        "instrument",
-                        "platform",
-                    ],
-                )
-                .exclude(status=PUBLISHED_CODE)
-                .values_list("content_type__model")
-                .annotate(total=Count("content_type"))
-            },
-            "published_counts": {
-                Model.__name__.lower(): Model.objects.count()
-                for Model in [Campaign, Deployment, Instrument, Platform]
-            },
+            # These values for total_counts will be given to us by ADMG
+            "total_counts": {"campaign": None, "platform": None, "instrument": None},
+            "draft_status_counts": self.get_draft_status_count(),
             "activity_list": ApprovalLog.objects.prefetch_related(
-                "change__content_type"
+                "change__content_type", "user"
             ).order_by("-date")[: self.paginate_by],
         }
 
@@ -101,13 +128,22 @@ class ChangeSummaryView(django_tables2.SingleTableView):
 @method_decorator(login_required, name="dispatch")
 class ChangeListView(django_tables2.SingleTableView):
     model = Change
-    table_class = tables.ChangeListTable
+    table_class = tables.CampaignChangeListTable
     template_name = "api_app/change_list.html"
 
     def get_queryset(self):
-        return Change.objects.filter(
-            content_type__model="campaign", action=CREATE
-        ).annotate(updated_at=Max("approvallog__date"))
+        return (
+            Change.objects.filter(content_type__model="campaign", action=CREATE)
+            # Add last related ApprovalLog's date
+            .annotate(updated_at=aggregates.Max("approvallog__date"))
+        )
+
+    def get_context_data(self, **kwargs):
+        return {
+            **super().get_context_data(**kwargs),
+            "display_name": "Campaign",
+            "model": "campaign",
+        }
 
 
 @method_decorator(login_required, name="dispatch")
@@ -270,6 +306,57 @@ class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
         """
         self.object = self.get_object()
         return super().post(*args, **kwargs)
+
+
+@method_decorator(login_required, name="dispatch")
+class PlatformListView(django_tables2.SingleTableView):
+    model = Change
+    table_class = tables.PlatformChangeListTable
+    template_name = "api_app/change_list.html"
+
+    def get_queryset(self):
+        return (
+            Change.objects.filter(content_type__model="platform", action=CREATE)
+            # Add last related ApprovalLog's date
+            .annotate(updated_at=aggregates.Max("approvallog__date"))
+            # Add related PlatformType's short_name
+            .annotate(
+                platform_type_uuid=functions.Cast(
+                    KeyTextTransform("platform_type", "update"), models.UUIDField()
+                ),
+                platform_type_name=expressions.Subquery(
+                    PlatformType.objects.filter(
+                        uuid=expressions.OuterRef("platform_type_uuid")
+                    ).values("short_name")[:1]
+                ),
+            )
+        )
+
+    def get_context_data(self, **kwargs):
+        return {
+            **super().get_context_data(**kwargs),
+            "display_name": "Platform",
+            "model": "platform",
+        }
+
+
+@method_decorator(login_required, name="dispatch")
+class InstrumentListView(django_tables2.SingleTableView):
+    model = Change
+    table_class = tables.InstrumentChangeListTable
+    template_name = "api_app/change_list.html"
+
+    def get_queryset(self):
+        return Change.objects.filter(
+            content_type__model="instrument", action=CREATE
+        ).annotate(updated_at=Max("approvallog__date"))
+
+    def get_context_data(self, **kwargs):
+        return {
+            **super().get_context_data(**kwargs),
+            "display_name": "Instrument",
+            "model": "instrument",
+        }
 
 
 @login_required
