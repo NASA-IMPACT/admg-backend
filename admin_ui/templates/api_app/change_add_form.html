@@ -8,15 +8,26 @@
 {% endblock %}
 
 {% block page %}
-<form method="post">
-  {% csrf_token %}
-  <h3>Create {{ content_type_name }} draft</h3>
-  {{ model_form | crispy }}
-  {% for field in form %} {{ field.as_hidden }} {% endfor %}
-  <button class="btn btn-info">Submit</button>
-</form>
-{{ form.errors }}
+<div class="container-fluid">
+  <header class="row mx-3 my-5 py-2 align-items-center sticky-top bg-white">
+    <div class="col-auto mr-auto px-0">
+      <h1>Create {{ content_type_name }} draft</h1>
+    </div>
+    <div class="col-auto px-0">
+      <button class="btn btn-info">Submit</button>
+    </div>
+  </header>
 
+  <main class="row mx-3 my-5">
+    <form method="post">
+      {% csrf_token %}
+      {{ model_form | crispy }}
+      {% for field in form %} {{ field.as_hidden }} {% endfor %}
+      <button class="btn btn-info">Submit</button>
+    </form>
+    {{ form.errors }}
+  </main>
+</div>
 {% endblock %}
 
 {% block javascript %}
