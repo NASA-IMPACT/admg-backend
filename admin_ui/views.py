@@ -110,7 +110,7 @@ class ChangeSummaryView(django_tables2.SingleTableView):
                 status__in=[3, 5],
             )
             .values_list("content_type__model", "status")
-            .annotate(Count("content_type"))
+            .annotate(aggregates.Count("content_type"))
         ):
             review_counts[obj[0]][AVAILABLE_STATUSES_DICT[obj[1]]] = obj[2]
 
