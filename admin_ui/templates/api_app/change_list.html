@@ -1,6 +1,7 @@
 {% extends "api_app/base.html" %}
 {% load change_extras %}
 {% load render_table from django_tables2 %}
+{% load bootstrap4 %}
 
 {% block page %}
 
@@ -17,6 +18,12 @@
 
 <div class="container-fluid">
   <p>filter button here</p>
+  {% block content %}
+  <form action="" method="get" class="form form-inline">
+    {% bootstrap_form filter.form layout='inline' %}
+    {% bootstrap_button 'filter' %}
+  </form>
+  {% endblock content %}
   {% render_table table %}
 </div>
 

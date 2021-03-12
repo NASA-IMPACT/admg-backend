@@ -123,14 +123,6 @@ class ChangeListView(django_tables2.SingleTableView):
         }
 
 
-# class FilteredPersonListView(SingleTableMixin, FilterView):
-#     table_class = tables.CampaignChangeListTable
-#     model = Change
-#     template_name = "template.html"
-
-#     filterset_class = ChangeStatusFilter
-
-
 @method_decorator(login_required, name="dispatch")
 class ChangeDetailView(SingleObjectMixin, ListView):
     model = Change
