@@ -3,7 +3,7 @@ from django.contrib import messages
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.db import models
-from django.db.models import functions, expressions, aggregates
+from django.db.models import functions, expressions, aggregates, Max
 from django.db.models.fields.json import KeyTextTransform
 from django.http import (
     HttpResponseRedirect,
@@ -19,11 +19,30 @@ from django.views.generic.detail import DetailView, SingleObjectMixin
 from django.views.generic.edit import CreateView, UpdateView
 import django_tables2
 import requests
+import copy
 
-from api_app.models import ApprovalLog, Change, CREATE, UPDATE, PUBLISHED_CODE
-from data_models.models import Campaign, Instrument, Platform, Deployment, PlatformType
+from api_app.models import (
+    ApprovalLog,
+    Change,
+    CREATE,
+    UPDATE,
+    PUBLISHED_CODE,
+    AVAILABLE_STATUSES,
+)
+from data_models.models import (
+    Campaign,
+    Instrument,
+    Platform,
+    Deployment,
+    PlatformType,
+)
 from .mixins import ChangeModelFormMixin
 from . import tables
+
+AVAILABLE_STATUSES_DICT = dict(AVAILABLE_STATUSES)
+AVAILABLE_STATUSES_DICT = {
+    k: v.replace(" ", "_") for k, v in AVAILABLE_STATUSES_DICT.items()
+}
 
 
 @login_required
@@ -77,8 +96,28 @@ class ChangeSummaryView(django_tables2.SingleTableView):
         )
 
     def get_context_data(self, **kwargs):
+        # Create a blank dictionary with appropriate fields
+        default_status = {}
+        for model in ["campaign", "platform", "instrument"]:
+            default_status.setdefault(model, {})[AVAILABLE_STATUSES_DICT[3]] = 0
+            default_status.setdefault(model, {})[AVAILABLE_STATUSES_DICT[5]] = 0
+
+        review_counts = copy.deepcopy(default_status)
+        for obj in (
+            Change.objects.filter(
+                action=CREATE,
+                content_type__model__in=["campaign", "instrument", "platform"],
+                status__in=[3, 5],
+            )
+            .values_list("content_type__model", "status")
+            .annotate(aggregates.Count("content_type"))
+        ):
+            review_counts[obj[0]][AVAILABLE_STATUSES_DICT[obj[1]]] = obj[2]
+
         return {
             **super().get_context_data(**kwargs),
+            # These values for total_counts will be given to us by ADMG
+            "total_counts": {"campaign": None, "platform": None, "instrument": None},
             "change_counts": {
                 k: v
                 for (k, v) in Change.objects.filter(
@@ -94,6 +133,7 @@ class ChangeSummaryView(django_tables2.SingleTableView):
                 .values_list("content_type__model")
                 .annotate(total=aggregates.Count("content_type"))
             },
+            "review_counts": review_counts,
             "published_counts": {
                 Model.__name__.lower(): Model.objects.count()
                 for Model in [Campaign, Deployment, Instrument, Platform]
@@ -303,7 +343,7 @@ class PlatformListView(django_tables2.SingleTableView):
                 platform_type_name=expressions.Subquery(
                     PlatformType.objects.filter(
                         uuid=expressions.OuterRef("platform_type_uuid")
-                    ).values("short_name")[:1],
+                    ).values("short_name")[:1]
                 ),
             )
         )
@@ -313,6 +353,25 @@ class PlatformListView(django_tables2.SingleTableView):
             **super().get_context_data(**kwargs),
             "display_name": "Platform",
             "model": "platform",
+        }
+
+
+@method_decorator(login_required, name="dispatch")
+class InstrumentListView(django_tables2.SingleTableView):
+    model = Change
+    table_class = tables.InstrumentChangeListTable
+    template_name = "api_app/change_list.html"
+
+    def get_queryset(self):
+        return Change.objects.filter(
+            content_type__model="instrument", action=CREATE
+        ).annotate(updated_at=Max("approvallog__date"))
+
+    def get_context_data(self, **kwargs):
+        return {
+            **super().get_context_data(**kwargs),
+            "display_name": "Instrument",
+            "model": "instrument",
         }
 
 
