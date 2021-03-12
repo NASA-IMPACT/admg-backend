@@ -14,82 +14,83 @@
     <div class="col-auto mr-auto px-0">
       <!-- TODO: go back to previous -->
       <a href="{% url 'change-list' %}">&larr; Back</a>
-      
+
       <h1>{{ object.model_name }}: {{ object.update.short_name | default:object.uuid }}</h1>
 
       <p>
-          <span class="badge badge-pill badge-light">
-              &bull; {{ object.get_status_display }}
-          </span>
+        <span class="badge badge-pill badge-light">
+          &bull; {{ object.get_status_display }}
+        </span>
       </p>
     </div>
   </header>
-</div>
 
-<div class="container-fluid row mx-3 my-3 py-2 ">
-  {# Main Content #}
-  <main class="col-8 pl-0">
-    <table class="table table-responsive">
-      <form method="post" id="model-form">
+  <div class="row mx-3 my-3 py-2 ">
+    {# Main Content #}
+    <main class="col-8 pl-0">
+      <table class="table table-responsive">
+        <form method="post" id="model-form">
+          {% csrf_token %}
+          {% for field in form %} {{ field.as_hidden }} {% endfor %}
+          {{ model_form | crispy }}
+        </form>
+      </table>
+    </main>
+
+    {# Sidebar #}
+    <aside class="col-4">
+      <h3>Actions</h3>
+      <button form="model-form" class="btn btn-primary">Save</button>
+      <h5>Update status</h5>
+      <!-- The most ridiculuous if statement you've ever seen -->
+      {% if object.status == 0 %}
+      <form action="{% url 'change-transitions' change.uuid 'edit' %}" method="post">
         {% csrf_token %}
-        {% for field in form %} {{ field.as_hidden }} {% endfor %}
-        {{ model_form | crispy }}
+        <button class="btn btn-primary"> Claim for Compiling </button><br>
+        <p>Status change notes:</p>
+        <textarea name="notes"></textarea>
       </form>
-    </table>
-  </main>
-
-  {# Sidebar #}
-  <aside class="col-4">
-    <h3>Actions</h3>
-    <button form="model-form" class="btn btn-primary">Save</button>
-    <h5>Update status</h5>
-    <!-- The most ridiculuous if statement you've ever seen -->
-    {% if object.status == 0 %}
-    <form action="{% url 'change-transitions' change.uuid 'edit' %}" method="post">
-      {% csrf_token %}
-      <button class="btn btn-primary"> Claim for Compiling </button><br>
-      <p>Status change notes:</p>
-      <textarea name="notes"></textarea>
-    
-    {% elif object.status == 1 %}
-    <form action="{% url 'change-transitions' change.uuid 'submit' %}" method="post">
-      {% csrf_token %}
-      <button class="btn btn-primary"> Submit for Review </button><br>
-      <p>Status change notes:</p>
-      <textarea name="notes"></textarea>
-    
+      {% elif object.status == 1 %}
+      <form action="{% url 'change-transitions' change.uuid 'submit' %}" method="post">
+        {% csrf_token %}
+        <button class="btn btn-primary"> Submit for Review </button><br>
+        <p>Status change notes:</p>
+        <textarea name="notes"></textarea>
+      </form>
       {% elif object.status == 2 %}
-    <form action="{% url 'change-transitions' change.uuid 'claim' %}" method="post">
-      {% csrf_token %}
-      <button class="btn btn-primary"> Claim for Review </button><br>
-      <p>Status change notes:</p>
-      <textarea name="notes"></textarea>
+      <form action="{% url 'change-transitions' change.uuid 'claim' %}" method="post">
+        {% csrf_token %}
+        <button class="btn btn-primary"> Claim for Review </button>
+        <br>
+        <p>Status change notes:</p>
+        <textarea name="notes"></textarea>
+      </form>
+      {% elif object.status == 3 %}
+      <form action="{% url 'change-transitions' change.uuid 'review' %}" method="post">
+        {% csrf_token %}
+        <button class="btn btn-primary"> Submit for Admin Review </button><br>
+        <p>Status change notes:</p>
+        <textarea name="notes"></textarea>
+        {% else %} <em>Awaiting Admin Review</em>
+      </form>
+      {% endif %}
 
-    {% elif object.status == 3 %}
-    <form action="{% url 'change-transitions' change.uuid 'review' %}" method="post">
-      {% csrf_token %}
-      <button class="btn btn-primary"> Submit for Admin Review </button><br>
-      <p>Status change notes:</p>
-      <textarea name="notes"></textarea>
-      {% else %} <em>Awaiting Admin Review</em>
-    
-    {% endif %}
-    </form>
+      <h3>Related Data</h3>
+      {% related_changes change %}
 
-    <h3>Related Data</h3>
-    {% related_changes change %}
+      <hr />
 
-    <hr />
+      <h3>History</h3>
+      {% related_approval_logs approvals %}
 
-    <h3>History</h3>
-    {% related_approval_logs approvals %}
+      <hr />
 
-    <hr />
+      <h3>Raw Data</h3>
+      {{ form.errors }}
+      <code>{{ object.update | pprint }}</code>
 
-    <h3>Raw Data</h3>
-    {{ form.errors }}
-    <code>{{ object.update | pprint }}</code>
-  </aside>
+    </aside>
+  </div>
 </div>
 
 {% endblock %}
