@@ -10,6 +10,7 @@ services:
       - .:/code
     ports:
       - 8001:8001
+      - 8890:8888
     env_file:
       - ./.env
     depends_on:
