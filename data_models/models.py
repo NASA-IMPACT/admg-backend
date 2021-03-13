@@ -70,8 +70,7 @@ class PlatformType(LimitedInfo):
 
     @property
     def patriarch(self):
-        """Returns the highest level parent in the platform_type 
-        heirarchy
+        """Returns the highest level parent in the platform_type hierarchy
 
         Returns:
             [str]: short name of the highest level parent
