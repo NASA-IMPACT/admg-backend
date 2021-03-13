@@ -1,3 +1,5 @@
+from urllib.parse import urlparse
+
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.contenttypes.models import ContentType
@@ -12,10 +14,16 @@ from django.utils.safestring import mark_safe
 from django.urls import reverse
 from django.views.generic.list import ListView
 from django.views.generic.detail import SingleObjectMixin
-from django.views.generic.edit import CreateView, UpdateView, View
+from django.views.generic import DetailView
+from django.views.generic.edit import (
+    CreateView,
+    UpdateView,
+    View,
+    FormMixin,
+    ProcessFormView,
+)
 import django_tables2
 import requests
-
 
 from api_app.models import (
     ApprovalLog,
@@ -289,6 +297,9 @@ class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
     def get_context_data(self, **kwargs):
         return {
             **super().get_context_data(**kwargs),
+            "transition_form": forms.TransitionForm(
+                change=self.get_object(), user=self.request.user
+            ),
             # Add approvals to context
             "approvals": self.get_object().approvallog_set.order_by("-date"),
         }
@@ -365,45 +376,34 @@ def to_be_developed(request):
 
 
 @method_decorator(login_required, name="dispatch")
-class ChangeTransition(View):
+class ChangeTransition(FormMixin, ProcessFormView, DetailView):
+    model = Change
     form_class = forms.TransitionForm
 
-    def post(self, *args, **kwargs):
-        form = forms.TransitionForm(self.request.POST)
-        if form.is_valid():
-            # messages.success(self.request, "Success")
-            c = form.cleaned_data["change"]
-            next_state = form.cleaned_data["to"]
-            # {
-            #     '1': c.claim,
-            #     '2': c.unclaim,
-            #     '3': c.
-            # }
+    def get_form_kwargs(self):
+        return {
+            **super().get_form_kwargs(),
+            "change": self.get_object(),
+            "user": self.request.user,
+        }
+
+    def form_valid(self, form):
+        response = form.apply_transition()
+
+        if response["success"]:
+            obj = self.get_object()
+            messages.success(
+                self.request,
+                (
+                    f"Transitioned \"{obj.model_name}: {obj.update.get('short_name', obj.uuid)}\" "
+                    f'to "{obj.get_status_display()}".'
+                ),
+            )
         else:
-            messages.error(self.request, form.errors.as_text())
+            messages.error(self.request, response["message"])
 
-        # change = Change.objects.
+        return super().form_valid(form)
 
-        #     if kwargs["transition"] == "edit":
-        #         messages.warning(self.request, "Claim for Compiling not yet supported")
-        #     elif kwargs["transition"] == "submit":
-        #         response = change.submit(self.request.user, self.request.POST.get("notes"))
-        #         self.check_for_error(response)
-        #     elif kwargs["transition"] == "claim":
-        #         response = change.claim(self.request.user, self.request.POST.get("notes"))
-        #         self.check_for_error(response)
-        #     elif kwargs["transition"] == "review":
-        #         response = change.review(self.request.user, self.request.POST.get("notes"))
-        #         self.check_for_error(response)
-        #     else:
-        #         return HttpResponseBadRequest("invalid transition argument")
-
-        return HttpResponseRedirect(
-            reverse("change-form", kwargs={"pk": form.data.get("change")})
-        )
-
-    # def check_for_error(self, response):
-    #     if response["success"]:
-    #         messages.success(self.request, "Status successfully changed.")
-    #     else:
-    #         messages.error(self.request, response["message"])
+    def get_success_url(self):
+        # TODO: Where should we direct to after approving a model?
+        return urlparse(self.request.META.get("HTTP_REFERER")).path

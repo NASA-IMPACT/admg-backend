@@ -118,12 +118,3 @@ def related_changes(change):
 @register.inclusion_tag("tags/related_approval_logs.html")
 def related_approval_logs(approval_logs):
     return {"approval_logs": approval_logs}
-
-
-@register.inclusion_tag("tags/transition_form.html", takes_context=True)
-def transition_form(context, description, *, state_change=1):
-    return dict(
-        uuid=context['object'].uuid,
-        to=context['object'].status + state_change,
-        description=description,
-    )

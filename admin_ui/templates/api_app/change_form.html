@@ -37,23 +37,19 @@
 
     <h3>Actions</h3>
     <button form="model-form" class="btn btn-primary">Save</button>
-    {% if object.status == 0 %}
-    {% transition_form 'Claim for Compiling' %}
 
-    {% elif object.status == 1 %}
-    {% transition_form 'Submit for Review' %}
+    <button class="btn btn-secondary dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true"
+      aria-expanded="false">Approval Actions
+    </button>
 
-    {% elif object.status == 2 %}
-    {% transition_form 'Claim for Review' %}
+    <div class="dropdown-menu">
+      <form action="{% url 'change-transition' object.uuid %}" method="post" class="px-4 py-3">
+        {% csrf_token %}
+        {{ transition_form | crispy }}
+        <button class="btn btn-primary">Submit</button>
+      </form>
+    </div>
 
-    {% elif object.status == 3 %}
-    {% transition_form 'Submit for Admin Review' %}
-
-    {% else %}
-    <em>Awaiting Admin Review</em>
-    {% endif %}
-
-    
     <h5>Update status</h5>
 
     <h3>Related Data</h3>
@@ -83,5 +79,10 @@
       .attr('data-required', true)
       .attr('required', false);
   })
+
+  // Make dropdown more resistant to accidental closes (https://stackoverflow.com/a/32922725/728583)
+  $(document).on('click', '.dropdown-menu', function (e) {
+    e.stopPropagation();
+  });
 </script>
 {% endblock %}

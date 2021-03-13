@@ -1,5 +1,8 @@
+from collections import OrderedDict
+
 from django import forms
 from django.core.exceptions import ValidationError
+from django.utils.safestring import mark_safe
 
 from api_app.models import (
     Change,
@@ -15,50 +18,60 @@ from admg_webapp.users.models import User, ADMIN_CODE
 
 
 class TransitionForm(forms.Form):
-    change = forms.ModelChoiceField(queryset=Change.objects.all())
-    notes = forms.Textarea()
-    transition = forms.ChoiceField(choices=())
+    """
+    Form to assist in transitioning a Change model through the approval process.
+    Must be initialized with a user and change object, both of which are used when
+    determining what are valid transitions based on the change's current status and
+    the user's permissions.
+    """
 
-    def __init__(self, *args, valid_transitions, **kwargs):
+    transition = forms.ChoiceField(
+        required=True, choices=(), widget=forms.RadioSelect(), help_text="Alter this draft's approval status."
+    )
+    notes = forms.CharField(
+        required=False,
+        widget=forms.Textarea(attrs={"rows": 5}),
+        help_text="Notes for other team members.",
+    )
+
+    def __init__(self, *args, change: Change, user: User, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["transition"].choices = valid_transitions
+        self.change = change
+        self.user = user
+        self.fields["transition"].choices = self.get_supported_actions(change, user)
 
-    def transition_change(self, user):
-        change = self.cleaned_data["change"]
-        func = getattr(change, self.cleaned_data["action"])
-        # TODO
+    def apply_transition(self):
+        transition_func = getattr(self.change, self.cleaned_data["transition"])
+        return transition_func(self.user, self.cleaned_data["notes"])
 
-    def get_supported_actions(self, change: Change, user: User):
-        actions = set()
+    @staticmethod
+    def get_supported_actions(change: Change, user: User):
+        actions = OrderedDict()
 
         if change.status in [CREATED_CODE, IN_PROGRESS_CODE]:
-            actions.add("submit", "Ready for Staff Review")
+            actions["submit"] = "Ready for Staff Review"
+
+        if change.status in [AWAITING_REVIEW_CODE]:
+            actions["claim"] = "Claim for Staff Review"
+
+        if change.status in [IN_REVIEW_CODE, IN_ADMIN_REVIEW_CODE]:
+            actions["reject"] = "Requires adjustments"
 
         if change.status in [IN_REVIEW_CODE]:
-            actions.add(("review", "Ready for Admin Review"))
+            actions["unclaim"] = "Unassign Staff Reviewer"
 
-        if change.status in [IN_REVIEW_CODE, IN_ADMIN_REVIEW_CODE]:
-            actions.add(("reject", "Requires adjustments"))
+        if change.status in [IN_REVIEW_CODE]:
+            actions["review"] = "Ready for Admin Review"
 
-        if change.status in [AWAITING_REVIEW_CODE, AWAITING_ADMIN_REVIEW_CODE]:
-            next_approver = (
-                "Staff" if change.status == AWAITING_REVIEW_CODE else "Admin"
-            )
-            actions.add(("claim", f"Claim for {next_approver} Review"))
-
-        if change.status in [IN_REVIEW_CODE, IN_ADMIN_REVIEW_CODE]:
-            actions.add(("unclaim", "Unassign Reviewer"))
+        if change.status in [AWAITING_ADMIN_REVIEW_CODE]:
+            actions["claim"] = "Claim for Admin Review"
 
         if user.role == ADMIN_CODE:
-            # TODO: Rework so that admin is prompted to verify if change.status != IN_ADMIN_REVIEW_CODE
-            actions.add(
-                ("publish", "Publish to production")
-            )  # Admin can publish at any step
+            # Admin can publish at any step
+            actions["publish"] = 'Publish to production'
+            if change.status != IN_ADMIN_REVIEW_CODE:
+                actions["publish"] = mark_safe(
+                    '<span class="text-danger font-italic">Danger:</span>  ' + actions["publish"]
+                )
 
-        return actions
-
-    # def check_for_error(self, response):
-    #     if response["success"]:
-    #         messages.success(self.request, "Status successfully changed.")
-    #     else:
-    #         messages.error(self.request, response["message"])
+        return actions.items()
