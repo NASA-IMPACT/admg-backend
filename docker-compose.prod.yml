@@ -24,6 +24,7 @@ services:
     volumes:
       - static_volume:/home/app/web/staticfiles
       - media_volume:/home/app/web/media
+      - morecerts:/etc/acme.sh
       - certs:/etc/nginx/certs
       - html:/usr/share/nginx/html
       - vhost:/etc/nginx/vhost.d
@@ -37,6 +38,7 @@ services:
       - .env
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
+      - morecerts:/etc/acme.sh
       - certs:/etc/nginx/certs
       - html:/usr/share/nginx/html
       - vhost:/etc/nginx/vhost.d
@@ -78,6 +80,7 @@ volumes:
   postgres_data:
   static_volume:
   media_volume:
+  morecerts:
   certs:
   html:
   vhost:
