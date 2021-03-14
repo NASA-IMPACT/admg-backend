@@ -7,3 +7,7 @@ location /media/ {
   alias /home/app/web/media/;
   add_header Access-Control-Allow-Origin *;
 }
+
+location /flower/ {
+    proxy_pass https://web:5555/;
+}
