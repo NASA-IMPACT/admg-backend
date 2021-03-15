@@ -68,7 +68,7 @@
                             {{ deployment.approvals.0.date | naturaltime }}
                         </span>
                         {% if deployment.approvals.0.user %}
-                        by {% firstof deployment.approvals.0.user.get_full_name deployment.approvals.0.user.username %}
+                            by {% firstof deployment.approvals.0.user.get_full_name deployment.approvals.0.user.username %}
                         {% endif %}
                     </div>
                 </div>
@@ -154,7 +154,7 @@
                                     {{ event.approvals.0.date | naturaltime }}
                                 </span>
                                 {% if event.approvals.0.user %}
-                                by {% firstof event.approvals.0.user.get_full_name event.approvals.0.user.username %}
+                                    by {% firstof event.approvals.0.user.get_full_name event.approvals.0.user.username %}
                                 {% endif %}
                             </div>
                         </li>
@@ -191,7 +191,7 @@
                                     {{ iop.approvals.0.date | naturaltime }}
                                 </span>
                                 {% if iop.approvals.0.user %}
-                                by {% firstof iop.approvals.0.user.get_full_name iop.approvals.0.user.username %}
+                                    by {% firstof iop.approvals.0.user.get_full_name iop.approvals.0.user.username %}
                                 {% endif %}
                             </div>
                         </li>
@@ -230,7 +230,7 @@
                                     {{ period.approvals.0.date | naturaltime }}
                                 </span>
                                 {% if period.approvals.0.user %}
-                                by {% firstof period.approvals.0.user.get_full_name period.approvals.0.user.username %}
+                                    by {% firstof period.approvals.0.user.get_full_name period.approvals.0.user.username %}
                                 {% endif %}
                             </div>
                         </li>
