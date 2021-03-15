@@ -3,23 +3,36 @@
 {% load humanize %}
 
 {% block page %}
-<header class="row mx-3 my-3 py-2">
-    <div class="col-auto mr-auto px-0">
-        <a href="{% url 'change-list' %}">&larr; Back</a>
-
-        <div class="d-flex align-items-baseline">
+<header class="mx-3 my-3 py-2 sticky-top bg-white border-bottom">
+    <div class="row">
+        <div class="col">
+            <a href="{% url 'change-list' %}">&larr; Back</a>
             <h1>Campaign {% firstof object.update.short_name object.update.uuid %}</h1>
-            <a href="{% url 'change-form' object.uuid %}" class="ml-3">
+        </div>
+        
+        <div class="col-auto px-0">
+            <a href="{% url 'change-form' object.uuid %}" class="btn btn-outline-secondary ml-3">
                 Edit campaign details
             </a>
+            <button class="btn btn-primary">Submit for review (placeholder)</button> <!-- TODO: add onclick -->
         </div>
-        <p>
-            <span class="badge badge-pill badge-light">
-                &bull; {{ object.get_status_display }}
-            </span>
-        </p>
+    </div>
 
-        <button class="btn btn-primary">Submit for review (placeholder)</button> <!-- TODO: add onclick -->
+    <div class="row">
+        <div class="col-sm-2">
+            <h6>STATUS</h6>
+            <p>{{ object.get_status_display }}</p>
+        </div>
+
+        <div class="col-sm-2">
+            <h6>ITEM TYPE</h6>
+            <p>{{ object.model_name }} </p>
+        </div>
+
+        <div class="col-sm-2">
+            <h6>ACTION</h6>
+            <p>{{ object.action }}</p>
+        </div>
     </div>
 </header>
 
@@ -28,8 +41,7 @@
         <ul class="list-group">
             <li class="list-group-item d-flex justify-content-between align-items-center">
                 <h4 class="mb-0">Deployments</h4>
-                <a class="btn btn-primary"
-                    href="{% url 'change-add' 'deployment' %}?campaign={{ object.uuid }}">+</a>
+                <a class="btn btn-primary" href="{% url 'change-add' 'deployment' %}?campaign={{ object.uuid }}">+</a>
             </li>
             {% for deployment in object_list %}
             <li class="list-group-item list-group-item-action d-flex justify-content-between deployment cursor-pointer"
@@ -47,8 +59,12 @@
                     <div class="small text-muted">{{ deployment.get_status_display }}</div>
                     <div class="small text-muted">
                         Last updated
-                        <span title={{ deployment.approvals.0.date|date:"c" }}>{{ deployment.approvals.0.date | naturaltime }}</span>
-                        {% if deployment.approvals.0.user %} by {% firstof deployment.approvals.0.user.get_full_name deployment.approvals.0.user.username %}{% endif %}
+                        <span title={{ deployment.approvals.0.date|date:"c" }}>
+                            {{ deployment.approvals.0.date | naturaltime }}
+                        </span>
+                        {% if deployment.approvals.0.user %} 
+                            by {% firstof deployment.approvals.0.user.get_full_name deployment.approvals.0.user.username %}
+                        {% endif %}
                     </div>
                 </div>
                 <div><span class="caret">&rsaquo;</span></div>
@@ -104,9 +120,8 @@
             <div class="card">
                 <div class="card-header d-flex justify-content-between" id="significant-events-header">
                     <h5 class="mb-0">
-                        <button class="btn btn-link collapsed" data-toggle="collapse"
-                            data-target="#significant-events" aria-expanded="false"
-                            aria-controls="significant-events">
+                        <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#significant-events"
+                            aria-expanded="false" aria-controls="significant-events">
                             Significant events
                         </button>
                         <span id="significant-events-badge" class="badge badge-primary badge-pill"></span>
@@ -119,8 +134,7 @@
                     data-parent="#accordion">
                     <ul class="list-group">
                         {% for event in significant_events %}
-                        <li class="list-group-item deployment-child"
-                            data-deployment="{{ event.update.deployment }}">
+                        <li class="list-group-item deployment-child" data-deployment="{{ event.update.deployment }}">
                             {% firstof event.update.short_name event.update.uuid %}
                             <small>
                                 <a href="{% url 'change-form' event.uuid %}">
@@ -131,8 +145,12 @@
                             <div class="small text-muted">{{ event.get_status_display }}</div>
                             <div class="small text-muted">
                                 Last updated
-                                <span title={{ event.approvals.0.date|date:"c" }}>{{ event.approvals.0.date | naturaltime }}</span>
-                                {% if event.approvals.0.user %} by {% firstof event.approvals.0.user.get_full_name event.approvals.0.user.username %}{% endif %}
+                                <span title={{ event.approvals.0.date|date:"c" }}>
+                                    {{ event.approvals.0.date | naturaltime }}
+                                </span>
+                                {% if event.approvals.0.user %} 
+                                    by {% firstof event.approvals.0.user.get_full_name event.approvals.0.user.username %}
+                                {% endif %}
                             </div>
                         </li>
                         {% endfor %}
@@ -164,8 +182,12 @@
                             <div class="small text-muted">{{ iop.get_status_display }}</div>
                             <div class="small text-muted">
                                 Last updated
-                                <span title={{ iop.approvals.0.date|date:"c" }}>{{ iop.approvals.0.date | naturaltime }}</span>
-                                {% if iop.approvals.0.user %} by {% firstof iop.approvals.0.user.get_full_name iop.approvals.0.user.username %}{% endif %}
+                                <span title={{ iop.approvals.0.date|date:"c" }}>
+                                    {{ iop.approvals.0.date | naturaltime }}
+                                </span>
+                                {% if iop.approvals.0.user %} 
+                                    by {% firstof iop.approvals.0.user.get_full_name iop.approvals.0.user.username %}
+                                {% endif %}
                             </div>
                         </li>
                         {% endfor %}
@@ -188,8 +210,7 @@
                     data-parent="#accordion">
                     <ul class="list-group">
                         {% for period in collection_periods %}
-                        <li class="list-group-item deployment-child"
-                            data-deployment="{{ period.update.deployment }}">
+                        <li class="list-group-item deployment-child" data-deployment="{{ period.update.deployment }}">
                             {% firstof period.update.short_name period.update.uuid %}
                             <small>
                                 <a href="{% url 'change-form' period.uuid %}">
@@ -200,8 +221,12 @@
                             <div class="small text-muted">{{ period.get_status_display }}</div>
                             <div class="small text-muted">
                                 Last updated
-                                <span title={{ period.approvals.0.date|date:"c" }}>{{ period.approvals.0.date | naturaltime }}</span>
-                                {% if period.approvals.0.user %} by {% firstof period.approvals.0.user.get_full_name period.approvals.0.user.username %}{% endif %}
+                                <span title={{ period.approvals.0.date|date:"c" }}>
+                                    {{ period.approvals.0.date | naturaltime }}
+                                </span>
+                                {% if period.approvals.0.user %} 
+                                    by {% firstof period.approvals.0.user.get_full_name period.approvals.0.user.username %}
+                                {% endif %}
                             </div>
                         </li>
                         {% endfor %}
