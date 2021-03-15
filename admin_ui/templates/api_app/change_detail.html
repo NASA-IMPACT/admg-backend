@@ -79,7 +79,7 @@
                     </li>
                     {% else %}
                     <li class="page-item">
-                        <a class="page-link" href="?page={{num}}"">
+                        <a class="page-link" href="?page={{num}}">
                             {{ num }}
                         </a>
                     </li>
@@ -136,7 +136,7 @@
                                 </div>
 
                                 {% if event.update.iop %}
-                                <div class="small text-muted">Related IOP: {{ event.update.iop }}</div>
+                                <div class="small text-muted">Related IOP: {{ event.iop_name }}</div>
                                 {% endif %}
                             </li>
                             {% endfor %}
