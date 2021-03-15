@@ -94,7 +94,7 @@
                 </li>
                 {% else %}
                 <li class="page-item">
-                    <a class="page-link" href="?page={{num}}"">
+                    <a class="page-link" href="?page={{num}}">
                         {{ num }}
                     </a>
                 </li>
@@ -103,8 +103,8 @@
                 {% endfor %}
 
                 {% if page_obj.has_next %}
-                <li class=" page-item">
-                        <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next &rang;</a>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next &rang;</a>
                 </li>
                 <li class="page-item">
                     <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last &rang;&rang;</a>
