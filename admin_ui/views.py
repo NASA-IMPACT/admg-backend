@@ -301,7 +301,9 @@ class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
                 change=self.get_object(), user=self.request.user
             ),
             # Add approvals to context
-            "approvals": self.get_object().approvallog_set.order_by("-date"),
+            "approvals": self.get_object()
+            .approvallog_set.order_by("-date")
+            .prefetch_related("user"),
         }
 
     def get_model_form_content_type(self) -> ContentType:
