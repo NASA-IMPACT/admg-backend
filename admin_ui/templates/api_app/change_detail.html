@@ -136,7 +136,7 @@
                                 </div>
 
                                 {% if event.update.iop %}
-                                <div class="small text-muted">Related IOP: {{ event.iop_name }}</div>
+                                <div class="small text-muted">Related IOP: <a href="{% url 'change-form' event.iop_uuid %}">{{ event.iop_name }}</a></div>
                                 {% endif %}
                             </li>
                             {% endfor %}
