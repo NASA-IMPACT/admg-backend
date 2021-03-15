@@ -31,82 +31,82 @@
       </div>
       <div class="col-sm-3">
         <span class="lead font-weight-bold text-nowrap">
-          {{ review_counts.campaign.In_Review }}
+          {{ draft_status_counts.campaign.In_Review }}
         </span>
         <p>In review</p>
       </div>
       <div class="col-sm-3">
         <span class="lead font-weight-bold text-nowrap">
-          {{ review_counts.campaign.In_Admin_Review }}
+          {{ draft_status_counts.campaign.In_Admin_Review }}
         </span>
         <p>In admin review</p>
       </div>
       <div class="col-sm-3">
         <span class="lead font-weight-bold text-nowrap">
-          {{ published_counts.campaign }}
+          {{ draft_status_counts.campaign.Published }}
         </span>
         <p>Pub&shy;lished</p>
       </div>
     </div>
   </div>
+</div>
 
-  <div class="col-auto col-lg-4 px-4 border">
-    <p class="text-uppercase my-3">Platforms</p>
-    <div class="row">
-      <div class="col-sm-3">
-        <span class="lead font-weight-bold text-nowrap">
-          {{ total_counts.platform }}
-        </span>
-        <p>Total</p>
-      </div>
-      <div class="col-sm-3">
-        <span class="lead font-weight-bold text-nowrap">
-          {{ review_counts.platform.In_Review }}
-        </span>
-        <p>In review</p>
-      </div>
-      <div class="col-sm-3">
-        <span class="lead font-weight-bold text-nowrap">
-          {{ review_counts.platform.In_Admin_Review }}
-        </span>
-        <p>In admin review</p>
-      </div>
-      <div class="col-sm-3">
-        <span class="lead font-weight-bold text-nowrap">
-          {{ published_counts.platform }}
-        </span>
-        <p>Pub&shy;lished</p>
-      </div>
+<div class="col-auto col-lg-4 px-4 border">
+  <p class="text-uppercase my-3">Platforms</p>
+  <div class="row">
+    <div class="col-sm-3">
+      <span class="lead font-weight-bold text-nowrap">
+        {{ total_counts.platform }}
+      </span>
+      <p>Total</p>
+    </div>
+    <div class="col-sm-3">
+      <span class="lead font-weight-bold text-nowrap">
+        {{ draft_status_counts.platform.In_Review }}
+      </span>
+      <p>In review</p>
+    </div>
+    <div class="col-sm-3">
+      <span class="lead font-weight-bold text-nowrap">
+        {{ draft_status_counts.platform.In_Admin_Review }}
+      </span>
+      <p>In admin review</p>
+    </div>
+    <div class="col-sm-3">
+      <span class="lead font-weight-bold text-nowrap">
+        {{ draft_status_counts.platform.Published }}
+      </span>
+      <p>Pub&shy;lished</p>
     </div>
   </div>
+</div>
 
-  <div class="col-auto col-lg-4 px-4 border">
-    <p class="text-uppercase my-3">Instruments</p>
-    <div class="row">
-      <div class="col-sm-3">
-        <span class="lead font-weight-bold text-nowrap">
-          {{ total_counts.instrument }}
-        </span>
-        <p>Total</p>
-      </div>
-      <div class="col-sm-3">
-        <span class="lead font-weight-bold text-nowrap">
-          {{ review_counts.instrument.In_Review }}
-        </span>
-        <p>In review</p>
-      </div>
-      <div class="col-sm-3">
-        <span class="lead font-weight-bold text-nowrap">
-          {{ review_counts.instrument.In_Admin_Review }}
-        </span>
-        <p>In admin review</p>
-      </div>
-      <div class="col-sm-3">
-        <span class="lead font-weight-bold text-nowrap">
-          {{ published_counts.instrument }}
-        </span>
-        <p>Pub&shy;lished</p>
-      </div>
+<div class="col-auto col-lg-4 px-4 border">
+  <p class="text-uppercase my-3">Instruments</p>
+  <div class="row">
+    <div class="col-sm-3">
+      <span class="lead font-weight-bold text-nowrap">
+        {{ total_counts.instrument }}
+      </span>
+      <p>Total</p>
+    </div>
+    <div class="col-sm-3">
+      <span class="lead font-weight-bold text-nowrap">
+        {{ draft_status_counts.instrument.In_Review }}
+      </span>
+      <p>In review</p>
+    </div>
+    <div class="col-sm-3">
+      <span class="lead font-weight-bold text-nowrap">
+        {{ draft_status_counts.instrument.In_Admin_Review }}
+      </span>
+      <p>In admin review</p>
+    </div>
+    <div class="col-sm-3">
+      <span class="lead font-weight-bold text-nowrap">
+        {{ draft_status_counts.instrument.Published }}
+      </span>
+      <p>Pub&shy;lished</p>
     </div>
   </div>
 </div>

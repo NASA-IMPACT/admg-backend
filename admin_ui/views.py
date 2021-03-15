@@ -7,7 +7,6 @@ from django.db.models import functions, expressions, aggregates, Max
 from django.db.models.fields.json import KeyTextTransform
 from django.http import (
     HttpResponseRedirect,
-    HttpResponseForbidden,
     HttpResponseBadRequest,
 )
 from django.shortcuts import render
@@ -19,13 +18,14 @@ from django.views.generic.detail import DetailView, SingleObjectMixin
 from django.views.generic.edit import CreateView, UpdateView
 import django_tables2
 import requests
-import copy
 
 from api_app.models import (
     ApprovalLog,
     Change,
     CREATE,
     UPDATE,
+    IN_REVIEW_CODE,
+    IN_ADMIN_REVIEW_CODE,
     PUBLISHED_CODE,
     AVAILABLE_STATUSES,
 )
@@ -39,10 +39,6 @@ from data_models.models import (
 from .mixins import ChangeModelFormMixin
 from . import tables
 
-AVAILABLE_STATUSES_DICT = dict(AVAILABLE_STATUSES)
-AVAILABLE_STATUSES_DICT = {
-    k: v.replace(" ", "_") for k, v in AVAILABLE_STATUSES_DICT.items()
-}
 
 
 @login_required
@@ -95,49 +91,42 @@ class ChangeSummaryView(django_tables2.SingleTableView):
             )
         )
 
-    def get_context_data(self, **kwargs):
-        # Create a blank dictionary with appropriate fields
-        default_status = {}
-        for model in ["campaign", "platform", "instrument"]:
-            default_status.setdefault(model, {})[AVAILABLE_STATUSES_DICT[3]] = 0
-            default_status.setdefault(model, {})[AVAILABLE_STATUSES_DICT[5]] = 0
+    @staticmethod
+    def get_draft_status_count():
+        status_ids = [IN_REVIEW_CODE, IN_ADMIN_REVIEW_CODE, PUBLISHED_CODE]
+        model_names = [M._meta.model_name for M in (Campaign, Platform, Instrument)]
+        status_translations = {
+            status_id: status_name.replace(" ", "_")
+            for status_id, status_name in AVAILABLE_STATUSES
+        }
+        
+        # Setup dict with 0 counts
+        review_counts = {
+            model: {status.replace(' ', '_'): 0 for status in status_translations.values()}
+            for model in model_names
+        }
 
-        review_counts = copy.deepcopy(default_status)
-        for obj in (
+        # Populate with actual counts
+        model_status_counts = (
             Change.objects.filter(
                 action=CREATE,
-                content_type__model__in=["campaign", "instrument", "platform"],
-                status__in=[3, 5],
+                content_type__model__in=model_names,
+                status__in=status_ids,
             )
             .values_list("content_type__model", "status")
             .annotate(aggregates.Count("content_type"))
-        ):
-            review_counts[obj[0]][AVAILABLE_STATUSES_DICT[obj[1]]] = obj[2]
+        )
+        for (model, status_id, count) in model_status_counts:
+            review_counts.setdefault(model, {})[status_translations[status_id]] = count
+        
+        return review_counts
 
+    def get_context_data(self, **kwargs):
         return {
             **super().get_context_data(**kwargs),
             # These values for total_counts will be given to us by ADMG
             "total_counts": {"campaign": None, "platform": None, "instrument": None},
-            "change_counts": {
-                k: v
-                for (k, v) in Change.objects.filter(
-                    action=CREATE,
-                    content_type__model__in=[
-                        "campaign",
-                        "deployment",
-                        "instrument",
-                        "platform",
-                    ],
-                )
-                .exclude(status=PUBLISHED_CODE)
-                .values_list("content_type__model")
-                .annotate(total=aggregates.Count("content_type"))
-            },
-            "review_counts": review_counts,
-            "published_counts": {
-                Model.__name__.lower(): Model.objects.count()
-                for Model in [Campaign, Deployment, Instrument, Platform]
-            },
+            "draft_status_counts": self.get_draft_status_count(),
             "activity_list": ApprovalLog.objects.prefetch_related(
                 "change__content_type", "user"
             ).order_by("-date")[: self.paginate_by],
