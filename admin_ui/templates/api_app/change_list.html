@@ -4,20 +4,20 @@
 
 {% block page %}
 
-<div class="container-fluid">
-  <div class="row mt-4 mb-5">
-    <div class="col-auto mr-auto">
-      <h1>{{ display_name }} Drafts</h1>
-    </div>
-    <div class="col-auto">
-      <a class="btn btn-dark" href="{% url 'change-add' model %}">Add New {{ display_name }} + </a>
-    </div>
+<header class="row mx-3 my-5 py-2 align-items-center sticky-top bg-white border-bottom">
+  <div class="col-auto mr-auto px-0">
+    <h1>{{ display_name }} Drafts</h1>
   </div>
-</div>
+  <div class="col-auto px-0">
+    <a class="btn btn-dark" href="{% url 'change-add' model %}">
+      Add New {{ display_name }} +
+    </a>
+  </div>
+</header>
 
-<div class="container-fluid">
+<main class="row mx-3 my-5">
   {% render_table table %}
-</div>
+</main>
 
 {% endblock %}
 
