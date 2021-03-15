@@ -8,6 +8,9 @@ location /media/ {
   add_header Access-Control-Allow-Origin *;
 }
 
-location /flower/ {
-    proxy_pass https://web:5555/;
+location /flower {
+    rewrite ^/flower/(.*)$ /$1 break;
+    proxy_pass http://flower:5555;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header Host $host;
 }
