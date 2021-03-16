@@ -200,6 +200,18 @@ class ChangeDetailView(SingleObjectMixin, ListView):
                         to_attr="approvals",
                     )
                 )
+                # Add related IOP's short_name if it exists
+                .annotate(
+                    iop_uuid=functions.Cast(
+                        KeyTextTransform("iop", "update"), models.UUIDField()
+                    ),
+                    iop_name=expressions.Subquery(
+                        Change.objects.filter(
+                            content_type__model__iexact="iop",
+                            uuid=expressions.OuterRef("iop_uuid"),
+                        ).values("update__short_name")[:1]
+                    ),
+                )
             ),
             "iops": Change.objects.select_related("content_type")
             .filter(

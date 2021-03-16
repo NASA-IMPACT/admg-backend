@@ -146,7 +146,6 @@
                                     edit &rarr;
                                 </a>
                             </small>
-
                             <div class="small text-muted">{{ event.get_status_display }}</div>
                             <div class="small text-muted">
                                 Last updated
@@ -155,6 +154,9 @@
                                 </span>
                                 {% if event.approvals.0.user %}
                                     by {% firstof event.approvals.0.user.get_full_name event.approvals.0.user.username %}
+                                {% endif %}
+                                {% if event.update.iop %}
+                                <div class="small text-muted">Related IOP: <a href="{% url 'change-form' event.iop_uuid %}">{{ event.iop_name }}</a></div>
                                 {% endif %}
                             </div>
                         </li>
@@ -264,8 +266,11 @@
             var count = $(value + ' li' + childLookup).length;
             $(value + '-badge').text(count);
             if (count === 0) {
-                $(value + '-header > * > button').addClass('disabled')
-                $(value + '-badge').addClass('bg-secondary')
+                $(value + '-header > * > button').addClass('disabled');
+                $(value + '-badge').addClass('bg-secondary');
+            } else {
+                $(value + '-header > * > button').removeClass('disabled');
+                $(value + '-badge').removeClass('bg-secondary');
             }
 
         });
