@@ -87,7 +87,6 @@ THIRD_PARTY_APPS = [
     "django_celery_results",
     "django_tables2",
     "drf_yasg",
-    "flower",
     "oauth2_provider",
     "rest_framework.authtoken",
     "rest_framework",
