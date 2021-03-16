@@ -26,7 +26,10 @@ class TransitionForm(forms.Form):
     """
 
     transition = forms.ChoiceField(
-        required=True, choices=(), widget=forms.RadioSelect(), help_text="Alter this draft's approval status."
+        required=True,
+        choices=(),
+        widget=forms.RadioSelect(),
+        help_text="Alter this draft's approval status.",
     )
     notes = forms.CharField(
         required=False,
@@ -54,7 +57,7 @@ class TransitionForm(forms.Form):
         if change.status in [AWAITING_REVIEW_CODE]:
             actions["claim"] = "Claim for Staff Review"
 
-        if change.status in [IN_REVIEW_CODE, IN_ADMIN_REVIEW_CODE]:
+        if change.status in [IN_REVIEW_CODE]:
             actions["reject"] = "Requires adjustments"
 
         if change.status in [IN_REVIEW_CODE]:
@@ -63,15 +66,19 @@ class TransitionForm(forms.Form):
         if change.status in [IN_REVIEW_CODE]:
             actions["review"] = "Ready for Admin Review"
 
-        if change.status in [AWAITING_ADMIN_REVIEW_CODE]:
-            actions["claim"] = "Claim for Admin Review"
-
         if user.role == ADMIN_CODE:
+            if change.status in [IN_ADMIN_REVIEW_CODE]:
+                actions["reject"] = "Requires adjustments"
+
+            if change.status in [AWAITING_ADMIN_REVIEW_CODE]:
+                actions["claim"] = "Claim for Admin Review"
+
             # Admin can publish at any step
-            actions["publish"] = 'Publish to production'
+            actions["publish"] = "Publish to production"
             if change.status != IN_ADMIN_REVIEW_CODE:
                 actions["publish"] = mark_safe(
-                    '<span class="text-danger font-italic">Danger:</span>  ' + actions["publish"]
+                    '<span class="text-danger font-italic">Danger:</span>  '
+                    + actions["publish"]
                 )
 
         return actions.items()

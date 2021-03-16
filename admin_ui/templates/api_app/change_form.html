@@ -22,12 +22,12 @@
       <h6>STATUS</h6>
       <p>{{ object.get_status_display }}</p>
     </div>
-    
+
     <div class="col-sm-2">
       <h6>ITEM TYPE</h6>
       <p>{{ object.model_name }} </p>
     </div>
-    
+
     <div class="col-sm-2">
       <h6>ACTION</h6>
       <p>{{ object.action }}</p>
@@ -39,7 +39,7 @@
       </div>
 
       <div class="px-1">
-        <button class="btn btn-secondary dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true"
+        <button class="btn btn-secondary dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" {% if not transition_form.fields.transition.choices|length %} disabled="true" {% endif %}
           aria-expanded="false">Approval Actions
         </button>
 
