@@ -1,3 +1,13 @@
+location /static/ {
+  alias /home/app/web/staticfiles/;
+  add_header Access-Control-Allow-Origin *;
+}
+
+location /media/ {
+  alias /home/app/web/media/;
+  add_header Access-Control-Allow-Origin *;
+}
+
 location /flower/static/ {
   alias /home/app/web/staticfiles/;
   add_header Access-Control-Allow-Origin *;
@@ -16,14 +26,4 @@ location ~ ^/flower/? {
   proxy_set_header Upgrade $http_upgrade;
   proxy_set_header Connection "upgrade";
   proxy_http_version 1.1;
-}
-
-location /static/ {
-  alias /home/app/web/staticfiles/;
-  add_header Access-Control-Allow-Origin *;
-}
-
-location /media/ {
-  alias /home/app/web/media/;
-  add_header Access-Control-Allow-Origin *;
 }
