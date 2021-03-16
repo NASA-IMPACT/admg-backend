@@ -9,13 +9,6 @@
             <a href="{% url 'change-list' %}">&larr; Back</a>
             <h1>Campaign {% firstof object.update.short_name object.update.uuid %}</h1>
         </div>
-        
-        <div class="col-auto px-0">
-            <a href="{% url 'change-form' object.uuid %}" class="btn btn-outline-secondary ml-3">
-                Edit campaign details
-            </a>
-            <button class="btn btn-primary">Submit for review (placeholder)</button> <!-- TODO: add onclick -->
-        </div>
     </div>
 
     <div class="row">
@@ -32,6 +25,18 @@
         <div class="col-sm-2">
             <h6>ACTION</h6>
             <p>{{ object.action }}</p>
+        </div>
+
+        <div class="col d-flex flex-row-reverse">
+            <div class="px-1">
+                <button class="btn btn-primary">Submit for review (placeholder)</button> <!-- TODO: add onclick -->
+            </div>
+
+            <div class="px-1">
+                <a href="{% url 'change-form' object.uuid %}" class="btn btn-outline-secondary ml-3">
+                    Edit campaign details
+                </a>
+            </div>
         </div>
     </div>
 </header>
@@ -62,7 +67,7 @@
                         <span title={{ deployment.approvals.0.date|date:"c" }}>
                             {{ deployment.approvals.0.date | naturaltime }}
                         </span>
-                        {% if deployment.approvals.0.user %} 
+                        {% if deployment.approvals.0.user %}
                             by {% firstof deployment.approvals.0.user.get_full_name deployment.approvals.0.user.username %}
                         {% endif %}
                     </div>
@@ -147,7 +152,7 @@
                                 <span title={{ event.approvals.0.date|date:"c" }}>
                                     {{ event.approvals.0.date | naturaltime }}
                                 </span>
-                                {% if event.approvals.0.user %} 
+                                {% if event.approvals.0.user %}
                                     by {% firstof event.approvals.0.user.get_full_name event.approvals.0.user.username %}
                                 {% endif %}
                                 {% if event.update.iop %}
@@ -187,7 +192,7 @@
                                 <span title={{ iop.approvals.0.date|date:"c" }}>
                                     {{ iop.approvals.0.date | naturaltime }}
                                 </span>
-                                {% if iop.approvals.0.user %} 
+                                {% if iop.approvals.0.user %}
                                     by {% firstof iop.approvals.0.user.get_full_name iop.approvals.0.user.username %}
                                 {% endif %}
                             </div>
@@ -226,7 +231,7 @@
                                 <span title={{ period.approvals.0.date|date:"c" }}>
                                     {{ period.approvals.0.date | naturaltime }}
                                 </span>
-                                {% if period.approvals.0.user %} 
+                                {% if period.approvals.0.user %}
                                     by {% firstof period.approvals.0.user.get_full_name period.approvals.0.user.username %}
                                 {% endif %}
                             </div>
