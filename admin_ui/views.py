@@ -5,10 +5,7 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.db import models
 from django.db.models import functions, expressions, aggregates, Max
 from django.db.models.fields.json import KeyTextTransform
-from django.http import (
-    HttpResponseRedirect,
-    HttpResponseBadRequest,
-)
+from django.http import HttpResponseRedirect, HttpResponseBadRequest
 from django.shortcuts import render
 from django.utils.decorators import method_decorator
 from django.utils.safestring import mark_safe
@@ -29,16 +26,9 @@ from api_app.models import (
     PUBLISHED_CODE,
     AVAILABLE_STATUSES,
 )
-from data_models.models import (
-    Campaign,
-    Instrument,
-    Platform,
-    Deployment,
-    PlatformType,
-)
+from data_models.models import Campaign, Instrument, Platform, Deployment, PlatformType
 from .mixins import ChangeModelFormMixin
 from . import tables
-
 
 
 @login_required
@@ -99,10 +89,12 @@ class ChangeSummaryView(django_tables2.SingleTableView):
             status_id: status_name.replace(" ", "_")
             for status_id, status_name in AVAILABLE_STATUSES
         }
-        
+
         # Setup dict with 0 counts
         review_counts = {
-            model: {status.replace(' ', '_'): 0 for status in status_translations.values()}
+            model: {
+                status.replace(" ", "_"): 0 for status in status_translations.values()
+            }
             for model in model_names
         }
 
@@ -118,7 +110,7 @@ class ChangeSummaryView(django_tables2.SingleTableView):
         )
         for (model, status_id, count) in model_status_counts:
             review_counts.setdefault(model, {})[status_translations[status_id]] = count
-        
+
         return review_counts
 
     def get_context_data(self, **kwargs):
@@ -199,6 +191,18 @@ class ChangeDetailView(SingleObjectMixin, ListView):
                         ),
                         to_attr="approvals",
                     )
+                )
+                # Add related IOP's short_name if it exists
+                .annotate(
+                    iop_uuid=functions.Cast(
+                        KeyTextTransform("iop", "update"), models.UUIDField()
+                    ),
+                    iop_name=expressions.Subquery(
+                        Change.objects.filter(
+                            content_type__model__iexact="iop",
+                            uuid=expressions.OuterRef("iop_uuid"),
+                        ).values("update__short_name")[:1]
+                    ),
                 )
             ),
             "iops": Change.objects.select_related("content_type")
