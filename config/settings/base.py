@@ -84,6 +84,7 @@ THIRD_PARTY_APPS = [
     "allauth",
     "corsheaders",
     "crispy_forms",
+    "django_celery_results",
     "django_tables2",
     "drf_yasg",
     "flower",
@@ -283,7 +284,7 @@ if USE_TZ:
 # CELERY_BROKER_URL = 'pyamqp://rabbitmq:5672'
 CELERY_BROKER_URL = env("CELERY_BROKER_URL", default='amqp://guest:guest@rabbitmq:5672/')
 # http://docs.celeryproject.org/en/latest/userguide/configuration.html#std:setting-result_backend
-CELERY_RESULT_BACKEND = 'rpc://rabbitmq:5672'
+CELERY_RESULT_BACKEND = "django-db"
 # http://docs.celeryproject.org/en/latest/userguide/configuration.html#std:setting-accept_content
 CELERY_ACCEPT_CONTENT = ["json"]
 # http://docs.celeryproject.org/en/latest/userguide/configuration.html#std:setting-task_serializer
