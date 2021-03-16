@@ -261,8 +261,11 @@
             var count = $(value + ' li' + childLookup).length;
             $(value + '-badge').text(count);
             if (count === 0) {
-                $(value + '-header > * > button').addClass('disabled')
-                $(value + '-badge').addClass('bg-secondary')
+                $(value + '-header > * > button').addClass('disabled');
+                $(value + '-badge').addClass('bg-secondary');
+            } else {
+                $(value + '-header > * > button').removeClass('disabled');
+                $(value + '-badge').removeClass('bg-secondary');
             }
 
         });
