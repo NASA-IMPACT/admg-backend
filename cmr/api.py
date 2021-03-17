@@ -18,8 +18,6 @@ class Api:
         getting the token from one of the various servers
         """
 
-
-        self.credentials = CREDENTIALS
         self.base_url = f"{env('INGEST_API_SERVER')}/api/"
         self._make_connection()
 
