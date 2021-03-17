@@ -18,8 +18,12 @@ class CampaignChangeListTable(tables.Table):
     )
 
     class Meta:
-        attrs = {"class": "table table-striped", "thead": {"class": "thead-dark"}}
         model = Change
+        attrs = {
+            "class": "table table-striped",
+            "thead": {"class": "thead-dark"},
+            "th": {"style": "min-width: 10em"},
+        }
         fields = ["short_name", "long_name", "funding_agency", "status", "updated_at"]
 
 
@@ -37,8 +41,12 @@ class PlatformChangeListTable(tables.Table):
     )
 
     class Meta:
-        attrs = {"class": "table table-striped", "thead": {"class": "thead-dark"}}
         model = Change
+        attrs = {
+            "class": "table table-striped",
+            "thead": {"class": "thead-dark"},
+            "th": {"style": "min-width: 10em"},
+        }
         fields = ["short_name", "long_name", "platform_type", "status", "updated_at"]
 
 
@@ -53,8 +61,12 @@ class InstrumentChangeListTable(tables.Table):
     updated_at = tables.Column(verbose_name="Last Edit Date")
 
     class Meta:
-        attrs = {"class": "table table-striped", "thead": {"class": "thead-dark"}}
         model = Change
+        attrs = {
+            "class": "table table-striped",
+            "thead": {"class": "thead-dark"},
+            "th": {"style": "min-width: 10em"},
+        }
         fields = ["short_name", "long_name", "status", "updated_at"]
 
 
@@ -73,6 +85,6 @@ class ChangeSummaryTable(tables.Table):
     status = tables.Column(verbose_name="Status", accessor="status")
 
     class Meta:
-        attrs = {"class": "table table-striped", "thead": {"class": "thead-dark"}}
         model = Change
+        attrs = {"class": "table table-striped", "thead": {"class": "thead-dark"}}
         fields = ["name", "content_type__model", "updated_at", "short_name", "status"]
