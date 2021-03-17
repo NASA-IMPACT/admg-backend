@@ -1,0 +1,10 @@
+{% extends 'django_tables2/bootstrap4.html' %}
+{# https://github.com/jieter/django-tables2/blob/master/django_tables2/templates/django_tables2/bootstrap4.html #}
+{% load django_tables2 %}
+{% load i18n %}
+
+{% block table-wrapper %}
+<div class="w-100">
+   {{ block.super }}
+</div>
+{% endblock table-wrapper %}
