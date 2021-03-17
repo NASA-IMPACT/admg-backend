@@ -1,7 +1,16 @@
 from datetime import datetime
 import pickle
 
-from api_app.models import Change
+from api_app.models import (
+    Change,
+    CREATED_CODE,
+    IN_PROGRESS_CODE,
+    AWAITING_REVIEW_CODE,
+    IN_REVIEW_CODE,
+    AWAITING_ADMIN_REVIEW_CODE,
+    IN_ADMIN_REVIEW_CODE,
+    PUBLISHED_CODE
+)
 from data_models.models import DOI
 
 from cmr.api import Api
@@ -11,6 +20,15 @@ from cmr.utils import (
     purify_list
 )
 
+ALL_STATUSES = [
+    CREATED_CODE,
+    IN_PROGRESS_CODE,
+    AWAITING_REVIEW_CODE,
+    IN_REVIEW_CODE,
+    AWAITING_ADMIN_REVIEW_CODE,
+    IN_ADMIN_REVIEW_CODE,
+    PUBLISHED_CODE
+]
 
 class DoiMatcher():
     def __init__(self):
@@ -127,9 +145,9 @@ class DoiMatcher():
         change_requests = self._get_change_requests()
 
         # get all create items of any approval status from the given table
-        created = [c for c in change_requests if self.filter_change_object(c, 'create', [0,1,2,3,4,5,6], table_name, query_parameter, query_value)]
+        created = [c for c in change_requests if self.filter_change_object(c, 'create', ALL_STATUSES, table_name, query_parameter, query_value)]
         # get all approved deleted objects
-        deleted = [c for c in change_requests if self.filter_change_object(c, 'delete', [6], table_name, query_parameter, query_value)]
+        deleted = [c for c in change_requests if self.filter_change_object(c, 'delete', [PUBLISHED_CODE], table_name, query_parameter, query_value)]
 
         # filter out the approved deletes from the approved and in progress create list
         deleted_uuids = [d['model_instance_uuid'] for d in deleted]
