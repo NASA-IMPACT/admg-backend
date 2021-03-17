@@ -25,7 +25,7 @@ class ImageListCreateAPIView(GetPermissionsMixin, ListCreateAPIView):
     def post(self, request, *args, **kwargs):
         return self.create(request, *args, **kwargs)
 
-class ImageRetrieveDestroyAPIView(RetrieveDestroyAPIView):
+class ImageRetrieveDestroyAPIView(GetPermissionsMixin, RetrieveDestroyAPIView):
     """
         Retrieve a single image and delete images
     """
