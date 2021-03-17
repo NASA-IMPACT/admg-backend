@@ -6,9 +6,9 @@ from data_models.models import Image
 
 from ..models import DELETE
 from .view_utils import handle_exception, requires_admin_approval
+from .generic_views import GetPermissionsMixin
 
-
-class ImageListCreateAPIView(ListCreateAPIView):
+class ImageListCreateAPIView(GetPermissionsMixin, ListCreateAPIView):
     """
         List images and create an image object
     """
