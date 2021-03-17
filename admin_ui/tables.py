@@ -19,7 +19,6 @@ class CampaignChangeListTable(tables.Table):
 
     class Meta:
         model = Change
-        template_name = "full-width-table.html"
         attrs = {
             "class": "table table-striped",
             "thead": {"class": "thead-dark"},
@@ -43,7 +42,6 @@ class PlatformChangeListTable(tables.Table):
 
     class Meta:
         model = Change
-        template_name = "full-width-table.html"
         attrs = {
             "class": "table table-striped",
             "thead": {"class": "thead-dark"},
@@ -64,7 +62,6 @@ class InstrumentChangeListTable(tables.Table):
 
     class Meta:
         model = Change
-        template_name = "full-width-table.html"
         attrs = {
             "class": "table table-striped",
             "thead": {"class": "thead-dark"},
