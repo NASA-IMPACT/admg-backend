@@ -7,8 +7,11 @@ from config.celery_app import debug_task
 
 class Command(BaseCommand):
     """
-        Creates a new super user if one doesn't exist
+        Runs the defaut celery debug task to test celery functionality.
+        Call from the main folder with "python manage.py checkcelery"
+        Expected output is "SUCCESS" printed to the terminal.
     """
+
     def handle(self, *args, **options):
         response = debug_task.delay()
         sleep(0.1)
