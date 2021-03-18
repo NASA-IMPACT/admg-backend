@@ -4,10 +4,13 @@ from django.contrib import messages
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.gis.geos import Polygon
 from django.db import models
+from django.db.models.fields.related import ForeignKey
 from django.db.models.query import QuerySet
 from django.forms import modelform_factory
 from django.views.generic.edit import ModelFormMixin
 from rest_framework.renderers import JSONRenderer
+
+from .fields import ChangeChoiceField
 
 
 class ChangeModelFormMixin(ModelFormMixin):
@@ -21,8 +24,16 @@ class ChangeModelFormMixin(ModelFormMixin):
     @property
     def destination_model_form(self):
         """ Helper to return a form for the destination of the Draft object """
+        model_cls = self.get_model_form_content_type().model_class()
+
+        # Use ChangeChoiceField for any ForeignKey field in the model class
+        change_choice_fields = {
+            field.name: ChangeChoiceField
+            for field in model_cls._meta.fields
+            if isinstance(field, ForeignKey)
+        }
         return modelform_factory(
-            self.get_model_form_content_type().model_class(), exclude=[]
+            model_cls, exclude=[], field_classes={**change_choice_fields}
         )
 
     def get_model_form_content_type(self) -> ContentType:
