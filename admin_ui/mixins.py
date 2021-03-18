@@ -77,7 +77,7 @@ class ChangeModelFormMixin(ModelFormMixin):
 
     def form_valid(self, form, model_form):
         # Save object
-        messages.success(self.request, "Successfully updated form.")
+        messages.success(self.request, "Successfully saved object.")
         self.object = form.save()
         return self.render_to_response(
             self.get_context_data(form=form, model_form=model_form)
