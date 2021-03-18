@@ -439,6 +439,8 @@ class DoiMatcher():
 
         if failed or not development:
             metadata_list = query_and_process_cmr(table_name, aliases)
+        
+        if development:
             pickle.dump(metadata_list, open(f'metadata_{uuid}', 'wb'))
 
         supplemented_metadata_list = self.supplement_metadata(metadata_list, development)
