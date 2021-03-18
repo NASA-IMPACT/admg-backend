@@ -50,7 +50,7 @@ class PlatformChangeListTable(tables.Table):
         fields = ["short_name", "long_name", "platform_type", "status", "updated_at"]
 
 
-class InstrumentChangeListTable(tables.Table):
+class BasicChangeListTable(tables.Table):
     short_name = tables.Column(
         linkify=("change-form", [A("uuid")]),
         verbose_name="Short Name",
