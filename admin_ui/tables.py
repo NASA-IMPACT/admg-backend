@@ -12,7 +12,7 @@ class CampaignChangeListTable(tables.Table):
     )
     long_name = tables.Column(verbose_name="Long name", accessor="update__long_name")
     status = tables.Column(verbose_name="Status", accessor="status")
-    updated_at = tables.Column(verbose_name="Last Edit Date")
+    updated_at = tables.DateTimeColumn(verbose_name="Last Edit Date")
     funding_agency = tables.Column(
         verbose_name="Funding Agency", accessor="update__funding_agency"
     )
@@ -35,7 +35,7 @@ class PlatformChangeListTable(tables.Table):
     )
     long_name = tables.Column(verbose_name="Long name", accessor="update__long_name")
     status = tables.Column(verbose_name="Status", accessor="status")
-    updated_at = tables.Column(verbose_name="Last Edit Date")
+    updated_at = tables.DateTimeColumn(verbose_name="Last Edit Date")
     platform_type = tables.Column(
         verbose_name="Platform Type", accessor="platform_type_name"
     )
@@ -58,7 +58,7 @@ class BasicChangeListTable(tables.Table):
     )
     long_name = tables.Column(verbose_name="Long name", accessor="update__long_name")
     status = tables.Column(verbose_name="Status", accessor="status")
-    updated_at = tables.Column(verbose_name="Last Edit Date")
+    updated_at = tables.DateTimeColumn(verbose_name="Last Edit Date")
 
     class Meta:
         model = Change
@@ -81,7 +81,7 @@ class ChangeSummaryTable(tables.Table):
     content_type__model = tables.Column(
         verbose_name="Model Type", accessor="content_type__model"
     )
-    updated_at = tables.Column(verbose_name="Last Edit Date")
+    updated_at = tables.DateTimeColumn(verbose_name="Last Edit Date")
     status = tables.Column(verbose_name="Status", accessor="status")
 
     class Meta:
