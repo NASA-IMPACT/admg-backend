@@ -23,6 +23,8 @@ from django.views.generic.edit import (
     ProcessFormView,
 )
 import django_tables2
+from django_tables2.views import SingleTableMixin
+from django_filters.views import FilterView
 import requests
 
 from api_app.models import (
@@ -35,6 +37,7 @@ from api_app.models import (
     PUBLISHED_CODE,
     AVAILABLE_STATUSES,
 )
+from admin_ui.filters import ChangeStatusFilter
 from data_models.models import Campaign, Instrument, Platform, PlatformType
 from . import tables, forms, mixins
 
@@ -138,6 +141,8 @@ class ChangeListView(django_tables2.SingleTableView):
     model = Change
     table_class = tables.CampaignChangeListTable
     template_name = "api_app/change_list.html"
+
+    filterset_class = ChangeStatusFilter
 
     def get_queryset(self):
         return (
@@ -271,7 +276,7 @@ class ChangeCreateView(mixins.ChangeModelFormMixin, CreateView):
         }
 
     def get_success_url(self):
-        return reverse('change-form', args=[self.object.pk])
+        return reverse("change-form", args=[self.object.pk])
 
     def get_model_form_content_type(self) -> ContentType:
         if not hasattr(self, "model_form_content_type"):
