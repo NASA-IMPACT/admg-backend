@@ -270,8 +270,8 @@ class ChangeCreateView(mixins.ChangeModelFormMixin, CreateView):
             .__name__,
         }
 
-    # def generate_success_response(self):
-    #     return HttpResponseRedirect(reverse('change-detail', args=('1418ec45-2a77-4d47-99ec-6f95c553aaba')))
+    def get_success_url(self):
+        return reverse('change-form', args=[self.object.pk])
 
     def get_model_form_content_type(self) -> ContentType:
         if not hasattr(self, "model_form_content_type"):
