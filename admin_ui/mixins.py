@@ -79,9 +79,7 @@ class ChangeModelFormMixin(ModelFormMixin):
         # Save object
         messages.success(self.request, "Successfully saved object.")
         self.object = form.save()
-        return self.render_to_response(
-            self.get_context_data(form=form, model_form=model_form)
-        )
+        return super().form_valid(form)
 
     def form_invalid(self, form, model_form):
         # TODO: Can't save SignificantEvent instances
