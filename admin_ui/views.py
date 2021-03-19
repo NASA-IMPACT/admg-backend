@@ -35,7 +35,7 @@ from api_app.models import (
     PUBLISHED_CODE,
     AVAILABLE_STATUSES,
 )
-from data_models.models import Campaign, Instrument, Platform, PlatformType
+from data_models.models import Campaign, Instrument, Platform, PlatformType, PartnerOrg
 from . import tables, forms, mixins
 
 
@@ -371,7 +371,7 @@ class PlatformListView(django_tables2.SingleTableView):
 @method_decorator(login_required, name="dispatch")
 class InstrumentListView(django_tables2.SingleTableView):
     model = Change
-    table_class = tables.InstrumentChangeListTable
+    table_class = tables.BasicChangeListTable
     template_name = "api_app/change_list.html"
 
     def get_queryset(self):
@@ -384,6 +384,25 @@ class InstrumentListView(django_tables2.SingleTableView):
             **super().get_context_data(**kwargs),
             "display_name": "Instrument",
             "model": "instrument",
+        }
+
+
+@method_decorator(login_required, name="dispatch")
+class PartnerOrgListView(django_tables2.SingleTableView):
+    model = Change
+    table_class = tables.BasicChangeListTable
+    template_name = "api_app/change_list.html"
+
+    def get_queryset(self):
+        return Change.objects.filter(
+            content_type__model=PartnerOrg._meta.model_name, action=CREATE
+        ).annotate(updated_at=Max("approvallog__date"))
+
+    def get_context_data(self, **kwargs):
+        return {
+            **super().get_context_data(**kwargs),
+            "display_name": "Partner Organization",
+            "model": PartnerOrg._meta.model_name,
         }
 
 
