@@ -49,7 +49,7 @@ class Image(BaseModel):
     source_url = models.TextField(blank=True, default='')
 
     def __str__(self):
-        return self.description
+        return self.description or self.image.name
 
 
 class LimitedInfo(BaseModel):
