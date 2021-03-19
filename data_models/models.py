@@ -68,6 +68,19 @@ class PlatformType(LimitedInfo):
     gcmd_uuid = models.UUIDField(null=True, blank=True)
     example = models.CharField(max_length=1024, blank=True, default='')
 
+    @property
+    def patriarch(self):
+        """Returns the highest level parent in the platform_type hierarchy
+
+        Returns:
+            [str]: short name of the highest level parent
+        """
+
+        if self.parent:
+            return self.parent.patriarch
+        else:
+            return self.short_name
+
 
 class MeasurementType(LimitedInfo):
     parent = models.ForeignKey('MeasurementType', on_delete=models.CASCADE, related_name='sub_types', null=True, blank=True)
@@ -314,6 +327,37 @@ class Platform(DataModel):
     stationary = models.BooleanField()
 
     gcmd_platforms = models.ManyToManyField(GcmdPlatform, related_name='platforms', default='', blank=True)
+  
+    @property
+    def search_category(self):
+        """Returns a custom defined search category based on the platform_type's
+        highest level parent (patriarch) and the platform's stationary field.
+
+        Returns:
+            search_category [str]: One of 6 search categories 
+        """
+
+        patriarch = self.platform_type.patriarch
+
+        if patriarch == 'Air Platforms':
+            category = 'Aircraft'
+
+        elif patriarch == 'Water Platforms':
+            category = 'Water-based platforms'
+
+        elif patriarch == 'Land Platforms':
+            if self.stationary:
+                category = 'Stationary land sites'
+            else:
+                category = 'Mobile land-based platforms'
+
+        elif patriarch in ['Satellites', 'Manned Spacecraft']:
+            category = 'Spaceborne'
+
+        else:
+            category = 'Special Cases'
+        
+        return category
 
     @property
     def campaigns(self):
