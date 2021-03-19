@@ -70,7 +70,8 @@ class ChangeModelFormMixin(ModelFormMixin):
         )
         model_form.full_clean()
 
-        if not form.is_valid():
+        validate_model_form = "_validate" in request.POST
+        if not form.is_valid() or (validate_model_form and not model_form.is_valid()):
             return self.form_invalid(form=form, model_form=model_form)
 
         # Populate Change's form with values from destination model's form
@@ -82,16 +83,26 @@ class ChangeModelFormMixin(ModelFormMixin):
         return self.form_valid(form, model_form)
 
     def form_valid(self, form, model_form):
-        # Save object
-        messages.success(self.request, "Successfully saved object.")
-        self.object = form.save()
-        return super().form_valid(form)
+        # Important to run super first to set self.object
+        redirect = super().form_valid(form)
+        
+        if "_validate" in self.request.POST:
+            messages.success(
+                self.request, 'Successfully validated "%s".' % self.object
+            )
+            return self.render_to_response(
+                self.get_context_data(form=form, model_form=model_form)
+            )
+        
+        messages.success(self.request, 'Successfully saved "%s".' % self.object)
+        return redirect
 
     def form_invalid(self, form, model_form):
         # TODO: Can't save SignificantEvent instances
         # Overriden to support handling both invalid Change form and an invalid
         # destination model form
-        messages.error(self.request, "Unable to save.")
+        if not form.is_valid():
+            messages.error(self.request, "Unable to save.")
         return self.render_to_response(
             self.get_context_data(form=form, model_form=model_form)
         )

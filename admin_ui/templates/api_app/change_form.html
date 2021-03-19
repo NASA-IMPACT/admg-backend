@@ -34,10 +34,6 @@
     </div>
 
     <div class="col d-flex flex-row-reverse">
-      <div class="px-1">
-        <button class="btn btn-primary" form="model-form" formnovalidate>Save</button>
-        <button class="btn btn-secondary" form="model-form">Validate & Save</button>
-      </div>
 
       <div class="px-1">
         <button class="btn btn-secondary dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" {% if not transition_form.fields.transition.choices|length %} disabled="true" {% endif %}
@@ -53,6 +49,10 @@
         </div>
       </div>
 
+      <div class="px-1">
+        <button class="btn btn-primary" form="model-form" formnovalidate>Save</button>
+        <button class="btn btn-secondary" form="model-form" name="_validate">Validate</button>
+      </div>
     </div>
 
   </div>
@@ -61,6 +61,7 @@
 <div class="row mx-3 my-3 py-2 ">
   {# Main Content #}
   <main class="col-8 pl-0">
+    {{ form.errors }}
     <table class="table table-responsive">
       <form method="post" id="model-form">
         {% csrf_token %}
@@ -84,7 +85,6 @@
     <hr />
 
     <h3>Raw Data</h3>
-    {{ form.errors }}
     <code>{{ object.update | pprint }}</code>
 
   </aside>
