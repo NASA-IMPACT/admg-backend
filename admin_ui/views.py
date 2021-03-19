@@ -302,7 +302,8 @@ class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
     template_name = "api_app/change_form.html"
 
     def get_success_url(self):
-        return reverse('summary')
+        return reverse('change-form', args=[self.object.pk])
+        # return reverse('summary')
 
     def get_queryset(self):
         # Prefetch content type for performance
