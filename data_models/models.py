@@ -13,15 +13,15 @@ from django.db import models
 FRONTEND_URL = "https://airborne-inventory.surge.sh/"
 
 
-def fetch_related_distinct_data(queryset, related_data_string):
-    """Fetches related data from a given object using the related data string
+def select_related_distinct_data(queryset, related_data_string):
+    """Selects related data from a given object using the related data string
 
     Args:
         queryset (QuerySet): A queryset of related objects. E.g. my_campaign.deployments
         related_data_string (str): Django-formatted string of related data. E.g. instrument__uuid
     """
 
-    return queryset.fetch_related().values_list(related_data_string, flat=True).distinct()
+    return queryset.select_related().values_list(related_data_string, flat=True).distinct()
 
 
 class BaseModel(models.Model):
@@ -49,7 +49,7 @@ class Image(BaseModel):
     source_url = models.TextField(blank=True, default='')
 
     def __str__(self):
-        return self.image.name
+        return self.description or self.image.name
 
 
 class LimitedInfo(BaseModel):
@@ -284,11 +284,11 @@ class Campaign(DataModel):
 
     @property
     def significant_events(self):
-        return fetch_related_distinct_data(self.deployments, 'significant_events__uuid')
+        return select_related_distinct_data(self.deployments, 'significant_events__uuid')
 
     @property
     def iops(self):
-        return fetch_related_distinct_data(self.deployments, 'iops__uuid')
+        return select_related_distinct_data(self.deployments, 'iops__uuid')
 
     @property
     def number_deployments(self):
@@ -296,11 +296,11 @@ class Campaign(DataModel):
 
     @property
     def instruments(self):
-        return fetch_related_distinct_data(self.deployments, 'collection_periods__instruments__uuid')
+        return select_related_distinct_data(self.deployments, 'collection_periods__instruments__uuid')
 
     @property
     def platforms(self):
-        return fetch_related_distinct_data(self.deployments, 'collection_periods__platform__uuid')
+        return select_related_distinct_data(self.deployments, 'collection_periods__platform__uuid')
 
     @staticmethod
     def search_fields():
@@ -361,11 +361,11 @@ class Platform(DataModel):
 
     @property
     def campaigns(self):
-        return fetch_related_distinct_data(self.collection_periods, 'deployment__campaign__uuid')
+        return select_related_distinct_data(self.collection_periods, 'deployment__campaign__uuid')
 
     @property
     def instruments(self):
-        return fetch_related_distinct_data(self.collection_periods, 'instruments')
+        return select_related_distinct_data(self.collection_periods, 'instruments')
 
     @staticmethod
     def search_fields():
@@ -408,11 +408,11 @@ class Instrument(DataModel):
 
     @property
     def campaigns(self):
-        return fetch_related_distinct_data(self.collection_periods, 'deployment__campaign__uuid')
+        return select_related_distinct_data(self.collection_periods, 'deployment__campaign__uuid')
 
     @property
     def platforms(self):
-        return fetch_related_distinct_data(self.collection_periods, 'platform__uuid')
+        return select_related_distinct_data(self.collection_periods, 'platform__uuid')
 
     def get_absolute_url(self):
         return urllib.parse.urljoin(FRONTEND_URL, f"/instrument/{self.uuid}/")
@@ -443,7 +443,7 @@ class Deployment(DataModel):
 
     @property
     def platforms(self):
-        return fetch_related_distinct_data(self.collection_periods, 'platform__uuid')
+        return select_related_distinct_data(self.collection_periods, 'platform__uuid')
 
 
 class IopSe(BaseModel):
