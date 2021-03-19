@@ -4,12 +4,13 @@ services:
   web:
     build:
       context: ./
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.local
     command: python manage.py runserver 0.0.0.0:8001
     volumes:
       - .:/code
     ports:
-      - 8001:8001
+      - 8001:8001 # mapped to 8001 to prevent clashes with local django instances
+      - 8890:8888 # allows use of django shell notebooks during local development
     env_file:
       - ./.env
     depends_on:
@@ -37,7 +38,8 @@ services:
     container_name: celery_worker
     hostname: celery_worker
     build:
-      context: .
+      context: ./
+      dockerfile: Dockerfile.local
     volumes:
       - .:/code
     restart: on-failure
