@@ -13,11 +13,12 @@ RUN apt-get update --fix-missing && apt-get install -y gdal-bin libgdal-dev post
 # lint
 RUN pip install --upgrade pip
 RUN pip install flake8
-COPY . .
 
 # install dependencies
 COPY requirements/ .
 RUN pip install -r production.txt
+
+COPY . .
 
 # run entrypoint.sh
 ENTRYPOINT ["/home/app/web/entrypoint.sh"]

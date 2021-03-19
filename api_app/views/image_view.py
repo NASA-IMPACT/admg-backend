@@ -6,9 +6,10 @@ from data_models.models import Image
 
 from ..models import DELETE
 from .view_utils import handle_exception, requires_admin_approval
+from .generic_views import GetPermissionsMixin
 
 
-class ImageListCreateAPIView(ListCreateAPIView):
+class ImageListCreateAPIView(GetPermissionsMixin, ListCreateAPIView):
     """
         List images and create an image object
     """
@@ -25,7 +26,7 @@ class ImageListCreateAPIView(ListCreateAPIView):
     def post(self, request, *args, **kwargs):
         return self.create(request, *args, **kwargs)
 
-class ImageRetrieveDestroyAPIView(RetrieveDestroyAPIView):
+class ImageRetrieveDestroyAPIView(GetPermissionsMixin, RetrieveDestroyAPIView):
     """
         Retrieve a single image and delete images
     """
