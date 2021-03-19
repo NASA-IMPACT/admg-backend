@@ -11,6 +11,19 @@ from django.views.generic.edit import ModelFormMixin
 from rest_framework.renderers import JSONRenderer
 
 from .fields import ChangeChoiceField
+from api_app.models import Change
+
+
+def formfield_callback(f, **kwargs):
+    # Use ChangeChoiceField for any ForeignKey field in the model class
+    if isinstance(f, ForeignKey):
+        kwargs = {
+            **kwargs,
+            "form_class": ChangeChoiceField,
+            "queryset": ChangeChoiceField.get_queryset_for_model(f.remote_field.model),
+        }
+        # f.remote_field.model = Change
+    return f.formfield(**kwargs)
 
 
 class ChangeModelFormMixin(ModelFormMixin):
@@ -18,22 +31,15 @@ class ChangeModelFormMixin(ModelFormMixin):
     This mixin attempts to simplify working with a second form (the model_form)
     when editing Change objects.
     """
-
     destination_model_prefix = "model_form"
 
     @property
     def destination_model_form(self):
         """ Helper to return a form for the destination of the Draft object """
-        model_cls = self.get_model_form_content_type().model_class()
-
-        # Use ChangeChoiceField for any ForeignKey field in the model class
-        change_choice_fields = {
-            field.name: ChangeChoiceField
-            for field in model_cls._meta.fields
-            if isinstance(field, ForeignKey)
-        }
         return modelform_factory(
-            model_cls, exclude=[], field_classes={**change_choice_fields}
+            self.get_model_form_content_type().model_class(),
+            exclude=[],
+            formfield_callback=formfield_callback,
         )
 
     def get_model_form_content_type(self) -> ContentType:
