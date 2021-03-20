@@ -63,10 +63,11 @@ def get_json(cmr_url):
         data (dict): JSON response from the CMR query url
     """
 
-    response = requests.get(cmr_url).text
-    data = json.loads(response)
+    response = requests.get(cmr_url)
+    response.raise_for_status()
+    response_dict = response.json()
 
-    return data
+    return response_dict
 
 
 def universal_query(query_parameter, query_value):
