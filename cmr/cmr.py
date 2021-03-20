@@ -180,9 +180,17 @@ def bulk_cmr_query(query_parameter, query_value_list):
         metadata_list (list): list of dataproduct metadata returned from CMR
     """
 
-    concept_id_list = aggregate_concept_ids_queries(query_parameter, query_value_list)
+    concept_id_list = list(aggregate_concept_ids_queries(query_parameter, query_value_list))
 
-    concept_ids_responses = universal_query('echo_collection_id[]', concept_id_list)
+    # cmr can't handle big requests, like 303 concept_ids, all at once
+    # this breaks them into sub requests of 50 at a time
+    chunk_size = 50
+    concept_id_list_chunks = [concept_id_list[i:i + chunk_size] for i in range(0, len(concept_id_list), chunk_size)]
+
+    concept_ids_responses = []
+    for concept_id_list in concept_id_list_chunks:
+        concept_ids_responses.extend(universal_query('echo_collection_id[]', concept_id_list))
+
     metadata_list = [concept_id_data for page in [response['items'] for response in concept_ids_responses] for concept_id_data in page]
 
     return metadata_list
