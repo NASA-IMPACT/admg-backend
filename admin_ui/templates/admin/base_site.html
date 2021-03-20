@@ -4,7 +4,7 @@
   {% if request.user.can_deploy %}
     <form action="/admin/deploy-admin/">
       <input type="submit" value="Deploy site" />
-  </form>
+    </form>
   {% endif %}
 
   {{ block.super }}

@@ -25,3 +25,8 @@ td a {
 .cursor-pointer {
   cursor: pointer;
 }
+
+.list-group-item-primary {
+  padding-left: 15px; /* 21 - border-width */
+  border-left: 6px solid;
+}
