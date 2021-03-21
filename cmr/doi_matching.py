@@ -57,8 +57,8 @@ class DoiMatcher():
             data (dict): object from db or change table if not found
         """
 
+        model = apps.get_model('data_models', table_name.replace('_', ''))
         try:
-            model = apps.get_model('data_models', table_name)
             obj = model.objects.get(uuid=uuid)
             data = json.loads(serializers.serialize('json', [obj,]))[0]['fields']
         except model.DoesNotExist:
@@ -144,19 +144,20 @@ class DoiMatcher():
             uuid_list (list): List of strings of uuids for the valid objects from a table
         """
 
-        # this improves speed during development
-        change_requests = self._get_change_requests()
+        valid_objects = Change.objects.filter(
+            content_type__model=table_name,
+            action='Create'
+            ).exclude(
+                action='Delete',
+                status=PUBLISHED_CODE)
 
-        # get all create items of any approval status from the given table
-        created = [c for c in change_requests if self.filter_change_object(c, 'create', ALL_STATUSES, table_name, query_parameter, query_value)]
-        # get all approved deleted objects
-        deleted = [c for c in change_requests if self.filter_change_object(c, 'delete', [PUBLISHED_CODE], table_name, query_parameter, query_value)]
+        if query_parameter:
+            query_parameter = 'update__' + query_parameter
+            valid_objects = valid_objects.filter(**{ query_parameter: query_value })
 
-        # filter out the approved deletes from the approved and in progress create list
-        deleted_uuids = [d['model_instance_uuid'] for d in deleted]
-        valid_objects = [c for c in created if c['uuid'] not in deleted_uuids]
+        valid_object_uuids = [str(uuid) for uuid in valid_objects.values_list('uuid', flat=True)]
 
-        return [o['uuid'] for o in valid_objects]
+        return valid_object_uuids
 
 
     def universal_alias(self, table_name, uuid):
