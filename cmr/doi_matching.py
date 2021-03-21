@@ -39,7 +39,6 @@ class DoiMatcher():
     def __init__(self):
         self.uuid_to_aliases = {}
         self.table_to_valid_uuids = {}
-        self.change_requests = []
         self.api = Api()
 
 
@@ -110,21 +109,6 @@ class DoiMatcher():
             is_value = co['update'].get(query_parameter, '').lower() == query_value.lower()
 
         return is_action and is_status and is_table_name and is_value
-
-
-    def _get_change_requests(self):
-        """Downloads all change requests from the database. This query is only executed once
-        during the lifetime of a DoiMatcher object, under the assumption that there will be
-        no meaningful changes to the db during runtime, and because this greatly speeds up
-        the overall process.
-
-        Returns:
-            change_requests (list): List of all change_requests from db
-        """
-
-        if not self.change_requests:
-            self.change_requests = self.api.get('change_request')['data']
-        return self.change_requests
 
 
     def valid_object_list_generator(self, table_name, query_parameter=None, query_value=None):
