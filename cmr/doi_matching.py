@@ -71,47 +71,6 @@ class DoiMatcher():
         return data
 
 
-    @staticmethod
-    def filter_change_object(co, action=None, statuses=None, table_name=None, query_parameter=None, query_value=None):
-        """Inputs a single change object and returns a boolean indicating whether it passed
-        the filter parameters. This is meant to be run on each change object in order to gather
-        all the change objects that match a certain criteria, such as all create objects from
-        the season table with a short_name of fall.
-
-        Args:
-            co (dict): Change object dictionary
-            action (str, optional): string from 'create', 'delete', 'update'. This indicates
-            the type of change object. Defaults to None.
-            statuses (list[int], optional): List of integers indicating the status of the
-                change object in the approval process. Defaults to None.
-            table_name (str, optional): Table name such as season. Defaults to None.
-            query_parameter (str, optional): Name of the parameter to search. This should be
-                a field in the object such as short_name or uuid. Defaults to None.
-            query_value (str, optional): This is the expected value for the query_parameter,
-                such as fall for short_name. Defaults to None.
-
-        Returns:
-            bool: Boolean indicating whether the change object matched the filter values.
-        """
-
-        # tests will default to True if the associated arg is not passed
-        is_action, is_status, is_table_name, is_value = True, True, True, True
-
-        if action:
-            is_action = co['action'].lower()==action.lower()
-
-        if statuses:
-            is_status = co['status'] in statuses
-
-        if table_name:
-            is_table_name = clean_table_name(co['model_name']) == clean_table_name(table_name)
-
-        if query_value:
-            is_value = co['update'].get(query_parameter, '').lower() == query_value.lower()
-
-        return is_action and is_status and is_table_name and is_value
-
-
     def valid_object_list_generator(self, table_name, query_parameter=None, query_value=None):
         """Takes a table_name and outputs a list of the valid uuids for that table. Because objects
         might be in the draft stage or fully in the database, or have a create draft and an accepted
