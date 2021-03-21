@@ -1,6 +1,8 @@
 from datetime import datetime
 import pickle
 
+from django.apps import apps
+
 from api_app.models import (
     Change,
     CREATED_CODE,
@@ -11,8 +13,11 @@ from api_app.models import (
     IN_ADMIN_REVIEW_CODE,
     PUBLISHED_CODE
 )
-from data_models.models import DOI
 
+from django.core import serializers
+import json
+
+from data_models.models import DOI
 from cmr.api import Api
 from cmr.cmr import query_and_process_cmr
 from cmr.utils import (
@@ -49,22 +54,20 @@ class DoiMatcher():
             uuid (str): uuid of the object
 
         Returns:
-            data (dict): object from change table or None if not found
+            data (dict): object from db or change table if not found
         """
 
-        db_response = self.api.get(f'{table_name}/{uuid}')
-        if db_response['success']:
-            data = db_response['data']
-        else:
-            draft_response = self.api.get(f'change_request/{uuid}')
-            if draft_response['success']:
-                data = draft_response['data']['update']
-                data['uuid'] = draft_response['data']['uuid']
-                data['change_object'] = True
-                data['change_object_action'] = draft_response['data']['action']
-                data['change_object_status'] = draft_response['data']['status']
-            else:
-                data = None
+        try:
+            model = apps.get_model('data_models', table_name)
+            obj = model.objects.get(uuid=uuid)
+            data = json.loads(serializers.serialize('json', [obj,]))[0]['fields']
+        except model.DoesNotExist:
+            model = apps.get_model('api_app', 'change')
+            obj = model.objects.get(uuid=uuid)
+            data = json.loads(serializers.serialize('json', [obj,]))[0]['fields']['update']
+            data['uuid'] = uuid
+            data['change_object'] = True
+
         return data
 
 
