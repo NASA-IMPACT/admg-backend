@@ -14,6 +14,7 @@ from api_app.models import (
     PUBLISHED_CODE
 )
 
+from django.contrib.contenttypes.models import ContentType
 from django.core import serializers
 import json
 
@@ -359,7 +360,15 @@ class DoiMatcher():
 
         # if none exist add normally as a draft
         if not existing_doi_uuids:
-            self.api.create('doi', doi, draft=True)
+            doi_obj = Change(
+                content_type=ContentType.objects.get(model='doi'),
+                model_instance_uuid=None,
+                update=json.dumps(doi),
+                status=0,
+                action='Create'
+            )
+            doi_obj.save()
+
             return 'Draft created for DOI'
 
         uuid = existing_doi_uuids[0]
@@ -370,7 +379,7 @@ class DoiMatcher():
                 doi[field].extend(existing_doi.get(field))
                 doi[field] = list(set(doi[field]))
 
-            draft = Change.objects.all().filter(uuid=uuid).first()
+            draft = Change.objects.get(uuid=uuid)
             draft.update = doi
             draft.save()
 
@@ -391,7 +400,16 @@ class DoiMatcher():
         for field in ['campaigns', 'instruments', 'platforms', 'collection_periods']:
             doi[field] = list(set(doi[field]))
 
-        self.api.update(f'doi/{uuid}', data=doi, draft=True)
+        doi_obj = Change(
+            content_type=ContentType.objects.get(model='doi'),
+            model_instance_uuid=str(uuid),
+            update=json.dumps(doi),
+            status=0,
+            action='Update'
+        )
+
+        doi_obj.save()
+
         return f'DOI already exists in database. Update draft created. {uuid}'
 
 
