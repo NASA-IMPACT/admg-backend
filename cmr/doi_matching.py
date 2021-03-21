@@ -19,7 +19,6 @@ from django.core import serializers
 import json
 
 from data_models.models import DOI
-from cmr.api import Api
 from cmr.cmr import query_and_process_cmr
 from cmr.utils import (
     clean_table_name,
@@ -40,7 +39,6 @@ class DoiMatcher():
     def __init__(self):
         self.uuid_to_aliases = {}
         self.table_to_valid_uuids = {}
-        self.api = Api()
 
 
     def universal_get(self, table_name, uuid):
@@ -49,7 +47,6 @@ class DoiMatcher():
         results from the main db.
 
         Args:
-            api (class): api class
             table_name (str): table name such as 'gcmd_platform'
             uuid (str): uuid of the object
 
