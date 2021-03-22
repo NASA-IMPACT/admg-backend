@@ -74,13 +74,18 @@ def deploy_admin(request):
 @method_decorator(login_required, name="dispatch")
 class ChangeSummaryView(django_tables2.SingleTableView):
     model = Change
+    model_names = [
+        M._meta.model_name for M in (Campaign, Platform, Instrument, PartnerOrg)
+    ]
     table_class = tables.ChangeSummaryTable
     paginate_by = 10
     template_name = "api_app/summary.html"
 
     def get_queryset(self):
         return (
-            Change.objects.filter(content_type__model="campaign", action=CREATE)
+            Change.objects.filter(
+                content_type__model__in=self.model_names, action=CREATE
+            )
             # Prefetch related ContentType (used when displaying output model type)
             .select_related("content_type")
             # Add last related ApprovalLog's date
@@ -271,7 +276,7 @@ class ChangeCreateView(mixins.ChangeModelFormMixin, CreateView):
         }
 
     def get_success_url(self):
-        return reverse('change-form', args=[self.object.pk])
+        return reverse("change-form", args=[self.object.pk])
 
     def get_model_form_content_type(self) -> ContentType:
         if not hasattr(self, "model_form_content_type"):
