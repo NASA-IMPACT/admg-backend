@@ -77,9 +77,8 @@ class ChangeSummaryTable(tables.Table):
         verbose_name="Name",
         accessor="update__short_name",
     )
-    short_name = tables.Column(verbose_name="Campaign", accessor="update__short_name")
     content_type__model = tables.Column(
-        verbose_name="Model Type", accessor="content_type__model"
+        verbose_name="Model Type", accessor="model_name", order_by="content_type__model"
     )
     updated_at = tables.DateTimeColumn(verbose_name="Last Edit Date")
     status = tables.Column(verbose_name="Status", accessor="status")
@@ -87,4 +86,4 @@ class ChangeSummaryTable(tables.Table):
     class Meta:
         model = Change
         attrs = {"class": "table table-striped", "thead": {"class": "thead-dark"}}
-        fields = ["name", "content_type__model", "updated_at", "short_name", "status"]
+        fields = ["name", "content_type__model", "updated_at", "status"]

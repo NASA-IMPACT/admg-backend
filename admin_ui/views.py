@@ -74,13 +74,18 @@ def deploy_admin(request):
 @method_decorator(login_required, name="dispatch")
 class ChangeSummaryView(django_tables2.SingleTableView):
     model = Change
+    model_names = [
+        M._meta.model_name for M in (Campaign, Platform, Instrument, PartnerOrg)
+    ]
     table_class = tables.ChangeSummaryTable
     paginate_by = 10
     template_name = "api_app/summary.html"
 
     def get_queryset(self):
         return (
-            Change.objects.filter(content_type__model="campaign", action=CREATE)
+            Change.objects.filter(
+                content_type__model__in=self.model_names, action=CREATE
+            )
             # Prefetch related ContentType (used when displaying output model type)
             .select_related("content_type")
             # Add last related ApprovalLog's date
@@ -89,10 +94,8 @@ class ChangeSummaryView(django_tables2.SingleTableView):
             )
         )
 
-    @staticmethod
-    def get_draft_status_count():
+    def get_draft_status_count(self):
         status_ids = [IN_REVIEW_CODE, IN_ADMIN_REVIEW_CODE, PUBLISHED_CODE]
-        model_names = [M._meta.model_name for M in (Campaign, Platform, Instrument)]
         status_translations = {
             status_id: status_name.replace(" ", "_")
             for status_id, status_name in AVAILABLE_STATUSES
@@ -103,14 +106,14 @@ class ChangeSummaryView(django_tables2.SingleTableView):
             model: {
                 status.replace(" ", "_"): 0 for status in status_translations.values()
             }
-            for model in model_names
+            for model in self.model_names
         }
 
         # Populate with actual counts
         model_status_counts = (
             Change.objects.filter(
                 action=CREATE,
-                content_type__model__in=model_names,
+                content_type__model__in=self.model_names,
                 status__in=status_ids,
             )
             .values_list("content_type__model", "status")
@@ -129,7 +132,7 @@ class ChangeSummaryView(django_tables2.SingleTableView):
             "draft_status_counts": self.get_draft_status_count(),
             "activity_list": ApprovalLog.objects.prefetch_related(
                 "change__content_type", "user"
-            ).order_by("-date")[: self.paginate_by],
+            ).order_by("-date")[:self.paginate_by / 2],
         }
 
 
@@ -271,7 +274,7 @@ class ChangeCreateView(mixins.ChangeModelFormMixin, CreateView):
         }
 
     def get_success_url(self):
-        return reverse('change-form', args=[self.object.pk])
+        return reverse("change-form", args=[self.object.pk])
 
     def get_model_form_content_type(self) -> ContentType:
         if not hasattr(self, "model_form_content_type"):
