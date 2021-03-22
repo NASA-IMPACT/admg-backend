@@ -78,7 +78,7 @@ class ChangeSummaryTable(tables.Table):
         accessor="update__short_name",
     )
     content_type__model = tables.Column(
-        verbose_name="Model Type", accessor="content_type__model"
+        verbose_name="Model Type", accessor="model_name", order_by="content_type__model"
     )
     updated_at = tables.DateTimeColumn(verbose_name="Last Edit Date")
     status = tables.Column(verbose_name="Status", accessor="status")
