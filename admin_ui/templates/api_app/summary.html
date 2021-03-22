@@ -8,7 +8,7 @@
   <div class="col-auto mr-auto">
     <div class="row">
       <div>
-        <h1>Welcome, {{ request.user.username | title }}.</h1>
+        <h1>Welcome, {% firstof request.user.get_full_name request.user.username %}.</h1>
       </div>
     </div>
   </div>
