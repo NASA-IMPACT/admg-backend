@@ -320,7 +320,7 @@ class DoiMatcher():
             doi_obj = Change(
                 content_type=ContentType.objects.get(model='doi'),
                 model_instance_uuid=None,
-                update=json.dumps(doi),
+                update=json.loads(json.dumps(doi)),
                 status=0,
                 action='Create'
             )
@@ -360,7 +360,7 @@ class DoiMatcher():
         doi_obj = Change(
             content_type=ContentType.objects.get(model='doi'),
             model_instance_uuid=str(uuid),
-            update=json.dumps(doi),
+            update=json.loads(json.dumps(doi)),
             status=0,
             action='Update'
         )
