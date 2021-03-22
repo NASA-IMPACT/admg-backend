@@ -47,8 +47,10 @@ def related_changes(change):
     instrument_ids = set()
     for collect_period in rel_collection_periods:
         update = collect_period.update
-        platform_ids.add(update.get("platform"))
-        homebase_ids.add(update.get("home_base"))
+        if platform_id := update.get("platform"):
+            platform_ids.add(platform_id)
+        if homebase_id := update.get("home_base"):
+            homebase_ids.add(homebase_id)
         instrument_ids.update(update.get("instruments", []))
 
     rel_platforms = Change.objects.select_related("content_type").filter(
