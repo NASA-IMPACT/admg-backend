@@ -158,17 +158,13 @@ class ChangeListView(django_tables2.SingleTableView):
 
 
 @method_decorator(login_required, name="dispatch")
-class ChangeDetailView(SingleObjectMixin, ListView):
+class ChangeDetailView(DetailView):
     model = Change
-    paginate_by = 25
     template_name = "api_app/change_detail.html"
+    queryset = Change.objects.filter(content_type__model=Campaign._meta.model_name)
 
-    def get(self, request, *args, **kwargs):
-        self.object = self.get_object(queryset=Change.objects.all())
-        return super().get(request, *args, **kwargs)
-
-    def get_queryset(self):
-        return (
+    def get_context_data(self, **kwargs):
+        deployments = (
             Change.objects.filter(
                 content_type__model="deployment",
                 update__campaign=str(self.kwargs[self.pk_url_kwarg]),
@@ -184,15 +180,17 @@ class ChangeDetailView(SingleObjectMixin, ListView):
             )
             .order_by(self.get_ordering())
         )
-
-    def get_context_data(self, **kwargs):
         return {
             **super().get_context_data(**kwargs),
+            "deployments": deployments,
+            "transition_form": forms.TransitionForm(
+                change=self.get_object(), user=self.request.user
+            ),
             "significant_events": (
                 Change.objects.select_related("content_type")
                 .filter(
                     content_type__model__iexact="significantevent",
-                    update__deployment__in=[str(d.uuid) for d in self.object_list],
+                    update__deployment__in=[str(d.uuid) for d in deployments],
                 )
                 .prefetch_related(
                     models.Prefetch(
@@ -219,7 +217,7 @@ class ChangeDetailView(SingleObjectMixin, ListView):
             "iops": Change.objects.select_related("content_type")
             .filter(
                 content_type__model__iexact="iop",
-                update__deployment__in=[str(d.uuid) for d in self.object_list],
+                update__deployment__in=[str(d.uuid) for d in deployments],
             )
             .prefetch_related(
                 models.Prefetch(
@@ -233,7 +231,7 @@ class ChangeDetailView(SingleObjectMixin, ListView):
             "collection_periods": Change.objects.select_related("content_type")
             .filter(
                 content_type__model__iexact="collectionperiod",
-                update__deployment__in=[str(d.uuid) for d in self.object_list],
+                update__deployment__in=[str(d.uuid) for d in deployments],
             )
             .prefetch_related(
                 models.Prefetch(
