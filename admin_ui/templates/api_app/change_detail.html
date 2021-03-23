@@ -1,5 +1,6 @@
 {% extends "api_app/base.html" %}
 {% load change_extras %}
+{% load crispy_forms_tags %}
 {% load humanize %}
 
 {% block page %}
@@ -29,7 +30,17 @@
 
         <div class="col d-flex flex-row-reverse">
             <div class="px-1">
-                <button class="btn btn-primary">Submit for review (placeholder)</button> <!-- TODO: add onclick -->
+                <button class="btn btn-secondary dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" {% if not transition_form.fields.transition.choices|length %} disabled="true" {% endif %}
+                aria-expanded="false">Approval Actions
+                </button>
+
+                <div class="dropdown-menu">
+                <form action="{% url 'change-transition' object.uuid %}" method="post" class="px-4 py-3">
+                    {% csrf_token %}
+                    {{ transition_form | crispy }}
+                    <button class="btn btn-primary">Submit</button>
+                </form>
+                </div>
             </div>
 
             <div class="px-1">
@@ -48,7 +59,7 @@
                 <h4 class="mb-0">Deployments</h4>
                 <a class="btn btn-primary" href="{% url 'change-add' 'deployment' %}?campaign={{ object.uuid }}">+</a>
             </li>
-            {% for deployment in object_list %}
+            {% for deployment in deployments %}
             <li class="list-group-item list-group-item-action d-flex justify-content-between deployment cursor-pointer"
                 data-id="{{ deployment.uuid }}">
                 <div>
@@ -288,5 +299,10 @@
 
     // Select first
     $('.deployment:first').click()
+
+    // Make dropdown more resistant to accidental closes (https://stackoverflow.com/a/32922725/728583)
+    $(document).on('click', '.dropdown-menu', function (e) {
+    e.stopPropagation();
+    });
 </script>
 {% endblock %}
