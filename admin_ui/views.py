@@ -163,8 +163,9 @@ class ChangeDetailView(DetailView):
     template_name = "api_app/change_detail.html"
     queryset = Change.objects.filter(content_type__model=Campaign._meta.model_name)
 
-    def get_queryset(self):
-        return (
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        deployments = (
             Change.objects.filter_by_model(
                 Deployment,
                 update__campaign=str(self.kwargs[self.pk_url_kwarg]),
@@ -173,15 +174,15 @@ class ChangeDetailView(DetailView):
             .order_by(self.get_ordering())
         )
         return {
-            **super().get_context_data(**kwargs),
+            **context,
             "deployments": deployments,
             "transition_form": forms.TransitionForm(
-                change=self.get_object(), user=self.request.user
+                change=context["object"], user=self.request.user
             ),
             "significant_events": (
                 Change.objects.filter_by_model(
                     SignificantEvent,
-                    update__deployment__in=[str(d.uuid) for d in self.object_list],
+                    update__deployment__in=[str(d.uuid) for d in deployments],
                 )
                 .select_related("content_type")
                 .prefetch_approvals()
@@ -191,7 +192,7 @@ class ChangeDetailView(DetailView):
             "iops": (
                 Change.objects.filter_by_model(
                     IOP,
-                    update__deployment__in=[str(d.uuid) for d in self.object_list],
+                    update__deployment__in=[str(d.uuid) for d in deployments],
                 )
                 .select_related("content_type")
                 .prefetch_related(
@@ -206,22 +207,13 @@ class ChangeDetailView(DetailView):
             "collection_periods": (
                 Change.objects.filter_by_model(
                     CollectionPeriod,
-                    update__deployment__in=[str(d.uuid) for d in self.object_list],
+                    update__deployment__in=[str(d.uuid) for d in deployments],
                 )
                 .select_related("content_type")
                 .prefetch_approvals()
                 .annotate_short_names_from_model(platform_name=("platform", Platform))
-                # # Add related Instrument's short_name
-                # .annotate(
-                #     instrument_uuid=functions.Cast(
-                #         KeyTextTransform("instrument", "update"), models.UUIDField()
-                #     ),
-                #     instrument_name=expressions.Subquery(
-                #         Change.objects.filter(
-                #             content_type__model=Instrument._meta.model_name,
-                #             uuid=expressions.OuterRef("instrument_uuid")
-                #         ).values("short_name")[:1]
-                #     ),
+                # .prefetch_short_names_from_model(
+                #     instrument_names=("instruments", Instrument)
                 # )
             ),
         }

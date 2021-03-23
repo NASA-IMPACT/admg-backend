@@ -231,7 +231,9 @@
                         <li class="list-group-item deployment-child" data-deployment="{{ period.update.deployment }}">
                             {% firstof period.update.short_name period.update.uuid %}
                             <span class="badge badge-secondary">P: {{ period.platform_name }}</span>
-                            <span class="badge badge-secondary">I: {{ period.instrument_name }}</span>
+                            {% for instrument_name in period.instrument_names %}
+                            <span class="badge badge-secondary">I: {{ instrument_name }}</span>
+                            {% endfor %}
                             
                             <small>
                                 <a href="{% url 'change-form' period.uuid %}">

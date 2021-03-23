@@ -6,6 +6,7 @@ from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils.timezone import now
+from django.contrib.postgres.fields import ArrayField
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import functions, expressions, aggregates, Max, TextField
@@ -176,20 +177,6 @@ class ChangeQuerySet(models.QuerySet):
             content_type__model__in=[m._meta.model_name for m in models], **filters
         )
 
-    # def annotate_join(self):
-    #     # Add related Platform's short_name
-    #     return self.annotate(
-    #         platform_uuid=functions.Cast(
-    #             KeyTextTransform("platform", "update"), models.UUIDField()
-    #         ),
-    #         platform_name=expressions.Subquery(
-    #             Change.objects.filter(
-    #                 content_type__model=Platform._meta.model_name,
-
-    #                 uuid=expressions.OuterRef("platform_uuid")
-    #             ).values("short_name")[:1]
-    #         ),
-    #     )
     def add_updated_at(self):
         """
         Add the date of the latest related ApprovalLog as a 'updated_at' attribute
@@ -197,9 +184,9 @@ class ChangeQuerySet(models.QuerySet):
         return self.annotate(updated_at=aggregates.Max("approvallog__date"))
 
     def prefetch_approvals(self, *, order_by="-date", select_related=("user",)):
-        """ 
-        Prefetch the related approvallog_set with support for custom order_by 
-        and select_related 
+        """
+        Prefetch the related approvallog_set with support for custom order_by
+        and select_related
         """
         return self.prefetch_related(
             models.Prefetch(
@@ -212,24 +199,82 @@ class ChangeQuerySet(models.QuerySet):
 
     def annotate_short_names_from_model(self, **kwargs):
         qs = self
-        for dest_attr, (id_field, model) in kwargs.items():
-            model_name = model._meta.model_name
-            uuid_dest_attr = f"{model_name}_uuid"
+        for to_attr, (id_field, model) in kwargs.items():
+            uuid_dest_attr = f"{model._meta.model_name}_uuid"
             qs = qs.annotate(
                 **{
                     uuid_dest_attr: functions.Cast(
                         KeyTextTransform(id_field, "update"), models.UUIDField()
                     ),
-                    dest_attr: expressions.Subquery(
+                    to_attr: expressions.Subquery(
                         # TODO: Right now this only shows the first created short_name, but doesn't reflect updated short_names
-                        Change.objects.filter(
-                            content_type__model=model_name,
+                        Change.objects.filter_by_model(
+                            model,
                             action=CREATE,
                             uuid=expressions.OuterRef(uuid_dest_attr),
                         ).values("update__short_name")[:1]
                     ),
                 },
             )
+        return qs
+
+    def prefetch_short_names_from_model(self, **kwargs):
+        qs = self
+        for to_attr, (id_field, model) in kwargs.items():
+            qs = qs.annotate(
+                **{
+                    to_attr: expressions.Subquery(
+                        Change.objects.filter_by_model(
+                            model,
+                            uuid__in=expressions.Func(
+                                expressions.Func(
+                                    functions.Cast(
+                                        KeyTextTransform(id_field, "update"),
+                                        ArrayField(models.UUIDField()),
+                                    ),
+                                    function="UNNEST",
+                                ),
+                                function="SELECT",
+                            ),
+                        ).values("update__short_name")
+                    ),
+                }
+            )
+            # qs = qs.annotate(
+            #     **{
+            #         to_attr: expressions.Subquery(
+            #             Change.objects.raw(
+            #                 """
+            #                 array_to_string(
+            #                     array(
+            #                         SELECT
+            #                             update ->> 'short_name'
+            #                         FROM
+            #                             %s
+            #                         WHERE
+            #                             uuid CONTAINED BY %s)
+            #                     ),
+            #                     ','
+            #                 )
+            #                 """,
+            #                 [expressions.OuterRef('uuid')]
+            #                 )
+            #         ),
+            #     }
+            # )
+        #         models.Prefetch()
+        #         ** {
+        #             to_attr: expressions.Subquery(
+        #                 Change.objects.filter_by_model(
+        #                     model,
+        #                     uuid__in=functions.Cast(
+        #                         KeyTextTransform(id_field, "update"),
+        #                         ArrayField(models.UUIDField()),
+        #                     ),
+        #                 ).values("update__short_name")
+        #             ),
+        #         }
+        #     )
         return qs
 
     def add_identifier(self, dest_model: models.Model):
