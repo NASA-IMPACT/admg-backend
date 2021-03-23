@@ -55,18 +55,16 @@ AVAILABLE_STATUSES = (
     (PUBLISHED_CODE, PUBLISHED),
 )
 
+
 def generate_failure_response(message):
-    return {
-        'success': False,
-        'message': message
-    }
+    return {"success": False, "message": message}
 
 
 def generate_success_response(status_str, data):
     return {
         "success": True,
         "message": f"Change object has been moved to the '{status_str}' stage.",
-        "data": data
+        "data": data,
     }
 
 
@@ -83,7 +81,9 @@ def is_not_admin(user):
     """
 
     if user.get_role_display() != ADMIN:
-        return generate_failure_response("action failed because initiating user was not admin")
+        return generate_failure_response(
+            "action failed because initiating user was not admin"
+        )
 
 
 def is_admin(function):
@@ -95,6 +95,7 @@ def is_admin(function):
         result = function(self, user, notes)
 
         return result
+
     return wrapper
 
 
@@ -103,7 +104,9 @@ def is_status(accepted_statuses_list):
         def wrapper(self, user, notes=""):
 
             if self.status not in accepted_statuses_list:
-                status_strings = [AVAILABLE_STATUSES[status][1] for status in accepted_statuses_list]
+                status_strings = [
+                    AVAILABLE_STATUSES[status][1] for status in accepted_statuses_list
+                ]
                 return generate_failure_response(
                     f"action failed because status was not one of {status_strings}"
                 )
@@ -111,7 +114,9 @@ def is_status(accepted_statuses_list):
             result = function(self, user, notes)
 
             return result
+
         return wrapper
+
     return decorator
 
 
@@ -128,19 +133,19 @@ class ApprovalLog(models.Model):
     UNCLAIM = 8
 
     ACTION_CHOICES = [
-        (CREATE, 'create'),
-        (EDIT, 'edit'),
-        (SUBMIT, 'submit'),
-        (REVIEW, 'review'),
-        (PUBLISH, 'publish'),
-        (REJECT, 'reject'),
-        (CLAIM, 'claim'),
-        (UNCLAIM, 'unclaim'),
+        (CREATE, "create"),
+        (EDIT, "edit"),
+        (SUBMIT, "submit"),
+        (REVIEW, "review"),
+        (PUBLISH, "publish"),
+        (REJECT, "reject"),
+        (CLAIM, "claim"),
+        (UNCLAIM, "unclaim"),
     ]
 
     uuid = models.UUIDField(primary_key=True, default=uuid4, editable=False)
 
-    change = models.ForeignKey('Change', on_delete=models.CASCADE, blank=True)
+    change = models.ForeignKey("Change", on_delete=models.CASCADE, blank=True)
 
     user = models.ForeignKey(
         User,
@@ -156,54 +161,76 @@ class ApprovalLog(models.Model):
         choices=ACTION_CHOICES,
         default=CREATE,
     )
-    notes = models.TextField(blank=True, default='')
+    notes = models.TextField(blank=True, default="")
 
     def __str__(self):
         return f"{self.user} | {self.get_action_display()} | {self.notes} | {self.date}"
 
     class Meta:
-        ordering = ['-date']
+        ordering = ["-date"]
 
 
 class ChangeQuerySet(models.QuerySet):
-
-    def annotate_join(self):
-        # Add related Platform's short_name
-        return self.annotate(
-            platform_uuid=functions.Cast(
-                KeyTextTransform("platform", "update"), models.UUIDField()
-            ),
-            platform_name=expressions.Subquery(
-                Change.objects.filter(
-                    content_type__model=Platform._meta.model_name,
-
-                    uuid=expressions.OuterRef("platform_uuid")
-                ).values("short_name")[:1]
-            ),
+    def filter_by_model(self, *models, **filters):
+        return self.filter(
+            content_type__model__in=[m._meta.model_name for m in models], **filters
         )
 
-    def prefetch_approvals(self, limit=1):
+    # def annotate_join(self):
+    #     # Add related Platform's short_name
+    #     return self.annotate(
+    #         platform_uuid=functions.Cast(
+    #             KeyTextTransform("platform", "update"), models.UUIDField()
+    #         ),
+    #         platform_name=expressions.Subquery(
+    #             Change.objects.filter(
+    #                 content_type__model=Platform._meta.model_name,
+
+    #                 uuid=expressions.OuterRef("platform_uuid")
+    #             ).values("short_name")[:1]
+    #         ),
+    #     )
+    def add_updated_at(self):
+        """
+        Add the date of the latest related ApprovalLog as a 'updated_at' attribute
+        """
+        return self.annotate(updated_at=aggregates.Max("approvallog__date"))
+
+    def prefetch_approvals(self, *, order_by="-date", select_related=("user",)):
+        """ 
+        Prefetch the related approvallog_set with support for custom order_by 
+        and select_related 
+        """
         return self.prefetch_related(
             models.Prefetch(
                 "approvallog_set",
-                queryset=ApprovalLog.objects.order_by("-date").select_related(
-                    "user"
+                queryset=ApprovalLog.objects.order_by(order_by).select_related(
+                    *select_related
                 ),
             )
         )
 
-    def annotate_name(self, field: str):
-        return self.annotate(
-            instrument_uuid=functions.Cast(
-                KeyTextTransform(field, "update"), models.UUIDField()
-            ),
-            instrument_name=expressions.Subquery(
-                Change.objects.filter(
-                    content_type__model=Instrument._meta.model_name,
-                    uuid=expressions.OuterRef(f"{field}_uuid")
-                ).values("short_name")[:1]
-            ),
-        )
+    def annotate_short_names_from_model(self, **kwargs):
+        qs = self
+        for dest_attr, (id_field, model) in kwargs.items():
+            model_name = model._meta.model_name
+            uuid_dest_attr = f"{model_name}_uuid"
+            qs = qs.annotate(
+                **{
+                    uuid_dest_attr: functions.Cast(
+                        KeyTextTransform(id_field, "update"), models.UUIDField()
+                    ),
+                    dest_attr: expressions.Subquery(
+                        # TODO: Right now this only shows the first created short_name, but doesn't reflect updated short_names
+                        Change.objects.filter(
+                            content_type__model=model_name,
+                            action=CREATE,
+                            uuid=expressions.OuterRef(uuid_dest_attr),
+                        ).values("update__short_name")[:1]
+                    ),
+                },
+            )
+        return qs
 
     def add_identifier(self, dest_model: models.Model):
         dest_model_name = dest_model._meta.model_name
@@ -220,7 +247,7 @@ class ChangeQuerySet(models.QuerySet):
         )
 
         return self.annotate(
-           # Add identifier from published record (if available) or change.update.short_name
+            # Add identifier from published record (if available) or change.update.short_name
             identifier=functions.Coalesce(
                 published_identifier_query,
                 KeyTextTransform(identifier_field, "update"),
@@ -243,7 +270,6 @@ class ChangeQuerySet(models.QuerySet):
             # Remove any Changes that have been successfully deleted
             .exclude(uuid__in=deleted_record_uuids)
         )
-
 
 
 class Change(models.Model):
@@ -293,7 +319,7 @@ class Change(models.Model):
                 self.previous = {key: serializer.data.get(key) for key in self.update}
 
     def get_latest_log(self):
-        return ApprovalLog.objects.filter(change=self).order_by('date').last()
+        return ApprovalLog.objects.filter(change=self).order_by("date").last()
 
     def save(self, *args, post_save=False, **kwargs):
         # do not check for validity of model_name and uuid if it has been approved or rejected.
@@ -329,7 +355,7 @@ class Change(models.Model):
         serializer_obj = serializer_class(data=self.update, partial=partial)
         serializer_obj.is_valid(raise_exception=True)
 
-        return 'All serializer validations passed'
+        return "All serializer validations passed"
 
     def validate(self):
         """Runs the serializer validation. Note that different request types will
@@ -348,13 +374,13 @@ class Change(models.Model):
             validation_message = self._run_validator(partial=True)
 
         elif self.action == DELETE:
-            validation_message = ''
+            validation_message = ""
 
         return Response(
             status=200,
             data={
-                'message': validation_message,
-            }
+                "message": validation_message,
+            },
         )
 
     def _get_model_instance(self):
@@ -363,7 +389,9 @@ class Change(models.Model):
 
     def _save_serializer(self, model_instance, data, partial):
         serializer_class = getattr(serializers, f"{self.model_name}Serializer")
-        serializer = serializer_class(instance=model_instance, data=data, partial=partial)
+        serializer = serializer_class(
+            instance=model_instance, data=data, partial=partial
+        )
 
         if serializer.is_valid(raise_exception=True):
             new_model_instance = serializer.save()
@@ -373,12 +401,10 @@ class Change(models.Model):
 
     def _create(self):
         # set the db uuid == change request uuid
-        self.update['uuid'] = str(self.uuid)
+        self.update["uuid"] = str(self.uuid)
 
         response = self._save_serializer(
-            model_instance=None,
-            data=self.update,
-            partial=False
+            model_instance=None, data=self.update, partial=False
         )
 
         return response
@@ -390,7 +416,7 @@ class Change(models.Model):
             response = self._save_serializer(
                 model_instance=self._get_model_instance(),
                 data=self.update,
-                partial=True
+                partial=True,
             )
 
         return response
@@ -411,41 +437,28 @@ class Change(models.Model):
         self.status = AWAITING_REVIEW_CODE
 
         ApprovalLog.objects.create(
-            change = self,
-            user = user,
-            action = ApprovalLog.SUBMIT,
-            notes = notes
+            change=self, user=user, action=ApprovalLog.SUBMIT, notes=notes
         )
 
         self.save(post_save=True)
 
         return generate_success_response(
-            status_str= AWAITING_REVIEW,
-            data={
-                "uuid": self.uuid,
-                "status": AWAITING_REVIEW_CODE
-            }
+            status_str=AWAITING_REVIEW,
+            data={"uuid": self.uuid, "status": AWAITING_REVIEW_CODE},
         )
 
     @is_status([IN_REVIEW_CODE])
     def review(self, user, notes=""):
         self.status = AWAITING_ADMIN_REVIEW_CODE
         ApprovalLog.objects.create(
-            change = self,
-            user = user,
-            action = ApprovalLog.REVIEW,
-            notes = notes
+            change=self, user=user, action=ApprovalLog.REVIEW, notes=notes
         )
         self.save(post_save=True)
 
         return generate_success_response(
             status_str=AWAITING_ADMIN_REVIEW,
-            data={
-                "uuid": self.uuid,
-                "status": AWAITING_ADMIN_REVIEW_CODE
-            }
+            data={"uuid": self.uuid, "status": AWAITING_ADMIN_REVIEW_CODE},
         )
-
 
     @is_admin
     def publish(self, admin_user, notes=""):
@@ -476,27 +489,21 @@ class Change(models.Model):
         elif self.action == DELETE:
             response = self._delete()
 
-        if response.get('success') == False:
+        if response.get("success") == False:
             return response
 
         # links co to the new db instance
         # this is not what syncs the UUIDs
         if self.action == CREATE:
-            self.model_instance_uuid = response['uuid']
+            self.model_instance_uuid = response["uuid"]
 
         if self.status != IN_ADMIN_REVIEW_CODE:
             ApprovalLog.objects.create(
-                change = self,
-                user = admin_user,
-                action = ApprovalLog.REVIEW,
-                notes = notes
+                change=self, user=admin_user, action=ApprovalLog.REVIEW, notes=notes
             )
 
         ApprovalLog.objects.create(
-            change = self,
-            user = admin_user,
-            action = ApprovalLog.PUBLISH,
-            notes = notes
+            change=self, user=admin_user, action=ApprovalLog.PUBLISH, notes=notes
         )
 
         self.status = PUBLISHED_CODE
@@ -509,10 +516,9 @@ class Change(models.Model):
                 "updated_model": self.model_name,
                 "action": self.action,
                 "uuid_changed": response["uuid"],
-                "status": PUBLISHED_CODE
-            }
+                "status": PUBLISHED_CODE,
+            },
         )
-
 
     @is_status([IN_REVIEW_CODE, IN_ADMIN_REVIEW_CODE])
     def reject(self, user, notes):
@@ -539,35 +545,25 @@ class Change(models.Model):
 
         self.status = IN_PROGRESS_CODE
         ApprovalLog.objects.create(
-            change = self,
-            user = user,
-            action = ApprovalLog.REJECT,
-            notes = notes
+            change=self, user=user, action=ApprovalLog.REJECT, notes=notes
         )
         self.save(post_save=True)
 
         return generate_success_response(
-            status_str=IN_PROGRESS,
-            data={
-                "uuid": self.uuid,
-                "status": IN_PROGRESS_CODE
-            }
+            status_str=IN_PROGRESS, data={"uuid": self.uuid, "status": IN_PROGRESS_CODE}
         )
-
 
     def _goto_next_approval_stage(self):
         """Do not call this, it is an internal function"""
         self.status += 1
 
-
     def _goto_previous_approval_stage(self):
         """Do not call this, it is an internal function"""
         self.status -= 1
 
-
     @is_status([AWAITING_REVIEW_CODE, AWAITING_ADMIN_REVIEW_CODE])
-    def claim(self, user, notes=''):
-        """Claims a change object for review or admin review for the given user 
+    def claim(self, user, notes=""):
+        """Claims a change object for review or admin review for the given user
         and updates the log.
 
         Args:
@@ -587,25 +583,18 @@ class Change(models.Model):
         self._goto_next_approval_stage()
 
         ApprovalLog.objects.create(
-            change = self,
-            user = user,
-            action = ApprovalLog.CLAIM,
-            notes = notes
+            change=self, user=user, action=ApprovalLog.CLAIM, notes=notes
         )
         self.save(post_save=True)
 
         return generate_success_response(
             status_str=AVAILABLE_STATUSES[self.status][1],
-            data={
-                "uuid": self.uuid,
-                "status": AVAILABLE_STATUSES[self.status][0]
-            }
+            data={"uuid": self.uuid, "status": AVAILABLE_STATUSES[self.status][0]},
         )
 
-
     @is_status([IN_REVIEW_CODE, IN_ADMIN_REVIEW_CODE])
-    def unclaim(self, user, notes=''):
-        """Unclaims a change object for review or admin review for the given user 
+    def unclaim(self, user, notes=""):
+        """Unclaims a change object for review or admin review for the given user
         and updates the log. Will move the change back to the previous approval step.
 
         Args:
@@ -627,25 +616,19 @@ class Change(models.Model):
         self._goto_previous_approval_stage()
 
         ApprovalLog.objects.create(
-            change = self,
-            user = user,
-            action = ApprovalLog.UNCLAIM,
-            notes = notes
+            change=self, user=user, action=ApprovalLog.UNCLAIM, notes=notes
         )
         self.save(post_save=True)
 
         return generate_success_response(
             status_str=AVAILABLE_STATUSES[self.status][1],
-            data={
-                "uuid": self.uuid,
-                "status": AVAILABLE_STATUSES[self.status][0]
-            }
+            data={"uuid": self.uuid, "status": AVAILABLE_STATUSES[self.status][0]},
         )
 
     def _add_create_edit_approval_log(self):
         """
-            Adds a CREATE or EDIT approval log to the change object
-            based on conditions
+        Adds a CREATE or EDIT approval log to the change object
+        based on conditions
         """
 
         # change object was freshly created and has no logs
@@ -658,7 +641,11 @@ class Change(models.Model):
 
         elif self.status in [CREATED_CODE, IN_PROGRESS_CODE]:
             # don't create an EDIT ApprovalLog for a rejection, claim, or unclaim
-            if self.get_latest_log().action not in [ApprovalLog.REJECT, ApprovalLog.CLAIM, ApprovalLog.UNCLAIM]:
+            if self.get_latest_log().action not in [
+                ApprovalLog.REJECT,
+                ApprovalLog.CLAIM,
+                ApprovalLog.UNCLAIM,
+            ]:
                 ApprovalLog.objects.create(
                     change=self,
                     user=get_current_user(),
