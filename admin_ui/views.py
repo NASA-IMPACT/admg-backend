@@ -243,6 +243,30 @@ class ChangeDetailView(SingleObjectMixin, ListView):
                     ),
                     to_attr="approvals",
                 )
+            )
+            # Add related instruments's short_name if it exists
+            .annotate(
+                instrument_uuid=functions.Cast(
+                    KeyTextTransform("instrument", "update"), models.UUIDField()
+                ),
+                instrument_name=expressions.Subquery(
+                    Change.objects.filter(
+                        content_type__model__iexact="instrument",
+                        uuid=expressions.OuterRef("instrument_uuid"),
+                    ).values("update__short_name")[:1]
+                ),
+            )
+            # Add related platforms's short_name if it exists
+            .annotate(
+                platform_uuid=functions.Cast(
+                    KeyTextTransform("platform", "update"), models.UUIDField()
+                ),
+                platform_name=expressions.Subquery(
+                    Change.objects.filter(
+                        content_type__model__iexact="platform",
+                        uuid=expressions.OuterRef("platform_uuid"),
+                    ).values("update__short_name")[:1]
+                ),
             ),
         }
 
