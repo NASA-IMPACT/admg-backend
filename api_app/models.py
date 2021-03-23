@@ -8,6 +8,9 @@ from django.dispatch import receiver
 from django.utils.timezone import now
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
+from django.db.models import functions, expressions, aggregates, Max, TextField
+from django.db.models.fields.json import KeyTextTransform
+
 from rest_framework.response import Response
 
 from admg_webapp.users.models import ADMIN, User
@@ -161,6 +164,88 @@ class ApprovalLog(models.Model):
     class Meta:
         ordering = ['-date']
 
+
+class ChangeQuerySet(models.QuerySet):
+
+    def annotate_join(self):
+        # Add related Platform's short_name
+        return self.annotate(
+            platform_uuid=functions.Cast(
+                KeyTextTransform("platform", "update"), models.UUIDField()
+            ),
+            platform_name=expressions.Subquery(
+                Change.objects.filter(
+                    content_type__model=Platform._meta.model_name,
+
+                    uuid=expressions.OuterRef("platform_uuid")
+                ).values("short_name")[:1]
+            ),
+        )
+
+    def prefetch_approvals(self, limit=1):
+        return self.prefetch_related(
+            models.Prefetch(
+                "approvallog_set",
+                queryset=ApprovalLog.objects.order_by("-date").select_related(
+                    "user"
+                ),
+            )
+        )
+
+    def annotate_name(self, field: str):
+        return self.annotate(
+            instrument_uuid=functions.Cast(
+                KeyTextTransform(field, "update"), models.UUIDField()
+            ),
+            instrument_name=expressions.Subquery(
+                Change.objects.filter(
+                    content_type__model=Instrument._meta.model_name,
+                    uuid=expressions.OuterRef(f"{field}_uuid")
+                ).values("short_name")[:1]
+            ),
+        )
+
+    def add_identifier(self, dest_model: models.Model):
+        dest_model_name = dest_model._meta.model_name
+
+        # Field to use for textual description of field
+        identifier_field = {
+            "image": "image",
+        }.get(dest_model_name, "short_name")
+
+        published_identifier_query = expressions.Subquery(
+            dest_model.objects.filter(uuid=expressions.OuterRef("uuid"))[:1].values(
+                identifier_field
+            )
+        )
+
+        return self.annotate(
+           # Add identifier from published record (if available) or change.update.short_name
+            identifier=functions.Coalesce(
+                published_identifier_query,
+                KeyTextTransform(identifier_field, "update"),
+                output_field=TextField(),
+            )
+        )
+
+    def non_removed(self, dest_model: models.Model):
+        """ Return Change objects that have been created but do not have corresponding published delete Change record"""
+        dest_model_name = dest_model._meta.model_name
+
+        deleted_record_uuids = Change.objects.filter(
+            action="Delete", status=PUBLISHED_CODE, content_type__model=dest_model_name
+        ).values("model_instance_uuid")
+
+        return (
+            self
+            # Only focus on Created drafts, so we can treat the `uuid` as the target model's uuid
+            .filter(action="Create", content_type__model=dest_model_name)
+            # Remove any Changes that have been successfully deleted
+            .exclude(uuid__in=deleted_record_uuids)
+        )
+
+
+
 class Change(models.Model):
     uuid = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     content_type = models.ForeignKey(
@@ -180,6 +265,7 @@ class Change(models.Model):
         choices=((choice, choice) for choice in [CREATE, UPDATE, DELETE, PATCH]),
         default=UPDATE,
     )
+    objects = ChangeQuerySet.as_manager()
 
     class Meta:
         verbose_name = "Draft"

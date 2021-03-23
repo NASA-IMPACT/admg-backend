@@ -211,37 +211,67 @@ class ChangeDetailView(SingleObjectMixin, ListView):
                     iop_name=expressions.Subquery(
                         Change.objects.filter(
                             content_type__model__iexact="iop",
+                            action=CREATE,
                             uuid=expressions.OuterRef("iop_uuid"),
                         ).values("update__short_name")[:1]
                     ),
                 )
             ),
-            "iops": Change.objects.select_related("content_type")
-            .filter(
-                content_type__model__iexact="iop",
-                update__deployment__in=[str(d.uuid) for d in self.object_list],
-            )
-            .prefetch_related(
-                models.Prefetch(
-                    "approvallog_set",
-                    queryset=ApprovalLog.objects.order_by("-date").select_related(
-                        "user"
-                    ),
-                    to_attr="approvals",
+            "iops": (
+                Change.objects.select_related("content_type")
+                .filter(
+                    content_type__model__iexact="iop",
+                    update__deployment__in=[str(d.uuid) for d in self.object_list],
+                )
+                .prefetch_related(
+                    models.Prefetch(
+                        "approvallog_set",
+                        queryset=ApprovalLog.objects.order_by("-date").select_related(
+                            "user"
+                        ),
+                    )
                 )
             ),
-            "collection_periods": Change.objects.select_related("content_type")
-            .filter(
-                content_type__model__iexact="collectionperiod",
-                update__deployment__in=[str(d.uuid) for d in self.object_list],
-            )
-            .prefetch_related(
-                models.Prefetch(
-                    "approvallog_set",
-                    queryset=ApprovalLog.objects.order_by("-date").select_related(
-                        "user"
+            "collection_periods": (
+                Change.objects.select_related("content_type")
+                .filter(
+                    content_type__model__iexact="collectionperiod",
+                    update__deployment__in=[str(d.uuid) for d in self.object_list],
+                )
+                .prefetch_related(
+                    models.Prefetch(
+                        "approvallog_set",
+                        queryset=ApprovalLog.objects.order_by("-date").select_related(
+                            "user"
+                        ),
+                        to_attr="approvals",
+                    )
+                )
+                # Add related Platform's short_name
+                .annotate(
+                    platform_uuid=functions.Cast(
+                        KeyTextTransform("platform", "update"), models.UUIDField()
                     ),
-                    to_attr="approvals",
+                    platform_name=expressions.Subquery(
+                        Change.objects.filter(
+                            content_type__model=Platform._meta.model_name,
+
+                            uuid=expressions.OuterRef("platform_uuid")
+                        ).values("short_name")[:1]
+                    ),
+                )
+                # Add related Instrument's short_name
+                .annotate(
+                    instrument_uuid=functions.Cast(
+                        KeyTextTransform("instrument", "update"), models.UUIDField()
+                    ),
+                    instrument_name=expressions.Subquery(
+                        Change.objects.filter(
+                            content_type__model=Instrument._meta.model_name,
+
+                            uuid=expressions.OuterRef("instrument_uuid")
+                        ).values("short_name")[:1]
+                    ),
                 )
             ),
         }
@@ -353,7 +383,9 @@ class PlatformListView(django_tables2.SingleTableView):
                     KeyTextTransform("platform_type", "update"), models.UUIDField()
                 ),
                 platform_type_name=expressions.Subquery(
-                    PlatformType.objects.filter(
+                    Change.objects.filter(
+                        content_type__model=PlatformType._meta.model_name,
+                        action=CREATE,
                         uuid=expressions.OuterRef("platform_type_uuid")
                     ).values("short_name")[:1]
                 ),
