@@ -137,7 +137,7 @@ class ChangeSummaryView(django_tables2.SingleTableView):
 
 
 @method_decorator(login_required, name="dispatch")
-class ChangeListView(django_tables2.SingleTableView):
+class ChangeListView(SingleTableMixin, FilterView):
     model = Change
     table_class = tables.CampaignChangeListTable
     template_name = "api_app/change_list.html"
