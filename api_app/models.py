@@ -221,60 +221,50 @@ class ChangeQuerySet(models.QuerySet):
     def prefetch_short_names_from_model(self, **kwargs):
         qs = self
         for to_attr, (id_field, model) in kwargs.items():
+            subquery = (
+                Change.objects.filter(uuid=expressions.OuterRef("uuid"))
+                .annotate(
+                    instruments=functions.Cast(
+                        expressions.Func(
+                            "update__instruments", function="jsonb_array_elements_text"
+                        ),
+                        output_field=ArrayField(models.UUIDField()),
+                    )
+                )
+                .values("instruments")[:1]
+            )
+
             qs = qs.annotate(
-                **{
-                    to_attr: expressions.Subquery(
-                        Change.objects.filter_by_model(
-                            model,
-                            uuid__in=expressions.Func(
-                                expressions.Func(
-                                    functions.Cast(
-                                        KeyTextTransform(id_field, "update"),
-                                        ArrayField(models.UUIDField()),
-                                    ),
-                                    function="UNNEST",
-                                ),
-                                function="SELECT",
-                            ),
-                        ).values("update__short_name")
-                    ),
-                }
+                instrument_names=expressions.Subquery(
+                    Change.objects.filter(uuid=subquery)[:1],
+                    output_field=ArrayField(TextField()),
+                ),
             )
             # qs = qs.annotate(
-            #     **{
-            #         to_attr: expressions.Subquery(
-            #             Change.objects.raw(
-            #                 """
-            #                 array_to_string(
-            #                     array(
-            #                         SELECT
-            #                             update ->> 'short_name'
-            #                         FROM
-            #                             %s
-            #                         WHERE
-            #                             uuid CONTAINED BY %s)
-            #                     ),
-            #                     ','
-            #                 )
-            #                 """,
-            #                 [expressions.OuterRef('uuid')]
-            #                 )
-            #         ),
-            #     }
+            #     instrument_names=expressions.RawSQL(
+            #         """
+            #         WITH cdpi AS (
+            #             SELECT
+            #                 jsonb_array_elements_text(
+            #                     update
+            #                         -> 'instruments'
+            #                 )::uuid as instruments
+            #             FROM
+            #                 api_app_change
+            #             WHERE
+            #                 uuid = %s
+            #         )
+            #         SELECT
+            #             array_agg("update" ->> 'short_name')
+            #         FROM
+            #             api_app_change,
+            #             cdpi
+            #         WHERE
+            #             uuid = cdpi.instruments;
+            #         """,
+            #         [qs.values("uuid")],
+            #     ),
             # )
-        #         models.Prefetch()
-        #         ** {
-        #             to_attr: expressions.Subquery(
-        #                 Change.objects.filter_by_model(
-        #                     model,
-        #                     uuid__in=functions.Cast(
-        #                         KeyTextTransform(id_field, "update"),
-        #                         ArrayField(models.UUIDField()),
-        #                     ),
-        #                 ).values("update__short_name")
-        #             ),
-        #         }
-        #     )
         return qs
 
     def add_identifier(self, dest_model: models.Model):

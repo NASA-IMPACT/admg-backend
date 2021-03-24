@@ -212,9 +212,9 @@ class ChangeDetailView(DetailView):
                 .select_related("content_type")
                 .prefetch_approvals()
                 .annotate_short_names_from_model(platform_name=("platform", Platform))
-                # .prefetch_short_names_from_model(
-                #     instrument_names=("instruments", Instrument)
-                # )
+                .prefetch_short_names_from_model(
+                    instrument_names=("instruments", Instrument)
+                )
             ),
         }
 
