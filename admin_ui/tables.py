@@ -21,7 +21,7 @@ class CampaignChangeListTable(tables.Table):
         model = Change
         attrs = {
             "class": "table table-striped",
-            "thead": {"class": "thead-dark"},
+            "thead": {"class": "table-primary"},
             "th": {"style": "min-width: 10em"},
         }
         fields = ["short_name", "long_name", "funding_agency", "status", "updated_at"]
@@ -44,7 +44,7 @@ class PlatformChangeListTable(tables.Table):
         model = Change
         attrs = {
             "class": "table table-striped",
-            "thead": {"class": "thead-dark"},
+            "thead": {"class": "table-primary"},
             "th": {"style": "min-width: 10em"},
         }
         fields = ["short_name", "long_name", "platform_type", "status", "updated_at"]
@@ -64,7 +64,7 @@ class BasicChangeListTable(tables.Table):
         model = Change
         attrs = {
             "class": "table table-striped",
-            "thead": {"class": "thead-dark"},
+            "thead": {"class": "table-primary"},
             "th": {"style": "min-width: 10em"},
         }
         fields = ["short_name", "long_name", "status", "updated_at"]
@@ -85,5 +85,5 @@ class ChangeSummaryTable(tables.Table):
 
     class Meta:
         model = Change
-        attrs = {"class": "table table-striped", "thead": {"class": "thead-dark"}}
+        attrs = {"class": "table table-striped", "thead": {"class": "table-primary"}}
         fields = ["name", "content_type__model", "updated_at", "status"]
