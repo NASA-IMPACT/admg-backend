@@ -239,10 +239,12 @@
                                             {{ period.platform_name }}
                                         </a>
                                     {% endif %}
-                                    {% if period.update.instrument %}
-                                        <a href="{% url 'change-form' period.instrument_uuid %}" class="badge badge-pill badge-info">
-                                            {{ period.instrument_name }}
+                                    {% if period.update.instruments %}
+                                        {% for instrument in period.update.instruments %}
+                                        <a href="{% url 'change-form' instrument %}" class="badge badge-pill badge-info">
+                                            {{ instrument }}
                                         </a>
+                                        {% endfor %}
                                     {% endif %}
                                 </div>
                             </div>
