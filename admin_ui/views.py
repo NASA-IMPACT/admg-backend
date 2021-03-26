@@ -183,8 +183,8 @@ class ChangeDetailView(DetailView):
             .prefetch_approvals()
             .annotate_with_identifier_from_model(
                 model=Platform,
-                uuid_from="platform", 
-                to_attr="platform_name", 
+                uuid_from="platform",
+                to_attr="platform_name",
             )
         )
 
@@ -203,9 +203,9 @@ class ChangeDetailView(DetailView):
             .values_list("uuid", "update__short_name")
         }
         for cp in collection_periods:
-            cp.instrument_names = [
+            cp.instrument_names = sorted(
                 instrument_names.get(uuid) for uuid in cp.update.get("instruments")
-            ]
+            )
 
         return {
             **context,
@@ -329,11 +329,11 @@ class PlatformListView(django_tables2.SingleTableView):
             Change.objects.of_type(Platform)
             .filter(action=CREATE)
             .add_updated_at()
-        .annotate_with_identifier_from_model(
-            model=PlatformType,
-            uuid_from="platform_type",
-            to_attr="platform_type_name",
-        )
+            .annotate_with_identifier_from_model(
+                model=PlatformType,
+                uuid_from="platform_type",
+                to_attr="platform_type_name",
+            )
         )
 
     def get_context_data(self, **kwargs):
