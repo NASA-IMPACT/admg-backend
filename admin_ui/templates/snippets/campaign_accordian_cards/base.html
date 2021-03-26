@@ -1,0 +1,53 @@
+{% load humanize %}
+
+<div class="row">
+    <div class="col">
+        <div class="d-flex justify-content-between">
+            <h5 class="py-2">
+                {% firstof change.update.long_name change.update.short_name change.uuid %}
+            </h5>
+            <span class="caret h4">&rsaquo;</span>
+        </div>
+        {% block body %}
+        {% endblock %}
+    </div>
+</div>
+
+<div class="row border-top d-flex align-items-center mt-2">
+    {% block footnote %}
+    <div class="col pt-2 border-right">
+        <dl class="small">
+            <dt class="text-muted text-uppercase">Status</dt>
+            <dd>{{ change.get_status_display }}</dd>
+        </dl>
+    </div>
+
+    <div class="col pt-2 border-right">
+        <dl class="small">
+            <dt class="text-muted text-uppercase">Last updated</dt>
+            <dd>
+                <span title={{ change.approvallog_set.all.0.date|date:"c" }}>
+                    {{ change.approvallog_set.all.0.date | naturaltime }}
+                </span>
+            </dd>
+        </dl>
+    </div>
+    
+    <div class="col pt-2 border-right">
+        <dl class="small">
+            <dt class="text-muted text-uppercase">Last updated by</dt>
+            <dd>
+                {% if change.approvallog_set.all.0.user %}
+                    {% firstof change.approvallog_set.all.0.user.get_full_name change.approvallog_set.all.0.user.username %}
+                {% endif %}
+            </dd>
+        </dl>
+    </div>
+
+    <div class="col">
+        <a href="{% url 'change-form' change.uuid %}" class="btn btn-sm btn-outline-secondary btn-block">
+            Edit
+        </a>
+    </div>
+    {% endblock %}
+</div>
