@@ -2,14 +2,14 @@
 
 {% block body %}
 <dl>
-    <dt class="small text-muted text-uppercase font-weight-bold">Platform</dt>
+    <dt>Platform</dt>
     <dd>
         <span title="Platform Name">{{ change.platform_name }}</span>
         {% if change.update.platform_identifier %} 
             <span title="Platform Identifier" class="font-italic text-muted">{{ change.update.platform_identifier }}</span>
         {% endif %}
     </dd>
-    <dt class="small text-muted text-uppercase font-weight-bold">Instruments</dt>
+    <dt>Instruments</dt>
     <dd>
         <span title="Instruments">
         {{ change.instrument_names|join:', '}}

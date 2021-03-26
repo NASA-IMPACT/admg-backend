@@ -29,6 +29,9 @@ td a {
 .campaign-summary li.list-group-item {
   padding-bottom: 0;
 }
+.campaign-summary .list-group-item-primary {
+  color: inherit;
+}
 .campaign-summary .list-group dt {
   font-size: 80%;
   text-transform: uppercase;
