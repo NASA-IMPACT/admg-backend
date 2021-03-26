@@ -12,7 +12,7 @@ class CampaignChangeListTable(tables.Table):
     )
     long_name = tables.Column(verbose_name="Long name", accessor="update__long_name")
     status = tables.Column(verbose_name="Status", accessor="status")
-    updated_at = tables.Column(verbose_name="Last Edit Date")
+    updated_at = tables.DateTimeColumn(verbose_name="Last Edit Date")
     funding_agency = tables.Column(
         verbose_name="Funding Agency", accessor="update__funding_agency"
     )
@@ -35,7 +35,7 @@ class PlatformChangeListTable(tables.Table):
     )
     long_name = tables.Column(verbose_name="Long name", accessor="update__long_name")
     status = tables.Column(verbose_name="Status", accessor="status")
-    updated_at = tables.Column(verbose_name="Last Edit Date")
+    updated_at = tables.DateTimeColumn(verbose_name="Last Edit Date")
     platform_type = tables.Column(
         verbose_name="Platform Type", accessor="platform_type_name"
     )
@@ -50,7 +50,7 @@ class PlatformChangeListTable(tables.Table):
         fields = ["short_name", "long_name", "platform_type", "status", "updated_at"]
 
 
-class InstrumentChangeListTable(tables.Table):
+class BasicChangeListTable(tables.Table):
     short_name = tables.Column(
         linkify=("change-form", [A("uuid")]),
         verbose_name="Short Name",
@@ -58,7 +58,7 @@ class InstrumentChangeListTable(tables.Table):
     )
     long_name = tables.Column(verbose_name="Long name", accessor="update__long_name")
     status = tables.Column(verbose_name="Status", accessor="status")
-    updated_at = tables.Column(verbose_name="Last Edit Date")
+    updated_at = tables.DateTimeColumn(verbose_name="Last Edit Date")
 
     class Meta:
         model = Change
@@ -77,14 +77,13 @@ class ChangeSummaryTable(tables.Table):
         verbose_name="Name",
         accessor="update__short_name",
     )
-    short_name = tables.Column(verbose_name="Campaign", accessor="update__short_name")
     content_type__model = tables.Column(
-        verbose_name="Model Type", accessor="content_type__model"
+        verbose_name="Model Type", accessor="model_name", order_by="content_type__model"
     )
-    updated_at = tables.Column(verbose_name="Last Edit Date")
+    updated_at = tables.DateTimeColumn(verbose_name="Last Edit Date")
     status = tables.Column(verbose_name="Status", accessor="status")
 
     class Meta:
         model = Change
         attrs = {"class": "table table-striped", "thead": {"class": "thead-dark"}}
-        fields = ["name", "content_type__model", "updated_at", "short_name", "status"]
+        fields = ["name", "content_type__model", "updated_at", "status"]

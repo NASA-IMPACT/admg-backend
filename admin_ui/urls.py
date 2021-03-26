@@ -11,6 +11,7 @@ urlpatterns = [
     path("drafts", views.ChangeListView.as_view(), name="change-list"),
     path("platforms", views.PlatformListView.as_view(), name="platform-list"),
     path("instruments", views.InstrumentListView.as_view(), name="instrument-list"),
+    path("organizations", views.PartnerOrgListView.as_view(), name="organization-list"),
     path("drafts/<uuid:pk>", views.ChangeDetailView.as_view(), name="change-detail"),
     path("drafts/add/<str:model>", views.ChangeCreateView.as_view(), name="change-add"),
     path("drafts/edit/<uuid:pk>", views.ChangeUpdateView.as_view(), name="change-form"),
