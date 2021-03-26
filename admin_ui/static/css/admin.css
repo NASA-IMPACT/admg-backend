@@ -25,3 +25,21 @@ td a {
 .cursor-pointer {
   cursor: pointer;
 }
+
+.campaign-summary li.list-group-item {
+  padding-bottom: 0;
+}
+.campaign-summary .list-group dt {
+  font-size: 80%;
+  text-transform: uppercase;
+  color: #6c757d;
+}
+.campaign-summary .list-group dd {
+  margin-bottom: 1em;
+}
+.campaign-summary .caret {
+  display: none;
+}
+.campaign-summary .show-caret .caret {
+  display: inline;
+}
