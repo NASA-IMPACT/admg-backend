@@ -1,17 +1,14 @@
-from crum import get_current_user
 from uuid import uuid4
 
+from crum import get_current_user
 from django.apps import apps
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from django.utils.timezone import now
-from django.contrib.postgres.fields import ArrayField
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
-from django.db.models import functions, expressions, aggregates, Max, TextField
+from django.db.models import functions, expressions, aggregates
 from django.db.models.fields.json import KeyTextTransform
-
 from rest_framework.response import Response
 
 from admg_webapp.users.models import ADMIN, User
