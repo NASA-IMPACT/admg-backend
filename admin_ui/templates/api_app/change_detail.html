@@ -229,12 +229,25 @@
                     <ul class="list-group">
                         {% for period in collection_periods %}
                         <li class="list-group-item deployment-child" data-deployment="{{ period.update.deployment }}">
-                            {% firstof period.update.short_name period.update.uuid %}
-                            <span class="badge badge-secondary">P: {{ period.platform_name }}</span>
-                            {{ period.instrument_names }}
-                            {% for instrument_name in period.instrument_names %}
-                            <span class="badge badge-secondary">I: {{ instrument_name }}</span>
+                            <dd>
+                                <dt class="small text-muted text-uppercase">Platform</dt>
+                                <dl>
+                                    <span title="Platform Name" class="font-weight-bold">{{ period.platform_name }}</span>
+                                    {% if period.update.platform_identifier %} 
+                                        - <span title="Platform Identifier">{{ period.update.platform_identifier }}</span>
+                                    {% endif %}
+                                </dl>
+                            </dd>
+                            <dd>
+                                <dt class="small text-muted text-uppercase">Instruments</dt>
+                                <dl>
+                                    <span title="Instruments">
+                                    {% for instrument in period.instrument_names %}
+                                        <span class="font-weight-bold">{{ instrument }}</span>{% if not forloop.last %}<span>, </span>{% endif %}
                             {% endfor %}
+                                    </span>
+                                </dl>
+                            </dd>
                             
                             <small>
                                 <a href="{% url 'change-form' period.uuid %}">

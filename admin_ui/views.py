@@ -173,6 +173,33 @@ class ChangeDetailView(DetailView):
             .prefetch_approvals()
             .order_by(self.get_ordering())
         )
+        collection_periods = (
+            Change.objects.filter_by_model(
+                CollectionPeriod,
+                update__deployment__in=[str(d.uuid) for d in deployments],
+            )
+            .select_related("content_type")
+            .prefetch_approvals()
+            .annotate_short_names_from_model(platform_name=("platform", Platform))
+        )
+
+        # Build collection periods instruments (too difficult to do in SQL)
+        instrument_uuids = set(
+            uuid
+            for instruments in collection_periods.values_list(
+                "update__instruments", flat=True
+            )
+            for uuid in instruments
+        )
+        instrument_names = {
+            str(uuid): short_name
+            for uuid, short_name in Change.objects.filter_by_model(
+                Instrument, uuid__in=instrument_uuids
+            ).values_list("uuid", "update__short_name")
+        }
+        for cp in collection_periods:
+            cp.instrument_names = [instrument_names.get(uuid) for uuid in cp.update.get('instruments')]
+
         return {
             **context,
             "deployments": deployments,
@@ -204,18 +231,7 @@ class ChangeDetailView(DetailView):
                     )
                 )
             ),
-            "collection_periods": (
-                Change.objects.filter_by_model(
-                    CollectionPeriod,
-                    update__deployment__in=[str(d.uuid) for d in deployments],
-                )
-                .select_related("content_type")
-                .prefetch_approvals()
-                .annotate_short_names_from_model(platform_name=("platform", Platform))
-                .prefetch_short_names_from_model(
-                    instrument_names=("instruments", Instrument)
-                )
-            ),
+            "collection_periods": collection_periods,
         }
 
     def get_ordering(self):
