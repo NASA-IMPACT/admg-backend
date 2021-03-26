@@ -22,7 +22,6 @@
       <form action="" method="get" class="form form-inline">
           {{ filter.form | crispy }}
           <button class="btn btn-dark btn-sm">Filter</button>
-          {% comment %} {% bootstrap_button 'filter' %} {% endcomment %}
       </form>
     {% endif %}
     {% render_table table %}
