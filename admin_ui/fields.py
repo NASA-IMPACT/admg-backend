@@ -19,17 +19,12 @@ class ChangeChoiceField(ModelChoiceField):
     # TODO: Instances fail validation, customize to make message clear that the value simply isn't published yet
     @staticmethod
     def get_queryset_for_model(dest_model):
-        
         dest_model_name = dest_model._meta.model_name
 
         # Field to use for textual description of field
         identifier_field = {
             "image": "image",
         }.get(dest_model_name, "short_name")
-
-        deleted_record_uuids = Change.objects.filter(
-            action="Delete", status=PUBLISHED_CODE, content_type__model=dest_model_name
-        ).values("model_instance_uuid")
 
         published_identifier_query = expressions.Subquery(
             dest_model.objects.filter(uuid=expressions.OuterRef("uuid"))[:1].values(
@@ -40,9 +35,13 @@ class ChangeChoiceField(ModelChoiceField):
         return (
             Change.objects
             # Only focus on Created drafts, so we can treat the `uuid` as the target model's uuid
-            .filter(action="Create", content_type__model=dest_model_name)
+            .filter(action=CREATE, content_type__model=dest_model_name)
             # Remove any Changes that have been successfully deleted
-            .exclude(uuid__in=deleted_record_uuids)
+            .exclude(
+                uuid__in=Change.objects.of_type(dest_model)
+                .filter(action="Delete", status=PUBLISHED_CODE)
+                .values("model_instance_uuid")
+            )
             # Add identifier from published record (if available) or change.update.short_name
             .annotate(
                 identifier=functions.Coalesce(
@@ -51,13 +50,13 @@ class ChangeChoiceField(ModelChoiceField):
                     output_field=TextField(),
                 )
             )
-            .select_related('content_type')
-            .order_by('identifier')
+            .select_related("content_type")
+            .order_by("identifier")
         )
 
     def prepare_value(self, value):
         if value:
-            if hasattr(value, 'uuid'):
+            if hasattr(value, "uuid"):
                 return value.uuid
             return value
         return super().prepare_value(value)
@@ -69,12 +68,14 @@ class ChangeChoiceField(ModelChoiceField):
         if value in self.empty_values:
             return None
         try:
-            key = self.to_field_name or 'pk'
+            key = self.to_field_name or "pk"
             Change.objects.get(**{key: value})
         except (ValueError, TypeError, self.queryset.model.DoesNotExist):
-            raise ValidationError(self.error_messages['invalid_choice'], code='invalid_choice')
+            raise ValidationError(
+                self.error_messages["invalid_choice"], code="invalid_choice"
+            )
         return self.dest_model(**{key: value})
-    
+
     # def save_form_data(self, instance, data):
     #     setattr(instance, self.name, data)
 
