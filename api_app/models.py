@@ -172,10 +172,11 @@ class ApprovalLog(models.Model):
 
 
 class ChangeQuerySet(models.QuerySet):
-    def filter_by_model(self, *models, **filters):
-        return self.filter(
-            content_type__model__in=[m._meta.model_name for m in models], **filters
-        )
+    def of_type(self, *models):
+        """
+        Limit changes to only those targeted to provided models
+        """
+        return self.filter(content_type__model__in=[m._meta.model_name for m in models])
 
     def add_updated_at(self):
         """
@@ -197,113 +198,37 @@ class ChangeQuerySet(models.QuerySet):
             )
         )
 
-    def annotate_short_names_from_model(self, **kwargs):
-        qs = self
-        for to_attr, (id_field, model) in kwargs.items():
-            uuid_dest_attr = f"{model._meta.model_name}_uuid"
-            qs = qs.annotate(
-                **{
-                    uuid_dest_attr: functions.Cast(
-                        KeyTextTransform(id_field, "update"), models.UUIDField()
-                    ),
-                    to_attr: expressions.Subquery(
-                        # TODO: Right now this only shows the first created short_name, but doesn't reflect updated short_names
-                        Change.objects.filter_by_model(
-                            model,
-                            action=CREATE,
-                            uuid=expressions.OuterRef(uuid_dest_attr),
-                        ).values("update__short_name")[:1]
-                    ),
-                },
-            )
-        return qs
+    def annotate_with_identifier_from_model(
+        self,
+        model: models.Model,
+        to_attr: str,
+        uuid_from: str,
+        identifier="short_name",
+    ):
+        """
+        Annotate records with an identifier obtained from joining on a referenced model.
 
-    def prefetch_short_names_from_model(self, **kwargs):
-        qs = self
-        for to_attr, (id_field, model) in kwargs.items():
-            subquery = (
-                Change.objects.filter(uuid=expressions.OuterRef("uuid"))
-                .annotate(
-                    instruments=functions.Cast(
-                        expressions.Func(
-                            "update__instruments", function="jsonb_array_elements_text"
-                        ),
-                        output_field=ArrayField(models.UUIDField()),
-                    )
-                )
-                .values("instruments")[:1]
-            )
-
-            qs = qs.annotate(
-                instrument_names=expressions.Subquery(
-                    Change.objects.filter(uuid=subquery)[:1],
-                    output_field=ArrayField(TextField()),
-                ),
-            )
-            # qs = qs.annotate(
-            #     instrument_names=expressions.RawSQL(
-            #         """
-            #         WITH cdpi AS (
-            #             SELECT
-            #                 jsonb_array_elements_text(
-            #                     update
-            #                         -> 'instruments'
-            #                 )::uuid as instruments
-            #             FROM
-            #                 api_app_change
-            #             WHERE
-            #                 uuid = %s
-            #         )
-            #         SELECT
-            #             array_agg("update" ->> 'short_name')
-            #         FROM
-            #             api_app_change,
-            #             cdpi
-            #         WHERE
-            #             uuid = cdpi.instruments;
-            #         """,
-            #         [qs.values("uuid")],
-            #     ),
-            # )
-        return qs
-
-    def add_identifier(self, dest_model: models.Model):
-        dest_model_name = dest_model._meta.model_name
-
-        # Field to use for textual description of field
-        identifier_field = {
-            "image": "image",
-        }.get(dest_model_name, "short_name")
-
-        published_identifier_query = expressions.Subquery(
-            dest_model.objects.filter(uuid=expressions.OuterRef("uuid"))[:1].values(
-                identifier_field
-            )
-        )
-
+        model: class of model that contains our desired identifier
+        to_attr: attribute to where identifier will be annotated
+        uuid_from: attribute in the "update" dict of source model that holds the uuid of the model to be joined
+        identifier: attribute in the "update" dict of joined model that holds the identifier
+        """
+        uuid_dest_attr = f"{model._meta.model_name}_uuid"
         return self.annotate(
-            # Add identifier from published record (if available) or change.update.short_name
-            identifier=functions.Coalesce(
-                published_identifier_query,
-                KeyTextTransform(identifier_field, "update"),
-                output_field=TextField(),
-            )
-        )
-
-    def non_removed(self, dest_model: models.Model):
-        """ Return Change objects that have been created but do not have corresponding published delete Change record"""
-        dest_model_name = dest_model._meta.model_name
-
-        deleted_record_uuids = Change.objects.filter(
-            action="Delete", status=PUBLISHED_CODE, content_type__model=dest_model_name
-        ).values("model_instance_uuid")
-
-        return (
-            self
-            # Only focus on Created drafts, so we can treat the `uuid` as the target model's uuid
-            .filter(action="Create", content_type__model=dest_model_name)
-            # Remove any Changes that have been successfully deleted
-            .exclude(uuid__in=deleted_record_uuids)
+            **{
+                uuid_dest_attr: functions.Cast(
+                    KeyTextTransform(uuid_from, "update"), models.UUIDField()
+                ),
+                to_attr: expressions.Subquery(
+                    Change.objects.of_type(model)
+                    .filter(
+                        # NOTE: This only shows the first created short_name, but doesn't reflect updated short_names
+                        action=CREATE,
+                        uuid=expressions.OuterRef(uuid_dest_attr),
+                    )
+                    .values(f"update__{identifier}")[:1]
+                ),
+            },
         )
 
 

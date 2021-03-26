@@ -91,7 +91,8 @@ class ChangeSummaryView(django_tables2.SingleTableView):
 
     def get_queryset(self):
         return (
-            Change.objects.filter_by_model(*self.models, action=CREATE)
+            Change.objects.of_type(*self.models)
+            .filter(action=CREATE)
             # Prefetch related ContentType (used when displaying output model type)
             .select_related("content_type")
             .add_updated_at()
@@ -115,8 +116,8 @@ class ChangeSummaryView(django_tables2.SingleTableView):
 
         # Populate with actual counts
         model_status_counts = (
-            Change.objects.filter_by_model(
-                *self.models,
+            Change.objects.of_type(*self.models)
+            .filter(
                 action=CREATE,
                 status__in=status_ids,
             )
@@ -147,7 +148,7 @@ class ChangeListView(django_tables2.SingleTableView):
     template_name = "api_app/change_list.html"
 
     def get_queryset(self):
-        return Change.objects.filter_by_model(Campaign, action=CREATE).add_updated_at()
+        return Change.objects.of_type(Campaign).filter(action=CREATE).add_updated_at()
 
     def get_context_data(self, **kwargs):
         return {
@@ -161,26 +162,30 @@ class ChangeListView(django_tables2.SingleTableView):
 class ChangeDetailView(DetailView):
     model = Change
     template_name = "api_app/change_detail.html"
-    queryset = Change.objects.filter(content_type__model=Campaign._meta.model_name)
+    queryset = Change.objects.of_type(Campaign)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         deployments = (
-            Change.objects.filter_by_model(
-                Deployment,
+            Change.objects.of_type(Deployment)
+            .filter(
                 update__campaign=str(self.kwargs[self.pk_url_kwarg]),
             )
             .prefetch_approvals()
             .order_by(self.get_ordering())
         )
         collection_periods = (
-            Change.objects.filter_by_model(
-                CollectionPeriod,
+            Change.objects.of_type(CollectionPeriod)
+            .filter(
                 update__deployment__in=[str(d.uuid) for d in deployments],
             )
             .select_related("content_type")
             .prefetch_approvals()
-            .annotate_short_names_from_model(platform_name=("platform", Platform))
+            .annotate_with_identifier_from_model(
+                model=Platform,
+                uuid_from="platform", 
+                to_attr="platform_name", 
+            )
         )
 
         # Build collection periods instruments (too difficult to do in SQL)
@@ -193,12 +198,14 @@ class ChangeDetailView(DetailView):
         )
         instrument_names = {
             str(uuid): short_name
-            for uuid, short_name in Change.objects.filter_by_model(
-                Instrument, uuid__in=instrument_uuids
-            ).values_list("uuid", "update__short_name")
+            for uuid, short_name in Change.objects.of_type(Instrument)
+            .filter(uuid__in=instrument_uuids)
+            .values_list("uuid", "update__short_name")
         }
         for cp in collection_periods:
-            cp.instrument_names = [instrument_names.get(uuid) for uuid in cp.update.get('instruments')]
+            cp.instrument_names = [
+                instrument_names.get(uuid) for uuid in cp.update.get("instruments")
+            ]
 
         return {
             **context,
@@ -207,18 +214,16 @@ class ChangeDetailView(DetailView):
                 change=context["object"], user=self.request.user
             ),
             "significant_events": (
-                Change.objects.filter_by_model(
-                    SignificantEvent,
+                Change.objects.of_type(SignificantEvent)
+                .filter(
                     update__deployment__in=[str(d.uuid) for d in deployments],
                 )
                 .select_related("content_type")
                 .prefetch_approvals()
-                # Add related IOP's short_name if it exists
-                # .annotate_short_names_from_model(iop_name=('iop', IOP))
             ),
             "iops": (
-                Change.objects.filter_by_model(
-                    IOP,
+                Change.objects.of_type(IOP)
+                .filter(
                     update__deployment__in=[str(d.uuid) for d in deployments],
                 )
                 .select_related("content_type")
@@ -328,10 +333,13 @@ class PlatformListView(django_tables2.SingleTableView):
 
     def get_queryset(self):
         return (
-            Change.objects.filter_by_model(Platform, action=CREATE)
+            Change.objects.of_type(Platform)
+            .filter(action=CREATE)
             .add_updated_at()
-            .annotate_short_names_from_model(
-                platform_type_name=("platform_type", PlatformType)
+            .annotate_with_identifier_from_model(
+                model=PlatformType,
+                uuid_from="platform_type",
+                to_attr="platform_type_name",
             )
         )
 
@@ -350,9 +358,7 @@ class InstrumentListView(django_tables2.SingleTableView):
     template_name = "api_app/change_list.html"
 
     def get_queryset(self):
-        return Change.objects.filter_by_model(
-            Instrument, action=CREATE
-        ).add_updated_at()
+        return Change.objects.of_type(Instrument).filter(action=CREATE).add_updated_at()
 
     def get_context_data(self, **kwargs):
         return {
@@ -369,9 +375,7 @@ class PartnerOrgListView(django_tables2.SingleTableView):
     template_name = "api_app/change_list.html"
 
     def get_queryset(self):
-        return Change.objects.filter_by_model(
-            PartnerOrg, action=CREATE
-        ).add_updated_at()
+        return Change.objects.of_type(PartnerOrg).filter(action=CREATE).add_updated_at()
 
     def get_context_data(self, **kwargs):
         return {
