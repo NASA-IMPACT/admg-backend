@@ -227,14 +227,7 @@ class ChangeDetailView(DetailView):
                     update__deployment__in=[str(d.uuid) for d in deployments],
                 )
                 .select_related("content_type")
-                .prefetch_related(
-                    models.Prefetch(
-                        "approvallog_set",
-                        queryset=ApprovalLog.objects.order_by("-date").select_related(
-                            "user"
-                        ),
-                    )
-                )
+                .prefetch_approvals()
             ),
             "collection_periods": collection_periods,
         }
@@ -336,11 +329,11 @@ class PlatformListView(django_tables2.SingleTableView):
             Change.objects.of_type(Platform)
             .filter(action=CREATE)
             .add_updated_at()
-            .annotate_with_identifier_from_model(
-                model=PlatformType,
-                uuid_from="platform_type",
-                to_attr="platform_type_name",
-            )
+        .annotate_with_identifier_from_model(
+            model=PlatformType,
+            uuid_from="platform_type",
+            to_attr="platform_type_name",
+        )
         )
 
     def get_context_data(self, **kwargs):
