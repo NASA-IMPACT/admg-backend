@@ -209,9 +209,15 @@ class ChangeQuerySet(models.QuerySet):
         return self.annotate(
             **{
                 uuid_dest_attr: functions.Cast(
-                    KeyTextTransform(uuid_from, "update"), models.UUIDField()
+                    functions.Coalesce(
+                        functions.NullIf(
+                            KeyTextTransform(uuid_from, "update"), expressions.Value("")
+                        ),
+                        expressions.Value("00000000-0000-0000-0000-000000000000"), # Dummy uuid if uuid isn't present in update
+                    ),
+                    output_field=models.UUIDField(),
                 ),
-                to_attr: expressions.Subquery(
+                to_attr: models.Subquery(
                     Change.objects.of_type(model)
                     .filter(
                         # NOTE: This only shows the first created short_name, but doesn't reflect updated short_names
