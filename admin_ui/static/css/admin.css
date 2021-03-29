@@ -29,9 +29,13 @@ td a {
 .campaign-summary li.list-group-item {
   padding-bottom: 0;
 }
-.campaign-summary .list-group-item-primary {
+.campaign-summary .list-group-item-primary, .campaign-summary .list-group-item-primary:hover {
   color: inherit;
 }
+.campaign-summary .list-group-item-primary .row, .campaign-summary .list-group-item-primary .col {
+  border-color: #6c757d !important;
+}
+
 .campaign-summary .list-group dt {
   font-size: 80%;
   text-transform: uppercase;

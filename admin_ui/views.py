@@ -23,6 +23,8 @@ from django.views.generic.edit import (
     ProcessFormView,
 )
 import django_tables2
+from django_tables2.views import SingleTableMixin
+from django_filters.views import FilterView
 import requests
 
 from api_app.models import (
@@ -46,7 +48,7 @@ from data_models.models import (
     IOP,
     SignificantEvent,
 )
-from . import tables, forms, mixins
+from . import tables, forms, mixins, filters
 
 
 @login_required
@@ -142,10 +144,11 @@ class ChangeSummaryView(django_tables2.SingleTableView):
 
 
 @method_decorator(login_required, name="dispatch")
-class ChangeListView(django_tables2.SingleTableView):
+class ChangeListView(SingleTableMixin, FilterView):
     model = Change
-    table_class = tables.CampaignChangeListTable
     template_name = "api_app/change_list.html"
+    table_class = tables.CampaignChangeListTable
+    filterset_class = filters.ChangeStatusFilter
 
     def get_queryset(self):
         return Change.objects.of_type(Campaign).filter(action=CREATE).add_updated_at()
@@ -238,7 +241,6 @@ class ChangeDetailView(DetailView):
 
 @method_decorator(login_required, name="dispatch")
 class ChangeCreateView(mixins.ChangeModelFormMixin, CreateView):
-
     model = Change
     fields = ["content_type", "model_instance_uuid", "action", "update"]
     template_name = "api_app/change_add_form.html"
@@ -286,12 +288,11 @@ class ChangeCreateView(mixins.ChangeModelFormMixin, CreateView):
 @method_decorator(login_required, name="dispatch")
 class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
     fields = ["content_type", "model_instance_uuid", "action", "update", "status"]
-
     prefix = "change"
     template_name = "api_app/change_form.html"
 
     def get_success_url(self):
-        return reverse('change-form', args=[self.object.pk])
+        return reverse("change-form", args=[self.object.pk])
         # return reverse('summary')
 
     def get_queryset(self):
@@ -322,10 +323,11 @@ class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
 
 
 @method_decorator(login_required, name="dispatch")
-class PlatformListView(django_tables2.SingleTableView):
+class PlatformListView(SingleTableMixin, FilterView):
     model = Change
-    table_class = tables.PlatformChangeListTable
     template_name = "api_app/change_list.html"
+    table_class = tables.PlatformChangeListTable
+    filterset_class = filters.ChangeStatusFilter
 
     def get_queryset(self):
         return (
@@ -348,10 +350,11 @@ class PlatformListView(django_tables2.SingleTableView):
 
 
 @method_decorator(login_required, name="dispatch")
-class InstrumentListView(django_tables2.SingleTableView):
+class InstrumentListView(SingleTableMixin, FilterView):
     model = Change
-    table_class = tables.BasicChangeListTable
     template_name = "api_app/change_list.html"
+    table_class = tables.BasicChangeListTable
+    filterset_class = filters.ChangeStatusFilter
 
     def get_queryset(self):
         return Change.objects.of_type(Instrument).filter(action=CREATE).add_updated_at()
@@ -365,10 +368,11 @@ class InstrumentListView(django_tables2.SingleTableView):
 
 
 @method_decorator(login_required, name="dispatch")
-class PartnerOrgListView(django_tables2.SingleTableView):
+class PartnerOrgListView(SingleTableMixin, FilterView):
     model = Change
-    table_class = tables.BasicChangeListTable
     template_name = "api_app/change_list.html"
+    table_class = tables.BasicChangeListTable
+    filterset_class = filters.ChangeStatusFilter
 
     def get_queryset(self):
         return Change.objects.of_type(PartnerOrg).filter(action=CREATE).add_updated_at()
