@@ -165,6 +165,7 @@ class ChangeDetailView(DetailView):
     queryset = Change.objects.of_type(Campaign)
 
     def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
         deployments = (
             Change.objects.of_type(Deployment)
             .filter(
@@ -207,7 +208,7 @@ class ChangeDetailView(DetailView):
             )
 
         return {
-            **super().get_context_data(**kwargs),
+            **context,
             "deployments": deployments,
             "transition_form": forms.TransitionForm(
                 change=context["object"], user=self.request.user
