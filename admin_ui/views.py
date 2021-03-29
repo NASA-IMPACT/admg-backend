@@ -340,10 +340,12 @@ class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
 
 
 @method_decorator(login_required, name="dispatch")
-class PlatformListView(django_tables2.SingleTableView):
+class PlatformListView(SingleTableMixin, FilterView):
     model = Change
     table_class = tables.PlatformChangeListTable
     template_name = "api_app/change_list.html"
+
+    filterset_class = ChangeStatusFilter
 
     def get_queryset(self):
         return (
@@ -372,10 +374,12 @@ class PlatformListView(django_tables2.SingleTableView):
 
 
 @method_decorator(login_required, name="dispatch")
-class InstrumentListView(django_tables2.SingleTableView):
+class InstrumentListView(SingleTableMixin, FilterView):
     model = Change
     table_class = tables.BasicChangeListTable
     template_name = "api_app/change_list.html"
+
+    filterset_class = ChangeStatusFilter
 
     def get_queryset(self):
         return Change.objects.filter(
@@ -391,10 +395,12 @@ class InstrumentListView(django_tables2.SingleTableView):
 
 
 @method_decorator(login_required, name="dispatch")
-class PartnerOrgListView(django_tables2.SingleTableView):
+class PartnerOrgListView(SingleTableMixin, FilterView):
     model = Change
     table_class = tables.BasicChangeListTable
     template_name = "api_app/change_list.html"
+
+    filterset_class = ChangeStatusFilter
 
     def get_queryset(self):
         return Change.objects.filter(

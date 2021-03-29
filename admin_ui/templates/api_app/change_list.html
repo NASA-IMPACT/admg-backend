@@ -22,6 +22,7 @@
       <form action="" method="get" class="form form-inline">
           {{ filter.form | crispy }}
           <button class="btn btn-dark btn-sm">Filter</button>
+          <a class="btn btn-light btn-sm" href="{% url 'change-list' %}">Clear filters</a>
       </form>
     {% endif %}
     {% render_table table %}
