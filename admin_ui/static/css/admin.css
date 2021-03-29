@@ -36,12 +36,12 @@ td a {
   border-color: #6c757d !important;
 }
 
-.campaign-summary .list-group dt {
+.campaign-summary dt {
   font-size: 80%;
   text-transform: uppercase;
   color: #6c757d;
 }
-.campaign-summary .list-group dd {
+.campaign-summary dd {
   margin-bottom: 1em;
 }
 .campaign-summary .caret {
