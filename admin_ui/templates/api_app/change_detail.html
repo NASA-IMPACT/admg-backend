@@ -4,7 +4,7 @@
 {% load humanize %}
 
 {% block page %}
-<header class="mx-3 my-3 py-2 sticky-top bg-white border-bottom">
+<header class="mx-3 my-3 py-2 sticky-top bg-white border-bottom campaign-summary">
     <div class="row">
         <div class="col">
             <a href="{% url 'change-list' %}">&larr; Back</a>
@@ -13,19 +13,29 @@
     </div>
 
     <div class="row">
-        <div class="col-sm-2">
-            <h6>STATUS</h6>
-            <p>{{ object.get_status_display }}</p>
-        </div>
-
-        <div class="col-sm-2">
-            <h6>ITEM TYPE</h6>
-            <p>{{ object.model_name }} </p>
-        </div>
-
-        <div class="col-sm-2">
-            <h6>ACTION</h6>
-            <p>{{ object.action }}</p>
+        <div class="col">
+            <dl class="row">
+                <div class="col">
+                    <dt>Status</dt>
+                    <dd>
+                        <span title="Status">{{ object.get_status_display }}</span>
+                    </dd>
+                </div>
+                
+                <div class="col">
+                    <dt>Item Type</dt>
+                    <dd>
+                        <span title="Item Type">{{ object.model_name }}</span>
+                    </dd>
+                </div>
+                    
+                <div class="col">
+                    <dt>Action</dt>
+                    <dd>
+                        <span title="Action">{{ object.action }}</span>
+                    </dd>
+                </div>
+            </dl>
         </div>
 
         <div class="col d-flex flex-row-reverse">
@@ -54,10 +64,19 @@
 
 <main class="row mx-3 my-5 campaign-summary">
     <div class="col pl-0">
-        <ul class="list-group">
-            <li class="list-group-item d-flex pb-2 justify-content-between align-items-center">
-                <h4 class="mb-0">Deployments</h4>
-                <a class="btn btn-primary" href="{% url 'change-add' 'deployment' %}?campaign={{ object.uuid }}">+</a>
+        <ul class="list-group" id="deployments-list">
+            <li class="list-group-item d-flex pb-2">
+                <h4>
+                    Deployments
+                </h4>
+
+                <div class="h5 align-self-center">
+                    <span class="badge badge-primary badge-pill ml-2" id="deployments-badge"></span>
+                </div>
+                
+                <div class="ml-auto">
+                    <a class="btn btn-primary" href="{% url 'change-add' 'deployment' %}?campaign={{ object.uuid }}">+</a>
+                </div>
             </li>
             {% for deployment in deployments %}
             <li class="list-group-item list-group-item-action justify-content-between deployment cursor-pointer show-caret"
@@ -190,7 +209,8 @@
 {% block javascript %}
 {{ block.super }}
 <script>
-    $(".deployment").click(function () {
+    $('#deployments-badge').text($('#deployments-list li').length - 1)
+    $('.deployment').click(function () {
         // Mark as active
         $('.deployment').removeClass('list-group-item-primary');
         $(this).addClass('list-group-item-primary');
