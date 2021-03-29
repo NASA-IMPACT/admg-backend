@@ -23,6 +23,8 @@ from django.views.generic.edit import (
     ProcessFormView,
 )
 import django_tables2
+from django_tables2.views import SingleTableMixin
+from django_filters.views import FilterView
 import requests
 
 from api_app.models import (
@@ -35,6 +37,7 @@ from api_app.models import (
     PUBLISHED_CODE,
     AVAILABLE_STATUSES,
 )
+from admin_ui.filters import ChangeStatusFilter
 from data_models.models import Campaign, Instrument, Platform, PlatformType, PartnerOrg
 from . import tables, forms, mixins
 
@@ -132,15 +135,17 @@ class ChangeSummaryView(django_tables2.SingleTableView):
             "draft_status_counts": self.get_draft_status_count(),
             "activity_list": ApprovalLog.objects.prefetch_related(
                 "change__content_type", "user"
-            ).order_by("-date")[:self.paginate_by / 2],
+            ).order_by("-date")[: self.paginate_by / 2],
         }
 
 
 @method_decorator(login_required, name="dispatch")
-class ChangeListView(django_tables2.SingleTableView):
+class ChangeListView(SingleTableMixin, FilterView):
     model = Change
     table_class = tables.CampaignChangeListTable
     template_name = "api_app/change_list.html"
+
+    filterset_class = ChangeStatusFilter
 
     def get_queryset(self):
         return (
@@ -335,10 +340,12 @@ class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
 
 
 @method_decorator(login_required, name="dispatch")
-class PlatformListView(django_tables2.SingleTableView):
+class PlatformListView(SingleTableMixin, FilterView):
     model = Change
     table_class = tables.PlatformChangeListTable
     template_name = "api_app/change_list.html"
+
+    filterset_class = ChangeStatusFilter
 
     def get_queryset(self):
         return (
@@ -367,10 +374,12 @@ class PlatformListView(django_tables2.SingleTableView):
 
 
 @method_decorator(login_required, name="dispatch")
-class InstrumentListView(django_tables2.SingleTableView):
+class InstrumentListView(SingleTableMixin, FilterView):
     model = Change
     table_class = tables.BasicChangeListTable
     template_name = "api_app/change_list.html"
+
+    filterset_class = ChangeStatusFilter
 
     def get_queryset(self):
         return Change.objects.filter(
@@ -386,10 +395,12 @@ class InstrumentListView(django_tables2.SingleTableView):
 
 
 @method_decorator(login_required, name="dispatch")
-class PartnerOrgListView(django_tables2.SingleTableView):
+class PartnerOrgListView(SingleTableMixin, FilterView):
     model = Change
     table_class = tables.BasicChangeListTable
     template_name = "api_app/change_list.html"
+
+    filterset_class = ChangeStatusFilter
 
     def get_queryset(self):
         return Change.objects.filter(
