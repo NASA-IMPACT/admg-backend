@@ -1,6 +1,6 @@
 from django.core.exceptions import ValidationError
 from django.db.models.fields.related import ForeignKey
-from django.db.models import functions, expressions, aggregates, Max, TextField
+from django.db.models import functions, expressions, Max, TextField
 from django.db.models.fields.json import KeyTextTransform
 from django.forms import ModelChoiceField
 
@@ -70,42 +70,8 @@ class ChangeChoiceField(ModelChoiceField):
         try:
             key = self.to_field_name or "pk"
             Change.objects.get(**{key: value})
-        except (ValueError, TypeError, self.queryset.model.DoesNotExist):
+        except (ValueError, TypeError, self.queryset.model.DoesNotExist) as e:
             raise ValidationError(
                 self.error_messages["invalid_choice"], code="invalid_choice"
-            )
+            ) from e
         return self.dest_model(**{key: value})
-
-    # def save_form_data(self, instance, data):
-    #     setattr(instance, self.name, data)
-
-    # def _post_clean(self):
-    #     return
-    #     opts = self._meta
-
-    #     exclude = self._get_validation_exclusions()
-
-    #     # Foreign Keys being used to represent inline relationships
-    #     # are excluded from basic field value validation. This is for two
-    #     # reasons: firstly, the value may not be supplied (#12507; the
-    #     # case of providing new values to the admin); secondly the
-    #     # object being referred to may not yet fully exist (#12749).
-    #     # However, these fields *must* be included in uniqueness checks,
-    #     # so this can't be part of _get_validation_exclusions().
-    #     for name, field in self.fields.items():
-    #         if isinstance(field, InlineForeignKeyField):
-    #             exclude.append(name)
-
-    #     try:
-    #         self.instance = construct_instance(self, self.instance, opts.fields, opts.exclude)
-    #     except ValidationError as e:
-    #         self._update_errors(e)
-
-    #     try:
-    #         self.instance.full_clean(exclude=exclude, validate_unique=False)
-    #     except ValidationError as e:
-    #         self._update_errors(e)
-
-    #     # Validate uniqueness if needed.
-    #     if self._validate_unique:
-    #         self.validate_unique()
