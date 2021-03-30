@@ -16,9 +16,9 @@ class ChangeChoiceField(ModelChoiceField):
         super().__init__(*args, **kwargs)
         self.dest_model = dest_model
 
-    # TODO: Instances fail validation, customize to make message clear that the value simply isn't published yet
     @staticmethod
     def get_queryset_for_model(dest_model):
+        """ Helper to get QS of valid choices """
         dest_model_name = dest_model._meta.model_name
 
         # Field to use for textual description of field
@@ -54,17 +54,17 @@ class ChangeChoiceField(ModelChoiceField):
             .order_by("identifier")
         )
 
-    def prepare_value(self, value):
-        if value:
-            if hasattr(value, "uuid"):
-                return value.uuid
-            return value
-        return super().prepare_value(value)
-
     def label_from_instance(self, obj):
+        """
+        Override label to use the 'identifier' annotation we add to the queryset
+        """
         return obj.identifier
 
     def to_python(self, value):
+        """
+        Override the lookup for the models to perform a lookup in the Change model
+        table rather than the destination model.
+        """
         if value in self.empty_values:
             return None
         try:
