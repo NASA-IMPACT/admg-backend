@@ -14,17 +14,17 @@
   </div>
   <div class="col-auto px-0">
     <button class="btn btn-primary" form="model-form" formnovalidate>Save</button>
-    <button class="btn btn-secondary" form="model-form">Validate & Save</button>
+    <button class="btn btn-secondary" form="model-form" name="_validate">Validate</button>
   </div>
 </header>
 
 <main class="mx-3 my-5">
+  {{ form.errors }}
   <form id="model-form" method="post">
     {% csrf_token %}
     {{ model_form | crispy }}
     {% for field in form %} {{ field.as_hidden }} {% endfor %}
   </form>
-  {{ form.errors }}
 </main>
 {% endblock %}
 

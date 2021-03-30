@@ -1,13 +1,29 @@
 import json
+from functools import partial
 
 from django.contrib import messages
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.gis.geos import Polygon
 from django.db import models
+from django.db.models.fields.related import ForeignKey
 from django.db.models.query import QuerySet
 from django.forms import modelform_factory
 from django.views.generic.edit import ModelFormMixin
 from rest_framework.renderers import JSONRenderer
+
+from api_app.models import Change
+from .fields import ChangeChoiceField
+
+
+def formfield_callback(f, **kwargs):
+    # Use ChangeChoiceField for any ForeignKey field in the model class
+    if isinstance(f, ForeignKey):
+        kwargs = {
+            **kwargs,
+            "form_class": partial(ChangeChoiceField, dest_model=f.remote_field.model),
+            "queryset": ChangeChoiceField.get_queryset_for_model(f.remote_field.model),
+        }
+    return f.formfield(**kwargs)
 
 
 class ChangeModelFormMixin(ModelFormMixin):
@@ -22,7 +38,9 @@ class ChangeModelFormMixin(ModelFormMixin):
     def destination_model_form(self):
         """ Helper to return a form for the destination of the Draft object """
         return modelform_factory(
-            self.get_model_form_content_type().model_class(), exclude=[]
+            self.get_model_form_content_type().model_class(),
+            exclude=[],
+            formfield_callback=formfield_callback,
         )
 
     def get_model_form_content_type(self) -> ContentType:
@@ -53,27 +71,38 @@ class ChangeModelFormMixin(ModelFormMixin):
         )
         model_form.full_clean()
 
-        if not form.is_valid():
+        validate_model_form = "_validate" in request.POST
+        if not form.is_valid() or (validate_model_form and not model_form.is_valid()):
             return self.form_invalid(form=form, model_form=model_form)
 
         # Populate Change's form with values from destination model's form
-        form.instance.update = json.loads(
-            JSONRenderer().render(
-                {k: serialize(v) for k, v in model_form.cleaned_data.items()}
+        form.instance.update = {
+            name: field.widget.value_from_datadict(
+                model_form.data, model_form.files, model_form.add_prefix(name)
             )
-        )
+            for name, field in model_form.fields.items()
+        }
         return self.form_valid(form, model_form)
 
     def form_valid(self, form, model_form):
-        # Save object
-        messages.success(self.request, "Successfully updated form.")
-        return super().form_valid(form)
+        # Important to run super first to set self.object
+        redirect = super().form_valid(form)
+
+        if "_validate" in self.request.POST:
+            messages.success(self.request, 'Successfully validated "%s".' % self.object)
+            return self.render_to_response(
+                self.get_context_data(form=form, model_form=model_form)
+            )
+
+        messages.success(self.request, 'Successfully saved "%s".' % self.object)
+        return redirect
 
     def form_invalid(self, form, model_form):
         # TODO: Can't save SignificantEvent instances
         # Overriden to support handling both invalid Change form and an invalid
         # destination model form
-        messages.error(self.request, "Unable to save.")
+        if not form.is_valid():
+            messages.error(self.request, "Unable to save.")
         return self.render_to_response(
             self.get_context_data(form=form, model_form=model_form)
         )

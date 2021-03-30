@@ -287,10 +287,12 @@ class ChangeCreateView(mixins.ChangeModelFormMixin, CreateView):
 
 @method_decorator(login_required, name="dispatch")
 class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
-    success_url = "/"
     fields = ["content_type", "model_instance_uuid", "action", "update", "status"]
     prefix = "change"
     template_name = "api_app/change_form.html"
+
+    def get_success_url(self):
+        return reverse("change-form", args=[self.object.pk])
 
     def get_queryset(self):
         # Prefetch content type for performance
