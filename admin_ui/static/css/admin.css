@@ -35,7 +35,10 @@ td a {
 .campaign-summary .list-group-item-primary .row, .campaign-summary .list-group-item-primary .col {
   border-color: #6c757d !important;
 }
-
+.campaign-summary .list-group-item-primary {
+  padding-left: 15px; /* 21 - border-width */
+  border-left: 6px solid;
+}
 .campaign-summary dt {
   font-size: 80%;
   text-transform: uppercase;

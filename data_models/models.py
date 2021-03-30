@@ -13,15 +13,15 @@ from django.db import models
 FRONTEND_URL = "https://airborne-inventory.surge.sh/"
 
 
-def fetch_related_distinct_data(queryset, related_data_string):
-    """Fetches related data from a given object using the related data string
+def select_related_distinct_data(queryset, related_data_string):
+    """Selects related data from a given object using the related data string
 
     Args:
         queryset (QuerySet): A queryset of related objects. E.g. my_campaign.deployments
         related_data_string (str): Django-formatted string of related data. E.g. instrument__uuid
     """
 
-    return queryset.fetch_related().values_list(related_data_string, flat=True).distinct()
+    return queryset.select_related().values_list(related_data_string, flat=True).distinct()
 
 
 class BaseModel(models.Model):
@@ -49,7 +49,7 @@ class Image(BaseModel):
     source_url = models.TextField(blank=True, default='')
 
     def __str__(self):
-        return self.image.name
+        return self.description or self.image.name
 
 
 class LimitedInfo(BaseModel):
@@ -67,6 +67,19 @@ class PlatformType(LimitedInfo):
 
     gcmd_uuid = models.UUIDField(null=True, blank=True)
     example = models.CharField(max_length=1024, blank=True, default='')
+
+    @property
+    def patriarch(self):
+        """Returns the highest level parent in the platform_type hierarchy
+
+        Returns:
+            [str]: short name of the highest level parent
+        """
+
+        if self.parent:
+            return self.parent.patriarch
+        else:
+            return self.short_name
 
 
 class MeasurementType(LimitedInfo):
@@ -271,11 +284,11 @@ class Campaign(DataModel):
 
     @property
     def significant_events(self):
-        return fetch_related_distinct_data(self.deployments, 'significant_events__uuid')
+        return select_related_distinct_data(self.deployments, 'significant_events__uuid')
 
     @property
     def iops(self):
-        return fetch_related_distinct_data(self.deployments, 'iops__uuid')
+        return select_related_distinct_data(self.deployments, 'iops__uuid')
 
     @property
     def number_deployments(self):
@@ -283,11 +296,11 @@ class Campaign(DataModel):
 
     @property
     def instruments(self):
-        return fetch_related_distinct_data(self.deployments, 'collection_periods__instruments__uuid')
+        return select_related_distinct_data(self.deployments, 'collection_periods__instruments__uuid')
 
     @property
     def platforms(self):
-        return fetch_related_distinct_data(self.deployments, 'collection_periods__platform__uuid')
+        return select_related_distinct_data(self.deployments, 'collection_periods__platform__uuid')
 
     @staticmethod
     def search_fields():
@@ -314,14 +327,45 @@ class Platform(DataModel):
     stationary = models.BooleanField()
 
     gcmd_platforms = models.ManyToManyField(GcmdPlatform, related_name='platforms', default='', blank=True)
+  
+    @property
+    def search_category(self):
+        """Returns a custom defined search category based on the platform_type's
+        highest level parent (patriarch) and the platform's stationary field.
+
+        Returns:
+            search_category [str]: One of 6 search categories 
+        """
+
+        patriarch = self.platform_type.patriarch
+
+        if patriarch == 'Air Platforms':
+            category = 'Aircraft'
+
+        elif patriarch == 'Water Platforms':
+            category = 'Water-based platforms'
+
+        elif patriarch == 'Land Platforms':
+            if self.stationary:
+                category = 'Stationary land sites'
+            else:
+                category = 'Mobile land-based platforms'
+
+        elif patriarch in ['Satellites', 'Manned Spacecraft']:
+            category = 'Spaceborne'
+
+        else:
+            category = 'Special Cases'
+        
+        return category
 
     @property
     def campaigns(self):
-        return fetch_related_distinct_data(self.collection_periods, 'deployment__campaign__uuid')
+        return select_related_distinct_data(self.collection_periods, 'deployment__campaign__uuid')
 
     @property
     def instruments(self):
-        return fetch_related_distinct_data(self.collection_periods, 'instruments')
+        return select_related_distinct_data(self.collection_periods, 'instruments')
 
     @staticmethod
     def search_fields():
@@ -364,11 +408,11 @@ class Instrument(DataModel):
 
     @property
     def campaigns(self):
-        return fetch_related_distinct_data(self.collection_periods, 'deployment__campaign__uuid')
+        return select_related_distinct_data(self.collection_periods, 'deployment__campaign__uuid')
 
     @property
     def platforms(self):
-        return fetch_related_distinct_data(self.collection_periods, 'platform__uuid')
+        return select_related_distinct_data(self.collection_periods, 'platform__uuid')
 
     def get_absolute_url(self):
         return urllib.parse.urljoin(FRONTEND_URL, f"/instrument/{self.uuid}/")
@@ -399,7 +443,7 @@ class Deployment(DataModel):
 
     @property
     def platforms(self):
-        return fetch_related_distinct_data(self.collection_periods, 'platform__uuid')
+        return select_related_distinct_data(self.collection_periods, 'platform__uuid')
 
 
 class IopSe(BaseModel):

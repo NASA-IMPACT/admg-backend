@@ -86,6 +86,7 @@ class PlatformTypeSerializer(BaseSerializer):
     platforms = serializers.SerializerMethodField(read_only=True)
     campaigns = serializers.SerializerMethodField(read_only=True)
     sub_types = serializers.SerializerMethodField(read_only=True)
+    patriarch = serializers.CharField(read_only=True)
 
     def get_platforms(self, obj):
         return get_uuids(obj.platforms)
@@ -342,6 +343,7 @@ class PlatformSerializer(GetAliasSerializer, GetDoiSerializer):
     collection_periods = serializers.SerializerMethodField(read_only=True)
     instruments = serializers.ListField(read_only=True)
     campaigns = serializers.ListField(read_only=True)
+    search_category = serializers.CharField(read_only=True)
 
     def get_collection_periods(self, obj):
         return get_uuids(obj.collection_periods)
@@ -411,8 +413,7 @@ class CampaignSerializer(GetAliasSerializer, GetDoiSerializer):
     number_deployments = serializers.IntegerField(read_only=True)
     instruments = serializers.ListField(read_only=True)
     platforms = serializers.ListField(read_only=True)
-
-    websites = CampaignWebsiteReadSerializer(source="campaignwebsite_set", many=True)
+    websites = CampaignWebsiteReadSerializer(source="campaignwebsite_set", many=True, required=False)
 
     def get_deployments(self, obj):
         return get_uuids(obj.deployments)
