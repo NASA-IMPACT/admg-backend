@@ -63,7 +63,7 @@ class LimitedInfo(BaseModel):
 
 
 class LimitedInfoPriority(LimitedInfo):
-    priority = models.PositiveIntegerField(unique=True, blank=True, null=True)
+    order_priority = models.PositiveIntegerField(unique=True, blank=True, null=True)
 
     class Meta:
         abstract = True
@@ -293,12 +293,12 @@ class Campaign(DataModel):
         websites = []
         for website in self.websites.all():
             website_types = [website_type.long_name for website_type in website.website_types.all()]
-            priority = self.campaign_websites.get(campaign=self.uuid, website=website).priority
+            priority = self.campaign_websites.get(campaign=self.uuid, website=website).order_priority
             websites.append({
                 'title': website.title,
                 'url': website.url,
                 'website_types': website_types,
-                'priority': priority
+                'order_priority': order_priority
             })
         return websites
 

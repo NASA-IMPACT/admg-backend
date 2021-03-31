@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## 0.1.12 - 2021.03.31
 
 - `/api/campaign` has a new field `website_details` which returns a list of dicts with website information, including priority
-- all limited tables now have a field `priority` which can optionally be used to order them for display on CASIE
+- all limited tables now have a field `order_priority` which can optionally be used to order them for display on CASIE
 
 ## 0.1.11 - 2021.03.19
 
