@@ -14,8 +14,7 @@
     <div class="col">
       {% if object.model_name == "Campaign" %}
         <a href="{% url 'change-detail' object.uuid %}">&larr; Back</a>
-      {% elif object.model_name == "Deployment" and object.update.campaign %}
-      {% comment %} Repeat this for IOP, SE and CDPI {% endcomment %}
+      {% elif object.model_name in campaign_subitems and object.update.campaign %}
         <a href="{% url 'change-detail' object.update.campaign %}">&larr; Back</a>
       {% elif object.model_name == "Platform" %}
         <a href="{% url 'platform-list' %}">&larr; Back</a>
