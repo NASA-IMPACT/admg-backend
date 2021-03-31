@@ -293,7 +293,7 @@ class Campaign(DataModel):
         websites = []
         for website in self.websites.all():
             website_types = [website_type.long_name for website_type in website.website_types.all()]
-            priority = self.campaign_websites.get(campaign=self.uuid, website=website).order_priority
+            order_priority = self.campaign_websites.get(campaign=self.uuid, website=website).order_priority
             websites.append({
                 'title': website.title,
                 'url': website.url,
@@ -554,11 +554,11 @@ class DOI(BaseModel):
 class CampaignWebsite(BaseModel):
     campaign = models.ForeignKey("Campaign", on_delete=models.CASCADE, related_name='campaign_websites')
     website = models.ForeignKey("Website", on_delete=models.CASCADE, related_name='campaign_websites')
-    priority = models.PositiveIntegerField()
+    order_priority = models.PositiveIntegerField()
 
 
     def __str__(self):
         return f"{self.campaign} has {self.website}"
 
     class Meta:
-        unique_together = [("campaign", "website"), ("campaign", "priority")]
+        unique_together = [("campaign", "website"), ("campaign", "order_priority")]
