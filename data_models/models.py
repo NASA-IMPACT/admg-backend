@@ -501,7 +501,7 @@ class CollectionPeriod(BaseModel):
 
 class DOI(BaseModel):
     concept_id = models.CharField(max_length=512, unique=True)
-    doi = models.CharField(max_length=512, blank=True, default='')
+    doi = models.CharField(max_length=512, null=True, blank=True, default='')
     long_name = models.TextField(blank=True, default='')
 
     cmr_short_name = models.CharField(max_length=512, blank=True, default='')
