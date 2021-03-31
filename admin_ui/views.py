@@ -379,15 +379,16 @@ class PartnerOrgListView(SingleTableMixin, FilterView):
 # TODO only viewable if is_admin
 class LimitedFieldGCMDListView(SingleTableMixin, FilterView):
     model = Change
+    item_types = [GcmdInstrument, GcmdPhenomena, GcmdPlatform, GcmdProject]
+
     template_name = "api_app/change_list.html"
     table_class = tables.MultiItemListTable
     filterset_class = filters.ChangeStatusFilter
 
     def get_queryset(self):
+
         return (
-            Change.objects.of_type(
-                GcmdInstrument, GcmdPhenomena, GcmdPlatform, GcmdProject
-            )
+            Change.objects.of_type(*self.item_types)
             .filter(action=CREATE)
             .add_updated_at()
         )
@@ -397,6 +398,8 @@ class LimitedFieldGCMDListView(SingleTableMixin, FilterView):
             **super().get_context_data(**kwargs),
             "display_name": "GCMD Items",
             "model": PartnerOrg._meta.model_name,
+            "item_types": [m._meta.model_name for m in self.item_types],
+            "is_multi_listview": True,
         }
 
 

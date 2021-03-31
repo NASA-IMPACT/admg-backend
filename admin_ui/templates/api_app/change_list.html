@@ -10,21 +10,32 @@
     <h1>{{ display_name }} Drafts</h1>
   </div>
   <div class="col-auto px-0">
-  {% comment %} TODO this will get more complicated (dropdown) {% endcomment %}
+    {% if is_multi_listview %}
+      <button class="btn btn-dark dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true"
+        aria-expanded="false">Add New Item +</button>
+      <div class="dropdown-menu">
+        <form>
+          {% for item in item_types %}
+          <button class="btn btn-secondary" href="{% url 'change-add' item %}">{{ item }}</button>
+          {% endfor %}
+        </form>
+      </div>
+    {% else %}
     <a class="btn btn-dark" href="{% url 'change-add' model %}">
       Add New {{ display_name }} +
     </a>
+    {% endif %}
   </div>
 </header>
 
 <main class="row mx-3 my-5">
   <div class="w-100">
     {% if filter %}
-      <form action="" method="get" class="form form-inline">
-          {{ filter.form | crispy }}
-          <button class="btn btn-dark btn-sm">Filter</button>
-          <a class="btn btn-light btn-sm" href="{% url 'change-list' %}">Clear filters</a>
-      </form>
+    <form action="" method="get" class="form form-inline">
+      {{ filter.form | crispy }}
+      <button class="btn btn-dark btn-sm">Filter</button>
+      <a class="btn btn-light btn-sm" href="{% url 'change-list' %}">Clear filters</a>
+    </form>
     {% endif %}
     {% render_table table %}
   </div>
