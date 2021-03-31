@@ -16,7 +16,7 @@
       <div class="dropdown-menu">
         <form>
           {% for item in item_types %}
-          <button class="btn btn-secondary" href="{% url 'change-add' item %}">{{ item }}</button>
+          <button class="btn btn-light"><a href="{% url 'change-add' item %}">{{ item }}</a></button>
           {% endfor %}
         </form>
       </div>
