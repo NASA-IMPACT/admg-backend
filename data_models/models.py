@@ -63,7 +63,7 @@ class LimitedInfo(BaseModel):
 
 
 class LimitedInfoPriority(LimitedInfo):
-    priority = models.PositiveIntegerField(unique=True)
+    priority = models.PositiveIntegerField(unique=True, blank=True, null=True)
 
     class Meta:
         abstract = True
