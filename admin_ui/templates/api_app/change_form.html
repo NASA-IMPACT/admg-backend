@@ -12,7 +12,20 @@
 <header class="mx-3 my-3 py-2 sticky-top bg-white border-bottom">
   <div class="row">
     <div class="col">
-      <a href="{% url 'change-list' %}">&larr; Back</a>
+      {% if object.model_name == "Campaign" %}
+        <a href="{% url 'change-detail' object.uuid %}">&larr; Back</a>
+      {% elif object.model_name == "Deployment" and object.update.campaign %}
+      {% comment %} Repeat this for IOP, SE and CDPI {% endcomment %}
+        <a href="{% url 'change-detail' object.update.campaign %}">&larr; Back</a>
+      {% elif object.model_name == "Platform" %}
+        <a href="{% url 'platform-list' %}">&larr; Back</a>
+      {% elif object.model_name == "Instrument" %}
+        <a href="{% url 'instrument-list' %}">&larr; Back</a>
+      {% elif object.model_name == "PartnerOrg" %}
+        <a href="{% url 'organization-list' %}">&larr; Back</a>
+      {% else %}
+        <a href="{% url 'summary' %}">&larr; Back</a>
+      {% endif %}
       <h1>{{ object.update.short_name | default:object.uuid }}</h1>
     </div>
   </div>
