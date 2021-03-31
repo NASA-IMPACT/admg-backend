@@ -47,6 +47,10 @@ from data_models.models import (
     PartnerOrg,
     IOP,
     SignificantEvent,
+    GcmdInstrument,
+    GcmdProject,
+    GcmdPhenomena,
+    GcmdPlatform,
 )
 from . import tables, forms, mixins, filters
 
@@ -119,10 +123,7 @@ class ChangeSummaryView(django_tables2.SingleTableView):
         # Populate with actual counts
         model_status_counts = (
             Change.objects.of_type(*self.models)
-            .filter(
-                action=CREATE,
-                status__in=status_ids,
-            )
+            .filter(action=CREATE, status__in=status_ids)
             .values_list("content_type__model", "status")
             .annotate(aggregates.Count("content_type"))
         )
@@ -171,23 +172,17 @@ class ChangeDetailView(DetailView):
         context = super().get_context_data(**kwargs)
         deployments = (
             Change.objects.of_type(Deployment)
-            .filter(
-                update__campaign=str(self.kwargs[self.pk_url_kwarg]),
-            )
+            .filter(update__campaign=str(self.kwargs[self.pk_url_kwarg]))
             .prefetch_approvals()
             .order_by(self.get_ordering())
         )
         collection_periods = (
             Change.objects.of_type(CollectionPeriod)
-            .filter(
-                update__deployment__in=[str(d.uuid) for d in deployments],
-            )
+            .filter(update__deployment__in=[str(d.uuid) for d in deployments])
             .select_related("content_type")
             .prefetch_approvals()
             .annotate_with_identifier_from_model(
-                model=Platform,
-                uuid_from="platform",
-                to_attr="platform_name",
+                model=Platform, uuid_from="platform", to_attr="platform_name"
             )
         )
 
@@ -218,17 +213,13 @@ class ChangeDetailView(DetailView):
             ),
             "significant_events": (
                 Change.objects.of_type(SignificantEvent)
-                .filter(
-                    update__deployment__in=[str(d.uuid) for d in deployments],
-                )
+                .filter(update__deployment__in=[str(d.uuid) for d in deployments])
                 .select_related("content_type")
                 .prefetch_approvals()
             ),
             "iops": (
                 Change.objects.of_type(IOP)
-                .filter(
-                    update__deployment__in=[str(d.uuid) for d in deployments],
-                )
+                .filter(update__deployment__in=[str(d.uuid) for d in deployments])
                 .select_related("content_type")
                 .prefetch_approvals()
             ),
@@ -382,6 +373,37 @@ class PartnerOrgListView(SingleTableMixin, FilterView):
             "display_name": "Partner Organization",
             "model": PartnerOrg._meta.model_name,
         }
+
+
+@method_decorator(login_required, name="dispatch")
+# TODO only viewable if is_admin
+class LimitedFieldGCMDListView(SingleTableMixin, FilterView):
+    model = Change
+    template_name = "api_app/change_list.html"
+    table_class = tables.MultiItemListTable
+    filterset_class = filters.ChangeStatusFilter
+
+    def get_queryset(self):
+        return (
+            Change.objects.of_type(
+                GcmdInstrument, GcmdPhenomena, GcmdPlatform, GcmdProject
+            )
+            .filter(action=CREATE)
+            .add_updated_at()
+        )
+
+    def get_context_data(self, **kwargs):
+        return {
+            **super().get_context_data(**kwargs),
+            "display_name": "GCMD Items",
+            "model": PartnerOrg._meta.model_name,
+        }
+
+
+# “Science Concepts”: Focus areas, Geophysical concepts
+# “Measurement & Platform Items”:  Measurement regions, Measurement styles, Measurement types, Platform types, Home base
+# “Geographical Regions & Seasons”: Geographical regions, Seasons
+# “Website Types”: Website types, repository
 
 
 @login_required

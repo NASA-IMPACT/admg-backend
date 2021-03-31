@@ -10,6 +10,7 @@
     <h1>{{ display_name }} Drafts</h1>
   </div>
   <div class="col-auto px-0">
+  {% comment %} TODO this will get more complicated (dropdown) {% endcomment %}
     <a class="btn btn-dark" href="{% url 'change-add' model %}">
       Add New {{ display_name }} +
     </a>
