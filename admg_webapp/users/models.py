@@ -6,8 +6,8 @@ from django.db.models import CharField, IntegerField
 from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
 
-ADMIN = 'Admin'
-STAFF = 'Staff'
+ADMIN = "Admin"
+STAFF = "Staff"
 
 ADMIN_CODE = 1
 STAFF_CODE = 2
@@ -19,7 +19,9 @@ class User(AbstractUser):
     user model for admg users
     """
 
-    id = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False, unique=True)
+    id = models.UUIDField(
+        default=uuid.uuid4, primary_key=True, editable=False, unique=True
+    )
 
     # First Name and Last Name do not cover name patterns
     # around the globe.
@@ -34,5 +36,5 @@ class User(AbstractUser):
             self.role = ADMIN_CODE
         super().save(*args, **kwargs)
 
-    def can_deploy(self):
+    def is_admg_admin(self):
         return self.role == ADMIN_CODE

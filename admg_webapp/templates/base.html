@@ -74,7 +74,7 @@
             <li class="nav-item mx-1">
               <a class="nav-link btn btn-outline-secondary" href="https://airborne-inventory.surge.sh/">Visit Website</a>
             </li>
-            {% if request.user.can_deploy %}
+            {% if request.user.is_admg_admin %}
             <li class="nav-item mx-1">
               <a class="nav-link btn btn-light text-dark" disabled >Deploy Website</a>
             </li>

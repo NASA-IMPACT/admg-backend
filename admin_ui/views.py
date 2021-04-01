@@ -56,7 +56,7 @@ from . import tables, forms, mixins, filters
 
 
 @login_required
-@user_passes_test(lambda user: user.can_deploy())
+@user_passes_test(lambda user: user.is_admg_admin())
 def deploy_admin(request):
     workflow = settings.GITHUB_WORKFLOW
 
@@ -375,8 +375,9 @@ class PartnerOrgListView(SingleTableMixin, FilterView):
         }
 
 
-@method_decorator(login_required, name="dispatch")
-# TODO only viewable if is_admin
+# @method_decorator(user_passes_test(lambda user: user.is_admg_admin()), name="dispatch")
+# TODO test if is_admin is working
+# TODO hide li in html
 class LimitedFieldGCMDListView(SingleTableMixin, FilterView):
     model = Change
     item_types = [GcmdInstrument, GcmdPhenomena, GcmdPlatform, GcmdProject]

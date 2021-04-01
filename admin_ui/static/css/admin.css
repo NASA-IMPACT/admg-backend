@@ -7,6 +7,14 @@
   color: black;
 }
 
+.nav-link.collapsed .minus {
+  display: none;
+}
+
+.nav-link:not(.collapsed) .plus {
+  display: none;
+}
+
 th a {
   color: white;
 }
@@ -24,6 +32,10 @@ td a {
 
 .cursor-pointer {
   cursor: pointer;
+}
+
+li.dropdown-tab:hover{
+  cursor:pointer
 }
 
 .campaign-summary li.list-group-item {
