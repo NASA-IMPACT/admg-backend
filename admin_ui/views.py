@@ -376,15 +376,13 @@ class PartnerOrgListView(SingleTableMixin, FilterView):
 
 
 @method_decorator(user_passes_test(lambda user: user.is_admg_admin()), name="dispatch")
-# TODO test if is_admin is working
-# TODO hide li in html
 class LimitedFieldGCMDListView(SingleTableMixin, FilterView):
     model = Change
     item_types = [GcmdInstrument, GcmdPhenomena, GcmdPlatform, GcmdProject]
 
     template_name = "api_app/change_list.html"
     table_class = tables.MultiItemListTable
-    filterset_class = filters.ChangeStatusFilter
+    filterset_class = filters.MultiItemFilter
 
     def get_queryset(self):
 
