@@ -89,7 +89,7 @@ class ChangeModelFormMixin(ModelFormMixin):
         redirect = super().form_valid(form)
 
         if "_validate" in self.request.POST:
-            messages.success(self.request, 'Successfully validated "%s".' % self.object)
+            messages.success(self.request, f'Successfully validated "{self.object}".')
             return self.render_to_response(
                 self.get_context_data(form=form, model_form=model_form)
             )
