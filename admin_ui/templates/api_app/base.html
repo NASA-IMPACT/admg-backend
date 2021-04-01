@@ -32,6 +32,7 @@
         <li class="nav-item list-group-item">
           <a class="nav-link" href="{% url 'to-be-developed' %}">Inventory Guidelines</a>
         </li>
+        {% if request.user.is_admg_admin %}
         <li class="nav-item list-group-item dropdown-tab">
           <span class="nav-link collapsed" data-toggle="collapse" data-target="#collapseExample">
             Limited Fields
@@ -42,6 +43,7 @@
             </span>
           <a id="collapseExample" class="collapse" href="{% url 'lf-gcmd-list' %}">GCMD Items</a>
         </li>
+        {% endif %}
       </ul>
     </nav>
   </div>

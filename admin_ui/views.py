@@ -375,7 +375,7 @@ class PartnerOrgListView(SingleTableMixin, FilterView):
         }
 
 
-# @method_decorator(user_passes_test(lambda user: user.is_admg_admin()), name="dispatch")
+@method_decorator(user_passes_test(lambda user: user.is_admg_admin()), name="dispatch")
 # TODO test if is_admin is working
 # TODO hide li in html
 class LimitedFieldGCMDListView(SingleTableMixin, FilterView):
