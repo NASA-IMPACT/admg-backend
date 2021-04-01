@@ -292,7 +292,7 @@ class Campaign(DataModel):
     def website_details(self):
         websites = []
         for website in self.websites.all():
-            website_types = [website_type.long_name for website_type in website.website_types.all()]
+            website_types = list(website.website_types.values_list('long_name', flat=True))
             order_priority = self.campaign_websites.get(campaign=self.uuid, website=website).order_priority
             websites.append({
                 'title': website.title,
