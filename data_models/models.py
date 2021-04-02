@@ -62,7 +62,14 @@ class LimitedInfo(BaseModel):
         abstract = True
 
 
-class PlatformType(LimitedInfo):
+class LimitedInfoPriority(LimitedInfo):
+    order_priority = models.PositiveIntegerField(unique=True, blank=True, null=True)
+
+    class Meta:
+        abstract = True
+
+
+class PlatformType(LimitedInfoPriority):
     parent = models.ForeignKey('PlatformType', on_delete=models.CASCADE, related_name='sub_types', null=True, blank=True)
 
     gcmd_uuid = models.UUIDField(null=True, blank=True)
@@ -82,51 +89,50 @@ class PlatformType(LimitedInfo):
             return self.short_name
 
 
-class MeasurementType(LimitedInfo):
+class MeasurementType(LimitedInfoPriority):
     parent = models.ForeignKey('MeasurementType', on_delete=models.CASCADE, related_name='sub_types', null=True, blank=True)
     example = models.CharField(max_length=1024, blank=True, default='')
 
 
-class MeasurementStyle(LimitedInfo):
+class MeasurementStyle(LimitedInfoPriority):
     parent = models.ForeignKey('MeasurementStyle', on_delete=models.CASCADE, related_name='sub_types', null=True, blank=True)
     example = models.CharField(max_length=1024, blank=True, default='')
 
 
-class HomeBase(LimitedInfo):
+class HomeBase(LimitedInfoPriority):
     location = models.CharField(max_length=512, blank=True, default='')
     additional_info = models.CharField(max_length=2048, blank=True, default='')
 
 
-class FocusArea(LimitedInfo):
+class FocusArea(LimitedInfoPriority):
     url = models.CharField(max_length=256, blank=True, default='')
 
 
-class Season(LimitedInfo):
+class Season(LimitedInfoPriority):
     pass
 
 
-class Repository(LimitedInfo):
+class Repository(LimitedInfoPriority):
     gcmd_uuid = models.UUIDField(null=True, blank=True)
 
 
-class MeasurementRegion(LimitedInfo):
-    gcmd_uuid = models.UUIDField(null=True, blank=True)
-    example = models.CharField(max_length=1024, blank=True, default='')
-
-
-class GeographicalRegion(LimitedInfo):
+class MeasurementRegion(LimitedInfoPriority):
     gcmd_uuid = models.UUIDField(null=True, blank=True)
     example = models.CharField(max_length=1024, blank=True, default='')
 
 
-class GeophysicalConcept(LimitedInfo):
+class GeographicalRegion(LimitedInfoPriority):
     gcmd_uuid = models.UUIDField(null=True, blank=True)
     example = models.CharField(max_length=1024, blank=True, default='')
 
 
-class WebsiteType(BaseModel):
-    long_name = models.TextField()
-    description = models.TextField()
+class GeophysicalConcept(LimitedInfoPriority):
+    gcmd_uuid = models.UUIDField(null=True, blank=True)
+    example = models.CharField(max_length=1024, blank=True, default='')
+
+
+class WebsiteType(LimitedInfoPriority):
+    description = models.TextField(blank=True, default='')
 
     def __str__(self):
         return self.long_name
@@ -153,7 +159,7 @@ class Alias(BaseModel):
         verbose_name_plural='Aliases'
 
 
-class PartnerOrg(LimitedInfo):
+class PartnerOrg(LimitedInfoPriority):
     aliases = GenericRelation(Alias)
 
     website = models.CharField(max_length=256, blank=True, default='')
@@ -205,7 +211,7 @@ class Website(BaseModel):
     url = models.URLField(unique=True)
     title = models.TextField()
     description = models.TextField(default='', blank=True)
-    website_type = models.ManyToManyField(WebsiteType, related_name='websites')
+    website_types = models.ManyToManyField(WebsiteType, related_name='websites')
 
     def __str__(self):
         return self.title
@@ -281,6 +287,20 @@ class Campaign(DataModel):
     gcmd_projects = models.ManyToManyField(GcmdProject, related_name='campaigns', default='', blank=True)
     geophysical_concepts = models.ManyToManyField(GeophysicalConcept, related_name='campaigns')
     websites = models.ManyToManyField(Website, related_name='campaigns', through='CampaignWebsite', default='', blank=True)
+
+    @property
+    def website_details(self):
+        websites = []
+        for website in self.websites.all():
+            website_types = list(website.website_types.values_list('long_name', flat=True))
+            order_priority = self.campaign_websites.get(campaign=self.uuid, website=website).order_priority
+            websites.append({
+                'title': website.title,
+                'url': website.url,
+                'website_types': website_types,
+                'order_priority': order_priority
+            })
+        return websites
 
     @property
     def significant_events(self):
@@ -532,13 +552,13 @@ class DOI(BaseModel):
 ##################
 
 class CampaignWebsite(BaseModel):
-    campaign = models.ForeignKey(Campaign, on_delete=models.CASCADE)
-    website = models.ForeignKey(Website, on_delete=models.CASCADE)
-    priority = models.IntegerField()
+    campaign = models.ForeignKey("Campaign", on_delete=models.CASCADE, related_name='campaign_websites')
+    website = models.ForeignKey("Website", on_delete=models.CASCADE, related_name='campaign_websites')
+    order_priority = models.PositiveIntegerField()
 
 
     def __str__(self):
         return f"{self.campaign} has {self.website}"
 
     class Meta:
-        unique_together = [("campaign", "website"), ("campaign", "priority")]
+        unique_together = [("campaign", "website"), ("campaign", "order_priority")]
