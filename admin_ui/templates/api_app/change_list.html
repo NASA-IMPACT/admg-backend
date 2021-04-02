@@ -22,7 +22,17 @@
       <form action="" method="get" class="form form-inline">
           {{ filter.form | crispy }}
           <button class="btn btn-dark btn-sm">Filter</button>
-          <a class="btn btn-light btn-sm" href="{% url 'change-list' %}">Clear filters</a>
+          {% if model == "campaign" %}
+            <a class="btn btn-light btn-sm" href="{% url 'change-list' %}">Clear filters</a>
+          {% elif model == "platform" %}
+            <a class="btn btn-light btn-sm" href="{% url 'platform-list' %}">Clear filters</a>
+          {% elif model == "instrument" %}
+            <a class="btn btn-light btn-sm" href="{% url 'instrument-list' %}">Clear filters</a>
+          {% elif model == "partnerorg" %}
+            <a class="btn btn-light btn-sm" href="{% url 'organization-list' %}">Clear filters</a>
+          {% else %}
+            <a class="btn btn-light btn-sm" href="{% url 'summary' %}">Clear filters</a>
+          {% endif %}
       </form>
     {% endif %}
     {% render_table table %}
