@@ -59,6 +59,8 @@ from data_models.models import (
     HomeBase,
     GeographicalRegion,
     Season,
+    WebsiteType,
+    Repository,
 )
 from . import tables, forms, mixins, filters
 
@@ -493,7 +495,30 @@ class LimitedFieldRegionSeasonListView(SingleTableMixin, FilterView):
         }
 
 
-# “Website Types”: Website types, repository
+@method_decorator(user_passes_test(lambda user: user.is_admg_admin()), name="dispatch")
+class LimitedFieldWebsiteListView(SingleTableMixin, FilterView):
+    model = Change
+    item_types = [WebsiteType, Repository]
+
+    template_name = "api_app/change_list.html"
+    table_class = tables.MultiItemListTable
+    filterset_class = filters.MultiItemFilter
+
+    def get_queryset(self):
+
+        return (
+            Change.objects.of_type(*self.item_types)
+            .filter(action=CREATE)
+            .add_updated_at()
+        )
+
+    def get_context_data(self, **kwargs):
+        return {
+            **super().get_context_data(**kwargs),
+            "display_name": "Website Item",
+            "is_multi_modelview": True,
+            "item_types": [m._meta.model_name for m in self.item_types],
+        }
 
 
 @login_required

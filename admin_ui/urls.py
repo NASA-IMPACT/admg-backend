@@ -30,6 +30,11 @@ urlpatterns = [
         views.LimitedFieldRegionSeasonListView.as_view(),
         name="lf-region-season-list",
     ),
+    path(
+        "limitfield_website",
+        views.LimitedFieldWebsiteListView.as_view(),
+        name="lf-website-list",
+    ),
     path("drafts/<uuid:pk>", views.ChangeDetailView.as_view(), name="change-detail"),
     path("drafts/add/<str:model>", views.ChangeCreateView.as_view(), name="change-add"),
     path("drafts/edit/<uuid:pk>", views.ChangeUpdateView.as_view(), name="change-form"),
