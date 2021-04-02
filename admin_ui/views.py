@@ -53,6 +53,12 @@ from data_models.models import (
     GcmdPlatform,
     FocusArea,
     GeophysicalConcept,
+    MeasurementRegion,
+    MeasurementStyle,
+    MeasurementType,
+    HomeBase,
+    GeographicalRegion,
+    Season,
 )
 from . import tables, forms, mixins, filters
 
@@ -397,10 +403,9 @@ class LimitedFieldGCMDListView(SingleTableMixin, FilterView):
     def get_context_data(self, **kwargs):
         return {
             **super().get_context_data(**kwargs),
-            "display_name": "GCMD Items",
-            # "model": PartnerOrg._meta.model_name,
+            "display_name": "GCMD Item",
+            "is_multi_modelview": True,
             "item_types": [m._meta.model_name for m in self.item_types],
-            "is_multi_listview": True,
         }
 
 
@@ -424,15 +429,70 @@ class LimitedFieldScienceListView(SingleTableMixin, FilterView):
     def get_context_data(self, **kwargs):
         return {
             **super().get_context_data(**kwargs),
-            "display_name": "Science Concepts",
-            # "model": PartnerOrg._meta.model_name,
+            "display_name": "Science Concept",
+            "is_multi_modelview": True,
             "item_types": [m._meta.model_name for m in self.item_types],
-            "is_multi_listview": True,
         }
 
 
-# “Measurement & Platform Items”:  Measurement regions, Measurement styles, Measurement types, Platform types, Home base
-# “Geographical Regions & Seasons”: Geographical regions, Seasons
+@method_decorator(user_passes_test(lambda user: user.is_admg_admin()), name="dispatch")
+class LimitedFieldMeasurmentPlatformListView(SingleTableMixin, FilterView):
+    model = Change
+    item_types = [
+        MeasurementRegion,
+        MeasurementStyle,
+        MeasurementType,
+        HomeBase,
+        PlatformType,
+    ]
+
+    template_name = "api_app/change_list.html"
+    table_class = tables.MultiItemListTable
+    filterset_class = filters.MultiItemFilter
+
+    def get_queryset(self):
+
+        return (
+            Change.objects.of_type(*self.item_types)
+            .filter(action=CREATE)
+            .add_updated_at()
+        )
+
+    def get_context_data(self, **kwargs):
+        return {
+            **super().get_context_data(**kwargs),
+            "display_name": "Measurement & Platform Item",
+            "is_multi_modelview": True,
+            "item_types": [m._meta.model_name for m in self.item_types],
+        }
+
+
+@method_decorator(user_passes_test(lambda user: user.is_admg_admin()), name="dispatch")
+class LimitedFieldRegionSeasonListView(SingleTableMixin, FilterView):
+    model = Change
+    item_types = [GeographicalRegion, Season]
+
+    template_name = "api_app/change_list.html"
+    table_class = tables.MultiItemListTable
+    filterset_class = filters.MultiItemFilter
+
+    def get_queryset(self):
+
+        return (
+            Change.objects.of_type(*self.item_types)
+            .filter(action=CREATE)
+            .add_updated_at()
+        )
+
+    def get_context_data(self, **kwargs):
+        return {
+            **super().get_context_data(**kwargs),
+            "display_name": "Geographical Region & Season Item",
+            "is_multi_modelview": True,
+            "item_types": [m._meta.model_name for m in self.item_types],
+        }
+
+
 # “Website Types”: Website types, repository
 
 

@@ -20,6 +20,16 @@ urlpatterns = [
         views.LimitedFieldScienceListView.as_view(),
         name="lf-science-list",
     ),
+    path(
+        "limitfield_measurementplatform",
+        views.LimitedFieldMeasurmentPlatformListView.as_view(),
+        name="lf-measure-platform-list",
+    ),
+    path(
+        "limitfield_regionseason",
+        views.LimitedFieldRegionSeasonListView.as_view(),
+        name="lf-region-season-list",
+    ),
     path("drafts/<uuid:pk>", views.ChangeDetailView.as_view(), name="change-detail"),
     path("drafts/add/<str:model>", views.ChangeCreateView.as_view(), name="change-add"),
     path("drafts/edit/<uuid:pk>", views.ChangeUpdateView.as_view(), name="change-form"),
