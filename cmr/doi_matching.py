@@ -86,7 +86,8 @@ class DoiMatcher():
 
         if query_parameter:
             query_parameter = 'update__' + query_parameter
-            valid_objects = valid_objects.filter(**{ query_parameter: query_value })
+            kwargs = {query_parameter: query_value}
+            valid_objects = valid_objects.filter(**kwargs)
 
         valid_object_uuids = [str(uuid) for uuid in valid_objects.values_list('uuid', flat=True)]
 
