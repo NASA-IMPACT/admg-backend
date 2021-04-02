@@ -30,6 +30,11 @@ td a {
   text-decoration: underline;
 }
 
+li.dropdown-tab a {
+  display: table;
+  margin: 0 auto;
+}
+
 .cursor-pointer {
   cursor: pointer;
 }
