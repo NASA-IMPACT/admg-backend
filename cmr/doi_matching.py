@@ -3,9 +3,9 @@ import pickle
 from datetime import datetime
 
 from api_app.models import (AWAITING_ADMIN_REVIEW_CODE, AWAITING_REVIEW_CODE,
-                            CREATED_CODE, IN_ADMIN_REVIEW_CODE,
+                            CREATE, CREATED_CODE, DELETE, IN_ADMIN_REVIEW_CODE,
                             IN_PROGRESS_CODE, IN_REVIEW_CODE, PUBLISHED_CODE,
-                            Change)
+                            UPDATE, Change)
 from data_models.models import DOI
 from django.apps import apps
 from django.contrib.contenttypes.models import ContentType
@@ -48,7 +48,7 @@ class DoiMatcher():
         try:
             obj = model.objects.get(uuid=uuid)
             data = json.loads(serializers.serialize('json', [obj,]))[0]['fields']
-            
+
         # if the published object isn't found, search the drafts
         except model.DoesNotExist:
             model = apps.get_model('api_app', 'change')
@@ -79,9 +79,9 @@ class DoiMatcher():
 
         valid_objects = Change.objects.filter(
             content_type__model=table_name,
-            action='Create'
+            action=CREATE
             ).exclude(
-                action='Delete',
+                action=DELETE,
                 status=PUBLISHED_CODE)
 
         if query_parameter:
@@ -314,7 +314,7 @@ class DoiMatcher():
                 model_instance_uuid=None,
                 update=json.loads(json.dumps(doi)),
                 status=0,
-                action='Create'
+                action=CREATE
             )
             doi_obj.save()
 
@@ -354,7 +354,7 @@ class DoiMatcher():
             model_instance_uuid=str(uuid),
             update=json.loads(json.dumps(doi)),
             status=0,
-            action='Update'
+            action=UPDATE
         )
 
         doi_obj.save()
