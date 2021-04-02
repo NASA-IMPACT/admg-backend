@@ -13,7 +13,12 @@ urlpatterns = [
     path("instruments", views.InstrumentListView.as_view(), name="instrument-list"),
     path("organizations", views.PartnerOrgListView.as_view(), name="organization-list"),
     path(
-        "lim_fields_gcmd", views.LimitedFieldGCMDListView.as_view(), name="lf-gcmd-list"
+        "limitfield_gcmd", views.LimitedFieldGCMDListView.as_view(), name="lf-gcmd-list"
+    ),
+    path(
+        "limitfield_science",
+        views.LimitedFieldScienceListView.as_view(),
+        name="lf-science-list",
     ),
     path("drafts/<uuid:pk>", views.ChangeDetailView.as_view(), name="change-detail"),
     path("drafts/add/<str:model>", views.ChangeCreateView.as_view(), name="change-add"),

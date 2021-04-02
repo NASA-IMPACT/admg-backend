@@ -51,6 +51,8 @@ from data_models.models import (
     GcmdProject,
     GcmdPhenomena,
     GcmdPlatform,
+    FocusArea,
+    GeophysicalConcept,
 )
 from . import tables, forms, mixins, filters
 
@@ -396,13 +398,39 @@ class LimitedFieldGCMDListView(SingleTableMixin, FilterView):
         return {
             **super().get_context_data(**kwargs),
             "display_name": "GCMD Items",
-            "model": PartnerOrg._meta.model_name,
+            # "model": PartnerOrg._meta.model_name,
             "item_types": [m._meta.model_name for m in self.item_types],
             "is_multi_listview": True,
         }
 
 
-# “Science Concepts”: Focus areas, Geophysical concepts
+@method_decorator(user_passes_test(lambda user: user.is_admg_admin()), name="dispatch")
+class LimitedFieldScienceListView(SingleTableMixin, FilterView):
+    model = Change
+    item_types = [FocusArea, GeophysicalConcept]
+
+    template_name = "api_app/change_list.html"
+    table_class = tables.MultiItemListTable
+    filterset_class = filters.MultiItemFilter
+
+    def get_queryset(self):
+
+        return (
+            Change.objects.of_type(*self.item_types)
+            .filter(action=CREATE)
+            .add_updated_at()
+        )
+
+    def get_context_data(self, **kwargs):
+        return {
+            **super().get_context_data(**kwargs),
+            "display_name": "Science Concepts",
+            # "model": PartnerOrg._meta.model_name,
+            "item_types": [m._meta.model_name for m in self.item_types],
+            "is_multi_listview": True,
+        }
+
+
 # “Measurement & Platform Items”:  Measurement regions, Measurement styles, Measurement types, Platform types, Home base
 # “Geographical Regions & Seasons”: Geographical regions, Seasons
 # “Website Types”: Website types, repository
