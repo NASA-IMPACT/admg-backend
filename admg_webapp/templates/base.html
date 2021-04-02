@@ -43,7 +43,7 @@
         </button>
         
         <a class="navbar-brand" href="{% url 'summary' %}">
-          <img src="{% static 'images/logo.svg' %}" class="mr-3">NASA | CASEI Staff
+          <img src="{% static 'images/logo.svg' %}" class="mr-3">NASA | CASEI {% if request.user.is_admg_admin %} Admin {% else %} Staff {% endif %}
         </a>
         
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
