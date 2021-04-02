@@ -1,29 +1,18 @@
-from datetime import datetime
+import json
 import pickle
+from datetime import datetime
 
+from api_app.models import (AWAITING_ADMIN_REVIEW_CODE, AWAITING_REVIEW_CODE,
+                            CREATED_CODE, IN_ADMIN_REVIEW_CODE,
+                            IN_PROGRESS_CODE, IN_REVIEW_CODE, PUBLISHED_CODE,
+                            Change)
+from data_models.models import DOI
 from django.apps import apps
-
-from api_app.models import (
-    Change,
-    CREATED_CODE,
-    IN_PROGRESS_CODE,
-    AWAITING_REVIEW_CODE,
-    IN_REVIEW_CODE,
-    AWAITING_ADMIN_REVIEW_CODE,
-    IN_ADMIN_REVIEW_CODE,
-    PUBLISHED_CODE
-)
-
 from django.contrib.contenttypes.models import ContentType
 from django.core import serializers
-import json
 
-from data_models.models import DOI
 from cmr.cmr import query_and_process_cmr
-from cmr.utils import (
-    clean_table_name,
-    purify_list
-)
+from cmr.utils import clean_table_name, purify_list
 
 ALL_STATUSES = [
     CREATED_CODE,
