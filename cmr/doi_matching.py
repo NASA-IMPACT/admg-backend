@@ -44,9 +44,12 @@ class DoiMatcher():
         """
 
         model = apps.get_model('data_models', table_name.replace('_', ''))
+        # attempt to find the uuid as a published object
         try:
             obj = model.objects.get(uuid=uuid)
             data = json.loads(serializers.serialize('json', [obj,]))[0]['fields']
+            
+        # if the published object isn't found, search the drafts
         except model.DoesNotExist:
             model = apps.get_model('api_app', 'change')
             obj = model.objects.get(uuid=uuid)
