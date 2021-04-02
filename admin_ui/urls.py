@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.contrib import admin
 from django.urls import path
+from django.views.generic.base import RedirectView
 
 from . import views
 
@@ -13,25 +14,32 @@ urlpatterns = [
     path("instruments", views.InstrumentListView.as_view(), name="instrument-list"),
     path("organizations", views.PartnerOrgListView.as_view(), name="organization-list"),
     path(
-        "limitfield_gcmd", views.LimitedFieldGCMDListView.as_view(), name="lf-gcmd-list"
+        "limitedfields",
+        RedirectView.as_view(pattern_name="lf-gcmd-list"),
+        name="lf-base",
     ),
     path(
-        "limitfield_science",
+        "limitedfields/gcmd",
+        views.LimitedFieldGCMDListView.as_view(),
+        name="lf-gcmd-list",
+    ),
+    path(
+        "limitedfields/science",
         views.LimitedFieldScienceListView.as_view(),
         name="lf-science-list",
     ),
     path(
-        "limitfield_measurementplatform",
+        "limitedfields/measurementplatform",
         views.LimitedFieldMeasurmentPlatformListView.as_view(),
         name="lf-measure-platform-list",
     ),
     path(
-        "limitfield_regionseason",
+        "limitedfields/regionseason",
         views.LimitedFieldRegionSeasonListView.as_view(),
         name="lf-region-season-list",
     ),
     path(
-        "limitfield_website",
+        "limitedfields/website",
         views.LimitedFieldWebsiteListView.as_view(),
         name="lf-website-list",
     ),
