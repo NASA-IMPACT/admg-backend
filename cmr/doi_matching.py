@@ -354,7 +354,7 @@ class DoiMatcher():
             content_type=ContentType.objects.get(model='doi'),
             model_instance_uuid=str(uuid),
             update=json.loads(json.dumps(doi)),
-            status=0,
+            status=CREATED_CODE,
             action=UPDATE
         )
 
