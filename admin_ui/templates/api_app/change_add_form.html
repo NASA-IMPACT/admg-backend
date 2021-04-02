@@ -13,29 +13,23 @@
     <h1>Add new {{ content_type_name }} draft</h1>
   </div>
   <div class="col-auto px-0">
-    <button class="btn btn-info">Submit</button>
+    <button class="btn btn-primary" form="model-form" formnovalidate>Save</button>
+    <button class="btn btn-secondary" form="model-form" name="_validate">Validate</button>
   </div>
 </header>
 
 <main class="mx-3 my-5">
-  <form method="post">
+  {{ form.errors }}
+  <form id="model-form" method="post">
     {% csrf_token %}
     {{ model_form | crispy }}
     {% for field in form %} {{ field.as_hidden }} {% endfor %}
-    <button class="btn btn-info">Submit</button>
   </form>
-  {{ form.errors }}
 </main>
 {% endblock %}
 
 {% block javascript %}
 {{ block.super }}
 <script>
-  // Mark all required inputs as not-required (but store required as data-required attribute)
-  ['input', 'textarea', 'select'].forEach(function (value) {
-    $(value + '[required]')
-      .attr('data-required', true)
-      .attr('required', false);
-  })
 </script>
 {% endblock %}

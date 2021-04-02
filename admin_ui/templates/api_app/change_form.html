@@ -34,9 +34,6 @@
     </div>
 
     <div class="col d-flex flex-row-reverse">
-      <div class="px-1">
-        <button form="model-form" class="btn btn-primary">Save</button>
-      </div>
 
       <div class="px-1">
         <button class="btn btn-secondary dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" {% if not transition_form.fields.transition.choices|length %} disabled="true" {% endif %}
@@ -52,6 +49,10 @@
         </div>
       </div>
 
+      <div class="px-1">
+        <button class="btn btn-primary" form="model-form" formnovalidate>Save</button>
+        <button class="btn btn-secondary" form="model-form" name="_validate">Validate</button>
+      </div>
     </div>
 
   </div>
@@ -60,6 +61,7 @@
 <div class="row mx-3 my-3 py-2 ">
   {# Main Content #}
   <main class="col-8 pl-0">
+    {{ form.errors }}
     <table class="table table-responsive">
       <form method="post" id="model-form">
         {% csrf_token %}
@@ -78,12 +80,11 @@
     <hr />
 
     <h3>History</h3>
-    {% related_approval_logs approvals %}
+    {% related_approval_logs object.approvallog_set.all %}
 
     <hr />
 
     <h3>Raw Data</h3>
-    {{ form.errors }}
     <code>{{ object.update | pprint }}</code>
 
   </aside>
@@ -94,13 +95,6 @@
 {% block javascript %}
 {{ block.super }}
 <script>
-  // Mark all required inputs as not-required (but store required as data-required attribute)
-  ['input', 'textarea', 'select'].forEach(function (value) {
-    $(value + '[required]')
-      .attr('data-required', true)
-      .attr('required', false);
-  })
-
   // Make dropdown more resistant to accidental closes (https://stackoverflow.com/a/32922725/728583)
   $(document).on('click', '.dropdown-menu', function (e) {
     e.stopPropagation();

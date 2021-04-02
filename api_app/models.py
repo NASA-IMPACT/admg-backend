@@ -1,13 +1,14 @@
-from crum import get_current_user
 from uuid import uuid4
 
+from crum import get_current_user
 from django.apps import apps
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from django.utils.timezone import now
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
+from django.db.models import functions, expressions, aggregates
+from django.db.models.fields.json import KeyTextTransform
 from rest_framework.response import Response
 
 from admg_webapp.users.models import ADMIN, User
@@ -161,6 +162,79 @@ class ApprovalLog(models.Model):
     class Meta:
         ordering = ['-date']
 
+
+class ChangeQuerySet(models.QuerySet):
+    def of_type(self, *models):
+        """
+        Limit changes to only those targeted to provided models
+        """
+        return self.filter(content_type__model__in=[m._meta.model_name for m in models])
+
+    def add_updated_at(self):
+        """
+        Add the date of the latest related ApprovalLog as a 'updated_at' attribute
+        """
+        return self.annotate(updated_at=aggregates.Max("approvallog__date"))
+
+    def prefetch_approvals(self, *, order_by="-date", select_related=("user",)):
+        """
+        Prefetch the related approvallog_set with support for custom order_by
+        and select_related
+        """
+        return self.prefetch_related(
+            models.Prefetch(
+                "approvallog_set",
+                queryset=ApprovalLog.objects.order_by(order_by).select_related(
+                    *select_related
+                ),
+            )
+        )
+
+    def annotate_with_identifier_from_model(
+        self,
+        model: models.Model,
+        to_attr: str,
+        uuid_from: str,
+        identifier="short_name",
+    ):
+        """
+        Annotate records with an identifier obtained from joining on a referenced model.
+
+        model: class of model that contains our desired identifier
+        to_attr: attribute to where identifier will be annotated
+        uuid_from: attribute in the "update" dict of source model that holds the uuid of the model to be joined
+        identifier: attribute in the "update" dict of joined model that holds the identifier
+        """
+        uuid_dest_attr = f"{model._meta.model_name}_uuid"
+        return self.annotate(
+            **{
+                uuid_dest_attr: functions.Cast(
+                    functions.Coalesce(
+                        functions.NullIf(
+                            KeyTextTransform(uuid_from, "update"), expressions.Value("")
+                        ),
+                        # In the event that the Change model doesn't have the uuid_from property in its
+                        # 'update' object, the operation to retrieve the value from the 'update' will return
+                        # NULL.  The DB will complain if we try to try to join a UUID on a NULL value, so in
+                        #  the event that the uuid_from key isn't present in the 'update' object, we use a 
+                        # dummy UUID fallback for the join which won't exist in the join table.
+                        expressions.Value("00000000-0000-0000-0000-000000000000"),
+                    ),
+                    output_field=models.UUIDField(),
+                ),
+                to_attr: models.Subquery(
+                    Change.objects.of_type(model)
+                    .filter(
+                        # NOTE: This only shows the first created short_name, but doesn't reflect updated short_names
+                        action=CREATE,
+                        uuid=expressions.OuterRef(uuid_dest_attr),
+                    )
+                    .values(f"update__{identifier}")[:1]
+                ),
+            },
+        )
+
+
 class Change(models.Model):
     uuid = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     content_type = models.ForeignKey(
@@ -180,6 +254,7 @@ class Change(models.Model):
         choices=((choice, choice) for choice in [CREATE, UPDATE, DELETE, PATCH]),
         default=UPDATE,
     )
+    objects = ChangeQuerySet.as_manager()
 
     class Meta:
         verbose_name = "Draft"
