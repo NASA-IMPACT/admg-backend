@@ -2,8 +2,7 @@ from django.core.exceptions import ValidationError
 from django.db.models.fields.related import ForeignKey
 from django.db.models import functions, expressions, Max, TextField
 from django.db.models.fields.json import KeyTextTransform
-from django.forms import ModelChoiceField
-from django.contrib.gis.forms import fields
+from django.forms import ModelChoiceField, TextInput
 
 from api_app.models import Change, CREATE, PUBLISHED_CODE
 from .widgets import BoundingBoxWidget
@@ -79,12 +78,5 @@ class ChangeChoiceField(ModelChoiceField):
         return self.dest_model(**{key: value})
 
 
-class BboxField(fields.PolygonField):
+class BboxField(TextInput):
     widget = BoundingBoxWidget
-
-    # def to_python(self, value):
-    #     """Transform the value to a Geometry object."""
-    #     if value in self.empty_values:
-    #         return None
-
-    #     return super().to_python(value)
