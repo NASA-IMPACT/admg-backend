@@ -10,17 +10,17 @@ urlpatterns = [
     path("deploy-admin/", views.deploy_admin, name="deploy-admin"),
     path("", views.SummaryView.as_view(), name="mi-summary"),
     path("campaigns", views.CampaignListView.as_view(), name="mi-campaign-list"),
+    path(
+        "campaigns/<uuid:pk>",
+        views.CampaignDetailView.as_view(),
+        name="mi-campaign-detail",
+    ),
     path("platforms", views.PlatformListView.as_view(), name="mi-platform-list"),
     path("instruments", views.InstrumentListView.as_view(), name="mi-instrument-list"),
     path(
         "organizations",
         views.PartnerOrgListView.as_view(),
         name="mi-organization-list",
-    ),
-    path(
-        "campaigns/<uuid:pk>",
-        views.CampaignDetailView.as_view(),
-        name="mi-campaign-detail",
     ),
     path(
         "drafts/add/<str:model>", views.ChangeCreateView.as_view(), name="mi-change-add"

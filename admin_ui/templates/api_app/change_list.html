@@ -29,18 +29,14 @@
 </header>
 
 <main class="row mx-3 my-5">
-  <div class="w-100">
-    {% if filter %}
-    <form action="" method="get" class="form form-inline">
+  {% if filter %}
+  <form action="" method="get" class="form form-inline">
       {{ filter.form | crispy }}
-      <div class="col-12 text-center">
-        <button class="btn btn-dark btn-sm">Filter</button>
-        <a class="btn btn-light btn-sm" href="{% url 'mi-change-list' %}">Clear filters</a>
-      </div>
-    </form>
-    {% endif %}
-    {% render_table table %}
-  </div>
+      <button class="btn btn-dark btn-sm">Filter</button>
+      <a class="btn btn-light btn-sm" href="{% url 'mi-campaign-list' %}">Clear filters</a>
+  </form>
+  {% endif %}
+  {% render_table table %}
 </main>
 
 {% endblock %}
