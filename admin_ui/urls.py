@@ -1,24 +1,43 @@
 from django.conf import settings
 from django.contrib import admin
 from django.urls import path
+from django.views.generic.base import TemplateView
 
 from . import views
 
 urlpatterns = [
     path(settings.ADMIN_URL, admin.site.urls),
     path("deploy-admin/", views.deploy_admin, name="deploy-admin"),
-    path("", views.ChangeSummaryView.as_view(), name="summary"),
-    path("drafts", views.ChangeListView.as_view(), name="change-list"),
-    path("platforms", views.PlatformListView.as_view(), name="platform-list"),
-    path("instruments", views.InstrumentListView.as_view(), name="instrument-list"),
-    path("organizations", views.PartnerOrgListView.as_view(), name="organization-list"),
-    path("drafts/<uuid:pk>", views.ChangeDetailView.as_view(), name="change-detail"),
-    path("drafts/add/<str:model>", views.ChangeCreateView.as_view(), name="change-add"),
-    path("drafts/edit/<uuid:pk>", views.ChangeUpdateView.as_view(), name="change-form"),
+    path("", views.SummaryView.as_view(), name="mi-summary"),
+    path("campaigns", views.CampaignListView.as_view(), name="mi-campaign-list"),
+    path("platforms", views.PlatformListView.as_view(), name="mi-platform-list"),
+    path("instruments", views.InstrumentListView.as_view(), name="mi-instrument-list"),
+    path(
+        "organizations",
+        views.PartnerOrgListView.as_view(),
+        name="mi-organization-list",
+    ),
+    path(
+        "campaigns/<uuid:pk>",
+        views.CampaignDetailView.as_view(),
+        name="mi-campaign-detail",
+    ),
+    path(
+        "drafts/add/<str:model>", views.ChangeCreateView.as_view(), name="mi-change-add"
+    ),
+    path(
+        "drafts/edit/<uuid:pk>",
+        views.ChangeUpdateView.as_view(),
+        name="mi-change-update",
+    ),
     path(
         "drafts/edit/<uuid:pk>/transition",
         views.ChangeTransition.as_view(),
-        name="change-transition",
+        name="mi-change-transition",
     ),
-    path("tbd", views.to_be_developed, name="to-be-developed"),
+    path(
+        "tbd",
+        TemplateView.as_view(template_name="api_app/to_be_developed.html"),
+        name="to-be-developed",
+    ),
 ]

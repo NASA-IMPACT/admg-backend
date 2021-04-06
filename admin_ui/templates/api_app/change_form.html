@@ -13,17 +13,17 @@
   <div class="row">
     <div class="col">
       {% if object.model_name == "Campaign" %}
-        <a href="{% url 'change-detail' object.uuid %}">&larr; Back</a>
+        <a href="{% url 'mi-campaign-detail' object.uuid %}">&larr; Back</a>
       {% elif object.model_name in campaign_subitems and object.update.campaign %}
-        <a href="{% url 'change-detail' object.update.campaign %}">&larr; Back</a>
+        <a href="{% url 'mi-campaign-detail' object.update.campaign %}">&larr; Back</a>
       {% elif object.model_name == "Platform" %}
-        <a href="{% url 'platform-list' %}">&larr; Back</a>
+        <a href="{% url 'mi-platform-list' %}">&larr; Back</a>
       {% elif object.model_name == "Instrument" %}
-        <a href="{% url 'instrument-list' %}">&larr; Back</a>
+        <a href="{% url 'mi-instrument-list' %}">&larr; Back</a>
       {% elif object.model_name == "PartnerOrg" %}
-        <a href="{% url 'organization-list' %}">&larr; Back</a>
+        <a href="{% url 'mi-organization-list' %}">&larr; Back</a>
       {% else %}
-        <a href="{% url 'summary' %}">&larr; Back</a>
+        <a href="{% url 'mi-summary' %}">&larr; Back</a>
       {% endif %}
       <h1>{{ object.update.short_name | default:object.uuid }}</h1>
     </div>
@@ -53,7 +53,7 @@
         </button>
 
         <div class="dropdown-menu">
-          <form action="{% url 'change-transition' object.uuid %}" method="post" class="px-4 py-3">
+          <form action="{% url 'mi-change-transition' object.uuid %}" method="post" class="px-4 py-3">
             {% csrf_token %}
             {{ transition_form | crispy }}
             <button class="btn btn-primary">Submit</button>

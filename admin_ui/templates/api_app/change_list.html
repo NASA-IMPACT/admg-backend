@@ -10,7 +10,7 @@
     <h1>{{ display_name }} Drafts</h1>
   </div>
   <div class="col-auto px-0">
-    <a class="btn btn-dark" href="{% url 'change-add' model %}">
+    <a class="btn btn-dark" href="{% url 'mi-change-add' model %}">
       Add New {{ display_name }} +
     </a>
   </div>
@@ -23,15 +23,15 @@
           {{ filter.form | crispy }}
           <button class="btn btn-dark btn-sm">Filter</button>
           {% if model == "campaign" %}
-            <a class="btn btn-light btn-sm" href="{% url 'change-list' %}">Clear filters</a>
+            <a class="btn btn-light btn-sm" href="{% url 'mi-campaign-list' %}">Clear filters</a>
           {% elif model == "platform" %}
-            <a class="btn btn-light btn-sm" href="{% url 'platform-list' %}">Clear filters</a>
+            <a class="btn btn-light btn-sm" href="{% url 'mi-platform-list' %}">Clear filters</a>
           {% elif model == "instrument" %}
-            <a class="btn btn-light btn-sm" href="{% url 'instrument-list' %}">Clear filters</a>
+            <a class="btn btn-light btn-sm" href="{% url 'mi-instrument-list' %}">Clear filters</a>
           {% elif model == "partnerorg" %}
-            <a class="btn btn-light btn-sm" href="{% url 'organization-list' %}">Clear filters</a>
+            <a class="btn btn-light btn-sm" href="{% url 'mi-organization-list' %}">Clear filters</a>
           {% else %}
-            <a class="btn btn-light btn-sm" href="{% url 'summary' %}">Clear filters</a>
+            <a class="btn btn-light btn-sm" href="{% url 'mi-summary' %}">Clear filters</a>
           {% endif %}
       </form>
     {% endif %}
