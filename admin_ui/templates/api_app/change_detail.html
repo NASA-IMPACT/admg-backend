@@ -4,7 +4,7 @@
 {% load humanize %}
 
 {% block page %}
-<header class="mx-3 my-3 py-2 sticky-top bg-white border-bottom campaign-summary">
+<header class="mx-3 my-3 pt-2 sticky-top bg-white campaign-summary">
     <div class="row">
         <div class="col">
             <a href="{% url 'change-list' %}">&larr; Back</a>
@@ -62,20 +62,22 @@
     </div>
 
     <div class="row">
-        <ul class="nav nav-tabs" id="myTab" role="tablist">
-            <li class="nav-item">
-                <a class="nav-link active" id="details-tab" data-toggle="tab" href="#details" role="tab" aria-controls="details" aria-selected="true">Campaign Details</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" id="dois-tab" data-toggle="tab" href="#dois" role="tab" aria-controls="dois" aria-selected="false">DOIs</a>
-            </li>
-        </ul>
+        <div class="col">
+            <ul class="nav nav-tabs" id="myTab" role="tablist">
+                <li class="nav-item">
+                    <a class="nav-link active" id="details-tab" data-toggle="tab" href="#details" role="tab" aria-controls="details" aria-selected="true">Campaign Details</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="dois-tab" data-toggle="tab" href="#dois" role="tab" aria-controls="dois" aria-selected="false">DOIs</a>
+                </li>
+            </ul>
+        </div>
     </div>
 </header>
 
-<main class="mx-3 my-5 campaign-summary tab-content">
-    <div class="tab-pane fade show active" id="details" role="tabpanel" aria-labelledby="details-tab">
-        <div class="col pl-0">
+<main class="row mx-3 my-5 campaign-summary tab-content">
+    <div class="tab-pane show active" id="details" role="tabpanel" aria-labelledby="details-tab">
+        <div class="col">
             <ul class="list-group" id="deployments-list">
                 <li class="list-group-item d-flex pb-2">
                     <h4>
@@ -99,7 +101,7 @@
             </ul>
         </div>
 
-        <div class="col pr-0">
+        <div class="col">
             <div id="accordion">
                 <div class="card">
                     <div class="card-header d-flex justify-content-between" id="significant-events-header">
@@ -174,8 +176,8 @@
     </div>
     
     {# DOIs #}
-    <div class="tab-pane fade show active" id="dois" role="tabpanel" aria-labelledby="dois-tab">
-        <div class="col pl-0">
+    <div class="tab-pane" id="dois" role="tabpanel" aria-labelledby="dois-tab">
+        <div class="col">
             <h3>DOIs</h3>
         </div>
     </div>

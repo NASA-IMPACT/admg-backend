@@ -1,5 +1,5 @@
 /* Utilities */
-.active {
+.nav-link.active {
   font-weight: 700;
 }
 
@@ -27,6 +27,9 @@
 }
 #sidebar .nav-item .collapsing {
   transition: unset; /* Disable animation */
+}
+#sidebar li.dropdown-tab a {
+  color: black
 }
 
 .campaign-summary li.list-group-item {
@@ -56,9 +59,8 @@
 .campaign-summary .show-caret .caret {
   display: inline;
 }
-
-#sidebar li.dropdown-tab a {
-  color: black
+.campaign-summary.tab-content > .active {
+  display: contents;
 }
 
 /* Global */
