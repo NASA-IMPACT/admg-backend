@@ -7,7 +7,7 @@
 <header class="mx-3 my-3 py-2 sticky-top bg-white border-bottom campaign-summary">
     <div class="row">
         <div class="col">
-            <a href="{% url 'change-list' %}">&larr; Back</a>
+            <a href="{% url 'mi-campaign-list' %}">&larr; Back</a>
             <h1>Campaign {% firstof object.update.short_name object.update.uuid %}</h1>
         </div>
     </div>
@@ -45,7 +45,7 @@
                 </button>
 
                 <div class="dropdown-menu">
-                <form action="{% url 'change-transition' object.uuid %}" method="post" class="px-4 py-3">
+                <form action="{% url 'mi-change-transition' object.uuid %}" method="post" class="px-4 py-3">
                     {% csrf_token %}
                     {{ transition_form | crispy }}
                     <button class="btn btn-primary">Submit</button>
@@ -54,7 +54,7 @@
             </div>
 
             <div class="px-1">
-                <a href="{% url 'change-form' object.uuid %}" class="btn btn-outline-secondary ml-3">
+                <a href="{% url 'mi-change-update' object.uuid %}" class="btn btn-outline-secondary ml-3">
                     Edit campaign details
                 </a>
             </div>
@@ -75,7 +75,7 @@
                 </div>
                 
                 <div class="ml-auto">
-                    <a class="btn btn-primary" href="{% url 'change-add' 'deployment' %}?campaign={{ object.uuid }}">+</a>
+                    <a class="btn btn-primary" href="{% url 'mi-change-add' 'deployment' %}?campaign={{ object.uuid }}">+</a>
                 </div>
             </li>
             {% for deployment in deployments %}
@@ -141,7 +141,7 @@
                         <span id="significant-events-badge" class="badge badge-primary badge-pill"></span>
                     </h5>
                     <a class="add-deployment-child btn btn-primary"
-                        href="{% url 'change-add' 'significantevent' %}">+</a>
+                        href="{% url 'mi-change-add' 'significantevent' %}">+</a>
                 </div>
 
                 <div id="significant-events" class="collapse" aria-labelledby="significant-events-header"
@@ -164,7 +164,7 @@
                         </button>
                         <span id="iops-badge" class="badge badge-primary badge-pill"></span>
                     </h5>
-                    <a class="add-deployment-child btn btn-primary" href="{% url 'change-add' 'iop' %}">+</a>
+                    <a class="add-deployment-child btn btn-primary" href="{% url 'mi-change-add' 'iop' %}">+</a>
                 </div>
                 <div id="iops" class="collapse" aria-labelledby="iops-header" data-parent="#accordion">
                     <ul class="list-group">
@@ -186,7 +186,7 @@
                         <span id="collection-periods-badge" class="badge badge-primary badge-pill"></span>
                     </h5>
                     <a class="add-deployment-child btn btn-primary"
-                        href="{% url 'change-add' 'collectionperiod' %}">+</a>
+                        href="{% url 'mi-change-add' 'collectionperiod' %}">+</a>
                 </div>
                 <div id="collection-periods" class="collapse show" aria-labelledby="collection-periods-header"
                     data-parent="#accordion">

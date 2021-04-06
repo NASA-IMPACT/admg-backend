@@ -4,21 +4,16 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.decorators import login_required, user_passes_test
-from django.db import models
-from django.db.models import functions, expressions, aggregates, Max
-from django.db.models.fields.json import KeyTextTransform
+from django.db.models import aggregates
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.utils.decorators import method_decorator
 from django.utils.safestring import mark_safe
 from django.urls import reverse
-from django.views.generic.list import ListView
-from django.views.generic.detail import SingleObjectMixin
 from django.views.generic import DetailView
 from django.views.generic.edit import (
     CreateView,
     UpdateView,
-    View,
     FormMixin,
     ProcessFormView,
 )
@@ -84,7 +79,7 @@ def deploy_admin(request):
 
 
 @method_decorator(login_required, name="dispatch")
-class ChangeSummaryView(django_tables2.SingleTableView):
+class SummaryView(django_tables2.SingleTableView):
     model = Change
     models = (Campaign, Platform, Instrument, PartnerOrg)
     table_class = tables.ChangeSummaryTable
@@ -144,7 +139,7 @@ class ChangeSummaryView(django_tables2.SingleTableView):
 
 
 @method_decorator(login_required, name="dispatch")
-class ChangeListView(SingleTableMixin, FilterView):
+class CampaignListView(SingleTableMixin, FilterView):
     model = Change
     template_name = "api_app/change_list.html"
     table_class = tables.CampaignChangeListTable
@@ -162,9 +157,9 @@ class ChangeListView(SingleTableMixin, FilterView):
 
 
 @method_decorator(login_required, name="dispatch")
-class ChangeDetailView(DetailView):
+class CampaignDetailView(DetailView):
     model = Change
-    template_name = "api_app/change_detail.html"
+    template_name = "api_app/campaign_detail.html"
     queryset = Change.objects.of_type(Campaign)
 
     def get_context_data(self, **kwargs):
@@ -262,7 +257,7 @@ class ChangeCreateView(mixins.ChangeModelFormMixin, CreateView):
         }
 
     def get_success_url(self):
-        return reverse("change-form", args=[self.object.pk])
+        return reverse("mi-change-update", args=[self.object.pk])
 
     def get_model_form_content_type(self) -> ContentType:
         if not hasattr(self, "model_form_content_type"):
@@ -292,7 +287,7 @@ class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
     template_name = "api_app/change_form.html"
 
     def get_success_url(self):
-        return reverse("change-form", args=[self.object.pk])
+        return reverse("mi-change-update", args=[self.object.pk])
 
     def get_queryset(self):
         # Prefetch content type for performance
@@ -382,11 +377,6 @@ class PartnerOrgListView(SingleTableMixin, FilterView):
             "display_name": "Partner Organization",
             "model": PartnerOrg._meta.model_name,
         }
-
-
-@login_required
-def to_be_developed(request):
-    return render(request, "api_app/to_be_developed.html")
 
 
 @method_decorator(login_required, name="dispatch")

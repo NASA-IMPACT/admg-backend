@@ -14,7 +14,7 @@
           {% endfor %}
 
           <li class="nav-item">
-            <a href="{% url 'change-add' 'significantevent' %}?deployment={{ deployment.uuid }}"
+            <a href="{% url 'mi-change-add' 'significantevent' %}?deployment={{ deployment.uuid }}"
               class="btn btn-info btn-sm">
               Add related Significant Event
             </a>
@@ -30,7 +30,7 @@
               {% endfor %}
 
               <li class="nav-item">
-                <a href="{% url 'change-add' 'significantevent' %}?iop={{ iop.uuid }}&deployment={{ deployment.uuid }}"
+                <a href="{% url 'mi-change-add' 'significantevent' %}?iop={{ iop.uuid }}&deployment={{ deployment.uuid }}"
                   class="btn btn-info btn-sm">Add related Significant Event</a>
               </li>
             </ul>
@@ -38,7 +38,7 @@
           {% endfor %}
 
           <li class="nav-item">
-            <a href="{% url 'change-add' 'iop' %}?deployment={{ deployment.uuid }}" class="btn btn-info btn-sm">Add
+            <a href="{% url 'mi-change-add' 'iop' %}?deployment={{ deployment.uuid }}" class="btn btn-info btn-sm">Add
               related IOP</a>
           </li>
 
@@ -59,7 +59,7 @@
               <li class="nav-item">{% change_list_item instrument %}</li>
               {% empty %}
               <li class="nav-item">
-                <a href="{% url 'change-add' 'instrument' %}?collection_period={{ collection_period.uuid }}"
+                <a href="{% url 'mi-change-add' 'instrument' %}?collection_period={{ collection_period.uuid }}"
                   class="btn btn-info btn-sm">Add related Instrument</a>
               </li>
               {% endfor %}
@@ -69,14 +69,14 @@
           {% endfor %}
 
           <li class="nav-item">
-            <a href="{% url 'change-add' 'collectionperiod' %}?deployment={{ deployment.uuid }}"
+            <a href="{% url 'mi-change-add' 'collectionperiod' %}?deployment={{ deployment.uuid }}"
               class="btn btn-info btn-sm">Add related Collection Period</a>
           </li>
         </ul>
       </li>
       {% endfor %}
       <li class="nav-item">
-        <a href="{% url 'change-add' 'deployment' %}?object={{ object.uuid }}" class="btn btn-info btn-sm">Add related
+        <a href="{% url 'mi-change-add' 'deployment' %}?object={{ object.uuid }}" class="btn btn-info btn-sm">Add related
           Deployment</a>
       </li>
     </ul>
