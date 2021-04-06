@@ -1,3 +1,3 @@
-<a class="nav-link p-0 pb-2 {% if active %}active disabled{% endif %}" href="{% url 'change-form' change.uuid %}">
+<a class="nav-link p-0 pb-2 {% if active %}active disabled{% endif %}" href="{% url 'mi-change-update' change.uuid %}">
   {{ change.model_name }}: {{ change.update.short_name }} <em>({{change.get_status_display}})</em>
 </a>
