@@ -43,7 +43,7 @@
         </button>
         
         <a class="navbar-brand" href="{% url 'summary' %}">
-          <img src="{% static 'images/logo.svg' %}" class="mr-3">NASA | CASEI Staff
+          <img src="{% static 'images/logo.svg' %}" class="mr-3">NASA | CASEI {% if request.user.is_admg_admin %} Admin {% else %} Staff {% endif %}
         </a>
         
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
@@ -74,7 +74,7 @@
             <li class="nav-item mx-1">
               <a class="nav-link btn btn-outline-secondary" href="https://airborne-inventory.surge.sh/">Visit Website</a>
             </li>
-            {% if request.user.can_deploy %}
+            {% if request.user.is_admg_admin %}
             <li class="nav-item mx-1">
               <a class="nav-link btn btn-light text-dark" disabled >Deploy Website</a>
             </li>
