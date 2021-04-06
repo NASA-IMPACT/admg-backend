@@ -60,145 +60,123 @@
             </div>
         </div>
     </div>
+
+    <div class="row">
+        <ul class="nav nav-tabs" id="myTab" role="tablist">
+            <li class="nav-item">
+                <a class="nav-link active" id="details-tab" data-toggle="tab" href="#details" role="tab" aria-controls="details" aria-selected="true">Campaign Details</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="dois-tab" data-toggle="tab" href="#dois" role="tab" aria-controls="dois" aria-selected="false">DOIs</a>
+            </li>
+        </ul>
+    </div>
 </header>
 
-<main class="row mx-3 my-5 campaign-summary">
-    <div class="col pl-0">
-        <ul class="list-group" id="deployments-list">
-            <li class="list-group-item d-flex pb-2">
-                <h4>
-                    Deployments
-                </h4>
+<main class="mx-3 my-5 campaign-summary tab-content">
+    <div class="tab-pane fade show active" id="details" role="tabpanel" aria-labelledby="details-tab">
+        <div class="col pl-0">
+            <ul class="list-group" id="deployments-list">
+                <li class="list-group-item d-flex pb-2">
+                    <h4>
+                        Deployments
+                    </h4>
 
-                <div class="h5 align-self-center">
-                    <span class="badge badge-primary badge-pill ml-2" id="deployments-badge"></span>
-                </div>
-                
-                <div class="ml-auto">
-                    <a class="btn btn-primary" href="{% url 'change-add' 'deployment' %}?campaign={{ object.uuid }}">+</a>
-                </div>
-            </li>
-            {% for deployment in deployments %}
-            <li class="list-group-item list-group-item-action justify-content-between deployment cursor-pointer show-caret"
-                data-id="{{ deployment.uuid }}">
-                {% include "snippets/campaign_accordian_cards/deployment.html" with change=deployment %}
-            </li>
-            {% endfor %}
-        </ul>
-
-        {% if page_obj.paginator.page_range > 1 %}
-        <nav aria-label="Navigate list of deployments" class="mt-5">
-            <ul class="pagination">
-                {% if page_obj.has_previous %}
-                <li class="page-item">
-                    <a class="page-link" href="?page=1">&lang;&lang; First</a>
+                    <div class="h5 align-self-center">
+                        <span class="badge badge-primary badge-pill ml-2" id="deployments-badge"></span>
+                    </div>
+                    
+                    <div class="ml-auto">
+                        <a class="btn btn-primary" href="{% url 'change-add' 'deployment' %}?campaign={{ object.uuid }}">+</a>
+                    </div>
                 </li>
-                <li class="page-item">
-                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}">&lang; Previous</a>
+                {% for deployment in deployments %}
+                <li class="list-group-item list-group-item-action justify-content-between deployment cursor-pointer show-caret"
+                    data-id="{{ deployment.uuid }}">
+                    {% include "snippets/campaign_accordian_cards/deployment.html" with change=deployment %}
                 </li>
-                {% endif %}
-
-                {% for num in page_obj.paginator.page_range %}
-                {% if page_obj.number == num %}
-                <li class="page-item active">
-                    <span class="page-link">
-                        {{ num }}
-                        <span class="sr-only">(current)</span>
-                    </span>
-                </li>
-                {% else %}
-                <li class="page-item">
-                    <a class="page-link" href="?page={{num}}">
-                        {{ num }}
-                    </a>
-                </li>
-                {% endif %}
-
                 {% endfor %}
-
-                {% if page_obj.has_next %}
-                <li class="page-item">
-                    <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next &rang;</a>
-                </li>
-                <li class="page-item">
-                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last &rang;&rang;</a>
-                </li>
-                {% endif %}
             </ul>
-        </nav>
-        {% endif %}
+        </div>
+
+        <div class="col pr-0">
+            <div id="accordion">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between" id="significant-events-header">
+                        <h5 class="mb-0">
+                            <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#significant-events"
+                                aria-expanded="false" aria-controls="significant-events">
+                                Significant events
+                            </button>
+                            <span id="significant-events-badge" class="badge badge-primary badge-pill"></span>
+                        </h5>
+                        <a class="add-deployment-child btn btn-primary"
+                            href="{% url 'change-add' 'significantevent' %}">+</a>
+                    </div>
+
+                    <div id="significant-events" class="collapse" aria-labelledby="significant-events-header"
+                        data-parent="#accordion">
+                        <ul class="list-group">
+                            {% for event in significant_events %}
+                            <li class="list-group-item deployment-child" data-deployment="{{ event.update.deployment }}">
+                                {% include "snippets/campaign_accordian_cards/iop_se.html" with change=event %}
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between" id="iops-header">
+                        <h5 class="mb-0">
+                            <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#iops"
+                                aria-expanded="false" aria-controls="iops">
+                                IOPs
+                            </button>
+                            <span id="iops-badge" class="badge badge-primary badge-pill"></span>
+                        </h5>
+                        <a class="add-deployment-child btn btn-primary" href="{% url 'change-add' 'iop' %}">+</a>
+                    </div>
+                    <div id="iops" class="collapse" aria-labelledby="iops-header" data-parent="#accordion">
+                        <ul class="list-group">
+                            {% for iop in iops %}
+                            <li class="list-group-item deployment-child" data-deployment="{{ iop.update.deployment }}">
+                                {% include "snippets/campaign_accordian_cards/iop_se.html" with change=iop %}
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between" id="collection-periods-header">
+                        <h5 class="mb-0">
+                            <button class="btn btn-link" data-toggle="collapse" data-target="#collection-periods"
+                                aria-expanded="true" aria-controls="collection-periods">
+                                CDPIs
+                            </button>
+                            <span id="collection-periods-badge" class="badge badge-primary badge-pill"></span>
+                        </h5>
+                        <a class="add-deployment-child btn btn-primary"
+                            href="{% url 'change-add' 'collectionperiod' %}">+</a>
+                    </div>
+                    <div id="collection-periods" class="collapse show" aria-labelledby="collection-periods-header"
+                        data-parent="#accordion">
+                        <ul class="list-group">
+                            {% for collectionperiod in collection_periods %}
+                            <li class="list-group-item deployment-child" data-deployment="{{ collectionperiod.update.deployment }}">
+                                {% include "snippets/campaign_accordian_cards/collectionperiod.html" with change=collectionperiod %}
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-
-    <div class="col pr-0">
-        <div id="accordion">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between" id="significant-events-header">
-                    <h5 class="mb-0">
-                        <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#significant-events"
-                            aria-expanded="false" aria-controls="significant-events">
-                            Significant events
-                        </button>
-                        <span id="significant-events-badge" class="badge badge-primary badge-pill"></span>
-                    </h5>
-                    <a class="add-deployment-child btn btn-primary"
-                        href="{% url 'change-add' 'significantevent' %}">+</a>
-                </div>
-
-                <div id="significant-events" class="collapse" aria-labelledby="significant-events-header"
-                    data-parent="#accordion">
-                    <ul class="list-group">
-                        {% for event in significant_events %}
-                        <li class="list-group-item deployment-child" data-deployment="{{ event.update.deployment }}">
-                            {% include "snippets/campaign_accordian_cards/iop_se.html" with change=event %}
-                        </li>
-                        {% endfor %}
-                    </ul>
-                </div>
-            </div>
-            <div class="card">
-                <div class="card-header d-flex justify-content-between" id="iops-header">
-                    <h5 class="mb-0">
-                        <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#iops"
-                            aria-expanded="false" aria-controls="iops">
-                            IOPs
-                        </button>
-                        <span id="iops-badge" class="badge badge-primary badge-pill"></span>
-                    </h5>
-                    <a class="add-deployment-child btn btn-primary" href="{% url 'change-add' 'iop' %}">+</a>
-                </div>
-                <div id="iops" class="collapse" aria-labelledby="iops-header" data-parent="#accordion">
-                    <ul class="list-group">
-                        {% for iop in iops %}
-                        <li class="list-group-item deployment-child" data-deployment="{{ iop.update.deployment }}">
-                            {% include "snippets/campaign_accordian_cards/iop_se.html" with change=iop %}
-                        </li>
-                        {% endfor %}
-                    </ul>
-                </div>
-            </div>
-            <div class="card">
-                <div class="card-header d-flex justify-content-between" id="collection-periods-header">
-                    <h5 class="mb-0">
-                        <button class="btn btn-link" data-toggle="collapse" data-target="#collection-periods"
-                            aria-expanded="true" aria-controls="collection-periods">
-                            CDPIs
-                        </button>
-                        <span id="collection-periods-badge" class="badge badge-primary badge-pill"></span>
-                    </h5>
-                    <a class="add-deployment-child btn btn-primary"
-                        href="{% url 'change-add' 'collectionperiod' %}">+</a>
-                </div>
-                <div id="collection-periods" class="collapse show" aria-labelledby="collection-periods-header"
-                    data-parent="#accordion">
-                    <ul class="list-group">
-                        {% for collectionperiod in collection_periods %}
-                        <li class="list-group-item deployment-child" data-deployment="{{ collectionperiod.update.deployment }}">
-                            {% include "snippets/campaign_accordian_cards/collectionperiod.html" with change=collectionperiod %}
-                        </li>
-                        {% endfor %}
-                    </ul>
-                </div>
-            </div>
+    
+    {# DOIs #}
+    <div class="tab-pane fade show active" id="dois" role="tabpanel" aria-labelledby="dois-tab">
+        <div class="col pl-0">
+            <h3>DOIs</h3>
         </div>
     </div>
 </main>
