@@ -22,17 +22,18 @@
       <form action="" method="get" class="form form-inline">
           {{ filter.form | crispy }}
           <button class="btn btn-dark btn-sm">Filter</button>
-          {% if model == "campaign" %}
-            <a class="btn btn-light btn-sm" href="{% url 'mi-campaign-list' %}">Clear filters</a>
-          {% elif model == "platform" %}
-            <a class="btn btn-light btn-sm" href="{% url 'mi-platform-list' %}">Clear filters</a>
-          {% elif model == "instrument" %}
-            <a class="btn btn-light btn-sm" href="{% url 'mi-instrument-list' %}">Clear filters</a>
-          {% elif model == "partnerorg" %}
-            <a class="btn btn-light btn-sm" href="{% url 'mi-organization-list' %}">Clear filters</a>
-          {% else %}
-            <a class="btn btn-light btn-sm" href="{% url 'mi-summary' %}">Clear filters</a>
-          {% endif %}
+          <a 
+            class="btn btn-light btn-sm" 
+            href="{% spaceless %}
+              {% if model == "campaign" %}{% url 'mi-campaign-list' %}
+              {% elif model == "platform" %}{% url 'mi-platform-list' %}
+              {% elif model == "instrument" %}{% url 'mi-instrument-list' %}
+              {% elif model == "partnerorg" %}{% url 'mi-organization-list' %}
+              {% else %}{% url 'mi-summary' %}
+              {% endif %}
+            {% endspaceless %}">
+            Clear filters
+          </a>
       </form>
     {% endif %}
     {% render_table table %}
