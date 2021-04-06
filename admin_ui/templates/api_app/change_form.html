@@ -12,7 +12,18 @@
 <header class="mx-3 my-3 py-2 sticky-top bg-white border-bottom">
   <div class="row">
     <div class="col">
-      <a href="{% url 'mi-campaign-list' %}">&larr; Back</a>
+      <a 
+        href="{% spaceless %}
+          {% if object.model_name == "Campaign" %}{% url 'mi-campaign-detail' object.uuid %}
+          {% elif object.model_name in campaign_subitems and object.update.campaign %}{% url 'mi-campaign-detail' object.update.campaign %}
+          {% elif object.model_name == "Platform" %}{% url 'mi-platform-list' %}
+          {% elif object.model_name == "Instrument" %}{% url 'mi-instrument-list' %}
+          {% elif object.model_name == "PartnerOrg" %}{% url 'mi-organization-list' %}
+          {% else %}{% url 'mi-summary' %}
+          {% endif %}
+          {% endspaceless %}">
+        &larr; Back
+      </a>
       <h1>{{ object.update.short_name | default:object.uuid }}</h1>
     </div>
   </div>
