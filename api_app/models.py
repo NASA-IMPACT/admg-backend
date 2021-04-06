@@ -213,7 +213,12 @@ class ChangeQuerySet(models.QuerySet):
                         functions.NullIf(
                             KeyTextTransform(uuid_from, "update"), expressions.Value("")
                         ),
-                        expressions.Value("00000000-0000-0000-0000-000000000000"), # Dummy uuid if uuid isn't present in update
+                        # In the event that the Change model doesn't have the uuid_from property in its
+                        # 'update' object, the operation to retrieve the value from the 'update' will return
+                        # NULL.  The DB will complain if we try to try to join a UUID on a NULL value, so in
+                        #  the event that the uuid_from key isn't present in the 'update' object, we use a 
+                        # dummy UUID fallback for the join which won't exist in the join table.
+                        expressions.Value("00000000-0000-0000-0000-000000000000"),
                     ),
                     output_field=models.UUIDField(),
                 ),

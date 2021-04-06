@@ -19,8 +19,8 @@ from .inlines.doi import (
 
 class CampaignWebsiteInline(admin.TabularInline):
     model = models.Campaign.websites.through
-    fields = ["website", "priority"]
-    ordering = ("priority",)
+    fields = ["website", "order_priority"]
+    ordering = ("order_priority",)
 
 
 LIMITED_INFO_LIST_FIELDS = ("short_name", "long_name")
@@ -117,6 +117,6 @@ class ShortNameChangable(BasicAdmin):
 
 @admin.register(models.CampaignWebsite)
 class CampaignWebsiteAdmin(BasicAdmin):
-    list_display = ["__str__", "campaign", "priority"]
+    list_display = ["__str__", "campaign", "order_priority"]
 
 

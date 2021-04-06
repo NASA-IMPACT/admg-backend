@@ -40,8 +40,8 @@
 
         <div class="col d-flex flex-row-reverse">
             <div class="px-1">
-                <button class="btn btn-secondary dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" {% if not transition_form.fields.transition.choices|length %} disabled="true" {% endif %}
-                aria-expanded="false">Approval Actions
+                <button class="btn btn-secondary dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+                {% if not transition_form.fields.transition.choices|length %} disabled="true" {% endif %}>Approval Actions
                 </button>
 
                 <div class="dropdown-menu">
