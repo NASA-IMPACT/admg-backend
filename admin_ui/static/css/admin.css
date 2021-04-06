@@ -1,19 +1,10 @@
+/* Utilities */
 .active {
   font-weight: 700;
 }
 
-.nav-link {
-  color: black;
-}
-
-th a {
-  color: white;
-}
-
-td a {
-  color: white;
-  color: black;
-  text-decoration: underline;
+.cursor-pointer {
+  cursor: pointer;
 }
 
 .inline-link {
@@ -21,8 +12,21 @@ td a {
   text-decoration: underline;
 }
 
-.cursor-pointer {
-  cursor: pointer;
+/* Views */
+#sidebar .nav-link {
+  color: black;
+}
+#sidebar .nav-link.collapsed .minus {
+  display: none;
+}
+#sidebar .nav-link:not(.collapsed) .plus {
+  display: none;
+}
+#sidebar .nav-link li a {
+  color: black;
+}
+#sidebar .nav-item .collapsing {
+  transition: unset; /* Disable animation */
 }
 
 .campaign-summary li.list-group-item {
@@ -51,4 +55,19 @@ td a {
 }
 .campaign-summary .show-caret .caret {
   display: inline;
+}
+
+#sidebar li.dropdown-tab a {
+  color: black
+}
+
+/* Global */
+th a {
+  color: white;
+}
+
+td a {
+  color: white;
+  color: black;
+  text-decoration: underline;
 }
