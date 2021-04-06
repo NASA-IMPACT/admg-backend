@@ -10,9 +10,12 @@ from django.db.models.query import QuerySet
 from django.forms import modelform_factory
 from django.views.generic.edit import ModelFormMixin
 from rest_framework.renderers import JSONRenderer
+from django.contrib.gis.admin import widgets as admin_widgets
+from django.contrib.gis.db.models.fields import PolygonField
 
 from api_app.models import Change
-from .fields import ChangeChoiceField
+from .fields import ChangeChoiceField, BboxField
+from .widgets import BoundingBoxWidget
 
 
 def formfield_callback(f, **kwargs):
@@ -23,6 +26,14 @@ def formfield_callback(f, **kwargs):
             "form_class": partial(ChangeChoiceField, dest_model=f.remote_field.model),
             "queryset": ChangeChoiceField.get_queryset_for_model(f.remote_field.model),
         }
+    # if f.name == "spatial_bounds":
+    #     print(f)
+    # if isinstance(f, PolygonField):
+    #     kwargs = {
+    #         **kwargs,
+    #         "form_class": BboxField,
+    #         # "queryset": ChangeChoiceField.get_queryset_for_model(f.remote_field.model),
+    #     }
     return f.formfield(**kwargs)
 
 
@@ -37,10 +48,18 @@ class ChangeModelFormMixin(ModelFormMixin):
     @property
     def destination_model_form(self):
         """ Helper to return a form for the destination of the Draft object """
+
+        widgets = {}
+
+        model_class = self.get_model_form_content_type().model_class()
+        if model_class.__name__ == "Campaign":
+            widgets["spatial_bounds"] = BoundingBoxWidget
+
         return modelform_factory(
             self.get_model_form_content_type().model_class(),
             exclude=[],
             formfield_callback=formfield_callback,
+            widgets=widgets,
         )
 
     def get_model_form_content_type(self) -> ContentType:
