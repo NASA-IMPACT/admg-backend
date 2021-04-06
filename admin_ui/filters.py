@@ -16,9 +16,6 @@ class ChangeStatusFilter(django_filters.FilterSet):
 
 
 class MultiItemFilter(ChangeStatusFilter):
-    # TODO why is this showing so many options?  Our queryset should be filtered
-    content_type__model = django_filters.AllValuesFilter(label="Item Type")
-
     class Meta:
         model = Change
         fields = ["status"]
