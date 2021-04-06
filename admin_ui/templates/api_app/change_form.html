@@ -21,7 +21,7 @@
           {% elif object.model_name == "PartnerOrg" %}{% url 'mi-organization-list' %}
           {% else %}{% url 'mi-summary' %}
           {% endif %}
-          {% spaceless %}">
+          {% endspaceless %}">
         &larr; Back
       </a>
       <h1>{{ object.update.short_name | default:object.uuid }}</h1>
