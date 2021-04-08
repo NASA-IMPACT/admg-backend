@@ -49,7 +49,7 @@
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
           <ul class="navbar-nav ml-auto">
             <li class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle text-muted" href="#" role="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              <a class="nav-link dropdown-toggle text-white" href="#" role="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                 {% if request.user.is_authenticated %}
                   {{ request.user.username }}
                 {% else %}
@@ -72,11 +72,11 @@
               </div>
             </li>
             <li class="nav-item mx-1">
-              <a class="nav-link btn btn-outline-secondary" href="https://airborne-inventory.surge.sh/">Visit Website</a>
+              <a class="nav-link btn btn-outline-light" href="https://airborne-inventory.surge.sh/">Visit Website</a>
             </li>
             {% if request.user.can_deploy %}
             <li class="nav-item mx-1">
-              <a class="nav-link btn btn-light text-dark" disabled >Deploy Website</a>
+              <a class="nav-link btn btn-light" disabled >Deploy Website</a>
             </li>
             {% endif %}
           </ul>

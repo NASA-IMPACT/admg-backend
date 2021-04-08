@@ -21,7 +21,7 @@
     {% if filter %}
       <form action="" method="get" class="form form-inline">
           {{ filter.form | crispy }}
-          <button class="btn btn-dark btn-sm">Filter</button>
+          <button class="btn btn-secondary btn-sm">Filter</button>
           <a class="btn btn-light btn-sm" href="{% url 'mi-campaign-list' %}">Clear filters</a>
       </form>
     {% endif %}
