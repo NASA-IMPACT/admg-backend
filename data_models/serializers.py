@@ -35,6 +35,7 @@ def get_geojson_from_bb(bb_data):
                 [w, s],
             ]
         ],
+        "crs": {"type": "name", "properties": {"name": "EPSG:4326"}},
     }
     return json.dumps(retval)
 
