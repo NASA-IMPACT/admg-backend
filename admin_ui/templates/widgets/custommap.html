@@ -37,7 +37,12 @@
         };
         {% endblock %}
         var {{ module }} = new MapWidget(options);
+        var interactions = {{ module }}.interactions
+        {{ module }}.map.removeInteraction(interactions.draw)
+        {{ module }}.map.removeInteraction(interactions.modify)
+        
     </script>
     {% endif %}
 </div>
+<label style="width:100%">Please enter bounds as: North, South, East, West:</label>
 <input type="text" id="{{ id }}" class="vSerializedField {{ class }}" cols="150" rows="10" name="{{ name }}" value="{{ extent }}" {% if widget.required %}required{% endif %} />
