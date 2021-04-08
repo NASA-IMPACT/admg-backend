@@ -75,7 +75,7 @@ DJANGO_APPS = [
     "admin_ui",  # Must be before django.contrib.admin
     "django.contrib.admin",
     "django.contrib.gis",  # add this line
-    'active_link',  # for formating navigation links
+    "active_link",  # for formating navigation links
 ]
 
 THIRD_PARTY_APPS = [
@@ -85,6 +85,7 @@ THIRD_PARTY_APPS = [
     "corsheaders",
     "crispy_forms",
     "django_celery_results",
+    "django_sass",
     "django_tables2",
     "drf_yasg",
     "oauth2_provider",
@@ -281,7 +282,9 @@ if USE_TZ:
     CELERY_TIMEZONE = TIME_ZONE
 # http://docs.celeryproject.org/en/latest/userguide/configuration.html#std:setting-broker_url
 # CELERY_BROKER_URL = 'pyamqp://rabbitmq:5672'
-CELERY_BROKER_URL = env("CELERY_BROKER_URL", default='amqp://guest:guest@rabbitmq:5672/')
+CELERY_BROKER_URL = env(
+    "CELERY_BROKER_URL", default="amqp://guest:guest@rabbitmq:5672/"
+)
 # http://docs.celeryproject.org/en/latest/userguide/configuration.html#std:setting-result_backend
 CELERY_RESULT_BACKEND = "django-db"
 # http://docs.celeryproject.org/en/latest/userguide/configuration.html#std:setting-accept_content
@@ -318,44 +321,44 @@ SOCIALACCOUNT_ADAPTER = "admg_webapp.users.adapters.SocialAccountAdapter"
 # ------------------------------------------------------------------------------
 
 REST_FRAMEWORK = {
-    'DEFAULT_RENDERER_CLASSES': [
-        'rest_framework.renderers.JSONRenderer',
+    "DEFAULT_RENDERER_CLASSES": [
+        "rest_framework.renderers.JSONRenderer",
     ],
-    'DEFAULT_PARSER_CLASSES': [
-        'rest_framework.parsers.JSONParser',
-        'rest_framework.parsers.MultiPartParser',
+    "DEFAULT_PARSER_CLASSES": [
+        "rest_framework.parsers.JSONParser",
+        "rest_framework.parsers.MultiPartParser",
     ],
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticated',
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.IsAuthenticated",
     ],
-    'DEFAULT_AUTHENTICATION_CLASSES': [
-        'oauth2_provider.contrib.rest_framework.OAuth2Authentication',
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "oauth2_provider.contrib.rest_framework.OAuth2Authentication",
     ],
 }
 
 SWAGGER_SETTINGS = {
-    'JSON_EDITOR': True,
-    'DEFAULT_INFO': 'api_app.urls.info',
-    'SUPPORTED_SUBMIT_METHODS': ['get', 'post', 'put', 'delete', 'patch'],
-    'DEFAULT_AUTO_SCHEMA_CLASS': 'api_app.utils.XcodeAutoSchema',
-    'SECURITY_DEFINITIONS': {
+    "JSON_EDITOR": True,
+    "DEFAULT_INFO": "api_app.urls.info",
+    "SUPPORTED_SUBMIT_METHODS": ["get", "post", "put", "delete", "patch"],
+    "DEFAULT_AUTO_SCHEMA_CLASS": "api_app.utils.XcodeAutoSchema",
+    "SECURITY_DEFINITIONS": {
         # TODO: does not work right now. Need to make it work
-        'ADMG API - Swagger': {
-            'type': 'oauth2',
-            'authorizationUrl': '/authenticate/authorize',
-            'tokenUrl': '/authenticate/token/',
-            'flow': 'accessCode',
-            'scopes': {
-                'read:groups': 'read groups',
+        "ADMG API - Swagger": {
+            "type": "oauth2",
+            "authorizationUrl": "/authenticate/authorize",
+            "tokenUrl": "/authenticate/token/",
+            "flow": "accessCode",
+            "scopes": {
+                "read:groups": "read groups",
             },
         }
     },
 }
 
 OAUTH2_PROVIDER = {
-    'SCOPES': {
-        'read': 'Read scope',
-        'write': 'Write scope',
+    "SCOPES": {
+        "read": "Read scope",
+        "write": "Write scope",
     }
 }
 

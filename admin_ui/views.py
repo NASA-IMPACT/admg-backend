@@ -333,6 +333,12 @@ class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
             "transition_form": forms.TransitionForm(
                 change=self.get_object(), user=self.request.user
             ),
+            "campaign_subitems": [
+                "Deployment",
+                "IOP",
+                "SignificantEvent",
+                "CollectionPeriod",
+            ],
         }
 
     def get_model_form_content_type(self) -> ContentType:

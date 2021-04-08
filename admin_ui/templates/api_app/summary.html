@@ -13,14 +13,14 @@
     </div>
   </div>
   <div class="col-auto">
-    <a class="btn btn-dark" href="{% url 'mi-change-add' 'campaign' %}">
+    <a class="btn btn-primary" href="{% url 'mi-change-add' 'campaign' %}">
       Add New Campaign +
     </a>
   </div>
 </header>
 
 <div class="row mx-3 my-5">
-  <div class="col-auto col-lg-4 px-4 border">
+  <div class="col-lg-4 border">
     <p class="text-uppercase my-3">Campaigns</p>
     <div class="row">
       <div class="col-sm-3">
@@ -50,7 +50,7 @@
     </div>
   </div>
 
-  <div class="col-auto col-lg-4 px-4 border">
+  <div class="col-lg-4 border">
     <p class="text-uppercase my-3">Platforms</p>
     <div class="row">
       <div class="col-sm-3">
@@ -80,7 +80,7 @@
     </div>
   </div>
 
-  <div class="col-auto col-lg-4 px-4 border">
+  <div class="col-lg-4 border">
     <p class="text-uppercase my-3">Instruments</p>
     <div class="row">
       <div class="col-sm-3">
@@ -111,33 +111,33 @@
   </div>
 </div>
 
-<div class="container-fluid mt-5">
-  <div class="row mx-3 my-5">
-    <div class="col-8">
-      <h3>My Drafts</h3>
-      {% render_table table %}
-    </div>
+<div class="row mx-3 my-5">
+  <div class="col-8">
+    <h3>My Drafts</h3>
+    {% render_table table %}
+  </div>
 
-    <div class="col-4">
-      <h3>Inventory Activities</h3>
-      <div class="card">
-        <ul class="list-group list-group-flush">
-          {% for activity in activity_list %}
-          <li class="list-group-item">
-            <a class="inline-link mr-1" href="{% url 'mi-change-update' activity.change.uuid %}">
-              {{ activity.change.model_name }} 
-              {% firstof activity.change.update.short_name activity.change.update.long_name activity.change.uuid %}
-            </a>
-            <strong>{{ activity.get_action_display }}</strong>
-            <span>{% if activity.user %} by {{ activity.user }}{% endif %}</span>
+  <div class="col-4">
+    <h3>Inventory Activities</h3>
+    <div class="card">
+      <ul class="list-group list-group-flush">
+        {% for activity in activity_list %}
+        <li class="list-group-item">
+          <a class="inline-link mr-1" href="{% url 'mi-change-update' activity.change.uuid %}">
+            {{ activity.change.model_name }}
+            {% firstof activity.change.update.short_name activity.change.update.long_name activity.change.uuid %}
+          </a>
+          <strong>{{ activity.get_action_display }}</strong>
+          <span>
+            {% if activity.user %} by {{ activity.user }}{% endif %}
+          </span>
 
-            <p title="{{ activity.date|date:'c' }}" class="mb-0">
-              {{ activity.date | naturaltime }}
-            </p>
-          </li>
-          {% endfor %}
-        </ul>
-      </div>
+          <p title="{{ activity.date|date:'c' }}" class="mb-0">
+            {{ activity.date | naturaltime }}
+          </p>
+        </li>
+        {% endfor %}
+      </ul>
     </div>
   </div>
 </div>

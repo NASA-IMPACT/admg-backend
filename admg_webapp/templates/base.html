@@ -19,7 +19,7 @@
     {% block css %}
 
       <!-- Latest compiled and minified Bootstrap CSS -->
-      <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+      <link href="{% static 'css/bootstrap.css' %}" rel="stylesheet">
 
 
       <!-- Your stuff: Third-party CSS libraries go here -->
@@ -37,19 +37,19 @@
   <body>
 
     <div class="mb-1">
-      <nav class="navbar navbar-expand-md navbar-dark bg-dark">
+      <nav class="navbar navbar-expand-md navbar-primary bg-primary">
         <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
           <span class="navbar-toggler-icon"></span>
         </button>
         
         <a class="navbar-brand" href="{% url 'mi-summary' %}">
-          <img src="{% static 'images/logo.svg' %}" class="mr-3">NASA | CASEI {% if request.user.is_admg_admin %} Admin {% else %} Staff {% endif %}
+          <img src="{% static 'images/logo.svg' %}" class="mr-3">NASA | CASEI Staff
         </a>
         
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
           <ul class="navbar-nav ml-auto">
             <li class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="#" role="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              <a class="nav-link dropdown-toggle text-white" href="#" role="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                 {% if request.user.is_authenticated %}
                   {{ request.user.username }}
                 {% else %}
@@ -72,11 +72,11 @@
               </div>
             </li>
             <li class="nav-item mx-1">
-              <a class="nav-link btn btn-outline-secondary" href="https://airborne-inventory.surge.sh/">Visit Website</a>
+              <a class="nav-link btn btn-outline-light" href="https://airborne-inventory.surge.sh/">Visit Website</a>
             </li>
             {% if request.user.is_admg_admin %}
             <li class="nav-item mx-1">
-              <a class="nav-link btn btn-light text-dark" disabled >Deploy Website</a>
+              <a class="nav-link btn btn-light" disabled >Deploy Website</a>
             </li>
             {% endif %}
           </ul>
