@@ -3,7 +3,7 @@
 def extract_doi(concept):
     """test function to extract missing DOI metadata. I'm actually not sure if this is legit and we should check for errors"""
 
-    doi = concept['umm'].get('DOI', {}).get('DOI')
+    doi = concept['umm'].get('DOI', {}).get('DOI', '')
     if not doi:
         try:
             doi = concept['metadata']['CollectionCitations'][0]['OtherCitationDetails'].split('DOI: ')[1].split('.org/')[1]

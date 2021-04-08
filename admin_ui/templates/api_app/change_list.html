@@ -1,5 +1,6 @@
 {% extends "api_app/base.html" %}
 {% load change_extras %}
+{% load crispy_forms_tags static %}
 {% load render_table from django_tables2 %}
 
 {% block page %}
@@ -9,7 +10,7 @@
     <h1>{{ display_name }} Drafts</h1>
   </div>
   <div class="col-auto px-0">
-    <a class="btn btn-primary" href="{% url 'change-add' model %}">
+    <a class="btn btn-primary" href="{% url 'mi-change-add' model %}">
       Add New {{ display_name }} +
     </a>
   </div>
@@ -17,6 +18,13 @@
 
 <main class="row mx-3 my-5">
   <div class="w-100">
+    {% if filter %}
+      <form action="" method="get" class="form form-inline">
+          {{ filter.form | crispy }}
+          <button class="btn btn-dark btn-sm">Filter</button>
+          <a class="btn btn-light btn-sm" href="{% url 'mi-campaign-list' %}">Clear filters</a>
+      </form>
+    {% endif %}
     {% render_table table %}
   </div>
 </main>

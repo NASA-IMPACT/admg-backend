@@ -6,7 +6,7 @@ from api_app.models import Change
 
 class CampaignChangeListTable(tables.Table):
     short_name = tables.Column(
-        linkify=("change-detail", [A("uuid")]),
+        linkify=("mi-campaign-detail", [A("uuid")]),
         verbose_name="Short Name",
         accessor="update__short_name",
     )
@@ -29,7 +29,7 @@ class CampaignChangeListTable(tables.Table):
 
 class PlatformChangeListTable(tables.Table):
     short_name = tables.Column(
-        linkify=("change-form", [A("uuid")]),
+        linkify=("mi-change-update", [A("uuid")]),
         verbose_name="Short Name",
         accessor="update__short_name",
     )
@@ -52,7 +52,7 @@ class PlatformChangeListTable(tables.Table):
 
 class BasicChangeListTable(tables.Table):
     short_name = tables.Column(
-        linkify=("change-form", [A("uuid")]),
+        linkify=("mi-change-update", [A("uuid")]),
         verbose_name="Short Name",
         accessor="update__short_name",
     )
@@ -72,7 +72,7 @@ class BasicChangeListTable(tables.Table):
 
 class ChangeSummaryTable(tables.Table):
     name = tables.LinkColumn(
-        viewname="change-detail",
+        viewname="mi-campaign-detail",
         args=[A("uuid")],
         verbose_name="Name",
         accessor="update__short_name",

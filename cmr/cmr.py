@@ -5,7 +5,6 @@ from urllib.parse import urlencode
 
 import requests
 
-from cmr.api import Api
 from cmr.process_metadata import process_metadata_list
 from cmr.utils import purify_list
 
@@ -63,10 +62,11 @@ def get_json(cmr_url):
         data (dict): JSON response from the CMR query url
     """
 
-    response = requests.get(cmr_url).text
-    data = json.loads(response)
+    response = requests.get(cmr_url)
+    response.raise_for_status()
+    response_dict = response.json()
 
-    return data
+    return response_dict
 
 
 def universal_query(query_parameter, query_value):
@@ -180,9 +180,19 @@ def bulk_cmr_query(query_parameter, query_value_list):
         metadata_list (list): list of dataproduct metadata returned from CMR
     """
 
-    concept_id_list = aggregate_concept_ids_queries(query_parameter, query_value_list)
+    concept_id_list = list(aggregate_concept_ids_queries(query_parameter, query_value_list))
 
-    concept_ids_responses = universal_query('echo_collection_id[]', concept_id_list)
+    # cmr can't handle big requests, like 303 concept_ids, all at once
+    # this breaks them into sub requests of 50 at a time
+    CHUNK_SIZE = 50
+    current_index = 0
+    concept_ids_responses = []
+    length = len(concept_id_list)
+    while current_index < length:
+        concept_ids = concept_id_list[current_index:(current_index + CHUNK_SIZE)]
+        concept_ids_responses.extend(universal_query('echo_collection_id[]', concept_ids))
+        current_index += CHUNK_SIZE
+
     metadata_list = [concept_id_data for page in [response['items'] for response in concept_ids_responses] for concept_id_data in page]
 
     return metadata_list

@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.1.12 - 2021.03.31
+
+- `/api/campaign` has a new field `website_details` which returns a list of dicts with website information, including priority
+- all limited tables now have a field `order_priority` which can optionally be used to order them for display on CASIE
+
+## 0.1.11 - 2021.03.19
+
+### Added
+
+- `/api/platform` has a new field `search_category` which returns one of the 6 custom categories for each platform
+
+## 0.1.10 - 2021.03.12
+
+### Added
+
+- `/api/platform_type` has new field, `patriarch` which outputs the highest level parent in the hierarchy
+- `/api/platform` has a new field `search_category` which outputs one of the 6 custom ADMG search categories
+
 ## 0.1.9 - 2021.03.02
 
 ### Changed

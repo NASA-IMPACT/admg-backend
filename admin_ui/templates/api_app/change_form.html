@@ -12,7 +12,7 @@
 <header class="mx-3 my-3 py-2 sticky-top bg-white border-bottom">
   <div class="row">
     <div class="col">
-      <a href="{% url 'change-list' %}">&larr; Back</a>
+      <a href="{% url 'mi-campaign-list' %}">&larr; Back</a>
       <h1>{{ object.update.short_name | default:object.uuid }}</h1>
     </div>
   </div>
@@ -34,10 +34,6 @@
     </div>
 
     <div class="col d-flex flex-row-reverse">
-      <div class="px-1">
-        <button class="btn btn-primary" form="model-form" formnovalidate>Save</button>
-        <button class="btn btn-secondary" form="model-form">Validate & Save</button>
-      </div>
 
       <div class="px-1">
         <button class="btn btn-secondary dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" {% if not transition_form.fields.transition.choices|length %} disabled="true" {% endif %}
@@ -45,7 +41,7 @@
         </button>
 
         <div class="dropdown-menu">
-          <form action="{% url 'change-transition' object.uuid %}" method="post" class="px-4 py-3">
+          <form action="{% url 'mi-change-transition' object.uuid %}" method="post" class="px-4 py-3">
             {% csrf_token %}
             {{ transition_form | crispy }}
             <button class="btn btn-primary">Submit</button>
@@ -53,6 +49,10 @@
         </div>
       </div>
 
+      <div class="px-1">
+        <button class="btn btn-primary" form="model-form" formnovalidate>Save</button>
+        <button class="btn btn-secondary" form="model-form" name="_validate">Validate</button>
+      </div>
     </div>
 
   </div>
@@ -61,6 +61,7 @@
 <div class="row mx-3 my-3 py-2 ">
   {# Main Content #}
   <main class="col-8 pl-0">
+    {{ form.errors }}
     <table class="table table-responsive">
       <form method="post" id="model-form">
         {% csrf_token %}
@@ -79,12 +80,11 @@
     <hr />
 
     <h3>History</h3>
-    {% related_approval_logs approvals %}
+    {% related_approval_logs object.approvallog_set.all %}
 
     <hr />
 
     <h3>Raw Data</h3>
-    {{ form.errors }}
     <code>{{ object.update | pprint }}</code>
 
   </aside>

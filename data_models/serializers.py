@@ -86,6 +86,7 @@ class PlatformTypeSerializer(BaseSerializer):
     platforms = serializers.SerializerMethodField(read_only=True)
     campaigns = serializers.SerializerMethodField(read_only=True)
     sub_types = serializers.SerializerMethodField(read_only=True)
+    patriarch = serializers.CharField(read_only=True)
 
     def get_platforms(self, obj):
         return get_uuids(obj.platforms)
@@ -342,6 +343,7 @@ class PlatformSerializer(GetAliasSerializer, GetDoiSerializer):
     collection_periods = serializers.SerializerMethodField(read_only=True)
     instruments = serializers.ListField(read_only=True)
     campaigns = serializers.ListField(read_only=True)
+    search_category = serializers.CharField(read_only=True)
 
     def get_collection_periods(self, obj):
         return get_uuids(obj.collection_periods)
@@ -364,35 +366,6 @@ class InstrumentSerializer(GetAliasSerializer, GetDoiSerializer):
         fields = "__all__"
 
 
-class WebsiteTitleURLRelatedField(serializers.RelatedField):
-    """
-    A read only field that represents a website using the
-    plain string representation of title and URL.
-    """
-
-    def __init__(self, **kwargs):
-        kwargs["read_only"] = True
-        super().__init__(**kwargs)
-
-    def to_representation(self, value):
-        return f"{value.url} ({value.title})"
-
-
-class CampaignWebsiteReadSerializer(BaseSerializer):
-    """
-    Serializer to read all websites for a given campaign
-    """
-
-    website = WebsiteTitleURLRelatedField(read_only=True)
-
-    class Meta:
-        model = models.CampaignWebsite
-        fields = [
-            "website",
-            "priority",
-        ]
-
-
 class CampaignWebsiteSerializer(BaseSerializer):
     """
     Serializer specifically for the linking table.
@@ -411,8 +384,7 @@ class CampaignSerializer(GetAliasSerializer, GetDoiSerializer):
     number_deployments = serializers.IntegerField(read_only=True)
     instruments = serializers.ListField(read_only=True)
     platforms = serializers.ListField(read_only=True)
-
-    websites = CampaignWebsiteReadSerializer(source="campaignwebsite_set", many=True)
+    website_details = serializers.ListField(read_only=True)
 
     def get_deployments(self, obj):
         return get_uuids(obj.deployments)

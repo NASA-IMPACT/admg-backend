@@ -79,18 +79,19 @@ DJANGO_APPS = [
 ]
 
 THIRD_PARTY_APPS = [
-    "corsheaders",
-    "django_sass",
-    "crispy_forms",
-    "allauth",
     "allauth.account",
     "allauth.socialaccount",
-    "rest_framework",
-    "rest_framework.authtoken",
+    "allauth",
+    "corsheaders",
+    "crispy_forms",
+    "django_celery_results",
+    "django_sass",
+    "django_tables2",
     "drf_yasg",
     "oauth2_provider",
+    "rest_framework.authtoken",
+    "rest_framework",
     "storages",
-    "django_tables2",
 ]
 
 LOCAL_APPS = [
@@ -280,9 +281,12 @@ if USE_TZ:
     # http://docs.celeryproject.org/en/latest/userguide/configuration.html#std:setting-timezone
     CELERY_TIMEZONE = TIME_ZONE
 # http://docs.celeryproject.org/en/latest/userguide/configuration.html#std:setting-broker_url
-CELERY_BROKER_URL = "pyamqp://rabbitmq:5672"
+# CELERY_BROKER_URL = 'pyamqp://rabbitmq:5672'
+CELERY_BROKER_URL = env(
+    "CELERY_BROKER_URL", default="amqp://guest:guest@rabbitmq:5672/"
+)
 # http://docs.celeryproject.org/en/latest/userguide/configuration.html#std:setting-result_backend
-CELERY_RESULT_BACKEND = "rpc://rabbitmq:5672"
+CELERY_RESULT_BACKEND = "django-db"
 # http://docs.celeryproject.org/en/latest/userguide/configuration.html#std:setting-accept_content
 CELERY_ACCEPT_CONTENT = ["json"]
 # http://docs.celeryproject.org/en/latest/userguide/configuration.html#std:setting-task_serializer

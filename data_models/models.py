@@ -13,15 +13,15 @@ from django.db import models
 FRONTEND_URL = "https://airborne-inventory.surge.sh/"
 
 
-def fetch_related_distinct_data(queryset, related_data_string):
-    """Fetches related data from a given object using the related data string
+def select_related_distinct_data(queryset, related_data_string):
+    """Selects related data from a given object using the related data string
 
     Args:
         queryset (QuerySet): A queryset of related objects. E.g. my_campaign.deployments
         related_data_string (str): Django-formatted string of related data. E.g. instrument__uuid
     """
 
-    return queryset.fetch_related().values_list(related_data_string, flat=True).distinct()
+    return queryset.select_related().values_list(related_data_string, flat=True).distinct()
 
 
 class BaseModel(models.Model):
@@ -49,7 +49,7 @@ class Image(BaseModel):
     source_url = models.TextField(blank=True, default='')
 
     def __str__(self):
-        return self.image.name
+        return self.description or self.image.name
 
 
 class LimitedInfo(BaseModel):
@@ -62,58 +62,77 @@ class LimitedInfo(BaseModel):
         abstract = True
 
 
-class PlatformType(LimitedInfo):
+class LimitedInfoPriority(LimitedInfo):
+    order_priority = models.PositiveIntegerField(unique=True, blank=True, null=True)
+
+    class Meta:
+        abstract = True
+
+
+class PlatformType(LimitedInfoPriority):
     parent = models.ForeignKey('PlatformType', on_delete=models.CASCADE, related_name='sub_types', null=True, blank=True)
 
     gcmd_uuid = models.UUIDField(null=True, blank=True)
     example = models.CharField(max_length=1024, blank=True, default='')
 
+    @property
+    def patriarch(self):
+        """Returns the highest level parent in the platform_type hierarchy
 
-class MeasurementType(LimitedInfo):
+        Returns:
+            [str]: short name of the highest level parent
+        """
+
+        if self.parent:
+            return self.parent.patriarch
+        else:
+            return self.short_name
+
+
+class MeasurementType(LimitedInfoPriority):
     parent = models.ForeignKey('MeasurementType', on_delete=models.CASCADE, related_name='sub_types', null=True, blank=True)
     example = models.CharField(max_length=1024, blank=True, default='')
 
 
-class MeasurementStyle(LimitedInfo):
+class MeasurementStyle(LimitedInfoPriority):
     parent = models.ForeignKey('MeasurementStyle', on_delete=models.CASCADE, related_name='sub_types', null=True, blank=True)
     example = models.CharField(max_length=1024, blank=True, default='')
 
 
-class HomeBase(LimitedInfo):
+class HomeBase(LimitedInfoPriority):
     location = models.CharField(max_length=512, blank=True, default='')
     additional_info = models.CharField(max_length=2048, blank=True, default='')
 
 
-class FocusArea(LimitedInfo):
+class FocusArea(LimitedInfoPriority):
     url = models.CharField(max_length=256, blank=True, default='')
 
 
-class Season(LimitedInfo):
+class Season(LimitedInfoPriority):
     pass
 
 
-class Repository(LimitedInfo):
+class Repository(LimitedInfoPriority):
     gcmd_uuid = models.UUIDField(null=True, blank=True)
 
 
-class MeasurementRegion(LimitedInfo):
-    gcmd_uuid = models.UUIDField(null=True, blank=True)
-    example = models.CharField(max_length=1024, blank=True, default='')
-
-
-class GeographicalRegion(LimitedInfo):
+class MeasurementRegion(LimitedInfoPriority):
     gcmd_uuid = models.UUIDField(null=True, blank=True)
     example = models.CharField(max_length=1024, blank=True, default='')
 
 
-class GeophysicalConcept(LimitedInfo):
+class GeographicalRegion(LimitedInfoPriority):
     gcmd_uuid = models.UUIDField(null=True, blank=True)
     example = models.CharField(max_length=1024, blank=True, default='')
 
 
-class WebsiteType(BaseModel):
-    long_name = models.TextField()
-    description = models.TextField()
+class GeophysicalConcept(LimitedInfoPriority):
+    gcmd_uuid = models.UUIDField(null=True, blank=True)
+    example = models.CharField(max_length=1024, blank=True, default='')
+
+
+class WebsiteType(LimitedInfoPriority):
+    description = models.TextField(blank=True, default='')
 
     def __str__(self):
         return self.long_name
@@ -140,7 +159,7 @@ class Alias(BaseModel):
         verbose_name_plural='Aliases'
 
 
-class PartnerOrg(LimitedInfo):
+class PartnerOrg(LimitedInfoPriority):
     aliases = GenericRelation(Alias)
 
     website = models.CharField(max_length=256, blank=True, default='')
@@ -192,7 +211,7 @@ class Website(BaseModel):
     url = models.URLField(unique=True)
     title = models.TextField()
     description = models.TextField(default='', blank=True)
-    website_type = models.ManyToManyField(WebsiteType, related_name='websites')
+    website_types = models.ManyToManyField(WebsiteType, related_name='websites')
 
     def __str__(self):
         return self.title
@@ -270,12 +289,26 @@ class Campaign(DataModel):
     websites = models.ManyToManyField(Website, related_name='campaigns', through='CampaignWebsite', default='', blank=True)
 
     @property
+    def website_details(self):
+        websites = []
+        for website in self.websites.all():
+            website_types = list(website.website_types.values_list('long_name', flat=True))
+            order_priority = self.campaign_websites.get(campaign=self.uuid, website=website).order_priority
+            websites.append({
+                'title': website.title,
+                'url': website.url,
+                'website_types': website_types,
+                'order_priority': order_priority
+            })
+        return websites
+
+    @property
     def significant_events(self):
-        return fetch_related_distinct_data(self.deployments, 'significant_events__uuid')
+        return select_related_distinct_data(self.deployments, 'significant_events__uuid')
 
     @property
     def iops(self):
-        return fetch_related_distinct_data(self.deployments, 'iops__uuid')
+        return select_related_distinct_data(self.deployments, 'iops__uuid')
 
     @property
     def number_deployments(self):
@@ -283,11 +316,11 @@ class Campaign(DataModel):
 
     @property
     def instruments(self):
-        return fetch_related_distinct_data(self.deployments, 'collection_periods__instruments__uuid')
+        return select_related_distinct_data(self.deployments, 'collection_periods__instruments__uuid')
 
     @property
     def platforms(self):
-        return fetch_related_distinct_data(self.deployments, 'collection_periods__platform__uuid')
+        return select_related_distinct_data(self.deployments, 'collection_periods__platform__uuid')
 
     @staticmethod
     def search_fields():
@@ -314,14 +347,45 @@ class Platform(DataModel):
     stationary = models.BooleanField()
 
     gcmd_platforms = models.ManyToManyField(GcmdPlatform, related_name='platforms', default='', blank=True)
+  
+    @property
+    def search_category(self):
+        """Returns a custom defined search category based on the platform_type's
+        highest level parent (patriarch) and the platform's stationary field.
+
+        Returns:
+            search_category [str]: One of 6 search categories 
+        """
+
+        patriarch = self.platform_type.patriarch
+
+        if patriarch == 'Air Platforms':
+            category = 'Aircraft'
+
+        elif patriarch == 'Water Platforms':
+            category = 'Water-based platforms'
+
+        elif patriarch == 'Land Platforms':
+            if self.stationary:
+                category = 'Stationary land sites'
+            else:
+                category = 'Mobile land-based platforms'
+
+        elif patriarch in ['Satellites', 'Manned Spacecraft']:
+            category = 'Spaceborne'
+
+        else:
+            category = 'Special Cases'
+        
+        return category
 
     @property
     def campaigns(self):
-        return fetch_related_distinct_data(self.collection_periods, 'deployment__campaign__uuid')
+        return select_related_distinct_data(self.collection_periods, 'deployment__campaign__uuid')
 
     @property
     def instruments(self):
-        return fetch_related_distinct_data(self.collection_periods, 'instruments')
+        return select_related_distinct_data(self.collection_periods, 'instruments')
 
     @staticmethod
     def search_fields():
@@ -364,11 +428,11 @@ class Instrument(DataModel):
 
     @property
     def campaigns(self):
-        return fetch_related_distinct_data(self.collection_periods, 'deployment__campaign__uuid')
+        return select_related_distinct_data(self.collection_periods, 'deployment__campaign__uuid')
 
     @property
     def platforms(self):
-        return fetch_related_distinct_data(self.collection_periods, 'platform__uuid')
+        return select_related_distinct_data(self.collection_periods, 'platform__uuid')
 
     def get_absolute_url(self):
         return urllib.parse.urljoin(FRONTEND_URL, f"/instrument/{self.uuid}/")
@@ -399,7 +463,7 @@ class Deployment(DataModel):
 
     @property
     def platforms(self):
-        return fetch_related_distinct_data(self.collection_periods, 'platform__uuid')
+        return select_related_distinct_data(self.collection_periods, 'platform__uuid')
 
 
 class IopSe(BaseModel):
@@ -457,7 +521,7 @@ class CollectionPeriod(BaseModel):
 
 class DOI(BaseModel):
     concept_id = models.CharField(max_length=512, unique=True)
-    doi = models.CharField(max_length=512, blank=True, default='')
+    doi = models.CharField(max_length=512, null=True, blank=True, default='')
     long_name = models.TextField(blank=True, default='')
 
     cmr_short_name = models.CharField(max_length=512, blank=True, default='')
@@ -488,13 +552,13 @@ class DOI(BaseModel):
 ##################
 
 class CampaignWebsite(BaseModel):
-    campaign = models.ForeignKey(Campaign, on_delete=models.CASCADE)
-    website = models.ForeignKey(Website, on_delete=models.CASCADE)
-    priority = models.IntegerField()
+    campaign = models.ForeignKey("Campaign", on_delete=models.CASCADE, related_name='campaign_websites')
+    website = models.ForeignKey("Website", on_delete=models.CASCADE, related_name='campaign_websites')
+    order_priority = models.PositiveIntegerField()
 
 
     def __str__(self):
         return f"{self.campaign} has {self.website}"
 
     class Meta:
-        unique_together = [("campaign", "website"), ("campaign", "priority")]
+        unique_together = [("campaign", "website"), ("campaign", "order_priority")]

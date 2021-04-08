@@ -13,7 +13,7 @@
     </div>
   </div>
   <div class="col-auto">
-    <a class="btn btn-primary" href="{% url 'change-add' 'campaign' %}">
+    <a class="btn btn-primary" href="{% url 'mi-change-add' 'campaign' %}">
       Add New Campaign +
     </a>
   </div>
@@ -123,7 +123,7 @@
       <ul class="list-group list-group-flush">
         {% for activity in activity_list %}
         <li class="list-group-item">
-          <a class="inline-link mr-1" href="{% url 'change-form' activity.change.uuid %}">
+          <a class="inline-link mr-1" href="{% url 'mi-change-form' activity.change.uuid %}">
             {{ activity.change.model_name }}
             {% firstof activity.change.update.short_name activity.change.update.long_name activity.change.uuid %}
           </a>
