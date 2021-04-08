@@ -10,9 +10,19 @@
     <h1>{{ display_name }} Drafts</h1>
   </div>
   <div class="col-auto px-0">
+    {% if is_multi_modelview %}
+      <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true"
+        aria-expanded="false">Add New Item +</button>
+      <div class="dropdown-menu">
+        {% for item in item_types %}
+        <a class="dropdown-item" href="{% url 'mi-change-add' item %}">{{ item | title }}</a>
+        {% endfor %}
+      </div>
+    {% else %}
     <a class="btn btn-primary" href="{% url 'mi-change-add' model %}">
       Add New {{ display_name }} +
     </a>
+    {% endif %}
   </div>
 </header>
 
@@ -20,20 +30,20 @@
   <div class="w-100">
     {% if filter %}
       <form action="" method="get" class="form form-inline">
-          {{ filter.form | crispy }}
-          <button class="btn btn-secondary btn-sm">Filter</button>
-          <a 
-            class="btn btn-light btn-sm" 
-            href="{% spaceless %}
-              {% if model == "campaign" %}{% url 'mi-campaign-list' %}
-              {% elif model == "platform" %}{% url 'mi-platform-list' %}
-              {% elif model == "instrument" %}{% url 'mi-instrument-list' %}
-              {% elif model == "partnerorg" %}{% url 'mi-organization-list' %}
-              {% else %}{% url 'mi-summary' %}
-              {% endif %}
-            {% endspaceless %}">
-            Clear filters
-          </a>
+        {{ filter.form | crispy }}
+        <button class="btn btn-secondary btn-sm">Filter</button>
+        <a 
+          class="btn btn-light btn-sm" 
+          href="{% spaceless %}
+            {% if model == "campaign" %}{% url 'mi-campaign-list' %}
+            {% elif model == "platform" %}{% url 'mi-platform-list' %}
+            {% elif model == "instrument" %}{% url 'mi-instrument-list' %}
+            {% elif model == "partnerorg" %}{% url 'mi-organization-list' %}
+            {% else %}{% url 'mi-summary' %}
+            {% endif %}
+          {% endspaceless %}">
+          Clear filters
+        </a>
       </form>
     {% endif %}
     {% render_table table %}

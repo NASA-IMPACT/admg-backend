@@ -42,13 +42,27 @@ from data_models.models import (
     PartnerOrg,
     IOP,
     SignificantEvent,
+    GcmdInstrument,
+    GcmdProject,
+    GcmdPhenomena,
+    GcmdPlatform,
+    FocusArea,
+    GeophysicalConcept,
+    MeasurementRegion,
+    MeasurementStyle,
+    MeasurementType,
+    HomeBase,
+    GeographicalRegion,
+    Season,
+    WebsiteType,
+    Repository,
 )
 from . import tables, forms, mixins, filters
 
 
 @login_required
-@user_passes_test(lambda user: user.can_deploy())
-def deploy_admin(request):
+@user_passes_test(lambda user: user.is_admg_admin())
+def trigger_deploy(request):
     workflow = settings.GITHUB_WORKFLOW
 
     response = requests.post(
@@ -370,6 +384,147 @@ class PartnerOrgListView(SingleTableMixin, FilterView):
             "display_name": "Partner Organization",
             "model": PartnerOrg._meta.model_name,
         }
+
+
+@method_decorator(user_passes_test(lambda user: user.is_admg_admin()), name="dispatch")
+class LimitedFieldGCMDListView(SingleTableMixin, FilterView):
+    model = Change
+    item_types = [GcmdInstrument, GcmdPhenomena, GcmdPlatform, GcmdProject]
+
+    template_name = "api_app/change_list.html"
+    table_class = tables.MultiItemListTable
+    filterset_class = filters.MultiItemFilter
+
+    def get_queryset(self):
+
+        return (
+            Change.objects.of_type(*self.item_types)
+            .filter(action=CREATE)
+            .add_updated_at()
+        )
+
+    def get_context_data(self, **kwargs):
+        return {
+            **super().get_context_data(**kwargs),
+            "display_name": "GCMD Item",
+            "is_multi_modelview": True,
+            "item_types": [m._meta.model_name for m in self.item_types],
+        }
+
+
+@method_decorator(user_passes_test(lambda user: user.is_admg_admin()), name="dispatch")
+class LimitedFieldScienceListView(SingleTableMixin, FilterView):
+    model = Change
+    item_types = [FocusArea, GeophysicalConcept]
+
+    template_name = "api_app/change_list.html"
+    table_class = tables.MultiItemListTable
+    filterset_class = filters.MultiItemFilter
+
+    def get_queryset(self):
+
+        return (
+            Change.objects.of_type(*self.item_types)
+            .filter(action=CREATE)
+            .add_updated_at()
+        )
+
+    def get_context_data(self, **kwargs):
+        return {
+            **super().get_context_data(**kwargs),
+            "display_name": "Science Concept",
+            "is_multi_modelview": True,
+            "item_types": [m._meta.model_name for m in self.item_types],
+        }
+
+
+@method_decorator(user_passes_test(lambda user: user.is_admg_admin()), name="dispatch")
+class LimitedFieldMeasurmentPlatformListView(SingleTableMixin, FilterView):
+    model = Change
+    item_types = [
+        MeasurementRegion,
+        MeasurementStyle,
+        MeasurementType,
+        HomeBase,
+        PlatformType,
+    ]
+
+    template_name = "api_app/change_list.html"
+    table_class = tables.MultiItemListTable
+    filterset_class = filters.MultiItemFilter
+
+    def get_queryset(self):
+
+        return (
+            Change.objects.of_type(*self.item_types)
+            .filter(action=CREATE)
+            .add_updated_at()
+        )
+
+    def get_context_data(self, **kwargs):
+        return {
+            **super().get_context_data(**kwargs),
+            "display_name": "Measurement & Platform Item",
+            "is_multi_modelview": True,
+            "item_types": [m._meta.model_name for m in self.item_types],
+        }
+
+
+@method_decorator(user_passes_test(lambda user: user.is_admg_admin()), name="dispatch")
+class LimitedFieldRegionSeasonListView(SingleTableMixin, FilterView):
+    model = Change
+    item_types = [GeographicalRegion, Season]
+
+    template_name = "api_app/change_list.html"
+    table_class = tables.MultiItemListTable
+    filterset_class = filters.MultiItemFilter
+
+    def get_queryset(self):
+
+        return (
+            Change.objects.of_type(*self.item_types)
+            .filter(action=CREATE)
+            .add_updated_at()
+        )
+
+    def get_context_data(self, **kwargs):
+        return {
+            **super().get_context_data(**kwargs),
+            "display_name": "Geographical Region & Season Item",
+            "is_multi_modelview": True,
+            "item_types": [m._meta.model_name for m in self.item_types],
+        }
+
+
+@method_decorator(user_passes_test(lambda user: user.is_admg_admin()), name="dispatch")
+class LimitedFieldWebsiteListView(SingleTableMixin, FilterView):
+    model = Change
+    item_types = [WebsiteType, Repository]
+
+    template_name = "api_app/change_list.html"
+    table_class = tables.MultiItemListTable
+    filterset_class = filters.MultiItemFilter
+
+    def get_queryset(self):
+
+        return (
+            Change.objects.of_type(*self.item_types)
+            .filter(action=CREATE)
+            .add_updated_at()
+        )
+
+    def get_context_data(self, **kwargs):
+        return {
+            **super().get_context_data(**kwargs),
+            "display_name": "Website Item",
+            "is_multi_modelview": True,
+            "item_types": [m._meta.model_name for m in self.item_types],
+        }
+
+
+@login_required
+def to_be_developed(request):
+    return render(request, "api_app/to_be_developed.html")
 
 
 @method_decorator(login_required, name="dispatch")

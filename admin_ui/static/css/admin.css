@@ -1,9 +1,9 @@
+/* Utils */
 .active {
   font-weight: 700;
 }
 
 .inline-link {
-  color: black;
   text-decoration: underline;
 }
 
@@ -11,22 +11,31 @@
   cursor: pointer;
 }
 
+/* Views */
+#sidebar .nav-link.collapsed .minus {
+  display: none;
+}
+
+#sidebar .nav-link:not(.collapsed) .plus {
+  display: none;
+}
+
 .campaign-summary li.list-group-item {
   padding-bottom: 0;
+}
+
+.campaign-summary .list-group-item-primary, .campaign-summary .list-group-item-primary:hover {
+  color: inherit;
+}
+
+.campaign-summary .list-group-item-primary .row, .campaign-summary .list-group-item-primary .col {
+  border-color: #6c757d !important;
 }
 
 .campaign-summary .list-group-item-primary {
   padding-left: 15px;
   /* 21 - border-width */
   border-left: 6px solid;
-}
-
-.campaign-summary .list-group-item-primary:hover {
-  color: inherit;
-}
-
-.campaign-summary .list-group-item-primary .row, .campaign-summary .list-group-item-primary .col {
-  border-color: #6c757d !important;
 }
 
 .campaign-summary dt {
