@@ -7,13 +7,19 @@ from . import views
 
 urlpatterns = [
     path(settings.ADMIN_URL, admin.site.urls),
-    path("deploy-admin/", views.deploy_admin, name="deploy-admin"),
+    # Actions
+    path("actions/deploy-admin", views.trigger_deploy, name="mi-trigger-deploy"),
     path("", views.SummaryView.as_view(), name="mi-summary"),
     path("campaigns", views.CampaignListView.as_view(), name="mi-campaign-list"),
     path(
         "campaigns/<uuid:pk>",
         views.CampaignDetailView.as_view(),
         name="mi-campaign-detail",
+    ),
+    path(
+        "campaigns/<uuid:pk>/fetch-dois",
+        views.FetchDois.as_view(),
+        name="mi-fetch-dois",
     ),
     path("platforms", views.PlatformListView.as_view(), name="mi-platform-list"),
     path("instruments", views.InstrumentListView.as_view(), name="mi-instrument-list"),

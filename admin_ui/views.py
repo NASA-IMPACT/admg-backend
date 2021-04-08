@@ -6,17 +6,18 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.db.models import aggregates
 from django.http import HttpResponseRedirect
-from django.shortcuts import render
 from django.utils.decorators import method_decorator
 from django.utils.safestring import mark_safe
 from django.urls import reverse
 from django.views.generic import DetailView
+from django.views.generic.detail import BaseDetailView
 from django.views.generic.edit import (
     CreateView,
     UpdateView,
     FormMixin,
     ProcessFormView,
 )
+from django_celery_results.models import TaskResult
 import django_tables2
 from django_tables2.views import SingleTableMixin
 from django_filters.views import FilterView
@@ -32,10 +33,12 @@ from api_app.models import (
     PUBLISHED_CODE,
     AVAILABLE_STATUSES,
 )
+from cmr import tasks
 from data_models.models import (
     Campaign,
     CollectionPeriod,
     Deployment,
+    DOI,
     Instrument,
     Platform,
     PlatformType,
@@ -62,7 +65,7 @@ from . import tables, forms, mixins, filters
 
 @login_required
 @user_passes_test(lambda user: user.is_admg_admin())
-def deploy_admin(request):
+def trigger_deploy(request):
     workflow = settings.GITHUB_WORKFLOW
 
     response = requests.post(
@@ -87,9 +90,24 @@ def deploy_admin(request):
             request, messages.ERROR, f"Failed to trigger deployment: {response.text}"
         )
 
-    # TODO: Redirect back to origin of request
-    # TODO: Use dynamic admin route (either from URL router or from settings)
-    return HttpResponseRedirect("/admin/")
+    return HttpResponseRedirect(reverse("mi-summary"))
+
+
+@method_decorator(login_required, name="dispatch")
+class FetchDois(BaseDetailView):
+    queryset = Change.objects.of_type(Campaign)
+
+    def post(self, request, **kwargs):
+        campaign = self.get_object()
+        task = tasks.match_dois.delay(campaign.content_type.model, campaign.uuid)
+        request.session["doi_task_ids"] = [
+            task.id,
+            *request.session.get("doi_task_ids", []),
+        ]
+        messages.add_message(
+            request, messages.INFO, f"Fetching DOIs for {campaign.uuid}..."
+        )
+        return HttpResponseRedirect(reverse("mi-campaign-detail", args=[campaign.uuid]))
 
 
 @method_decorator(login_required, name="dispatch")
@@ -229,6 +247,21 @@ class CampaignDetailView(DetailView):
                 .prefetch_approvals()
             ),
             "collection_periods": collection_periods,
+            "doi_tasks": (
+                TaskResult.objects.filter(
+                    task_id__in=self.request.session["doi_task_ids"]
+                )
+                if self.request.session.get("doi_task_ids")
+                else []
+            ),
+            "doi_formset": forms.DoiFormSet(
+                initial=(
+                    Change.objects.of_type(DOI)
+                    .filter(update__campaigns__contains=str(context["object"].uuid))
+                    .values_list("update", flat=True)
+                )
+            ),
+            "doi_formset_helper": forms.TableInlineFormSetHelper(),
         }
 
     def get_ordering(self):

@@ -78,5 +78,5 @@ axios(config)
 ## Local Setup
 
 - Install docker and docker-compose
-- Run docker-compose with docker-compose-local.yml instead of docker-compose.yml
-  - `docker-compose -f docker-compose-local.yml up`
+- Run docker-compose with docker-compose.local.yml instead of docker-compose.yml
+  - `docker-compose -f docker-compose.local.yml up`

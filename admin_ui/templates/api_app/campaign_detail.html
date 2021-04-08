@@ -4,7 +4,7 @@
 {% load humanize %}
 
 {% block page %}
-<header class="mx-3 my-3 pt-2 sticky-top bg-white campaign-summary">
+<header class="mx-3 my-3 pt-2 sticky-top bg-white border-bottom campaign-summary">
     <div class="row">
         <div class="col">
             <a href="{% url 'mi-campaign-list' %}">&larr; Back</a>
@@ -61,6 +61,8 @@
         </div>
     </div>
 
+</header>
+
     <div class="row">
         <div class="col">
             <ul class="nav nav-tabs" id="myTab" role="tablist">
@@ -73,9 +75,8 @@
             </ul>
         </div>
     </div>
-</header>
-
 <main class="row mx-3 my-5 campaign-summary tab-content">
+    {# Campaign Details #}
     <div class="tab-pane show active" id="details" role="tabpanel" aria-labelledby="details-tab">
         <div class="col">
             <ul class="list-group" id="deployments-list">
@@ -178,7 +179,39 @@
     {# DOIs #}
     <div class="tab-pane" id="dois" role="tabpanel" aria-labelledby="dois-tab">
         <div class="col">
-            <h3>DOIs</h3>
+            <h3>Suggested DOIs</h3>
+            <form>
+                {% crispy doi_formset doi_formset_helper %}
+            </form>
+            <h3>Generate DOI Suggestions</h3>
+            <ul class="list-group">
+            {% for task in doi_tasks %}
+                <li class="list-group-item list-group-item-action flex-column align-items-start collapsed" data-toggle="collapse" data-target="#task_{{ task.id }}_details">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h5 class="mb-1">{{ task.status }}</h5>
+                        {% firstof task.date_done|naturaltime task.date_created|naturaltime as task_date %}
+                        <small>{{ task_date }}</small>
+                    </div>
+                    <dl id="task_{{ task.id }}_details" class="collapse">
+                        <dt>Started</dt>
+                        <dd>{{ task.date_created | naturaltime }}</dd>
+                        
+                        <dt>Completed</dt>
+                        <dd>{{ task.date_done | naturaltime }}</dd>
+                        
+                        <dt>Runtime</dt>
+                        <dd>{{ task.date_done | timesince:task.date_created }}</dd>
+                        
+                        <dt>Task ID</dt>
+                        <dd><small class="text-monospace">{{ task.task_id }}</small></dd>
+                    </dl>
+                </li>
+            {% endfor %}
+            </ul>
+            <form action="{% url 'mi-fetch-dois' object.uuid %}" method="post">
+                {% csrf_token %}
+                <button class="btn btn-lg btn-primary">Fetch DOIs</button>
+            </form>
         </div>
     </div>
 </main>

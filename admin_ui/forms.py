@@ -3,6 +3,7 @@ from collections import OrderedDict
 from django import forms
 from django.core.exceptions import ValidationError
 from django.utils.safestring import mark_safe
+from crispy_forms.helper import FormHelper
 
 from api_app.models import (
     Change,
@@ -15,6 +16,7 @@ from api_app.models import (
     AWAITING_ADMIN_REVIEW_CODE,
 )
 from admg_webapp.users.models import User, ADMIN_CODE
+from data_models.models import DOI
 
 
 class TransitionForm(forms.Form):
@@ -82,3 +84,20 @@ class TransitionForm(forms.Form):
                 )
 
         return actions.items()
+
+
+DoiFormSet = forms.modelformset_factory(
+    DOI,
+    fields=[
+        "long_name",
+        "campaigns",
+        "instruments",
+        # "platforms",
+        # "collection_periods",
+    ],
+    widgets={"long_name": forms.TextInput},
+)
+
+
+class TableInlineFormSetHelper(FormHelper):
+    template = "bootstrap/table_inline_formset.html"
