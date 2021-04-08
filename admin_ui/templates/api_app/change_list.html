@@ -22,7 +22,18 @@
       <form action="" method="get" class="form form-inline">
           {{ filter.form | crispy }}
           <button class="btn btn-secondary btn-sm">Filter</button>
-          <a class="btn btn-light btn-sm" href="{% url 'mi-campaign-list' %}">Clear filters</a>
+          <a 
+            class="btn btn-light btn-sm" 
+            href="{% spaceless %}
+              {% if model == "campaign" %}{% url 'mi-campaign-list' %}
+              {% elif model == "platform" %}{% url 'mi-platform-list' %}
+              {% elif model == "instrument" %}{% url 'mi-instrument-list' %}
+              {% elif model == "partnerorg" %}{% url 'mi-organization-list' %}
+              {% else %}{% url 'mi-summary' %}
+              {% endif %}
+            {% endspaceless %}">
+            Clear filters
+          </a>
       </form>
     {% endif %}
     {% render_table table %}

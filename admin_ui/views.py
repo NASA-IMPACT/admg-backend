@@ -114,10 +114,7 @@ class SummaryView(django_tables2.SingleTableView):
         # Populate with actual counts
         model_status_counts = (
             Change.objects.of_type(*self.models)
-            .filter(
-                action=CREATE,
-                status__in=status_ids,
-            )
+            .filter(action=CREATE, status__in=status_ids)
             .values_list("content_type__model", "status")
             .annotate(aggregates.Count("content_type"))
         )
@@ -166,23 +163,17 @@ class CampaignDetailView(DetailView):
         context = super().get_context_data(**kwargs)
         deployments = (
             Change.objects.of_type(Deployment)
-            .filter(
-                update__campaign=str(self.kwargs[self.pk_url_kwarg]),
-            )
+            .filter(update__campaign=str(self.kwargs[self.pk_url_kwarg]))
             .prefetch_approvals()
             .order_by(self.get_ordering())
         )
         collection_periods = (
             Change.objects.of_type(CollectionPeriod)
-            .filter(
-                update__deployment__in=[str(d.uuid) for d in deployments],
-            )
+            .filter(update__deployment__in=[str(d.uuid) for d in deployments])
             .select_related("content_type")
             .prefetch_approvals()
             .annotate_with_identifier_from_model(
-                model=Platform,
-                uuid_from="platform",
-                to_attr="platform_name",
+                model=Platform, uuid_from="platform", to_attr="platform_name"
             )
         )
 
@@ -213,17 +204,13 @@ class CampaignDetailView(DetailView):
             ),
             "significant_events": (
                 Change.objects.of_type(SignificantEvent)
-                .filter(
-                    update__deployment__in=[str(d.uuid) for d in deployments],
-                )
+                .filter(update__deployment__in=[str(d.uuid) for d in deployments])
                 .select_related("content_type")
                 .prefetch_approvals()
             ),
             "iops": (
                 Change.objects.of_type(IOP)
-                .filter(
-                    update__deployment__in=[str(d.uuid) for d in deployments],
-                )
+                .filter(update__deployment__in=[str(d.uuid) for d in deployments])
                 .select_related("content_type")
                 .prefetch_approvals()
             ),
@@ -299,6 +286,12 @@ class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
             "transition_form": forms.TransitionForm(
                 change=self.get_object(), user=self.request.user
             ),
+            "campaign_subitems": [
+                "Deployment",
+                "IOP",
+                "SignificantEvent",
+                "CollectionPeriod",
+            ],
         }
 
     def get_model_form_content_type(self) -> ContentType:
