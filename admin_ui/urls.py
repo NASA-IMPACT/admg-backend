@@ -17,9 +17,9 @@ urlpatterns = [
         name="mi-campaign-detail",
     ),
     path(
-        "campaigns/<uuid:pk>/fetch-dois",
-        views.FetchDois.as_view(),
-        name="mi-fetch-dois",
+        "campaigns/<uuid:pk>/dois",
+        views.CampaignDoisView.as_view(),
+        name="mi-campaign-dois",
     ),
     path("platforms", views.PlatformListView.as_view(), name="mi-platform-list"),
     path("instruments", views.InstrumentListView.as_view(), name="mi-instrument-list"),

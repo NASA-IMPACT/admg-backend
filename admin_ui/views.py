@@ -269,6 +269,12 @@ class CampaignDetailView(DetailView):
 
 
 @method_decorator(login_required, name="dispatch")
+class CampaignDoisView(DetailView):
+    template_name = "api_app/campaign_dois.html"
+    queryset = Change.objects.of_type(Campaign)
+
+
+@method_decorator(login_required, name="dispatch")
 class ChangeCreateView(mixins.ChangeModelFormMixin, CreateView):
     model = Change
     fields = ["content_type", "model_instance_uuid", "action", "update"]
