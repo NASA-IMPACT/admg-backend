@@ -19,95 +19,11 @@
   </header>
 
   <div class="row mx-3 my-5">
-    <div class="col-lg-4 border">
-      <p class="text-uppercase my-3">Campaigns</p>
-      <div class="row">
-        <div class="col-sm-3">
-          <span class="lead font-weight-bold text-nowrap">
-            {{ total_counts.campaign }}
-          </span>
-          <p>Total</p>
-        </div>
-        <div class="col-sm-3">
-          <span class="lead font-weight-bold text-nowrap">
-            {{ draft_status_counts.campaign.In_Review }}
-          </span>
-          <p>In review</p>
-        </div>
-        <div class="col-sm-3">
-          <span class="lead font-weight-bold text-nowrap">
-            {{ draft_status_counts.campaign.In_Admin_Review }}
-          </span>
-          <p>In admin review</p>
-        </div>
-        <div class="col-sm-3">
-          <span class="lead font-weight-bold text-nowrap">
-            {{ draft_status_counts.campaign.Published }}
-          </span>
-          <p>Pub&shy;lished</p>
-        </div>
-      </div>
-    </div>
+    {% include 'snippets/draft_summary_box.html' with name="Campaigns" total=total_counts.campaign in_review=draft_status_counts.campaign.In_Review in_admin_review=draft_status_counts.campaign.In_Admin_Review published=draft_status_counts.campaign.Published %}
 
-    <div class="col-lg-4 border">
-      <p class="text-uppercase my-3">Platforms</p>
-      <div class="row">
-        <div class="col-sm-3">
-          <span class="lead font-weight-bold text-nowrap">
-            {{ total_counts.platform }}
-          </span>
-          <p>Total</p>
-        </div>
-        <div class="col-sm-3">
-          <span class="lead font-weight-bold text-nowrap">
-            {{ draft_status_counts.platform.In_Review }}
-          </span>
-          <p>In review</p>
-        </div>
-        <div class="col-sm-3">
-          <span class="lead font-weight-bold text-nowrap">
-            {{ draft_status_counts.platform.In_Admin_Review }}
-          </span>
-          <p>In admin review</p>
-        </div>
-        <div class="col-sm-3">
-          <span class="lead font-weight-bold text-nowrap">
-            {{ draft_status_counts.platform.Published }}
-          </span>
-          <p>Pub&shy;lished</p>
-        </div>
-      </div>
-    </div>
+    {% include 'snippets/draft_summary_box.html' with name="Platforms" total=total_counts.platform in_review=draft_status_counts.platform.In_Review in_admin_review=draft_status_counts.platform.In_Admin_Review published=draft_status_counts.platform.Published %}
 
-    <div class="col-lg-4 border">
-      <p class="text-uppercase my-3">Instruments</p>
-      <div class="row">
-        <div class="col-sm-3">
-          <span class="lead font-weight-bold text-nowrap">
-            {{ total_counts.instrument }}
-          </span>
-          <p>Total</p>
-        </div>
-        <div class="col-sm-3">
-          <span class="lead font-weight-bold text-nowrap">
-            {{ draft_status_counts.instrument.In_Review }}
-          </span>
-          <p>In review</p>
-        </div>
-        <div class="col-sm-3">
-          <span class="lead font-weight-bold text-nowrap">
-            {{ draft_status_counts.instrument.In_Admin_Review }}
-          </span>
-          <p>In admin review</p>
-        </div>
-        <div class="col-sm-3">
-          <span class="lead font-weight-bold text-nowrap">
-            {{ draft_status_counts.instrument.Published }}
-          </span>
-          <p>Pub&shy;lished</p>
-        </div>
-      </div>
-    </div>
+    {% include 'snippets/draft_summary_box.html' with name="Instruments" total=total_counts.instrument in_review=draft_status_counts.instrument.In_Review in_admin_review=draft_status_counts.instrument.In_Admin_Review published=draft_status_counts.instrument.Published %}
   </div>
 
   <div class="row mx-3 my-5">
