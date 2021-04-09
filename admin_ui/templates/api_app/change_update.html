@@ -1,0 +1,58 @@
+{% extends "api_app/base_read.html" %}
+{% load static %}
+{% load crispy_forms_tags %}
+{% load humanize %}
+
+{% block header %}
+  <div class="col">
+    <a href="{% spaceless %}
+        {% if object.model_name == "Campaign" %}{% url 'mi-campaign-detail' object.uuid %}
+        {% elif object.model_name in campaign_subitems and object.update.campaign %}{% url 'mi-campaign-detail' object.update.campaign %}
+        {% elif object.model_name == "Platform" %}{% url 'mi-platform-list' %}
+        {% elif object.model_name == "Instrument" %}{% url 'mi-instrument-list' %}
+        {% elif object.model_name == "PartnerOrg" %}{% url 'mi-organization-list' %}
+        {% else %}{% url 'mi-summary' %}
+        {% endif %}
+        {% endspaceless %}">
+      &larr; Back
+    </a>
+    <h1>{{ object.update.short_name | default:object.uuid }}</h1>
+  </div>
+{% endblock header %}
+
+{% block actions %}
+  <div class="px-1">
+    {% include "snippets/approval_dropdown.html" %}
+  </div>
+
+  <div class="px-1">
+    <button class="btn btn-primary" form="model-form" formnovalidate>Save</button>
+    <button class="btn btn-secondary" form="model-form" name="_validate">Validate</button>
+  </div>
+{% endblock actions %}
+
+{% block main %}
+  <main class="col-8">
+    {{ form.errors }}
+    <table class="table table-responsive">
+      <form method="post" id="model-form">
+        {% csrf_token %}
+        {% for field in form %} {{ field.as_hidden }} {% endfor %}
+        {{ model_form | crispy }}
+      </form>
+    </table>
+  </main>
+
+  {# Sidebar #}
+  <aside class="col-sm-4">
+
+    <h3>Activity</h3>
+    {% include 'snippets/related_approval_logs.html' with approval_logs=object.approvallog_set.all show_notes=True%}
+
+    <hr />
+
+    <h3>Raw Data</h3>
+    <code>{{ object.update | pprint }}</code>
+
+  </aside>
+{% endblock main%}

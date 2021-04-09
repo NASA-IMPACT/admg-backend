@@ -1,32 +1,33 @@
-/* Utilities */
-.nav-link.active {
+/* Utils */
+.active {
   font-weight: 700;
+}
+
+.inline-link {
+  text-decoration: underline;
 }
 
 .cursor-pointer {
   cursor: pointer;
 }
 
-.inline-link {
-  color: black;
-  text-decoration: underline;
-}
-
 /* Views */
-#sidebar .nav-link {
-  color: black;
-}
 #sidebar .nav-link.collapsed .minus {
   display: none;
 }
+
 #sidebar .nav-link:not(.collapsed) .plus {
   display: none;
 }
-#sidebar .nav-link li a {
-  color: black;
+
+.object-details dt {
+  font-size: 80%;
+  text-transform: uppercase;
+  color: #6c757d;
 }
-#sidebar .nav-item .collapsing {
-  transition: unset; /* Disable animation */
+
+.object-details dd {
+  margin-bottom: 0;
 }
 #sidebar li.dropdown-tab a {
   color: black
@@ -36,13 +37,7 @@
   padding-bottom: 0;
 }
 
-.campaign-summary .list-group-item-primary {
-  padding-left: 15px;
-  /* 21 - border-width */
-  border-left: 6px solid;
-}
-
-.campaign-summary .list-group-item-primary:hover {
+.campaign-summary .list-group-item-primary, .campaign-summary .list-group-item-primary:hover {
   color: inherit;
 }
 
@@ -50,14 +45,10 @@
   border-color: #6c757d !important;
 }
 
-.campaign-summary dt {
-  font-size: 80%;
-  text-transform: uppercase;
-  color: #6c757d;
-}
-
-.campaign-summary dd {
-  margin-bottom: 1em;
+.campaign-summary .list-group-item-primary {
+  padding-left: 15px;
+  /* 21 - border-width */
+  border-left: 6px solid;
 }
 
 .campaign-summary .caret {
@@ -66,18 +57,4 @@
 
 .campaign-summary .show-caret .caret {
   display: inline;
-}
-.campaign-summary.tab-content > .active {
-  display: contents;
-}
-
-/* Global */
-th a {
-  color: white;
-}
-
-td a {
-  color: white;
-  color: black;
-  text-decoration: underline;
 }

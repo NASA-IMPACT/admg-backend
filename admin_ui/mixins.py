@@ -1,18 +1,16 @@
-import json
 from functools import partial
 
 from django.contrib import messages
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.gis.geos import Polygon
+from django.contrib.gis.db.models.fields import PolygonField
 from django.db import models
 from django.db.models.fields.related import ForeignKey
 from django.db.models.query import QuerySet
 from django.forms import modelform_factory
 from django.views.generic.edit import ModelFormMixin
-from rest_framework.renderers import JSONRenderer
 
-from api_app.models import Change
-from .fields import ChangeChoiceField
+from .fields import ChangeChoiceField, BboxField
 
 
 def formfield_callback(f, **kwargs):
@@ -22,6 +20,11 @@ def formfield_callback(f, **kwargs):
             **kwargs,
             "form_class": partial(ChangeChoiceField, dest_model=f.remote_field.model),
             "queryset": ChangeChoiceField.get_queryset_for_model(f.remote_field.model),
+        }
+    if isinstance(f, PolygonField):
+        kwargs = {
+            **kwargs,
+            "form_class": BboxField,
         }
     return f.formfield(**kwargs)
 

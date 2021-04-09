@@ -76,7 +76,7 @@ class MultiItemListTable(BasicChangeListTable):
     class Meta:
         attrs = {
             "class": "table table-striped",
-            "thead": {"class": "thead-dark"},
+            "thead": {"class": "table-primary"},
             "th": {"style": "min-width: 10em"},
         }
         fields = ["short_name", "long_name", "model_name", "status", "updated_at"]

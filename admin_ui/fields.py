@@ -1,10 +1,14 @@
 from django.core.exceptions import ValidationError
+from django.contrib.gis.forms.fields import PolygonField
 from django.db.models.fields.related import ForeignKey
-from django.db.models import functions, expressions, Max, TextField
+from django.db.models import functions, expressions, TextField
 from django.db.models.fields.json import KeyTextTransform
 from django.forms import ModelChoiceField
+from django.utils.translation import gettext_lazy as _
 
 from api_app.models import Change, CREATE, PUBLISHED_CODE
+from data_models.serializers import get_geojson_from_bb
+from .widgets import BoundingBoxWidget
 
 
 class ChangeChoiceField(ModelChoiceField):
@@ -75,3 +79,26 @@ class ChangeChoiceField(ModelChoiceField):
                 self.error_messages["invalid_choice"], code="invalid_choice"
             ) from e
         return self.dest_model(**{key: value})
+
+
+class BboxField(PolygonField):
+    widget = BoundingBoxWidget
+    default_error_messages = {
+        **PolygonField.default_error_messages,
+        "invalid_geom": _(
+            "Invalid geometry value. "
+            "Geometry should be provided in the following format: "
+            "MaxLat, MinLat, MaxLon, MinLon"
+        ),
+    }
+
+    def clean(self, value):
+        if value:
+            try:
+                value = get_geojson_from_bb(value)
+            except ValueError as e:
+                raise ValidationError(
+                    self.error_messages["invalid_geom"], code="invalid_geom"
+                ) from e
+
+        return super().clean(value)

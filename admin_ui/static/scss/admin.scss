@@ -1,38 +1,49 @@
+
+/* Utils */
 .active {
   font-weight: 700;
 }
-
 .inline-link {
-  color: black;
   text-decoration: underline;
 }
-
 .cursor-pointer {
   cursor: pointer;
 }
 
-.campaign-summary {
-  li.list-group-item {
-    padding-bottom: 0;
+/* Views */
+#sidebar {
+  .nav-link.collapsed .minus {
+    display: none;
   }
-  .list-group-item-primary {
-    padding-left: 15px; /* 21 - border-width */
-    border-left: 6px solid;
-    &:hover {
-      color: inherit;
-    }
-    .row, .col {
-      border-color: #6c757d !important;
-    }
+  .nav-link:not(.collapsed) .plus {
+    display: none;
   }
-  
+}
+
+.object-details {
   dt {
     font-size: 80%;
     text-transform: uppercase;
     color: #6c757d;
   }
   dd {
-    margin-bottom: 1em;
+    margin-bottom: 0;
+  }
+}
+
+.campaign-summary {
+  li.list-group-item {
+    padding-bottom: 0;
+  }
+  .list-group-item-primary, .list-group-item-primary:hover {
+    color: inherit;
+  }
+  .list-group-item-primary .row, .list-group-item-primary .col {
+    border-color: #6c757d !important;
+  }
+  .list-group-item-primary {
+    padding-left: 15px; /* 21 - border-width */
+    border-left: 6px solid;
   }
   .caret {
     display: none;

@@ -42,8 +42,8 @@
           <span class="navbar-toggler-icon"></span>
         </button>
         
-        <a class="navbar-brand" href="{% url 'mi-summary' %}">
-          <img src="{% static 'images/logo.svg' %}" class="mr-3">NASA | CASEI Staff
+        <a class="navbar-brand text-white" href="{% url 'mi-summary' %}">
+          <img src="{% static 'images/logo.svg' %}" class="mr-3">NASA | CASEI {% if request.user.is_admg_admin %} Admin {% else %} Staff {% endif %}
         </a>
         
         <div class="collapse navbar-collapse" id="navbarSupportedContent">

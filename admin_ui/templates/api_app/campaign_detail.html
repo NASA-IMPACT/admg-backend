@@ -1,267 +1,153 @@
-{% extends "api_app/base.html" %}
-{% load change_extras %}
-{% load crispy_forms_tags %}
-{% load humanize %}
+{% extends "api_app/base_read.html" %}
 
-{% block page %}
-<header class="mx-3 my-3 pt-2 sticky-top bg-white border-bottom campaign-summary">
-    <div class="row">
-        <div class="col">
-            <a href="{% url 'mi-campaign-list' %}">&larr; Back</a>
-            <h1>Campaign {% firstof object.update.short_name object.update.uuid %}</h1>
+{% block header %}
+  <div class="col">
+    <a href="{% url 'mi-campaign-list' %}">&larr; Back</a>
+    <h1>Campaign {% firstof object.update.short_name object.update.uuid %}</h1>
+  </div>
+{% endblock header %}
+
+{% block actions %}
+  <div class="px-1">
+    {% include "snippets/approval_dropdown.html" %}
+  </div>
+
+  <div class="px-1">
+    <a href="{% url 'mi-change-update' object.uuid %}" class="btn btn-outline-secondary ml-3">
+      Edit campaign details
+    </a>
+  </div>
+{% endblock actions %}
+
+{% block main %}
+  <div class="campaign-summary col pl-0 ">
+    <ul class="list-group" id="deployments-list">
+      <li class="list-group-item d-flex pb-2">
+        <h4>Deployments</h4>
+
+        <div class="h5 align-self-center">
+          <span class="badge badge-primary badge-pill ml-2" id="deployments-badge"></span>
         </div>
-    </div>
-
-    <div class="row">
-        <div class="col">
-            <dl class="row">
-                <div class="col">
-                    <dt>Status</dt>
-                    <dd>
-                        <span title="Status">{{ object.get_status_display }}</span>
-                    </dd>
-                </div>
-                
-                <div class="col">
-                    <dt>Item Type</dt>
-                    <dd>
-                        <span title="Item Type">{{ object.model_name }}</span>
-                    </dd>
-                </div>
-                    
-                <div class="col">
-                    <dt>Action</dt>
-                    <dd>
-                        <span title="Action">{{ object.action }}</span>
-                    </dd>
-                </div>
-            </dl>
+        
+        <div class="ml-auto">
+          <a class="btn btn-primary" href="{% url 'mi-change-add' 'deployment' %}?campaign={{ object.uuid }}">+</a>
         </div>
+      </li>
+      {% for deployment in deployments %}
+      <li class="list-group-item list-group-item-action justify-content-between deployment cursor-pointer show-caret" data-id="{{ deployment.uuid }}">
+        {% include "snippets/campaign_accordian_cards/deployment.html" with change=deployment %}
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
 
-        <div class="col d-flex flex-row-reverse">
-            <div class="px-1">
-                <button class="btn btn-secondary dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
-                {% if not transition_form.fields.transition.choices|length %} disabled="true" {% endif %}>Approval Actions
-                </button>
-
-                <div class="dropdown-menu">
-                <form action="{% url 'mi-change-transition' object.uuid %}" method="post" class="px-4 py-3">
-                    {% csrf_token %}
-                    {{ transition_form | crispy }}
-                    <button class="btn btn-primary">Submit</button>
-                </form>
-                </div>
-            </div>
-
-            <div class="px-1">
-                <a href="{% url 'mi-change-update' object.uuid %}" class="btn btn-outline-secondary ml-3">
-                    Edit campaign details
-                </a>
-            </div>
-        </div>
-    </div>
-
-</header>
-
-    <div class="row">
-        <div class="col">
-            <ul class="nav nav-tabs" id="myTab" role="tablist">
-                <li class="nav-item">
-                    <a class="nav-link active" id="details-tab" data-toggle="tab" href="#details" role="tab" aria-controls="details" aria-selected="true">Campaign Details</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" id="dois-tab" data-toggle="tab" href="#dois" role="tab" aria-controls="dois" aria-selected="false">DOIs</a>
-                </li>
-            </ul>
-        </div>
-    </div>
-<main class="row mx-3 my-5 campaign-summary tab-content">
-    {# Campaign Details #}
-    <div class="tab-pane show active" id="details" role="tabpanel" aria-labelledby="details-tab">
-        <div class="col">
-            <ul class="list-group" id="deployments-list">
-                <li class="list-group-item d-flex pb-2">
-                    <h4>
-                        Deployments
-                    </h4>
-
-                    <div class="h5 align-self-center">
-                        <span class="badge badge-primary badge-pill ml-2" id="deployments-badge"></span>
-                    </div>
-                    
-                    <div class="ml-auto">
-                        <a class="btn btn-primary" href="{% url 'mi-change-add' 'deployment' %}?campaign={{ object.uuid }}">+</a>
-                    </div>
-                </li>
-                {% for deployment in deployments %}
-                <li class="list-group-item list-group-item-action justify-content-between deployment cursor-pointer show-caret"
-                    data-id="{{ deployment.uuid }}">
-                    {% include "snippets/campaign_accordian_cards/deployment.html" with change=deployment %}
-                </li>
-                {% endfor %}
-            </ul>
+  <div class="campaign-summary col pr-0">
+    <div id="accordion">
+      <div class="card">
+        <div class="card-header d-flex justify-content-between" id="significant-events-header">
+          <h5 class="mb-0">
+            <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#significant-events"
+                aria-expanded="false" aria-controls="significant-events">
+                Significant events
+            </button>
+            <span id="significant-events-badge" class="badge badge-primary badge-pill"></span>
+          </h5>
+          <a class="add-deployment-child btn btn-primary" href="{% url 'mi-change-add' 'significantevent' %}">+</a>
         </div>
 
-        <div class="col">
-            <div id="accordion">
-                <div class="card">
-                    <div class="card-header d-flex justify-content-between" id="significant-events-header">
-                        <h5 class="mb-0">
-                            <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#significant-events"
-                                aria-expanded="false" aria-controls="significant-events">
-                                Significant events
-                            </button>
-                            <span id="significant-events-badge" class="badge badge-primary badge-pill"></span>
-                        </h5>
-                        <a class="add-deployment-child btn btn-primary"
-                            href="{% url 'mi-change-add' 'significantevent' %}">+</a>
-                    </div>
-
-                    <div id="significant-events" class="collapse" aria-labelledby="significant-events-header"
-                        data-parent="#accordion">
-                        <ul class="list-group">
-                            {% for event in significant_events %}
-                            <li class="list-group-item deployment-child" data-deployment="{{ event.update.deployment }}">
-                                {% include "snippets/campaign_accordian_cards/iop_se.html" with change=event %}
-                            </li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                </div>
-                <div class="card">
-                    <div class="card-header d-flex justify-content-between" id="iops-header">
-                        <h5 class="mb-0">
-                            <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#iops"
-                                aria-expanded="false" aria-controls="iops">
-                                IOPs
-                            </button>
-                            <span id="iops-badge" class="badge badge-primary badge-pill"></span>
-                        </h5>
-                        <a class="add-deployment-child btn btn-primary" href="{% url 'mi-change-add' 'iop' %}">+</a>
-                    </div>
-                    <div id="iops" class="collapse" aria-labelledby="iops-header" data-parent="#accordion">
-                        <ul class="list-group">
-                            {% for iop in iops %}
-                            <li class="list-group-item deployment-child" data-deployment="{{ iop.update.deployment }}">
-                                {% include "snippets/campaign_accordian_cards/iop_se.html" with change=iop %}
-                            </li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                </div>
-                <div class="card">
-                    <div class="card-header d-flex justify-content-between" id="collection-periods-header">
-                        <h5 class="mb-0">
-                            <button class="btn btn-link" data-toggle="collapse" data-target="#collection-periods"
-                                aria-expanded="true" aria-controls="collection-periods">
-                                CDPIs
-                            </button>
-                            <span id="collection-periods-badge" class="badge badge-primary badge-pill"></span>
-                        </h5>
-                        <a class="add-deployment-child btn btn-primary"
-                            href="{% url 'mi-change-add' 'collectionperiod' %}">+</a>
-                    </div>
-                    <div id="collection-periods" class="collapse show" aria-labelledby="collection-periods-header"
-                        data-parent="#accordion">
-                        <ul class="list-group">
-                            {% for collectionperiod in collection_periods %}
-                            <li class="list-group-item deployment-child" data-deployment="{{ collectionperiod.update.deployment }}">
-                                {% include "snippets/campaign_accordian_cards/collectionperiod.html" with change=collectionperiod %}
-                            </li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    {# DOIs #}
-    <div class="tab-pane" id="dois" role="tabpanel" aria-labelledby="dois-tab">
-        <div class="col">
-            <h3>Suggested DOIs</h3>
-            <form>
-                {% crispy doi_formset doi_formset_helper %}
-            </form>
-            <h3>Generate DOI Suggestions</h3>
-            <ul class="list-group">
-            {% for task in doi_tasks %}
-                <li class="list-group-item list-group-item-action flex-column align-items-start collapsed" data-toggle="collapse" data-target="#task_{{ task.id }}_details">
-                    <div class="d-flex w-100 justify-content-between">
-                        <h5 class="mb-1">{{ task.status }}</h5>
-                        {% firstof task.date_done|naturaltime task.date_created|naturaltime as task_date %}
-                        <small>{{ task_date }}</small>
-                    </div>
-                    <dl id="task_{{ task.id }}_details" class="collapse">
-                        <dt>Started</dt>
-                        <dd>{{ task.date_created | naturaltime }}</dd>
-                        
-                        <dt>Completed</dt>
-                        <dd>{{ task.date_done | naturaltime }}</dd>
-                        
-                        <dt>Runtime</dt>
-                        <dd>{{ task.date_done | timesince:task.date_created }}</dd>
-                        
-                        <dt>Task ID</dt>
-                        <dd><small class="text-monospace">{{ task.task_id }}</small></dd>
-                    </dl>
-                </li>
+        <div id="significant-events" class="collapse" aria-labelledby="significant-events-header" data-parent="#accordion">
+          <ul class="list-group">
+            {% for event in significant_events %}
+            <li class="list-group-item deployment-child" data-deployment="{{ event.update.deployment }}">
+              {% include "snippets/campaign_accordian_cards/iop_se.html" with change=event %}
+            </li>
             {% endfor %}
-            </ul>
-            <form action="{% url 'mi-fetch-dois' object.uuid %}" method="post">
-                {% csrf_token %}
-                <button class="btn btn-lg btn-primary">Fetch DOIs</button>
-            </form>
+          </ul>
         </div>
+      </div>
+      <div class="card">
+        <div class="card-header d-flex justify-content-between" id="iops-header">
+          <h5 class="mb-0">
+            <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#iops" aria-expanded="false" aria-controls="iops">
+              IOPs
+            </button>
+            <span id="iops-badge" class="badge badge-primary badge-pill"></span>
+          </h5>
+          <a class="add-deployment-child btn btn-primary" href="{% url 'mi-change-add' 'iop' %}">+</a>
+        </div>
+        <div id="iops" class="collapse" aria-labelledby="iops-header" data-parent="#accordion">
+          <ul class="list-group">
+            {% for iop in iops %}
+            <li class="list-group-item deployment-child" data-deployment="{{ iop.update.deployment }}">
+              {% include "snippets/campaign_accordian_cards/iop_se.html" with change=iop %}
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+      
+      <div class="card">
+        <div class="card-header d-flex justify-content-between" id="collection-periods-header">
+          <h5 class="mb-0">
+            <button class="btn btn-link" data-toggle="collapse" data-target="#collection-periods" aria-expanded="true" aria-controls="collection-periods">
+              CDPIs
+            </button>
+            <span id="collection-periods-badge" class="badge badge-primary badge-pill"></span>
+          </h5>
+          <a class="add-deployment-child btn btn-primary" href="{% url 'mi-change-add' 'collectionperiod' %}">+</a>
+        </div>
+        <div id="collection-periods" class="collapse show" aria-labelledby="collection-periods-header" data-parent="#accordion">
+          <ul class="list-group">
+            {% for collectionperiod in collection_periods %}
+            <li class="list-group-item deployment-child" data-deployment="{{ collectionperiod.update.deployment }}">
+              {% include "snippets/campaign_accordian_cards/collectionperiod.html" with change=collectionperiod %}
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
     </div>
-</main>
-{% endblock %}
-
-{% related_changes change %}
+  </div>
+{% endblock main %}
 
 {% block javascript %}
-{{ block.super }}
-<script>
+  {{ block.super }}
+  <script>
     $('#deployments-badge').text($('#deployments-list li').length - 1)
     $('.deployment').click(function () {
-        // Mark as active
-        $('.deployment').removeClass('list-group-item-primary');
-        $(this).addClass('list-group-item-primary');
+      // Mark as active
+      $('.deployment').removeClass('list-group-item-primary');
+      $(this).addClass('list-group-item-primary');
 
-        // Display children
-        var deploymentId = $(this).attr('data-id');
-        var childLookup = '[data-deployment=' + deploymentId + ']';
-        $('.deployment-child:not(' + childLookup + ')').hide();
-        $('.deployment-child' + childLookup).show();
+      // Display children
+      var deploymentId = $(this).attr('data-id');
+      var childLookup = '[data-deployment=' + deploymentId + ']';
+      $('.deployment-child:not(' + childLookup + ')').hide();
+      $('.deployment-child' + childLookup).show();
 
-        // Update count badges
-        ['#significant-events', '#iops', '#collection-periods'].forEach(function (value) {
-            var count = $(value + ' li' + childLookup).length;
-            $(value + '-badge').text(count);
-            if (count === 0) {
-                $(value + '-header > * > button').addClass('disabled');
-                $(value + '-badge').addClass('bg-secondary');
-            } else {
-                $(value + '-header > * > button').removeClass('disabled');
-                $(value + '-badge').removeClass('bg-secondary');
-            }
+      // Update count badges
+      ['#significant-events', '#iops', '#collection-periods'].forEach(function (value) {
+        var count = $(value + ' li' + childLookup).length;
+        $(value + '-badge').text(count);
+        if (count === 0) {
+          $(value + '-header > * > button').addClass('disabled');
+          $(value + '-badge').addClass('bg-secondary');
+        } else {
+          $(value + '-header > * > button').removeClass('disabled');
+          $(value + '-badge').removeClass('bg-secondary');
+        }
 
-        });
+      });
 
-        // Update add buttons
-        $('.add-deployment-child').attr('href', function (index, href) {
-            var url = new URL(href, window.location);
-            url.searchParams.set('deployment', deploymentId);
-            return url.pathname + url.search;
-        })
+      // Update add buttons
+      $('.add-deployment-child').attr('href', function (index, href) {
+        var url = new URL(href, window.location);
+        url.searchParams.set('deployment', deploymentId);
+        return url.pathname + url.search;
+      })
     })
 
     // Select first
     $('.deployment:first').click()
-
-    // Make dropdown more resistant to accidental closes (https://stackoverflow.com/a/32922725/728583)
-    $(document).on('click', '.dropdown-menu', function (e) {
-    e.stopPropagation();
-    });
-</script>
+  </script>
 {% endblock %}

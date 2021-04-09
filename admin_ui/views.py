@@ -272,7 +272,7 @@ class CampaignDetailView(DetailView):
 class ChangeCreateView(mixins.ChangeModelFormMixin, CreateView):
     model = Change
     fields = ["content_type", "model_instance_uuid", "action", "update"]
-    template_name = "api_app/change_add_form.html"
+    template_name = "api_app/change_create.html"
 
     def get_initial(self):
         # Get initial form values from URL
@@ -318,7 +318,7 @@ class ChangeCreateView(mixins.ChangeModelFormMixin, CreateView):
 class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
     fields = ["content_type", "model_instance_uuid", "action", "update", "status"]
     prefix = "change"
-    template_name = "api_app/change_form.html"
+    template_name = "api_app/change_update.html"
 
     def get_success_url(self):
         return reverse("mi-change-update", args=[self.object.pk])
