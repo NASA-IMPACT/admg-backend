@@ -12,8 +12,10 @@
         <a class="inline-link" href="{% url 'mi-change-update' approval.change.uuid %}">{% spaceless %}
           &ldquo;{% firstof approval.change.update.short_name approval.change.update.long_name approval.change.uuid %}&rdquo;
         {% endspaceless %}</a>
-         was
+        {% else %}
+         Draft
         {% endif %}
+         was
         <span>{{ approval.past_tense_action }}</span> 
         {% if approval.user %} by {{ approval.user }}{% endif %}
       </div>
