@@ -1,0 +1,32 @@
+{% load humanize %}
+
+<div class="card">
+  <ul class="list-group list-group-flush">
+    {% for approval in approval_logs %}
+    <li class="list-group-item">
+      
+      {% if show_link %}
+      <a class="inline-link mr-1" href="{% url 'mi-change-update' approval.change.uuid %}">
+        {{ approval.change.model_name }}
+        {% firstof approval.change.update.short_name approval.change.update.long_name approval.change.uuid %}
+      </a>
+      {% endif %}
+      
+      <div>
+        <strong>{{ approval.get_action_display }}</strong> 
+        {% if approval.user %} by {{ approval.user }}{% endif %}
+      </div>
+
+      {% if show_notes and approval.notes %}
+      <q class="font-italic">{{ approval.notes }}</q>
+      {% endif %}
+      
+      <div class="text-muted">
+        <small title="{{ approval.date|date:'c' }}" class="mb-0">
+          {{ approval.date | naturaltime }}
+        </small>
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+</div>

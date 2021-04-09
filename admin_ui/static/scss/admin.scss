@@ -20,6 +20,17 @@
   }
 }
 
+.object-details {
+  dt {
+    font-size: 80%;
+    text-transform: uppercase;
+    color: #6c757d;
+  }
+  dd {
+    margin-bottom: 0;
+  }
+}
+
 .campaign-summary {
   li.list-group-item {
     padding-bottom: 0;
@@ -33,14 +44,6 @@
   .list-group-item-primary {
     padding-left: 15px; /* 21 - border-width */
     border-left: 6px solid;
-  }
-  dt {
-    font-size: 80%;
-    text-transform: uppercase;
-    color: #6c757d;
-  }
-  dd {
-    margin-bottom: 1em;
   }
   .caret {
     display: none;
