@@ -92,7 +92,7 @@ DoiFormSet = forms.modelformset_factory(
         "long_name",
         "campaigns",
         "instruments",
-        # "platforms",
+        "platforms",
         # "collection_periods",
     ],
     widgets={"long_name": forms.TextInput},

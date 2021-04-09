@@ -26,10 +26,14 @@
     <div class="col">
       <ul class="nav nav-tabs" role="tablist">
         <li class="nav-item">
-          <a class="nav-link {% active_link 'mi-campaign-detail' 'active' pk=object.uuid strict=True %}" href="{% url 'mi-campaign-detail' object.uuid %}" role="tab" aria-controls="details" aria-selected="true">Campaign Details</a>
+          <a class="nav-link {% active_link 'mi-campaign-detail' 'active' pk=object.uuid strict=True %}" href="{% url 'mi-campaign-detail' object.uuid %}" role="tab" aria-controls="details" aria-selected="true">
+            Details
+          </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link {% active_link 'mi-campaign-dois' 'active' pk=object.uuid strict=True %}" href="{% url 'mi-campaign-dois' object.uuid %}" role="tab" aria-controls="dois" aria-selected="false">DOIs</a>
+          <a class="nav-link {% active_link 'mi-doi-approval' 'active' pk=object.uuid strict=True %}" href="{% url 'mi-doi-approval' object.uuid %}" role="tab" aria-controls="dois" aria-selected="false">
+            DOIs
+          </a>
         </li>
       </ul>
     </div>

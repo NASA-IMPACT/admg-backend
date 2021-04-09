@@ -1,7 +1,46 @@
 {% extends "api_app/campaign_detail.html" %}
+{% load crispy_forms_tags %}
+{% load humanize %}
 
 {% block main %}
+  <div class="col-8">
+    <h3>Suggested DOIs</h3>
+    <form>
+      {% crispy doi_formset doi_formset_helper %}
+      <button>Submit</button>
+    </form>
+  </div>
+      
   <div class="col">
-    <h3>DOIs</h3>
+    <h3>Generate DOI Suggestions</h3>
+    <ul class="list-group">
+
+    {% for task in doi_tasks %}
+      <li class="list-group-item list-group-item-action flex-column align-items-start collapsed" data-toggle="collapse" data-target="#task_{{ task.id }}_details">
+        <div class="d-flex w-100 justify-content-between">
+          <h5 class="mb-1">{{ task.status }}</h5>
+          {% firstof task.date_done|naturaltime task.date_created|naturaltime as task_date %}
+          <small>{{ task_date }}</small>
+        </div>
+        <dl id="task_{{ task.id }}_details" class="collapse">
+          <dt>Started</dt>
+          <dd>{{ task.date_created | naturaltime }}</dd>
+
+          <dt>Completed</dt>
+          <dd>{{ task.date_done | naturaltime }}</dd>
+
+          <dt>Runtime</dt>
+          <dd>{{ task.date_done | timesince:task.date_created }}</dd>
+
+          <dt>Task ID</dt>
+          <dd><small class="text-monospace">{{ task.task_id }}</small></dd>
+        </dl>
+      </li>
+    {% endfor %}
+    </ul>
+    <form action="{% url 'mi-doi-fetch' object.uuid %}" method="post">
+      {% csrf_token %}
+      <button class="btn btn-lg btn-primary">Fetch DOIs</button>
+    </form>
   </div>
 {% endblock main %}
