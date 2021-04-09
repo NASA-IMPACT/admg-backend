@@ -11,6 +11,12 @@
   cursor: pointer;
 }
 
+dt {
+  font-size: 80%;
+  text-transform: uppercase;
+  color: #6c757d;
+}
+
 /* Views */
 #sidebar .nav-link.collapsed .minus {
   display: none;
@@ -18,16 +24,6 @@
 
 #sidebar .nav-link:not(.collapsed) .plus {
   display: none;
-}
-
-.object-details dt {
-  font-size: 80%;
-  text-transform: uppercase;
-  color: #6c757d;
-}
-
-.object-details dd {
-  margin-bottom: 0;
 }
 
 .campaign-summary li.list-group-item {
@@ -46,6 +42,10 @@
   padding-left: 15px;
   /* 21 - border-width */
   border-left: 6px solid;
+}
+
+.campaign-summary dd {
+  margin-bottom: 1em;
 }
 
 .campaign-summary .caret {
