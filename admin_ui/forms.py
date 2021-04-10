@@ -86,17 +86,21 @@ class TransitionForm(forms.Form):
         return actions.items()
 
 
-DoiFormSet = forms.modelformset_factory(
-    DOI,
-    fields=[
-        "long_name",
-        "campaigns",
-        "instruments",
-        "platforms",
-        # "collection_periods",
-    ],
-    widgets={"long_name": forms.TextInput},
-)
+class DoiForm(forms.ModelForm):
+    doi = forms.HiddenInput()
+
+    class Meta:
+        model = DOI
+        fields = [
+            "doi",
+            "campaigns",
+            "instruments",
+            "platforms",
+            "collection_periods",
+        ]
+
+
+DoiFormSet = forms.formset_factory(DoiForm, extra=0)
 
 
 class TableInlineFormSetHelper(FormHelper):

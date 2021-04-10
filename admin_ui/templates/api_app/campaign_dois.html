@@ -3,15 +3,61 @@
 {% load humanize %}
 
 {% block main %}
-  <div class="col-8">
-    <h3>Suggested DOIs</h3>
-    <form>
-      {% crispy doi_formset doi_formset_helper %}
-      <button>Submit</button>
-    </form>
-  </div>
-      
   <div class="col">
+    <h3>Suggested DOIs</h3>
+
+    <div class="alert alert-warning" role="alert">
+      This view is still in development and only provided to illustrate
+      a rough example of how to fetch DOI. Reviewing DOIs is still under
+      development.
+    </div>
+
+    <form method="post" novalidate>
+      {% csrf_token %}
+      <table class="table">
+        <thead>
+        {% for form_row in form %}
+          {% if forloop.first %}    
+            <tr>
+              <th scope="col">
+                <label>
+                  DOI
+                </label>
+              </th>
+              {% for field in form_row.visible_fields %}
+                {% if field.name != 'doi' %}
+                  {{ field.name }}
+                  <th scope="col">{{ field.label_tag }}</th>
+                {% endif %}
+              {% endfor %} 
+            </tr>
+          {% endif %}
+        {% endfor %} 
+        </thead>
+        <tbody>
+          {% for hidden in form_row.hidden_fields %}
+            {{ hidden }}
+          {% endfor %}
+          {% for form_row in form %}
+          <tr>
+            <td>
+              <a href="//doi.org/{{ form_row.initial.doi }}" target="_blank">
+                {{ form_row.initial.doi }}
+              </a>
+            </td>
+            {% for field in form_row.visible_fields %}
+              {% if field.name != 'doi' %}
+                <td>{{ field}}</td>
+              {% endif %}
+            {% endfor %} 
+          </tr>
+          {% endfor %} 
+        </tbody>
+      </table>
+
+      <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+
     <h3>Generate DOI Suggestions</h3>
     <ul class="list-group">
 

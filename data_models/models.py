@@ -513,10 +513,11 @@ class CollectionPeriod(BaseModel):
     instruments = models.ManyToManyField(Instrument, related_name='collection_periods')
 
     def __str__(self):
-        platform_id = f'({self.platform_identifier})' if self.platform_identifier else ''
-        campaign = str(self.deployment.campaign)
-        deployment = str(self.deployment).replace(campaign + '_', '')
-        return f'{campaign} | {deployment} | {self.platform} {platform_id}'
+        return str(self.uuid)
+        # platform_id = f'({self.platform_identifier})' if self.platform_identifier else ''
+        # campaign = str(self.deployment.campaign)
+        # deployment = str(self.deployment).replace(campaign + '_', '')
+        # return f'{campaign} | {deployment} | {self.platform} {platform_id}'
 
 
 class DOI(BaseModel):
