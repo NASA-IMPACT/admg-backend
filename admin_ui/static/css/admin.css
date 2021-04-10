@@ -11,6 +11,12 @@
   cursor: pointer;
 }
 
+dt {
+  font-size: 80%;
+  text-transform: uppercase;
+  color: #6c757d;
+}
+
 /* Views */
 #sidebar .nav-link.collapsed .minus {
   display: none;
@@ -36,12 +42,6 @@
   padding-left: 15px;
   /* 21 - border-width */
   border-left: 6px solid;
-}
-
-.campaign-summary dt {
-  font-size: 80%;
-  text-transform: uppercase;
-  color: #6c757d;
 }
 
 .campaign-summary dd {

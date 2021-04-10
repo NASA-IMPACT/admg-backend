@@ -1,0 +1,28 @@
+{% extends "api_app/base.html" %}
+{% load crispy_forms_tags static %}
+
+{% block extrahead %}
+  {{ block.super }}
+  {{ form.media }}
+  {{ model_form.media }}
+{% endblock %}
+
+{% block page %}
+  <header class="mx-3 my-4 py-3 sticky-top bg-white border-bottom">
+    <div class="row align-items-center">
+      {% block header %}{% endblock header %}
+    </div>
+    
+    <div class="row">
+      {% block object_details %}{% endblock object_details %}
+
+      <div class="col d-flex flex-row-reverse">
+       {% block actions %}{% endblock actions %}
+      </div>
+    </div>
+  </header>
+
+  <div class="row mx-3">
+    {% block main %}{% endblock main %}
+  </div>
+{% endblock page %}

@@ -1,33 +1,36 @@
-{% extends "api_app/base.html" %}
-{% load change_extras %}
-{% load crispy_forms_tags static %}
+{% extends "api_app/base_crud.html" %}
+{% load static %}
+{% load crispy_forms_tags %}
 {% load render_table from django_tables2 %}
 
-{% block page %}
+{% block header %}
+<div class="col">
+  <h1>{{ display_name }} Drafts</h1>
+</div>
 
-<header class="row mx-3 my-5 py-2 align-items-center sticky-top bg-white border-bottom">
-  <div class="col-auto mr-auto px-0">
-    <h1>{{ display_name }} Drafts</h1>
-  </div>
-  <div class="col-auto px-0">
-    {% if is_multi_modelview %}
-      <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true"
-        aria-expanded="false">Add New Item +</button>
-      <div class="dropdown-menu">
-        {% for item in item_types %}
-        <a class="dropdown-item" href="{% url 'mi-change-add' item %}">{{ item | title }}</a>
-        {% endfor %}
-      </div>
-    {% else %}
+<div class="col-auto">
+  
+  {% if is_multi_modelview %}
+    <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+      Add New Item +
+    </button>
+    <div class="dropdown-menu">
+      {% for item in item_types %}
+      <a class="dropdown-item" href="{% url 'mi-change-add' item %}">{{ item | title }}</a>
+      {% endfor %}
+    </div>
+  
+  {% else %}
     <a class="btn btn-primary" href="{% url 'mi-change-add' model %}">
       Add New {{ display_name }} +
     </a>
-    {% endif %}
-  </div>
-</header>
+  {% endif %}
 
-<main class="row mx-3 my-5">
-  <div class="w-100">
+</div>
+{% endblock header %}
+
+{% block main %}
+  <div class="mt-2 w-100">
     {% if filter %}
       <form action="" method="get" class="form form-inline">
         {{ filter.form | crispy }}
@@ -48,8 +51,4 @@
     {% endif %}
     {% render_table table %}
   </div>
-</main>
-
 {% endblock %}
-
-{% related_changes change %}

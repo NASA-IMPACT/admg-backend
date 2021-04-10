@@ -6,7 +6,9 @@
     <dd>
         <span title="Platform Name">{{ change.platform_name }}</span>
         {% if change.update.platform_identifier %} 
-            <span title="Platform Identifier" class="font-italic text-muted">{{ change.update.platform_identifier }}</span>
+            <span title="Platform Identifier" class="font-italic text-muted text-monospace small">
+                {{ change.update.platform_identifier }}
+            </span>
         {% endif %}
     </dd>
     <dt>Instruments</dt>

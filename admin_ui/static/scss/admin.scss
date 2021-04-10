@@ -10,6 +10,13 @@
   cursor: pointer;
 }
 
+
+dt {
+  font-size: 80%;
+  text-transform: uppercase;
+  color: #6c757d;
+}
+
 /* Views */
 #sidebar {
   .nav-link.collapsed .minus {
@@ -33,11 +40,6 @@
   .list-group-item-primary {
     padding-left: 15px; /* 21 - border-width */
     border-left: 6px solid;
-  }
-  dt {
-    font-size: 80%;
-    text-transform: uppercase;
-    color: #6c757d;
   }
   dd {
     margin-bottom: 1em;
