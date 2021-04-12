@@ -1,4 +1,5 @@
 {% extends "api_app/base_read.html" %}
+{% load active_link_tags %}
 
 {% block header %}
   <div class="col">
@@ -19,8 +20,28 @@
   </div>
 {% endblock actions %}
 
+{% block tabs %}
+  <div class="row mx-3 mb-3">
+    {# Tabs #}
+    <div class="col">
+      <ul class="nav nav-tabs" role="tablist">
+        <li class="nav-item">
+          <a class="nav-link {% active_link 'mi-campaign-detail' 'active' pk=object.uuid strict=True %}" href="{% url 'mi-campaign-detail' object.uuid %}" role="tab" aria-controls="details" aria-selected="true">
+            Details
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {% active_link 'mi-doi-approval' 'active' pk=object.uuid strict=True %}" href="{% url 'mi-doi-approval' object.uuid %}" role="tab" aria-controls="dois" aria-selected="false">
+            DOIs
+          </a>
+        </li>
+      </ul>
+    </div>
+  </div>
+{% endblock tabs %}
+
 {% block main %}
-  <div class="campaign-summary col pl-0 ">
+  <div class="campaign-summary col">
     <ul class="list-group" id="deployments-list">
       <li class="list-group-item d-flex pb-2">
         <h4>Deployments</h4>
@@ -41,7 +62,7 @@
     </ul>
   </div>
 
-  <div class="campaign-summary col pr-0">
+  <div class="campaign-summary col">
     <div id="accordion">
       <div class="card">
         <div class="card-header d-flex justify-content-between" id="significant-events-header">
