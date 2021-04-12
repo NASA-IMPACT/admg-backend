@@ -12,7 +12,7 @@
   
   {% if is_multi_modelview %}
     <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-      Add New Item +
+      Add New Item &plus;
     </button>
     <div class="dropdown-menu">
       {% for item in item_types %}
@@ -22,7 +22,7 @@
   
   {% else %}
     <a class="btn btn-primary" href="{% url 'mi-change-add' model %}">
-      Add New {{ display_name }} +
+      Add New {{ display_name }} &plus;
     </a>
   {% endif %}
 
