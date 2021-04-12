@@ -4,14 +4,6 @@
 
 {% block main %}
 <div class="col">
-  <div class="alert alert-warning alert-dismissible" role="alert">
-    This view is still in development and only provided to illustrate
-    a rough example of how to fetch DOI. Reviewing DOIs is still under
-    development.
-    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-      <span aria-hidden="true">&times;</span>
-    </button>
-  </div>
 
   <div class="row">
     <div class="col">
@@ -24,7 +16,7 @@
       </p>
       <form action="{% url 'mi-doi-fetch' object.uuid %}" method="post">
         {% csrf_token %}
-        <button class="btn btn-primary">Fetch DOIs</button>
+        <button class="btn btn-primary btn-lg rounded-0">Generate DOIs &plus;</button>
       </form>
     </div>
 
@@ -65,10 +57,17 @@
       </ul>
     </div>
   </div>
+  
   <div class="row">
 
     <div class="col">
       <h2 class="mt-4">Recommended DOIs</h2>
+      <div class="alert alert-warning alert-dismissible" role="alert">
+        Reviewing DOIs is still under development.
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
 
       <form method="post" novalidate>
         {% csrf_token %}
