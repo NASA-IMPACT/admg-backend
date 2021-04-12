@@ -4,7 +4,7 @@
 
 {% block main %}
 <div class="col">
-  <h3>Suggested DOIs</h3>
+  <h3>Recommended DOIs</h3>
 
   <div class="alert alert-warning" role="alert">
     This view is still in development and only provided to illustrate
@@ -21,7 +21,7 @@
         <tr>
           <th scope="col">
             <label>
-              DOI
+              DOI Link
             </label>
           </th>
           {% for field in form_row.visible_fields %}
@@ -57,9 +57,15 @@
     <button type="submit" class="btn btn-primary">Submit</button>
   </form>
 
-  <h3>Generate DOI Suggestions</h3>
-  <ul class="list-group">
+  <h3>Generate DOI Recommendations</h3>
+  <p>
+    The DOI matcher will search for DOIs based on this campaigns <code>short_name</code>.
+    If you have not made the Instrument, Platforms, or CDPIs, the DOI matcher won't be able
+    to automatically relate proposed DOIs to the records. After creating Instruments, Platforms,
+    or CDPIs, it is recommended to re-run the DOI matcher to update the proposed DOIs.
+  </p>
 
+  <ul class="list-group">
     {% for task in doi_tasks %}
     <li class="list-group-item list-group-item-action flex-column align-items-start collapsed" data-toggle="collapse"
       data-target="#task_{{ task.id }}_details">
