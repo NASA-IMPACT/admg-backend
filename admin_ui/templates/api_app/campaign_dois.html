@@ -4,95 +4,117 @@
 
 {% block main %}
 <div class="col">
-  <h3>Recommended DOIs</h3>
-
-  <div class="alert alert-warning" role="alert">
+  <div class="alert alert-warning alert-dismissible" role="alert">
     This view is still in development and only provided to illustrate
     a rough example of how to fetch DOI. Reviewing DOIs is still under
     development.
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+      <span aria-hidden="true">&times;</span>
+    </button>
   </div>
 
-  <form method="post" novalidate>
-    {% csrf_token %}
-    <table class="table">
-      <thead>
-        {% for form_row in form %}
-        {% if forloop.first %}
-        <tr>
-          <th scope="col">
-            <label>
-              DOI Link
-            </label>
-          </th>
-          {% for field in form_row.visible_fields %}
-          {% if field.name != 'doi' %}
-          <th scope="col">{{ field.label_tag }}</th>
-          {% endif %}
-          {% endfor %}
-        </tr>
-        {% endif %}
-        {% endfor %}
-      </thead>
-      <tbody>
-        {% for hidden in form_row.hidden_fields %}
-        {{ hidden }}
-        {% endfor %}
-        {% for form_row in form %}
-        <tr>
-          <td>
-            <a href="//doi.org/{{ form_row.initial.doi }}" target="_blank">
-              {{ form_row.initial.doi }}
-            </a>
-          </td>
-          {% for field in form_row.visible_fields %}
-          {% if field.name != 'doi' %}
-          <td>{{ field}}</td>
-          {% endif %}
-          {% endfor %}
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+  <div class="row">
+    <div class="col">
+      <h2>Generate DOI Recommendations</h2>
+      <p>
+        The DOI matcher will search for DOIs based on this campaigns <code>short_name</code>.
+        If you have not made the Instrument, Platforms, or CDPIs, the DOI matcher won't be able
+        to automatically relate proposed DOIs to the records. After creating Instruments, Platforms,
+        or CDPIs, it is recommended to re-run the DOI matcher to update the proposed DOIs.
+      </p>
+      <form action="{% url 'mi-doi-fetch' object.uuid %}" method="post">
+        {% csrf_token %}
+        <button class="btn btn-primary">Fetch DOIs</button>
+      </form>
+    </div>
 
-    <button type="submit" class="btn btn-primary">Submit</button>
-  </form>
-
-  <h3>Generate DOI Recommendations</h3>
-  <p>
-    The DOI matcher will search for DOIs based on this campaigns <code>short_name</code>.
-    If you have not made the Instrument, Platforms, or CDPIs, the DOI matcher won't be able
-    to automatically relate proposed DOIs to the records. After creating Instruments, Platforms,
-    or CDPIs, it is recommended to re-run the DOI matcher to update the proposed DOIs.
-  </p>
-
-  <ul class="list-group">
-    {% for task in doi_tasks %}
-    <li class="list-group-item list-group-item-action flex-column align-items-start collapsed" data-toggle="collapse"
-      data-target="#task_{{ task.id }}_details">
-      <div class="d-flex w-100 justify-content-between">
-        <h5 class="mb-1">{{ task.status }}</h5>
-        {% firstof task.date_done|naturaltime task.date_created|naturaltime as task_date %}
-        <small>{{ task_date }}</small>
+    <div class="col-4">
+      <h4>Past Fetches</h4>
+      <div class="alert alert-warning alert-dismissible" role="alert">
+        This currently displays only fetches for any Campaign that have completed. In the future,
+        it should display fetchs for only the campaign on the current view and for the fetches as
+        soon as they're scheduled.
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
       </div>
-      <dl id="task_{{ task.id }}_details" class="collapse">
-        <dt>Started</dt>
-        <dd>{{ task.date_created | naturaltime }}</dd>
+      <ul class="list-group">
+        {% for task in doi_tasks %}
+        <li class="list-group-item list-group-item-action flex-column align-items-start collapsed" data-toggle="collapse"
+          data-target="#task_{{ task.id }}_details">
+          <div class="d-flex w-100 justify-content-between">
+            <h5 class="mb-1">{{ task.status }}</h5>
+            {% firstof task.date_done|naturaltime task.date_created|naturaltime as task_date %}
+            <small>{{ task_date }}</small>
+          </div>
+          <dl id="task_{{ task.id }}_details" class="collapse">
+            <dt>Started</dt>
+            <dd>{{ task.date_created | naturaltime }}</dd>
 
-        <dt>Completed</dt>
-        <dd>{{ task.date_done | naturaltime }}</dd>
+            <dt>Completed</dt>
+            <dd>{{ task.date_done | naturaltime }}</dd>
 
-        <dt>Runtime</dt>
-        <dd>{{ task.date_done | timesince:task.date_created }}</dd>
+            <dt>Runtime</dt>
+            <dd>{{ task.date_done | timesince:task.date_created }}</dd>
 
-        <dt>Task ID</dt>
-        <dd><small class="text-monospace">{{ task.task_id }}</small></dd>
-      </dl>
-    </li>
-    {% endfor %}
-  </ul>
-  <form action="{% url 'mi-doi-fetch' object.uuid %}" method="post">
-    {% csrf_token %}
-    <button class="btn btn-lg btn-primary">Fetch DOIs</button>
-  </form>
+            <dt>Task ID</dt>
+            <dd><small class="text-monospace">{{ task.task_id }}</small></dd>
+          </dl>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  <div class="row">
+
+    <div class="col">
+      <h2 class="mt-4">Recommended DOIs</h2>
+
+      <form method="post" novalidate>
+        {% csrf_token %}
+        <table class="table">
+          <thead>
+            {% for form_row in form %}
+            {% if forloop.first %}
+            <tr>
+              <th scope="col">
+                <label>
+                  DOI Link
+                </label>
+              </th>
+              {% for field in form_row.visible_fields %}
+              {% if field.name != 'doi' %}
+              <th scope="col">{{ field.label_tag }}</th>
+              {% endif %}
+              {% endfor %}
+            </tr>
+            {% endif %}
+            {% endfor %}
+          </thead>
+          <tbody>
+            {% for hidden in form_row.hidden_fields %}
+            {{ hidden }}
+            {% endfor %}
+            {% for form_row in form %}
+            <tr>
+              <td>
+                <a href="//doi.org/{{ form_row.initial.doi }}" target="_blank">
+                  {{ form_row.initial.doi }}
+                </a>
+              </td>
+              {% for field in form_row.visible_fields %}
+              {% if field.name != 'doi' %}
+              <td>{{ field}}</td>
+              {% endif %}
+              {% endfor %}
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+
+        <button type="submit" class="btn btn-primary">Submit</button>
+      </form>
+    </div>
+  </div>
 </div>
 {% endblock main %}

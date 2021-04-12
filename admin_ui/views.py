@@ -276,7 +276,7 @@ class DoiApprovalView(SingleObjectMixin, FormView):
             "doi_tasks": (
                 TaskResult.objects.filter(
                     task_id__in=self.request.session["doi_task_ids"]
-                )
+                )[:5]
                 if self.request.session.get("doi_task_ids")
                 else []
             ),
