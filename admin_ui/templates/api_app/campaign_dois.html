@@ -3,90 +3,90 @@
 {% load humanize %}
 
 {% block main %}
-  <div class="col">
-    <h3>Suggested DOIs</h3>
+<div class="col">
+  <h3>Suggested DOIs</h3>
 
-    <div class="alert alert-warning" role="alert">
-      This view is still in development and only provided to illustrate
-      a rough example of how to fetch DOI. Reviewing DOIs is still under
-      development.
-    </div>
+  <div class="alert alert-warning" role="alert">
+    This view is still in development and only provided to illustrate
+    a rough example of how to fetch DOI. Reviewing DOIs is still under
+    development.
+  </div>
 
-    <form method="post" novalidate>
-      {% csrf_token %}
-      <table class="table">
-        <thead>
+  <form method="post" novalidate>
+    {% csrf_token %}
+    <table class="table">
+      <thead>
         {% for form_row in form %}
-          {% if forloop.first %}    
-            <tr>
-              <th scope="col">
-                <label>
-                  DOI
-                </label>
-              </th>
-              {% for field in form_row.visible_fields %}
-                {% if field.name != 'doi' %}
-                  {{ field.name }}
-                  <th scope="col">{{ field.label_tag }}</th>
-                {% endif %}
-              {% endfor %} 
-            </tr>
+        {% if forloop.first %}
+        <tr>
+          <th scope="col">
+            <label>
+              DOI
+            </label>
+          </th>
+          {% for field in form_row.visible_fields %}
+          {% if field.name != 'doi' %}
+          <th scope="col">{{ field.label_tag }}</th>
           {% endif %}
-        {% endfor %} 
-        </thead>
-        <tbody>
-          {% for hidden in form_row.hidden_fields %}
-            {{ hidden }}
           {% endfor %}
-          {% for form_row in form %}
-          <tr>
-            <td>
-              <a href="//doi.org/{{ form_row.initial.doi }}" target="_blank">
-                {{ form_row.initial.doi }}
-              </a>
-            </td>
-            {% for field in form_row.visible_fields %}
-              {% if field.name != 'doi' %}
-                <td>{{ field}}</td>
-              {% endif %}
-            {% endfor %} 
-          </tr>
-          {% endfor %} 
-        </tbody>
-      </table>
+        </tr>
+        {% endif %}
+        {% endfor %}
+      </thead>
+      <tbody>
+        {% for hidden in form_row.hidden_fields %}
+        {{ hidden }}
+        {% endfor %}
+        {% for form_row in form %}
+        <tr>
+          <td>
+            <a href="//doi.org/{{ form_row.initial.doi }}" target="_blank">
+              {{ form_row.initial.doi }}
+            </a>
+          </td>
+          {% for field in form_row.visible_fields %}
+          {% if field.name != 'doi' %}
+          <td>{{ field}}</td>
+          {% endif %}
+          {% endfor %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
 
-      <button type="submit" class="btn btn-primary">Submit</button>
-    </form>
+    <button type="submit" class="btn btn-primary">Submit</button>
+  </form>
 
-    <h3>Generate DOI Suggestions</h3>
-    <ul class="list-group">
+  <h3>Generate DOI Suggestions</h3>
+  <ul class="list-group">
 
     {% for task in doi_tasks %}
-      <li class="list-group-item list-group-item-action flex-column align-items-start collapsed" data-toggle="collapse" data-target="#task_{{ task.id }}_details">
-        <div class="d-flex w-100 justify-content-between">
-          <h5 class="mb-1">{{ task.status }}</h5>
-          {% firstof task.date_done|naturaltime task.date_created|naturaltime as task_date %}
-          <small>{{ task_date }}</small>
-        </div>
-        <dl id="task_{{ task.id }}_details" class="collapse">
-          <dt>Started</dt>
-          <dd>{{ task.date_created | naturaltime }}</dd>
+    <li class="list-group-item list-group-item-action flex-column align-items-start collapsed" data-toggle="collapse"
+      data-target="#task_{{ task.id }}_details">
+      <div class="d-flex w-100 justify-content-between">
+        <h5 class="mb-1">{{ task.status }}</h5>
+        {% firstof task.date_done|naturaltime task.date_created|naturaltime as task_date %}
+        <small>{{ task_date }}</small>
+      </div>
+      <dl id="task_{{ task.id }}_details" class="collapse">
+        <dt>Started</dt>
+        <dd>{{ task.date_created | naturaltime }}</dd>
 
-          <dt>Completed</dt>
-          <dd>{{ task.date_done | naturaltime }}</dd>
+        <dt>Completed</dt>
+        <dd>{{ task.date_done | naturaltime }}</dd>
 
-          <dt>Runtime</dt>
-          <dd>{{ task.date_done | timesince:task.date_created }}</dd>
+        <dt>Runtime</dt>
+        <dd>{{ task.date_done | timesince:task.date_created }}</dd>
 
-          <dt>Task ID</dt>
-          <dd><small class="text-monospace">{{ task.task_id }}</small></dd>
-        </dl>
-      </li>
+        <dt>Task ID</dt>
+        <dd><small class="text-monospace">{{ task.task_id }}</small></dd>
+      </dl>
+    </li>
     {% endfor %}
-    </ul>
-    <form action="{% url 'mi-doi-fetch' object.uuid %}" method="post">
-      {% csrf_token %}
-      <button class="btn btn-lg btn-primary">Fetch DOIs</button>
-    </form>
-  </div>
+  </ul>
+  <form action="{% url 'mi-doi-fetch' object.uuid %}" method="post">
+    {% csrf_token %}
+    <button class="btn btn-lg btn-primary">Fetch DOIs</button>
+  </form>
+</div>
 {% endblock main %}
