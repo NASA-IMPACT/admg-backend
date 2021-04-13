@@ -18,6 +18,7 @@ from api_app.models import (
 )
 from admg_webapp.users.models import User, ADMIN_CODE
 from data_models import models as data_models
+from .widgets import IconBoolean
 
 
 class TransitionForm(forms.Form):
@@ -88,11 +89,10 @@ class TransitionForm(forms.Form):
 
 
 class DoiForm(forms.ModelForm):
+    keep = forms.BooleanField(initial=True, widget=IconBoolean)
     # TODO:
     # - FK fields should show Drafts, not just published data
-    # - QuerySets on formset seem redundnat, slow render time
-    # - If a DOI does not have a DOI field, render the Concept ID with a link to
-    #   EarthdataSearch
+    # - If a DOI does not have a DOI field, render the Concept ID with a link to EarthdataSearch
     # - Allow a user to edit DOI if no value is provided?
     class Meta:
         model = data_models.DOI
@@ -101,6 +101,7 @@ class DoiForm(forms.ModelForm):
             "instruments",
             "platforms",
             "collection_periods",
+            "keep",
         ]
 
     def __init__(self, *args, choices, **kwargs):

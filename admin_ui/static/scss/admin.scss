@@ -10,6 +10,13 @@
   cursor: pointer;
 }
 
+.icon-radio {
+  label:not(.active) {
+    background-color: grey;
+    border-color: grey;
+  }
+}
+
 
 dt {
   font-size: 80%;
