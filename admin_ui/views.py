@@ -293,22 +293,20 @@ class DoiApprovalView(SingleObjectMixin, FormView):
             )
         ]
 
-    def post(self, request, **kwargs):
+    def get_success_url(self):
+        return reverse("mi-campaign-detail", args=[self.kwargs["pk"]])
 
-        #     campaign = self.get_object()
-        #     task = tasks.match_dois.delay(campaign.content_type.model, campaign.uuid)
-        #     request.session["doi_task_ids"] = [
-        #         task.id,
-        #         *request.session.get("doi_task_ids", []),
-        #     ]
-
+    def form_valid(self, form):
+        # TODO: Handle form...
         messages.warning(
-            request,
+            self.request,
             f"This is still under development. No DOI selection was actually made.",
         )
-        return HttpResponseRedirect(
-            reverse("mi-campaign-detail", args=[self.kwargs["pk"]])
-        )
+        return super().form_valid(form)
+
+    def post(self, request, **kwargs):
+        self.object = self.get_object()
+        return super().post(request, **kwargs)
 
 
 @method_decorator(login_required, name="dispatch")
