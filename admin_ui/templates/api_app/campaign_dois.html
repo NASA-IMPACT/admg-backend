@@ -71,8 +71,8 @@
 
       <form method="post" novalidate>
         {% csrf_token %}
-        <table class="table">
-          <thead>
+        <table class="table table-striped">
+          <thead class="table-primary">
             {% for form_row in form %}
             {% if forloop.first %}
             <tr>

@@ -12,8 +12,8 @@
 }
 
 .icon-radio label:not(.active) {
-  background-color: grey;
-  border-color: grey;
+  background-color: #aaa;
+  border-color: #aaa;
 }
 
 dt {
