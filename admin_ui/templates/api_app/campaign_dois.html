@@ -81,10 +81,13 @@
                   DOI Link
                 </label>
               </th>
+              <th scope="col">
+                <label>
+                  CMR Link
+                </label>
+              </th>
               {% for field in form_row.visible_fields %}
-              {% if field.name != 'doi' %}
               <th scope="col">{{ field.label_tag }}</th>
-              {% endif %}
               {% endfor %}
             </tr>
             {% endif %}
@@ -97,9 +100,23 @@
             {% for form_row in form %}
             <tr>
               <td>
+                {% if form_row.initial.doi %}
                 <a href="//doi.org/{{ form_row.initial.doi }}" target="_blank">
                   {{ form_row.initial.doi }}
                 </a>
+                {% else %}
+                &dash;
+                {% endif %}
+              </td>
+
+              <td>
+                {% if form_row.initial.concept_id %}
+                <a href="//cmr.earthdata.nasa.gov/search/concepts/{{ form_row.initial.concept_id }}" target="_blank">
+                  {{ form_row.initial.concept_id }}
+                </a>
+                {% else %}
+                &dash;
+                {% endif %}
               </td>
               {% for field in form_row.visible_fields %}
               {% if field.name != 'doi' %}
