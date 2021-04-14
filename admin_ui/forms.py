@@ -91,11 +91,17 @@ class TransitionForm(forms.Form):
 
 class DoiForm(forms.Form):
     uuid = forms.UUIDField(disabled=True, widget=forms.HiddenInput)
-    campaigns = forms.MultipleChoiceField()
-    instruments = forms.MultipleChoiceField()
-    platforms = forms.MultipleChoiceField()
-    collection_periods = forms.MultipleChoiceField()
-    keep = forms.BooleanField(initial=True, widget=IconBoolean)
+    campaigns = forms.MultipleChoiceField(required=False)
+    instruments = forms.MultipleChoiceField(required=False)
+    platforms = forms.MultipleChoiceField(required=False)
+    collection_periods = forms.MultipleChoiceField(required=False)
+    keep = forms.BooleanField(
+        initial=True,
+        widget=IconBoolean,
+        # NOTE: Must use required=False or else False responses will be treated
+        # as missing and throw validation error
+        required=False,
+    )
 
     # TODO:
     # - FK fields should show Drafts, not just published data
