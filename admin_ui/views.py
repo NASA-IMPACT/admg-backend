@@ -288,17 +288,18 @@ class DoiApprovalView(SingleObjectMixin, FormView):
 
     def get_initial(self):
         return [
-            {"uuid": v["uuid"], **v["update"]}
+            {
+                "uuid": v["uuid"],
+                "keep": True if v["status"] > 0 else None,
+                **v["update"],
+            }
             for v in (
                 Change.objects.of_type(DOI)
                 .filter(update__campaigns__contains=str(self.object.uuid))
                 .order_by("update__concept_id")
-                .values("uuid", "update")
+                .values("uuid", "status", "update")
             )
         ]
-
-    def get_success_url(self):
-        return reverse("mi-doi-approval", args=[self.kwargs["pk"]])
 
     def form_valid(self, formset):
         changed_dois = [
@@ -308,19 +309,40 @@ class DoiApprovalView(SingleObjectMixin, FormView):
         to_update = []
         to_delete = []
         for doi in changed_dois:
-            (to_update if doi["keep"] else to_delete).append(doi)
+            if doi["keep"] is True:
+                to_update.append(doi)
+            elif doi["keep"] is False:
+                to_delete.append(doi)
 
         if to_delete:
             Change.objects.filter(uuid__in=[doi["uuid"] for doi in to_delete]).delete()
 
         if to_update:
-            changes = Change.objects.in_bulk([doi["uuid"] for doi in to_update])
+            updated_statuses = []
+            stored_dois = Change.objects.in_bulk([doi["uuid"] for doi in to_update])
             for doi in to_update:
                 for field, value in doi.items():
-                    if field == "uuid":
+                    if field in ["uuid", "keep"]:
                         continue
-                    changes[doi["uuid"]].update[field] = value
-            Change.objects.bulk_update(changes.values(), ["update"], batch_size=100)
+                    stored_doi = stored_dois[doi["uuid"]]
+                    stored_doi.update[field] = value
+                    if stored_doi.status == 0:
+                        stored_doi.status = 1
+                        updated_statuses.append(stored_doi)
+
+            Change.objects.bulk_update(
+                stored_dois.values(),
+                ["update", "status"],
+                batch_size=100,
+            )
+            ApprovalLog.objects.bulk_create(
+                [
+                    ApprovalLog(
+                        change=doi, user=self.request.user, action=ApprovalLog.EDIT
+                    )
+                    for doi in updated_statuses
+                ]
+            )
 
         messages.info(
             self.request,
@@ -331,6 +353,9 @@ class DoiApprovalView(SingleObjectMixin, FormView):
     def post(self, request, **kwargs):
         self.object = self.get_object()
         return super().post(request, **kwargs)
+
+    def get_success_url(self):
+        return reverse("mi-doi-approval", args=[self.kwargs["pk"]])
 
 
 @method_decorator(login_required, name="dispatch")

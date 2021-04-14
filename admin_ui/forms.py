@@ -95,8 +95,8 @@ class DoiForm(forms.Form):
     instruments = forms.MultipleChoiceField(required=False)
     platforms = forms.MultipleChoiceField(required=False)
     collection_periods = forms.MultipleChoiceField(required=False)
-    keep = forms.BooleanField(
-        initial=True,
+    keep = forms.NullBooleanField(
+        # initial=True,
         widget=IconBoolean,
         # NOTE: Must use required=False or else False responses will be treated
         # as missing and throw validation error

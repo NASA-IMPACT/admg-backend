@@ -66,3 +66,10 @@ class BoundingBoxWidget(widgets.OpenLayersWidget):
 
 class IconBoolean(forms.CheckboxInput):
     template_name = "widgets/icon_radio.html"
+
+    def value_from_datadict(self, data, files, name):
+        if name not in data:
+            # Unlike a standard checkbox, unspecified data will stay as None and
+            # False values must be explicitely sent from browser.
+            return None
+        return super().value_from_datadict(data, files, name)
