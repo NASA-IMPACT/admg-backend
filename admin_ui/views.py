@@ -292,6 +292,7 @@ class DoiApprovalView(SingleObjectMixin, FormView):
             for v in (
                 Change.objects.of_type(DOI)
                 .filter(update__campaigns__contains=str(self.object.uuid))
+                .order_by("update__concept_id")
                 .values("uuid", "update")
             )
         ]
@@ -299,21 +300,33 @@ class DoiApprovalView(SingleObjectMixin, FormView):
     def get_success_url(self):
         return reverse("mi-doi-approval", args=[self.kwargs["pk"]])
 
-    def form_valid(self, form):
-        keep, remove = [], []
-        for doi in form.cleaned_data:
-            if doi["keep"]:
-                keep.append(doi["uuid"])
-            else:
-                remove.append(doi["uuid"])
-        if remove:
-            Change.objects.filter(uuid__in=remove).delete()
+    def form_valid(self, formset):
+        changed_dois = [
+            form.cleaned_data for form in formset.forms if form.has_changed()
+        ]
 
-        messages.warning(
+        to_update = []
+        to_delete = []
+        for doi in changed_dois:
+            (to_update if doi["keep"] else to_delete).append(doi)
+
+        if to_delete:
+            Change.objects.filter(uuid__in=[doi["uuid"] for doi in to_delete]).delete()
+
+        if to_update:
+            changes = Change.objects.in_bulk([doi["uuid"] for doi in to_update])
+            for doi in to_update:
+                for field, value in doi.items():
+                    if field == "uuid":
+                        continue
+                    changes[doi["uuid"]].update[field] = value
+            Change.objects.bulk_update(changes.values(), ["update"], batch_size=100)
+
+        messages.info(
             self.request,
-            f"Removing {len(remove)}, keeping {len(keep)} is still under development. No DOI selection was actually made.",
+            f"Updated {len(to_update)} and removed {len(to_delete)} DOIs.",
         )
-        return super().form_valid(form)
+        return super().form_valid(formset)
 
     def post(self, request, **kwargs):
         self.object = self.get_object()
@@ -518,9 +531,6 @@ class LimitedFieldScienceListView(SingleTableMixin, FilterView):
             "is_multi_modelview": True,
             "item_types": [m._meta.model_name for m in self.item_types],
         }
-
-
-1
 
 
 @method_decorator(user_passes_test(lambda user: user.is_admg_admin()), name="dispatch")
