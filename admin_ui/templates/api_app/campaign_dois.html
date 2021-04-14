@@ -16,7 +16,7 @@
       </p>
       <form action="{% url 'mi-doi-fetch' object.uuid %}" method="post">
         {% csrf_token %}
-        <button class="btn btn-primary btn-lg rounded-0">Generate DOIs &plus;</button>
+        <button class="btn btn-primary">Generate DOIs &plus;</button>
       </form>
     </div>
 
@@ -32,8 +32,8 @@
       </div>
       <ul class="list-group">
         {% for task in doi_tasks %}
-        <li class="list-group-item list-group-item-action flex-column align-items-start collapsed" data-toggle="collapse"
-          data-target="#task_{{ task.id }}_details">
+        <li class="list-group-item list-group-item-action flex-column align-items-start collapsed"
+          data-toggle="collapse" data-target="#task_{{ task.id }}_details">
           <div class="d-flex w-100 justify-content-between">
             <h5 class="mb-1">{{ task.status }}</h5>
             {% firstof task.date_done|naturaltime task.date_created|naturaltime as task_date %}
@@ -57,9 +57,8 @@
       </ul>
     </div>
   </div>
-  
-  <div class="row">
 
+  <div class="row">
     <div class="col">
       <h2 class="mt-4">Recommended DOIs</h2>
       <div class="alert alert-warning alert-dismissible" role="alert">
@@ -69,68 +68,8 @@
         </button>
       </div>
 
-      <form method="post" novalidate>
-        {{ form.management_form }}
-        {% csrf_token %}
-        <table class="table table-striped">
-          <thead class="table-primary">
-            {% for form_row in form %}
-            {% if forloop.first %}
-            <tr>
-              <th scope="col">
-                <label>
-                  DOI Link
-                </label>
-              </th>
-              <th scope="col">
-                <label>
-                  CMR Link
-                </label>
-              </th>
-              {% for field in form_row.visible_fields %}
-              <th scope="col">{{ field.label_tag }}</th>
-              {% endfor %}
-            </tr>
-            {% endif %}
-            {% endfor %}
-          </thead>
-          <tbody>
-            {% for hidden in form_row.hidden_fields %}
-            {{ hidden }}
-            {% endfor %}
-            {% for form_row in form %}
-            <tr>
-              <td>
-                {% if form_row.initial.doi %}
-                <a href="//doi.org/{{ form_row.initial.doi }}" target="_blank">
-                  {{ form_row.initial.doi }}
-                </a>
-                {% else %}
-                &dash;
-                {% endif %}
-              </td>
-
-              <td>
-                {% if form_row.initial.concept_id %}
-                <a href="//cmr.earthdata.nasa.gov/search/concepts/{{ form_row.initial.concept_id }}" target="_blank">
-                  {{ form_row.initial.concept_id }}
-                </a>
-                {% else %}
-                &dash;
-                {% endif %}
-              </td>
-              {% for field in form_row.visible_fields %}
-              {% if field.name != 'doi' %}
-              <td>{{ field}}</td>
-              {% endif %}
-              {% endfor %}
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-
-        <button type="submit" class="btn btn-primary">Submit</button>
-      </form>
+      {{ formset.management_form|crispy }}
+      {% crispy formset %}
     </div>
   </div>
 </div>
