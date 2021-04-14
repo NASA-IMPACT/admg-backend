@@ -271,8 +271,10 @@ class DoiApprovalView(SingleObjectMixin, FormView):
 
     def get_context_data(self, **kwargs):
         self.object = self.get_object()
-        return {
-            **super().get_context_data(**kwargs),
+        return super().get_context_data(
+            **{
+                "form": None,
+                "formset": self.get_form(),
             "doi_tasks": (
                 TaskResult.objects.filter(
                     task_id__in=self.request.session["doi_task_ids"]
@@ -282,6 +284,7 @@ class DoiApprovalView(SingleObjectMixin, FormView):
             ),
             "doi_formset_helper": forms.TableInlineFormSetHelper(),
         }
+        )
 
     def get_initial(self):
         return [
