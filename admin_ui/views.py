@@ -275,15 +275,15 @@ class DoiApprovalView(SingleObjectMixin, FormView):
             **{
                 "form": None,
                 "formset": self.get_form(),
-            "doi_tasks": (
-                TaskResult.objects.filter(
-                    task_id__in=self.request.session["doi_task_ids"]
-                )[:5]
-                if self.request.session.get("doi_task_ids")
-                else []
-            ),
-            "doi_formset_helper": forms.TableInlineFormSetHelper(),
-        }
+                "doi_tasks": (
+                    TaskResult.objects.filter(
+                        task_id__in=self.request.session["doi_task_ids"]
+                    )[:5]
+                    if self.request.session.get("doi_task_ids")
+                    else []
+                ),
+                "doi_formset_helper": forms.TableInlineFormSetHelper(),
+            }
         )
 
     def get_initial(self):
@@ -297,13 +297,21 @@ class DoiApprovalView(SingleObjectMixin, FormView):
         ]
 
     def get_success_url(self):
-        return reverse("mi-campaign-detail", args=[self.kwargs["pk"]])
+        return reverse("mi-doi-approval", args=[self.kwargs["pk"]])
 
     def form_valid(self, form):
-        # TODO: Handle form...
+        keep, remove = [], []
+        for doi in form.cleaned_data:
+            if doi["keep"]:
+                keep.append(doi["uuid"])
+            else:
+                remove.append(doi["uuid"])
+        if remove:
+            Change.objects.filter(uuid__in=remove).delete()
+
         messages.warning(
             self.request,
-            f"This is still under development. No DOI selection was actually made.",
+            f"Removing {len(remove)}, keeping {len(keep)} is still under development. No DOI selection was actually made.",
         )
         return super().form_valid(form)
 
