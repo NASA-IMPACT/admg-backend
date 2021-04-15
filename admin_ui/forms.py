@@ -96,7 +96,7 @@ class DoiForm(forms.Form):
     platforms = forms.MultipleChoiceField(required=False)
     collection_periods = forms.MultipleChoiceField(required=False)
     keep = forms.NullBooleanField(
-        # initial=True,
+        help_text="Mark as saved or deleted",
         widget=IconBoolean,
         # NOTE: Must use required=False or else False responses will be treated
         # as missing and throw validation error
@@ -118,7 +118,7 @@ class DoiFormSet(forms.formset_factory(DoiForm, extra=0)):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.helper = TableInlineFormSetHelper()
-        self.helper.add_input(Submit("submit", "Submit"))
+        self.helper.add_input(Submit("submit", "Save"))
 
     @cached_property
     def choices(self):
