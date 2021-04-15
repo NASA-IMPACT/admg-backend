@@ -67,3 +67,32 @@
   </div>
 </div>
 {% endblock main %}
+
+{% block javascript %}
+  {{ block.super }}
+
+  <script>
+    // Support unchecking radio button icons
+    $('.icon-radio label').click(function(event) {
+      var input = $(this).children('input');
+      
+      if (input.is(':checked')) {
+        // Don't allow us to uncheck if was checked on load
+        if (input.attr('checked')) return;
+        
+        event.stopPropagation(); // Prevent Bootstrap from handling click
+        input.prop('checked', false); // Uncheck input
+        $(this).removeClass('active'); // Rm active class on label
+
+        // Handle unchecking of sibling of input that was checked on load
+        var checkedOnLoadSibling = $(this).parent().find('input[checked]');
+        if (checkedOnLoadSibling.length) {
+          checkedOnLoadSibling.prop('checked', true);
+          checkedOnLoadSibling.parent('label').addClass('active');
+        }
+      }
+    })
+
+    
+  </script>
+{% endblock javascript %}
