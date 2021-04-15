@@ -2,7 +2,7 @@
 
 {% block nav-global %}
   {% if request.user.is_admg_admin %}
-    <form action="{% url 'mi-trigger-deploy' 'deployment' %}">
+    <form action="{% url 'mi-trigger-deploy' %}">
       <input type="submit" value="Deploy site" />
     </form>
   {% endif %}
