@@ -1,0 +1,53 @@
+
+/* Utils */
+.active {
+  font-weight: 700;
+}
+.inline-link {
+  text-decoration: underline;
+}
+.cursor-pointer {
+  cursor: pointer;
+}
+
+
+dt {
+  font-size: 80%;
+  text-transform: uppercase;
+  color: #6c757d;
+}
+
+/* Views */
+#sidebar {
+  .nav-link.collapsed .minus {
+    display: none;
+  }
+  .nav-link:not(.collapsed) .plus {
+    display: none;
+  }
+}
+
+.campaign-summary {
+  li.list-group-item {
+    padding-bottom: 0;
+  }
+  .list-group-item-primary, .list-group-item-primary:hover {
+    color: inherit;
+  }
+  .list-group-item-primary .row, .list-group-item-primary .col {
+    border-color: #6c757d !important;
+  }
+  .list-group-item-primary {
+    padding-left: 15px; /* 21 - border-width */
+    border-left: 6px solid;
+  }
+  dd {
+    margin-bottom: 1em;
+  }
+  .caret {
+    display: none;
+  }
+  .show-caret .caret {
+    display: inline;
+  }
+}

@@ -17,18 +17,18 @@ services:
       - db
 
   db:
-    image: kartoza/postgis
+    image: postgis
     volumes:
-      - postgres_data:/var/lib/postgresql/data/
+      - postgres_data:/var/lib/postgresql/data
     environment:
-      - POSTGRES_USER=nimda
-      - POSTGRES_PASS=yourpasswordhere
-      - POSTGRES_DBNAME=admg_dev
+      - POSTGRES_USER=alukach
+      - POSTGRES_PASSWORD=lukach
+      - POSTGRES_DB=postgres
 
   rabbitmq:
     container_name: rabbitmq
     hostname: rabbitmq
-    image: rabbitmq:latest
+    image: amd64/rabbitmq:latest
     ports:
       - "5672:5672"
     restart: on-failure

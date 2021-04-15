@@ -159,6 +159,13 @@ class ApprovalLog(models.Model):
     def __str__(self):
         return f"{self.user} | {self.get_action_display()} | {self.notes} | {self.date}"
 
+    def past_tense_action(self):
+        action = self.get_action_display()
+        if action == 'submit':
+            action = action + 't'
+        suffix = 'd' if action.endswith('e') else 'ed'
+        return f"{action}{suffix}"
+
     class Meta:
         ordering = ['-date']
 

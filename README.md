@@ -78,5 +78,13 @@ axios(config)
 ## Local Setup
 
 - Install docker and docker-compose
-- Run docker-compose with docker-compose-local.yml instead of docker-compose.yml
-  - `docker-compose -f docker-compose-local.yml up`
+- Run docker-compose with docker-compose.local.yml instead of docker-compose.yml
+  - `docker-compose -f docker-compose.local.yml up`
+
+## Sass
+
+To build Sass files for the project:
+
+```sh
+python manage.py sass admin_ui/static/scss admin_ui/static/css --watch
+```

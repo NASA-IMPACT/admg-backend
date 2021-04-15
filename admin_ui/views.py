@@ -4,24 +4,24 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.decorators import login_required, user_passes_test
-from django.db import models
-from django.db.models import functions, expressions, aggregates, Max
-from django.db.models.fields.json import KeyTextTransform
-from django.http import HttpResponseRedirect
-from django.shortcuts import render
+from django.db.models import aggregates
+from django.forms import formset_factory
+from django.http import HttpResponseRedirect, Http404
 from django.utils.decorators import method_decorator
 from django.utils.safestring import mark_safe
 from django.urls import reverse
-from django.views.generic.list import ListView
+from django.views import View
+from django.views.generic import DetailView, ListView
 from django.views.generic.detail import SingleObjectMixin
-from django.views.generic import DetailView
+
 from django.views.generic.edit import (
     CreateView,
     UpdateView,
-    View,
+    FormView,
     FormMixin,
     ProcessFormView,
 )
+from django_celery_results.models import TaskResult
 import django_tables2
 from django_tables2.views import SingleTableMixin
 from django_filters.views import FilterView
@@ -37,10 +37,12 @@ from api_app.models import (
     PUBLISHED_CODE,
     AVAILABLE_STATUSES,
 )
+from cmr import tasks
 from data_models.models import (
     Campaign,
     CollectionPeriod,
     Deployment,
+    DOI,
     Instrument,
     Platform,
     PlatformType,
@@ -67,7 +69,7 @@ from . import tables, forms, mixins, filters
 
 @login_required
 @user_passes_test(lambda user: user.is_admg_admin())
-def deploy_admin(request):
+def trigger_deploy(request):
     workflow = settings.GITHUB_WORKFLOW
 
     response = requests.post(
@@ -92,13 +94,11 @@ def deploy_admin(request):
             request, messages.ERROR, f"Failed to trigger deployment: {response.text}"
         )
 
-    # TODO: Redirect back to origin of request
-    # TODO: Use dynamic admin route (either from URL router or from settings)
-    return HttpResponseRedirect("/admin/")
+    return HttpResponseRedirect(reverse("mi-summary"))
 
 
 @method_decorator(login_required, name="dispatch")
-class ChangeSummaryView(django_tables2.SingleTableView):
+class SummaryView(django_tables2.SingleTableView):
     model = Change
     models = (Campaign, Platform, Instrument, PartnerOrg)
     table_class = tables.ChangeSummaryTable
@@ -155,7 +155,7 @@ class ChangeSummaryView(django_tables2.SingleTableView):
 
 
 @method_decorator(login_required, name="dispatch")
-class ChangeListView(SingleTableMixin, FilterView):
+class CampaignListView(SingleTableMixin, FilterView):
     model = Change
     template_name = "api_app/change_list.html"
     table_class = tables.CampaignChangeListTable
@@ -173,9 +173,9 @@ class ChangeListView(SingleTableMixin, FilterView):
 
 
 @method_decorator(login_required, name="dispatch")
-class ChangeDetailView(DetailView):
+class CampaignDetailView(DetailView):
     model = Change
-    template_name = "api_app/change_detail.html"
+    template_name = "api_app/campaign_detail.html"
     queryset = Change.objects.of_type(Campaign)
 
     def get_context_data(self, **kwargs):
@@ -241,10 +241,81 @@ class ChangeDetailView(DetailView):
 
 
 @method_decorator(login_required, name="dispatch")
+class DoiFetchView(View):
+    queryset = Change.objects.of_type(Campaign)
+
+    def get_object(self):
+        try:
+            return self.queryset.get(uuid=self.kwargs["pk"])
+        except self.queryset.model.DoesNotExist as e:
+            raise Http404("Campaign does not exist") from e
+
+    def post(self, request, **kwargs):
+        campaign = self.get_object()
+        task = tasks.match_dois.delay(campaign.content_type.model, campaign.uuid)
+        request.session["doi_task_ids"] = [
+            task.id,
+            *request.session.get("doi_task_ids", []),
+        ]
+        messages.add_message(
+            request, messages.INFO, f"Fetching DOIs for {campaign.uuid}..."
+        )
+        return HttpResponseRedirect(reverse("mi-doi-approval", args=[campaign.uuid]))
+
+
+@method_decorator(login_required, name="dispatch")
+class DoiApprovalView(SingleObjectMixin, FormView):
+    form_class = forms.DoiFormSet
+    queryset = Change.objects.of_type(Campaign)
+    template_name = "api_app/campaign_dois.html"
+
+    def get_context_data(self, **kwargs):
+        self.object = self.get_object()
+        return {
+            **super().get_context_data(**kwargs),
+            "doi_tasks": (
+                TaskResult.objects.filter(
+                    task_id__in=self.request.session["doi_task_ids"]
+                )[:5]
+                if self.request.session.get("doi_task_ids")
+                else []
+            ),
+            "doi_formset_helper": forms.TableInlineFormSetHelper(),
+        }
+
+    def get_initial(self):
+        return [
+            {"uuid": v["uuid"], **v["update"]}
+            for v in (
+                Change.objects.of_type(DOI)
+                .filter(update__campaigns__contains=str(self.object.uuid))
+                .values("uuid", "update")
+            )
+        ]
+
+    def post(self, request, **kwargs):
+
+        #     campaign = self.get_object()
+        #     task = tasks.match_dois.delay(campaign.content_type.model, campaign.uuid)
+        #     request.session["doi_task_ids"] = [
+        #         task.id,
+        #         *request.session.get("doi_task_ids", []),
+        #     ]
+
+        messages.warning(
+            request,
+            f"This is still under development. No DOI selection was actually made.",
+        )
+        return HttpResponseRedirect(
+            reverse("mi-campaign-detail", args=[self.kwargs["pk"]])
+        )
+
+
+@method_decorator(login_required, name="dispatch")
 class ChangeCreateView(mixins.ChangeModelFormMixin, CreateView):
     model = Change
     fields = ["content_type", "model_instance_uuid", "action", "update"]
-    template_name = "api_app/change_add_form.html"
+    template_name = "api_app/change_create.html"
 
     def get_initial(self):
         # Get initial form values from URL
@@ -257,13 +328,13 @@ class ChangeCreateView(mixins.ChangeModelFormMixin, CreateView):
     def get_context_data(self, **kwargs):
         return {
             **super().get_context_data(**kwargs),
-            "content_type_name": self.get_model_form_content_type()
-            .model_class()
-            .__name__,
+            "content_type_name": (
+                self.get_model_form_content_type().model_class().__name__,
+            ),
         }
 
     def get_success_url(self):
-        return reverse("change-form", args=[self.object.pk])
+        return reverse("mi-change-update", args=[self.object.pk])
 
     def get_model_form_content_type(self) -> ContentType:
         if not hasattr(self, "model_form_content_type"):
@@ -290,14 +361,11 @@ class ChangeCreateView(mixins.ChangeModelFormMixin, CreateView):
 class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
     fields = ["content_type", "model_instance_uuid", "action", "update", "status"]
     prefix = "change"
-    template_name = "api_app/change_form.html"
+    template_name = "api_app/change_update.html"
+    queryset = Change.objects.select_related("content_type").prefetch_approvals()
 
     def get_success_url(self):
-        return reverse("change-form", args=[self.object.pk])
-
-    def get_queryset(self):
-        # Prefetch content type for performance
-        return Change.objects.select_related("content_type").prefetch_approvals()
+        return reverse("mi-change-update", args=[self.object.pk])
 
     def get_context_data(self, **kwargs):
         return {
@@ -305,6 +373,12 @@ class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
             "transition_form": forms.TransitionForm(
                 change=self.get_object(), user=self.request.user
             ),
+            "campaign_subitems": [
+                "Deployment",
+                "IOP",
+                "SignificantEvent",
+                "CollectionPeriod",
+            ],
         }
 
     def get_model_form_content_type(self) -> ContentType:
@@ -437,6 +511,9 @@ class LimitedFieldScienceListView(SingleTableMixin, FilterView):
         }
 
 
+1
+
+
 @method_decorator(user_passes_test(lambda user: user.is_admg_admin()), name="dispatch")
 class LimitedFieldMeasurmentPlatformListView(SingleTableMixin, FilterView):
     model = Change
@@ -519,11 +596,6 @@ class LimitedFieldWebsiteListView(SingleTableMixin, FilterView):
             "is_multi_modelview": True,
             "item_types": [m._meta.model_name for m in self.item_types],
         }
-
-
-@login_required
-def to_be_developed(request):
-    return render(request, "api_app/to_be_developed.html")
 
 
 @method_decorator(login_required, name="dispatch")

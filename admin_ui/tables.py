@@ -6,7 +6,7 @@ from api_app.models import Change
 
 class CampaignChangeListTable(tables.Table):
     short_name = tables.Column(
-        linkify=("change-detail", [A("uuid")]),
+        linkify=("mi-campaign-detail", [A("uuid")]),
         verbose_name="Short Name",
         accessor="update__short_name",
     )
@@ -21,7 +21,7 @@ class CampaignChangeListTable(tables.Table):
         model = Change
         attrs = {
             "class": "table table-striped",
-            "thead": {"class": "thead-dark"},
+            "thead": {"class": "table-primary"},
             "th": {"style": "min-width: 10em"},
         }
         fields = ["short_name", "long_name", "funding_agency", "status", "updated_at"]
@@ -29,7 +29,7 @@ class CampaignChangeListTable(tables.Table):
 
 class PlatformChangeListTable(tables.Table):
     short_name = tables.Column(
-        linkify=("change-form", [A("uuid")]),
+        linkify=("mi-change-update", [A("uuid")]),
         verbose_name="Short Name",
         accessor="update__short_name",
     )
@@ -44,7 +44,7 @@ class PlatformChangeListTable(tables.Table):
         model = Change
         attrs = {
             "class": "table table-striped",
-            "thead": {"class": "thead-dark"},
+            "thead": {"class": "table-primary"},
             "th": {"style": "min-width: 10em"},
         }
         fields = ["short_name", "long_name", "platform_type", "status", "updated_at"]
@@ -52,7 +52,7 @@ class PlatformChangeListTable(tables.Table):
 
 class BasicChangeListTable(tables.Table):
     short_name = tables.Column(
-        linkify=("change-form", [A("uuid")]),
+        linkify=("mi-change-update", [A("uuid")]),
         verbose_name="Short Name",
         accessor="update__short_name",
     )
@@ -64,7 +64,7 @@ class BasicChangeListTable(tables.Table):
         model = Change
         attrs = {
             "class": "table table-striped",
-            "thead": {"class": "thead-dark"},
+            "thead": {"class": "table-primary"},
             "th": {"style": "min-width: 10em"},
         }
         fields = ["short_name", "long_name", "status", "updated_at"]
@@ -76,7 +76,7 @@ class MultiItemListTable(BasicChangeListTable):
     class Meta:
         attrs = {
             "class": "table table-striped",
-            "thead": {"class": "thead-dark"},
+            "thead": {"class": "table-primary"},
             "th": {"style": "min-width: 10em"},
         }
         fields = ["short_name", "long_name", "model_name", "status", "updated_at"]
@@ -84,7 +84,7 @@ class MultiItemListTable(BasicChangeListTable):
 
 class ChangeSummaryTable(tables.Table):
     name = tables.LinkColumn(
-        viewname="change-detail",
+        viewname="mi-campaign-detail",
         args=[A("uuid")],
         verbose_name="Name",
         accessor="update__short_name",
@@ -97,5 +97,5 @@ class ChangeSummaryTable(tables.Table):
 
     class Meta:
         model = Change
-        attrs = {"class": "table table-striped", "thead": {"class": "thead-dark"}}
+        attrs = {"class": "table table-striped", "thead": {"class": "table-primary"}}
         fields = ["name", "content_type__model", "updated_at", "status"]

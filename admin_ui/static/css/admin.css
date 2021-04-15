@@ -1,73 +1,57 @@
-/* Utilities */
+/* Utils */
 .active {
   font-weight: 700;
+}
+
+.inline-link {
+  text-decoration: underline;
 }
 
 .cursor-pointer {
   cursor: pointer;
 }
 
-.inline-link {
-  color: black;
-  text-decoration: underline;
+dt {
+  font-size: 80%;
+  text-transform: uppercase;
+  color: #6c757d;
 }
 
 /* Views */
-#sidebar .nav-link {
-  color: black;
-}
 #sidebar .nav-link.collapsed .minus {
   display: none;
 }
+
 #sidebar .nav-link:not(.collapsed) .plus {
   display: none;
-}
-#sidebar .nav-link li a {
-  color: black;
-}
-#sidebar .nav-item .collapsing {
-  transition: unset; /* Disable animation */
 }
 
 .campaign-summary li.list-group-item {
   padding-bottom: 0;
 }
+
 .campaign-summary .list-group-item-primary, .campaign-summary .list-group-item-primary:hover {
   color: inherit;
 }
+
 .campaign-summary .list-group-item-primary .row, .campaign-summary .list-group-item-primary .col {
   border-color: #6c757d !important;
 }
+
 .campaign-summary .list-group-item-primary {
-  padding-left: 15px; /* 21 - border-width */
+  padding-left: 15px;
+  /* 21 - border-width */
   border-left: 6px solid;
 }
-.campaign-summary dt {
-  font-size: 80%;
-  text-transform: uppercase;
-  color: #6c757d;
-}
+
 .campaign-summary dd {
   margin-bottom: 1em;
 }
+
 .campaign-summary .caret {
   display: none;
 }
+
 .campaign-summary .show-caret .caret {
   display: inline;
-}
-
-#sidebar li.dropdown-tab a {
-  color: black
-}
-
-/* Global */
-th a {
-  color: white;
-}
-
-td a {
-  color: white;
-  color: black;
-  text-decoration: underline;
 }

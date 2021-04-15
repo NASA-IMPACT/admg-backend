@@ -2,7 +2,9 @@ from collections import OrderedDict
 
 from django import forms
 from django.core.exceptions import ValidationError
+from django.utils.functional import cached_property
 from django.utils.safestring import mark_safe
+from crispy_forms.helper import FormHelper
 
 from api_app.models import (
     Change,
@@ -15,6 +17,7 @@ from api_app.models import (
     AWAITING_ADMIN_REVIEW_CODE,
 )
 from admg_webapp.users.models import User, ADMIN_CODE
+from data_models import models as data_models
 
 
 class TransitionForm(forms.Form):
@@ -82,3 +85,61 @@ class TransitionForm(forms.Form):
                 )
 
         return actions.items()
+
+
+class DoiForm(forms.ModelForm):
+    # TODO:
+    # - FK fields should show Drafts, not just published data
+    # - QuerySets on formset seem redundnat, slow render time
+    # - If a DOI does not have a DOI field, render the Concept ID with a link to
+    #   EarthdataSearch
+    # - Allow a user to edit DOI if no value is provided?
+    class Meta:
+        model = data_models.DOI
+        fields = [
+            "campaigns",
+            "instruments",
+            "platforms",
+            "collection_periods",
+        ]
+
+    def __init__(self, *args, choices, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field_name, choices in choices.items():
+            self.fields[field_name].choices = choices
+
+
+class DoiFormSet(forms.formset_factory(DoiForm, extra=0)):
+    @cached_property
+    def choices(self):
+        # To avoid redundant queries for the M2M fields within each of this
+        # formset's forms, we manually build the choices outside of the form.
+        # https://code.djangoproject.com/ticket/22841
+        return {
+            "campaigns": list(
+                forms.ModelChoiceField(data_models.Campaign.objects.all()).choices
+            ),
+            "instruments": list(
+                forms.ModelChoiceField(data_models.Instrument.objects.all()).choices
+            ),
+            "platforms": list(
+                forms.ModelChoiceField(data_models.Platform.objects.all()).choices
+            ),
+            "collection_periods": list(
+                forms.ModelChoiceField(
+                    data_models.CollectionPeriod.objects.all().select_related(
+                        "deployment__campaign", "platform"
+                    )
+                ).choices
+            ),
+        }
+
+    def get_form_kwargs(self, index):
+        return {
+            **super().get_form_kwargs(index),
+            "choices": self.choices,
+        }
+
+
+class TableInlineFormSetHelper(FormHelper):
+    template = "bootstrap/table_inline_formset.html"

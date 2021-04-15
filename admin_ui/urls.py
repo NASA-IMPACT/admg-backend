@@ -1,18 +1,51 @@
 from django.conf import settings
 from django.contrib import admin
 from django.urls import path
-from django.views.generic.base import RedirectView
+from django.views.generic.base import TemplateView, RedirectView
 
 from . import views
 
 urlpatterns = [
     path(settings.ADMIN_URL, admin.site.urls),
-    path("deploy-admin/", views.deploy_admin, name="deploy-admin"),
-    path("", views.ChangeSummaryView.as_view(), name="summary"),
-    path("drafts", views.ChangeListView.as_view(), name="change-list"),
-    path("platforms", views.PlatformListView.as_view(), name="platform-list"),
-    path("instruments", views.InstrumentListView.as_view(), name="instrument-list"),
-    path("organizations", views.PartnerOrgListView.as_view(), name="organization-list"),
+    # Actions
+    path("actions/deploy-admin", views.trigger_deploy, name="mi-trigger-deploy"),
+    path("", views.SummaryView.as_view(), name="mi-summary"),
+    path("campaigns", views.CampaignListView.as_view(), name="mi-campaign-list"),
+    path(
+        "campaigns/<uuid:pk>",
+        views.CampaignDetailView.as_view(),
+        name="mi-campaign-detail",
+    ),
+    path(
+        "campaigns/<uuid:pk>/doi-fetch",
+        views.DoiFetchView.as_view(),
+        name="mi-doi-fetch",
+    ),
+    path(
+        "campaigns/<uuid:pk>/doi-approval",
+        views.DoiApprovalView.as_view(),
+        name="mi-doi-approval",
+    ),
+    path("platforms", views.PlatformListView.as_view(), name="mi-platform-list"),
+    path("instruments", views.InstrumentListView.as_view(), name="mi-instrument-list"),
+    path(
+        "organizations",
+        views.PartnerOrgListView.as_view(),
+        name="mi-organization-list",
+    ),
+    path(
+        "drafts/add/<str:model>", views.ChangeCreateView.as_view(), name="mi-change-add"
+    ),
+    path(
+        "drafts/edit/<uuid:pk>",
+        views.ChangeUpdateView.as_view(),
+        name="mi-change-update",
+    ),
+    path(
+        "drafts/edit/<uuid:pk>/transition",
+        views.ChangeTransition.as_view(),
+        name="mi-change-transition",
+    ),
     path(
         "limitedfields",
         RedirectView.as_view(pattern_name="lf-gcmd-list"),
@@ -43,13 +76,9 @@ urlpatterns = [
         views.LimitedFieldWebsiteListView.as_view(),
         name="lf-website-list",
     ),
-    path("drafts/<uuid:pk>", views.ChangeDetailView.as_view(), name="change-detail"),
-    path("drafts/add/<str:model>", views.ChangeCreateView.as_view(), name="change-add"),
-    path("drafts/edit/<uuid:pk>", views.ChangeUpdateView.as_view(), name="change-form"),
     path(
-        "drafts/edit/<uuid:pk>/transition",
-        views.ChangeTransition.as_view(),
-        name="change-transition",
+        "tbd",
+        TemplateView.as_view(template_name="api_app/to_be_developed.html"),
+        name="to-be-developed",
     ),
-    path("tbd", views.to_be_developed, name="to-be-developed"),
 ]
