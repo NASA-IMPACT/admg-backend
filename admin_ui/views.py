@@ -253,12 +253,16 @@ class DoiFetchView(View):
     def post(self, request, **kwargs):
         campaign = self.get_object()
         task = tasks.match_dois.delay(campaign.content_type.model, campaign.uuid)
-        request.session["doi_task_ids"] = [
-            task.id,
-            *request.session.get("doi_task_ids", []),
-        ]
+        past_doi_fetches = request.session.get("doi_task_ids", {})
+        uuid = str(self.kwargs["pk"])
+        request.session["doi_task_ids"] = {
+            **past_doi_fetches,
+            uuid: [task.id, *past_doi_fetches.get(uuid, [])],
+        }
         messages.add_message(
-            request, messages.INFO, f"Fetching DOIs for {campaign.uuid}..."
+            request,
+            messages.INFO,
+            f"Fetching DOIs for {campaign.update.get('short_name', uuid)}...",
         )
         return HttpResponseRedirect(reverse("mi-doi-approval", args=[campaign.uuid]))
 
@@ -271,15 +275,15 @@ class DoiApprovalView(SingleObjectMixin, FormView):
 
     def get_context_data(self, **kwargs):
         self.object = self.get_object()
+        uuid = str(self.object.uuid)
+        past_doi_fetches = self.request.session.get("doi_task_ids", {})
         return super().get_context_data(
             **{
                 "form": None,
                 "formset": self.get_form(),
                 "doi_tasks": (
-                    TaskResult.objects.filter(
-                        task_id__in=self.request.session["doi_task_ids"]
-                    )[:5]
-                    if self.request.session.get("doi_task_ids")
+                    TaskResult.objects.filter(task_id__in=past_doi_fetches[uuid])[:5]
+                    if past_doi_fetches.get(uuid)
                     else []
                 ),
                 "doi_formset_helper": forms.TableInlineFormSetHelper(),
