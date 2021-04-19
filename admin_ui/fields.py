@@ -3,26 +3,55 @@ from django.contrib.gis.forms.fields import PolygonField
 from django.db.models.fields.related import ForeignKey
 from django.db.models import functions, expressions, TextField
 from django.db.models.fields.json import KeyTextTransform
-from django.forms import ModelChoiceField
+from django.forms import ModelChoiceField, MultipleChoiceField
 from django.utils.translation import gettext_lazy as _
 
-from api_app.models import Change, CREATE, PUBLISHED_CODE
+from api_app import models
+from data_models import models as data_models
 from data_models.serializers import get_geojson_from_bb
 from .widgets import BoundingBoxWidget
 
 
-class ChangeChoiceField(ModelChoiceField):
-    """
-    A ModelChoiceField that renders Choice models rather than the actual target models
-    """
+def get_attr(data, path):
+    # print(path, data)
+    # print()
+    [attr, *parts] = path.split("__")
+    if parts:
+        return get_attr(data[attr], "__".join(parts))
+    return data.get(attr)
 
+
+def ChangeWithIdentifier(*fields):
+    class DynamicIdentifierChange(models.Change):
+        """
+        A Change model but we will get the string representation from the annotated
+        'identifier' field.
+        """
+
+        def __str__(self):
+            # if fields[0] == "deployment":
+            #     print(fields)
+            return " | ".join(
+                str(get_attr(self.__dict__, field) or "") for field in fields
+            )
+
+        class Meta:
+            proxy = True
+
+    return DynamicIdentifierChange
+
+
+class ChangeChoiceMixin:
     def __init__(self, *args, dest_model, **kwargs):
         super().__init__(*args, **kwargs)
         self.dest_model = dest_model
 
-    @staticmethod
-    def get_queryset_for_model(dest_model):
+    @classmethod
+    def get_queryset_for_model(cls, dest_model):
         """ Helper to get QS of valid choices """
+        if dest_model == data_models.CollectionPeriod:
+            return cls.get_queryset_for_collection_period()
+
         dest_model_name = dest_model._meta.model_name
 
         # Field to use for textual description of field
@@ -30,39 +59,70 @@ class ChangeChoiceField(ModelChoiceField):
             "image": "image",
         }.get(dest_model_name, "short_name")
 
-        published_identifier_query = expressions.Subquery(
-            dest_model.objects.filter(uuid=expressions.OuterRef("uuid"))[:1].values(
-                identifier_field
-            )
-        )
-
         return (
-            Change.objects
+            ChangeWithIdentifier("short_name")
+            .objects
             # Only focus on Created drafts, so we can treat the `uuid` as the target model's uuid
-            .filter(action=CREATE, content_type__model=dest_model_name)
+            .filter(action=models.CREATE, content_type__model=dest_model_name)
             # Remove any Changes that have been successfully deleted
             .exclude(
-                uuid__in=Change.objects.of_type(dest_model)
-                .filter(action="Delete", status=PUBLISHED_CODE)
+                uuid__in=models.Change.objects.of_type(dest_model)
+                .filter(action="Delete", status=models.PUBLISHED_CODE)
                 .values("model_instance_uuid")
             )
-            # Add identifier from published record (if available) or change.update.short_name
-            .annotate(
-                identifier=functions.Coalesce(
-                    published_identifier_query,
-                    KeyTextTransform(identifier_field, "update"),
-                    output_field=TextField(),
-                )
+            # Add identifier from published record (if available) or models.change.update.short_name
+            .annotate_from_published(
+                dest_model, to_attr="short_name", identifier=identifier_field
             )
             .select_related("content_type")
-            .order_by("identifier")
+            .order_by("short_name")
         )
 
-    def label_from_instance(self, obj):
-        """
-        Override label to use the 'identifier' annotation we add to the queryset
-        """
-        return obj.identifier
+    @staticmethod
+    def get_queryset_for_collection_period():
+        """ Helper to get QS of valid choices """
+        return (
+            ChangeWithIdentifier(
+                "campaign",
+                "deployment",
+                "platform",
+                "update__platform_identifier",
+            )
+            .objects.of_type(data_models.CollectionPeriod)
+            # Only focus on Created drafts, so we can treat the `uuid` as the target model's uuid
+            .filter(action=models.CREATE)
+            # Remove any Changes that have been successfully deleted
+            .exclude(
+                uuid__in=models.Change.objects.of_type(data_models.CollectionPeriod)
+                .filter(action="Delete", status=models.PUBLISHED_CODE)
+                .values("model_instance_uuid")
+            )
+            # Get Deployment short_name from related deployments
+            .annotate_from_relationship(
+                of_type=data_models.Deployment,
+                to_attr="deployment",
+                uuid_from="deployment",
+            )
+            # Get Campaign short_name from related campaigns
+            .annotate_from_relationship(
+                of_type=data_models.Campaign,
+                to_attr="campaign",
+                # Not sure why this exists in "update", as CollectionPeriod model
+                # doesn't support campaigns. It would be safer to go through the
+                # "deployment" relationship, however that's more complex as we would
+                # need to join on the "deployment__uuid" property annotation created
+                # when getting the deployment short_name.
+                uuid_from="campaign",
+            )
+            # Get Platform short_name from related platforms
+            .annotate_from_relationship(
+                of_type=data_models.Platform,
+                to_attr="platform",
+                uuid_from="platform",
+            )
+            .select_related("content_type")
+            .order_by("deployment")
+        )
 
     def to_python(self, value):
         """
@@ -73,12 +133,28 @@ class ChangeChoiceField(ModelChoiceField):
             return None
         try:
             key = self.to_field_name or "pk"
-            Change.objects.get(**{key: value})
-        except (ValueError, TypeError, self.queryset.model.DoesNotExist) as e:
+            models.Change.objects.get(**{key: value})
+        except (ValueError, TypeError, models.Change.DoesNotExist) as e:
             raise ValidationError(
                 self.error_messages["invalid_choice"], code="invalid_choice"
             ) from e
         return self.dest_model(**{key: value})
+
+
+class ChangeMultipleChoiceField(ChangeChoiceMixin, MultipleChoiceField):
+    """
+    A MultipleChoiceField that renders Choice models rather than the actual target models
+    """
+
+    ...
+
+
+class ChangeChoiceField(ChangeChoiceMixin, ModelChoiceField):
+    """
+    A ModelChoiceField that renders Choice models rather than the actual target models
+    """
+
+    ...
 
 
 class BboxField(PolygonField):

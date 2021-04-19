@@ -191,8 +191,8 @@ class CampaignDetailView(DetailView):
             .filter(update__deployment__in=[str(d.uuid) for d in deployments])
             .select_related("content_type")
             .prefetch_approvals()
-            .annotate_with_identifier_from_model(
-                model=Platform, uuid_from="platform", to_attr="platform_name"
+            .annotate_from_relationship(
+                of_type=Platform, uuid_from="platform", to_attr="platform_name"
             )
         )
 
@@ -459,8 +459,8 @@ class PlatformListView(SingleTableMixin, FilterView):
             Change.objects.of_type(Platform)
             .filter(action=CREATE)
             .add_updated_at()
-            .annotate_with_identifier_from_model(
-                model=PlatformType,
+            .annotate_from_relationship(
+                of_type=PlatformType,
                 uuid_from="platform_type",
                 to_attr="platform_type_name",
             )
