@@ -286,11 +286,11 @@ class DoiApprovalView(SingleObjectMixin, FormView):
                     if past_doi_fetches.get(uuid)
                     else []
                 ),
-                "doi_formset_helper": forms.TableInlineFormSetHelper(),
             }
         )
 
     def get_initial(self):
+        # This is where we generate the DOI data to be shown in the formset
         return [
             {
                 "uuid": v["uuid"],
