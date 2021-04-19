@@ -111,11 +111,6 @@ class DoiForm(forms.Form):
         required=False,
     )
 
-    # TODO:
-    # - FK fields should show Drafts, not just published data
-    # - If a DOI does not have a DOI field, render the Concept ID with a link to EarthdataSearch
-    # - Allow a user to edit DOI if no value is provided?
-
     def __init__(self, *args, choices, **kwargs):
         super().__init__(*args, **kwargs)
         for field_name, choices in choices.items():
