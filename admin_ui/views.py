@@ -380,7 +380,7 @@ class ChangeCreateView(mixins.ChangeModelFormMixin, CreateView):
         return {
             **super().get_context_data(**kwargs),
             "content_type_name": (
-                self.get_model_form_content_type().model_class().__name__,
+                self.get_model_form_content_type().model_class().__name__
             ),
         }
 
