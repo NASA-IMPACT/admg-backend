@@ -13,8 +13,6 @@ from .widgets import BoundingBoxWidget
 
 
 def get_attr(data, path):
-    # print(path, data)
-    # print()
     [attr, *parts] = path.split("__")
     if parts:
         return get_attr(data[attr], "__".join(parts))
@@ -22,15 +20,14 @@ def get_attr(data, path):
 
 
 def ChangeWithIdentifier(*fields):
-    class DynamicIdentifierChange(models.Change):
-        """
-        A Change model but we will get the string representation from the annotated
-        'identifier' field.
-        """
+    """
+    Generate a Change model with a string representation based on the provided fields.
+    This is necessary to have Change models that use annotated fields in their
+    display, such as when rendering selection widgets.
+    """
 
+    class DynamicIdentifierChange(models.Change):
         def __str__(self):
-            # if fields[0] == "deployment":
-            #     print(fields)
             return " | ".join(
                 str(get_attr(self.__dict__, field) or "") for field in fields
             )
