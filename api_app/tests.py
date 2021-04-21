@@ -152,6 +152,25 @@ class TestChange:
         assert change.status == PUBLISHED_CODE
 
 
+    def test_staff_cant_trash_untrash(self):
+        """check that error is thrown when staff member tries to trash or untrash an object"""
+        admin_user, _, staff_user, _ = self.create_users()
+
+        change = self.make_create_change_object()
+        change.update['short_name'] = 'test_short_name'
+        change.save()
+
+        response = change.trash(staff_user, notes='trash')
+        assert response['success'] is False
+        assert response['message'] == 'action failed because initiating user was not admin'
+
+        change.trash(admin_user, notes='trash')
+
+        response = change.untrash(staff_user)
+        assert response['success'] is False
+        assert response['message'] == 'action failed because initiating user was not admin'
+
+
     def test_staff_cant_publish(self):
         """check that error is thrown when staff member tries to publish or claim awaiting admin review"""
         admin_user, _, staff_user, staff_user_2 = self.create_users()
