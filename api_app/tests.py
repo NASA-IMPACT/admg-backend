@@ -1,3 +1,5 @@
+# to run this test file, use 'pytest -k api_app'
+
 import json
 
 import pytest
@@ -167,7 +169,7 @@ class TestChange:
         change.claim(admin_user)
         response = change.publish(staff_user)
         assert response['success'] is False
-        assert response['message'] == 'action failed because initiating user was not admin'  
+        assert response['message'] == 'action failed because initiating user was not admin'
 
 
     def test_only_claim_awaiting(self):
@@ -181,10 +183,10 @@ class TestChange:
         # can't claim IN PROGRESS
         response = change.claim(staff_user)
         assert response['success'] is False
-        assert response['message'] == 'action failed because status was not one of [2, 4]'
+        assert response['message'] == "action failed because status was not one of ['In Progress', 'In Review']"
         response = change.claim(admin_user)
         assert response['success'] is False
-        assert response['message'] == 'action failed because status was not one of [2, 4]'
+        assert response['message'] == "action failed because status was not one of ['In Progress', 'In Review']"
 
         change.submit(staff_user)
         change.claim(staff_user_2)
@@ -192,10 +194,10 @@ class TestChange:
         # can't claim IN REVIEW
         response = change.claim(staff_user)
         assert response['success'] is False
-        assert response['message'] == 'action failed because status was not one of [2, 4]'
+        assert response['message'] == "action failed because status was not one of ['In Progress', 'In Review']"
         response = change.claim(admin_user)
         assert response['success'] is False
-        assert response['message'] == 'action failed because status was not one of [2, 4]'
+        assert response['message'] == "action failed because status was not one of ['In Progress', 'In Review']"
 
         change.review(staff_user_2)
         change.claim(admin_user)
@@ -203,20 +205,20 @@ class TestChange:
         # can't claim IN ADMIN REVIEW
         response = change.claim(staff_user)
         assert response['success'] is False
-        assert response['message'] == 'action failed because status was not one of [2, 4]'
+        assert response['message'] == "action failed because status was not one of ['In Progress', 'In Review']"
         response = change.claim(admin_user)
         assert response['success'] is False
-        assert response['message'] == 'action failed because status was not one of [2, 4]'
+        assert response['message'] == "action failed because status was not one of ['In Progress', 'In Review']"
 
         change.publish(admin_user)
 
         # can't claim PUBLISHED
         response = change.claim(staff_user)
         assert response['success'] is False
-        assert response['message'] == 'action failed because status was not one of [2, 4]'
+        assert response['message'] == "action failed because status was not one of ['In Progress', 'In Review']"
         response = change.claim(admin_user)
         assert response['success'] is False
-        assert response['message'] == 'action failed because status was not one of [2, 4]'
+        assert response['message'] == "action failed because status was not one of ['In Progress', 'In Review']"
 
 
     def test_admin_unclaim_all(self):
