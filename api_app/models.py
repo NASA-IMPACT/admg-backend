@@ -20,6 +20,9 @@ UPDATE = "Update"
 DELETE = "Delete"
 PATCH = "Patch"
 
+# The change has been moved to the trash
+IN_TRASH, IN_TRASH_CODE = "In Trash", -1
+
 # The change has been freshly ingested, but no one has made edits using the admin interface
 CREATED, CREATED_CODE = "Created", 0
 
@@ -44,6 +47,7 @@ PUBLISHED, PUBLISHED_CODE = "Published", 6
 
 
 AVAILABLE_STATUSES = (
+    (IN_TRASH_CODE, IN_TRASH),
     (CREATED_CODE, CREATED),
     (IN_PROGRESS_CODE, IN_PROGRESS),
     (AWAITING_REVIEW_CODE, AWAITING_REVIEW),
@@ -116,6 +120,8 @@ def is_status(accepted_statuses_list):
 class ApprovalLog(models.Model):
     """Keeps a log of the changes (publish, reject, etc) made to a particular draft"""
 
+    TRASH = -1
+    UNTRASH = 0
     CREATE = 1
     EDIT = 2
     SUBMIT = 3
@@ -126,6 +132,8 @@ class ApprovalLog(models.Model):
     UNCLAIM = 8
 
     ACTION_CHOICES = [
+        (TRASH, 'trash'),
+        (UNTRASH, 'untrash'),
         (CREATE, 'create'),
         (EDIT, 'edit'),
         (SUBMIT, 'submit'),
@@ -510,6 +518,77 @@ class Change(models.Model):
         )
 
 
+    @is_admin
+    @is_status([
+        CREATED_CODE,
+        IN_PROGRESS_CODE,
+        AWAITING_REVIEW_CODE,
+        IN_REVIEW_CODE,
+        AWAITING_ADMIN_REVIEW_CODE,
+        IN_ADMIN_REVIEW_CODE
+    ])
+    def trash(self, user, notes=''):
+        """Moves a change object to the IN_TRASH stage. Expected use case
+        is for DOIs which need to be ignored and items created accidently.
+        Items can be removed from the trash with self.untrash()
+
+        Args:
+            user (User): User trashing the object
+            notes (string): Extra notes that were provided by the trashing user. Default is ''.
+
+        Returns:
+            [dict]: {"success", "message", "data": {"uuid", "status"}}
+        """
+
+        self.status = IN_TRASH_CODE
+        ApprovalLog.objects.create(
+            change = self,
+            user = user,
+            action = ApprovalLog.TRASH,
+            notes = notes
+        )
+        self.save(post_save=True)
+
+        return generate_success_response(
+            status_str=IN_TRASH,
+            data={
+                "uuid": self.uuid,
+                "status": IN_TRASH_CODE
+            }
+        )
+
+
+    @is_admin
+    @is_status([IN_TRASH_CODE])
+    def untrash(self, user, notes=''):
+        """Moves a change object from trash to the in progress stage.
+
+        Args:
+            user (User): User untrashing the object
+            notes (string): Extra notes that were provided by the untrashing user. Default is ''.
+
+        Returns:
+            [dict]: {"success", "message", "data": {"uuid", "status"}}
+        """
+
+        self.status = IN_PROGRESS_CODE
+        ApprovalLog.objects.create(
+            change = self,
+            user = user,
+            action = ApprovalLog.UNTRASH,
+            notes = notes
+        )
+        self.save(post_save=True)
+
+        return generate_success_response(
+            status_str=IN_PROGRESS,
+            data={
+                "uuid": self.uuid,
+                "status": IN_PROGRESS_CODE
+            }
+        )
+
+
     @is_status([IN_REVIEW_CODE, IN_ADMIN_REVIEW_CODE])
     def reject(self, user, notes):
         """
@@ -519,12 +598,10 @@ class Change(models.Model):
         Return is taken care of by the decorator
 
         Args:
-            admin_user (User):
-                the admin_user that approves the change.
-                This is not an unused variable. The decorator uses it
+            user (User):
+                the user that approves the change.
             notes (string):
-                Extra notes that were provided by the approving/rejecting admin
-                This is not an unused variable. The decorator uses it
+                Extra notes that were provided by the approving/rejecting
 
         Returns:
             (dict): {
