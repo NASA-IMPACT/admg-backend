@@ -171,6 +171,20 @@ class TestChange:
         assert response['message'] == 'action failed because initiating user was not admin'
 
 
+    def test_published_cant_be_trash(self):
+        """check that error is thrown when admin tries to trash a published item"""
+        admin_user, _, _, _ = self.create_users()
+
+        change = self.make_create_change_object()
+        change.update['short_name'] = 'test_short_name'
+        change.save()
+        change.publish(admin_user)
+
+        response = change.trash(admin_user, notes='trash')
+        assert response['success'] is False
+        assert response['message'] == "action failed because status was not one of ['Created', 'In Progress', 'Awaiting Review', 'In Review', 'Awaiting Admin Review', 'In Admin Review']"
+
+
     def test_staff_cant_publish(self):
         """check that error is thrown when staff member tries to publish or claim awaiting admin review"""
         admin_user, _, staff_user, staff_user_2 = self.create_users()
@@ -202,10 +216,10 @@ class TestChange:
         # can't claim IN PROGRESS
         response = change.claim(staff_user)
         assert response['success'] is False
-        assert response['message'] == "action failed because status was not one of ['In Progress', 'In Review']"
+        assert response['message'] == "action failed because status was not one of ['Awaiting Review', 'Awaiting Admin Review']"
         response = change.claim(admin_user)
         assert response['success'] is False
-        assert response['message'] == "action failed because status was not one of ['In Progress', 'In Review']"
+        assert response['message'] == "action failed because status was not one of ['Awaiting Review', 'Awaiting Admin Review']"
 
         change.submit(staff_user)
         change.claim(staff_user_2)
@@ -213,10 +227,10 @@ class TestChange:
         # can't claim IN REVIEW
         response = change.claim(staff_user)
         assert response['success'] is False
-        assert response['message'] == "action failed because status was not one of ['In Progress', 'In Review']"
+        assert response['message'] == "action failed because status was not one of ['Awaiting Review', 'Awaiting Admin Review']"
         response = change.claim(admin_user)
         assert response['success'] is False
-        assert response['message'] == "action failed because status was not one of ['In Progress', 'In Review']"
+        assert response['message'] == "action failed because status was not one of ['Awaiting Review', 'Awaiting Admin Review']"
 
         change.review(staff_user_2)
         change.claim(admin_user)
@@ -224,20 +238,20 @@ class TestChange:
         # can't claim IN ADMIN REVIEW
         response = change.claim(staff_user)
         assert response['success'] is False
-        assert response['message'] == "action failed because status was not one of ['In Progress', 'In Review']"
+        assert response['message'] == "action failed because status was not one of ['Awaiting Review', 'Awaiting Admin Review']"
         response = change.claim(admin_user)
         assert response['success'] is False
-        assert response['message'] == "action failed because status was not one of ['In Progress', 'In Review']"
+        assert response['message'] == "action failed because status was not one of ['Awaiting Review', 'Awaiting Admin Review']"
 
         change.publish(admin_user)
 
         # can't claim PUBLISHED
         response = change.claim(staff_user)
         assert response['success'] is False
-        assert response['message'] == "action failed because status was not one of ['In Progress', 'In Review']"
+        assert response['message'] == "action failed because status was not one of ['Awaiting Review', 'Awaiting Admin Review']"
         response = change.claim(admin_user)
         assert response['success'] is False
-        assert response['message'] == "action failed because status was not one of ['In Progress', 'In Review']"
+        assert response['message'] == "action failed because status was not one of ['Awaiting Review', 'Awaiting Admin Review']"
 
 
     def test_admin_unclaim_all(self):
