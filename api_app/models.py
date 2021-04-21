@@ -20,8 +20,6 @@ UPDATE = "Update"
 DELETE = "Delete"
 PATCH = "Patch"
 
-# The change has been moved to the trash
-IN_TRASH, IN_TRASH_CODE = "In Trash", -1
 
 # The change has been freshly ingested, but no one has made edits using the admin interface
 CREATED, CREATED_CODE = "Created", 0
@@ -45,9 +43,11 @@ IN_ADMIN_REVIEW, IN_ADMIN_REVIEW_CODE = "In Admin Review", 5
 # The state of the change object can not be changed from this state.
 PUBLISHED, PUBLISHED_CODE = "Published", 6
 
+# The change has been moved to the trash
+IN_TRASH, IN_TRASH_CODE = "In Trash", 7
+
 
 AVAILABLE_STATUSES = (
-    (IN_TRASH_CODE, IN_TRASH),
     (CREATED_CODE, CREATED),
     (IN_PROGRESS_CODE, IN_PROGRESS),
     (AWAITING_REVIEW_CODE, AWAITING_REVIEW),
@@ -55,6 +55,7 @@ AVAILABLE_STATUSES = (
     (AWAITING_ADMIN_REVIEW_CODE, AWAITING_ADMIN_REVIEW),
     (IN_ADMIN_REVIEW_CODE, IN_ADMIN_REVIEW),
     (PUBLISHED_CODE, PUBLISHED),
+    (IN_TRASH_CODE, IN_TRASH)
 )
 
 def generate_failure_response(message):
