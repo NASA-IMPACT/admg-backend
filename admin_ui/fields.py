@@ -121,6 +121,20 @@ class ChangeChoiceMixin:
             .order_by("deployment")
         )
 
+
+class ChangeMultipleChoiceField(ChangeChoiceMixin, MultipleChoiceField):
+    """
+    A MultipleChoiceField that renders Choice models rather than the actual target models
+    """
+
+    ...
+
+
+class ChangeChoiceField(ChangeChoiceMixin, ModelChoiceField):
+    """
+    A ModelChoiceField that renders Choice models rather than the actual target models
+    """
+
     def to_python(self, value):
         """
         Override the lookup for the models to perform a lookup in the Change model
@@ -136,22 +150,6 @@ class ChangeChoiceMixin:
                 self.error_messages["invalid_choice"], code="invalid_choice"
             ) from e
         return self.dest_model(**{key: value})
-
-
-class ChangeMultipleChoiceField(ChangeChoiceMixin, MultipleChoiceField):
-    """
-    A MultipleChoiceField that renders Choice models rather than the actual target models
-    """
-
-    ...
-
-
-class ChangeChoiceField(ChangeChoiceMixin, ModelChoiceField):
-    """
-    A ModelChoiceField that renders Choice models rather than the actual target models
-    """
-
-    ...
 
 
 class BboxField(PolygonField):
