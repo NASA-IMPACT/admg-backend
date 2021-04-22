@@ -382,6 +382,7 @@ class CampaignSerializer(GetAliasSerializer, GetDoiSerializer):
     deployments = serializers.SerializerMethodField(read_only=True)
     significant_events = serializers.ListField(read_only=True)
     iops = serializers.ListField(read_only=True)
+    number_data_products = serializers.IntegerField(read_only=True)
     number_deployments = serializers.IntegerField(read_only=True)
     instruments = serializers.ListField(read_only=True)
     platforms = serializers.ListField(read_only=True)

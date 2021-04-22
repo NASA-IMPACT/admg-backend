@@ -280,7 +280,6 @@ class Campaign(DataModel):
     technical_contact = models.CharField(max_length=256, default='', blank=True)
     number_collection_periods = models.PositiveIntegerField()
     campaign_doi = models.CharField(max_length=1024, default='', blank=True)
-    number_data_products = models.PositiveIntegerField(null=True, blank=True)
     data_volume = models.CharField(max_length=256, null=True, blank=True)
 
     ongoing = models.BooleanField()
@@ -317,6 +316,10 @@ class Campaign(DataModel):
     @property
     def iops(self):
         return select_related_distinct_data(self.deployments, 'iops__uuid')
+
+    @property
+    def number_data_products(self):
+        return self.dois.count()
 
     @property
     def number_deployments(self):
@@ -427,7 +430,7 @@ class Instrument(DataModel):
     overview_publication = models.CharField(max_length=2048, default='', blank=True)
     online_information = models.CharField(max_length=2048, default='', blank=True)
     instrument_doi = models.CharField(max_length=1024, default='', blank=True)
-    arbitrary_characteristics = models.JSONField(default=None, blank=True, null=True)
+    additional_metadata = models.JSONField(default=None, blank=True, null=True)
 
     gcmd_instruments = models.ManyToManyField(GcmdInstrument, related_name='instruments', default='', blank=True)
     gcmd_phenomenas = models.ManyToManyField(GcmdPhenomena, related_name='instruments')
@@ -506,7 +509,6 @@ class CollectionPeriod(BaseModel):
     platform = models.ForeignKey(Platform, on_delete=models.CASCADE, related_name='collection_periods')
     home_base = models.ForeignKey(HomeBase, on_delete=models.CASCADE, related_name='collection_periods', blank=True, null=True)
 
-    asp_long_name = models.CharField(max_length=512, default='', blank=True)
     platform_identifier = models.CharField(max_length=128, default='', blank=True)
     campaign_deployment_base = models.CharField(max_length=256, default='', blank=True)
     platform_owner = models.CharField(max_length=256, default='', blank=True)
