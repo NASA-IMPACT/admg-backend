@@ -166,20 +166,25 @@ class PartnerOrg(LimitedInfoPriority):
 
 
 class GcmdProject(BaseModel):
-    short_name = models.CharField(max_length=256, blank=False, unique=True)
+    short_name = models.CharField(max_length=256, blank=True, default='')
     long_name = models.CharField(max_length=512, blank=True, default='')
     bucket = models.CharField(max_length=256)
-    gcmd_uuid = models.UUIDField()
+    gcmd_uuid = models.UUIDField(unique=True)
+
+    def __str__(self):
+        return self.short_name or self.long_name or self.bucket
 
 
 class GcmdInstrument(BaseModel):
-    short_name = models.CharField(max_length=256, blank=True, unique=False)
+    short_name = models.CharField(max_length=256, blank=True, default='')
     long_name = models.CharField(max_length=512, blank=True, default='')
-    instrument_category = models.CharField(max_length=256, blank=True, default='') # these make more sense without 'instrument'
-    instrument_class = models.CharField(max_length=256, blank=True, default='') # however class and type are default variables
-    instrument_type = models.CharField(max_length=256, blank=True, default='') # so instrument was added to all 4 for consistency
+    # these make more sense without 'instrument', however class and type are
+    # default variables so instrument was added to all 4 for consistency
+    instrument_category = models.CharField(max_length=256, blank=True, default='')
+    instrument_class = models.CharField(max_length=256, blank=True, default='')
+    instrument_type = models.CharField(max_length=256, blank=True, default='')
     instrument_subtype = models.CharField(max_length=256, blank=True, default='')
-    gcmd_uuid = models.UUIDField()
+    gcmd_uuid = models.UUIDField(unique=True)
 
     def __str__(self):
         return self.short_name or self.long_name or self.instrument_subtype or self.instrument_type or self.instrument_class or self.instrument_category
@@ -191,7 +196,10 @@ class GcmdPlatform(BaseModel):
     category = models.CharField(max_length=256)
     series_entry = models.CharField(max_length=256, blank=True, default='')
     description = models.TextField(blank=True, default='')
-    gcmd_uuid = models.UUIDField()
+    gcmd_uuid = models.UUIDField(unique=True)
+
+    def __str__(self):
+        return self.short_name or self.long_name or self.category
 
 
 class GcmdPhenomena(BaseModel):
@@ -201,7 +209,7 @@ class GcmdPhenomena(BaseModel):
     variable_1 = models.CharField(max_length=256, blank=True, default='')
     variable_2 = models.CharField(max_length=256, blank=True, default='')
     variable_3 = models.CharField(max_length=256, blank=True, default='')
-    gcmd_uuid = models.UUIDField()
+    gcmd_uuid = models.UUIDField(unique=True)
 
     def __str__(self):
         return self.variable_3 or self.variable_2 or self.variable_1 or self.term or self.topic or self.category
