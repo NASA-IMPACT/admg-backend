@@ -7,11 +7,3 @@ location /media/ {
   alias /home/app/web/media/;
   add_header Access-Control-Allow-Origin *;
 }
-
-location ~ \.css {
-  add_header  Content-Type    text/css;
-}
-
-location ~ \.js {
-  add_header  Content-Type    application/x-javascript;
-}
