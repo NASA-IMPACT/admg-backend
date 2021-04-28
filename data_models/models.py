@@ -255,37 +255,156 @@ class DataModel(LimitedInfo):
 
 
 class Campaign(DataModel):
+    # These four fields are overwriting the fields inherited from the `Limited Info` class
+    # This is happening so we can specify a custom `verbose_name` and `help_text`
+    short_name = models.CharField(
+        max_length=256, 
+        blank=False, 
+        unique=True,
+        verbose_name="Campaign Short Name",
+        help_text="Abbreviation for field investigation name (typically an acronym)",
+    )
+    long_name = models.CharField(
+        max_length=512, 
+        default='', 
+        blank=True,
+        verbose_name="Campaign Long Name",
+        help_text="Full name of field investigation (typically the acronym fully spelled out)",
+    )
+    notes_internal = models.TextField(
+        default='', 
+        blank=True,
+        verbose_name="Campaign Notes - Internal",
+        help_text="Free text notes for ADMG staff - not visible to public",
+    )
+    notes_public = models.TextField(
+        default='', 
+        blank=True,
+        verbose_name="Campaign Notes - Public",
+        help_text="Free text notes on the campaign, this IS visible to public",
+    )
+
     logo = models.ForeignKey(Image, on_delete=models.SET_NULL, null=True, blank=True)
     aliases = GenericRelation(Alias)
 
-    description_short = models.TextField(default='', blank=True)
-    description_long = models.TextField(default='', blank=True)
-    focus_phenomena = models.CharField(max_length=1024)
-    region_description = models.TextField()
-    spatial_bounds = geomodels.PolygonField(blank=True, null=True)
-    start_date = models.DateField()
-    end_date = models.DateField(blank=True, null=True)
-    funding_agency = models.CharField(max_length=256)
-    funding_program = models.CharField(max_length=256, default='', blank=True)
-    funding_program_lead = models.CharField(max_length=256, default='', blank=True)
-    lead_investigator = models.CharField(max_length=256)
-    technical_contact = models.CharField(max_length=256, default='', blank=True)
+    description_short = models.TextField(
+        default="",
+        blank=True,
+        verbose_name="Admin Description",
+        help_text="Concise, shortened text description of the field investigation, follows a similar format for all campaigns",
+    )
+    description_long = models.TextField(
+        default="",
+        blank=True,
+        verbose_name="Draft Description",
+        help_text="Free text full campaign description including items such as the science or research objectives, regional location, supported mission(s), and equipment used",
+    )
+    focus_phenomena = models.CharField(
+        max_length=1024,
+        help_text="Free text identifying the focus of campaign’s science/research objective",
+    )
+    region_description = models.TextField(
+        help_text="Free text words identifying the region/domain for the campaign",
+    )
+    spatial_bounds = geomodels.PolygonField(
+        blank=True,
+        null=True,
+        # help_text="Latitude & Longitude for domain bounding box; enter as N, S, E, W  or [N, S, E, W], [N, S, E, W]",
+    )
+    start_date = models.DateField(help_text="Start date of first deployment")
+    end_date = models.DateField(
+        blank=True, 
+        null=True, 
+        help_text="End date of last deployment",
+    )
+    funding_agency = models.CharField(
+        max_length=256, 
+        help_text="Name of agency funding the campaign (e.g. NASA, NOAA, NSF…)",
+    )
+    funding_program = models.CharField(
+        max_length=256, 
+        default='', 
+        blank=True, 
+        help_text="Name of the NASA program(s) or mission(s) that funded the campaign"
+    )
+    funding_program_lead = models.CharField(
+        max_length=256, 
+        default='', 
+        blank=True,
+        help_text="Name(s) of the person/people leading the NASA funding program (at the time of campaign, if possible)"
+    )
+    lead_investigator = models.CharField(
+        max_length=256,
+        verbose_name="Principal Investigator",
+        help_text="Name(s) of person/people leading the campaign (PI and/or Co-Is), or the name(s) of the NASA lead for NASA’s involvement in the campaign",
+    )
+    technical_contact = models.CharField(
+        max_length=256, 
+        default='', 
+        blank=True,
+        verbose_name="Data Management/Technical Contact",
+        help_text="Name(s) of person/people for data management and/or technical concerns (often is a DAAC person)",
+    )
     number_collection_periods = models.PositiveIntegerField()
-    campaign_doi = models.CharField(max_length=1024, default='', blank=True)
+    campaign_doi = models.CharField(
+        max_length=1024, 
+        default='', 
+        blank=True,
+        verbose_name="Campaign DOI",
+        help_text="DOI assigned for the ENTIRE collection/group/set of campaign data.  This may not exist.",
+    )
     number_data_products = models.PositiveIntegerField(null=True, blank=True)
-    data_volume = models.CharField(max_length=256, null=True, blank=True)
-
+    data_volume = models.CharField(
+        max_length=256, 
+        null=True, 
+        blank=True,
+        verbose_name="Campaign Total Data Storage Volume",
+        help_text="Total volume of published campaign data products (in GB or TB)",
+    )
     ongoing = models.BooleanField()
     nasa_led = models.BooleanField()
     nasa_missions = models.TextField(default='', blank=True)
 
-    focus_areas = models.ManyToManyField(FocusArea, related_name='campaigns')
-    seasons = models.ManyToManyField(Season, related_name='campaigns')
-    repositories = models.ManyToManyField(Repository, related_name='campaigns')
+    focus_areas = models.ManyToManyField(
+        FocusArea, 
+        related_name='campaigns',
+        verbose_name="NASA Earth Science Focus Area(s)",
+        help_text="NASA ES Focus Area(s) supported by the field investigation",
+    )
+    geophysical_concepts = models.ManyToManyField(
+        GeophysicalConcept, 
+        related_name='campaigns',
+        help_text="Primary relevant geophysical concepts, based on the campaign’s science objectives",
+    )
+    seasons = models.ManyToManyField(
+        Season, 
+        related_name='campaigns',
+        verbose_name="Season(s) of Study",
+        help_text="Season(s) of campaign data collection - Include all that are appropriate",
+    )
+    repositories = models.ManyToManyField(
+        Repository, 
+        related_name='campaigns',
+        verbose_name="Data Repository(ies)",
+        help_text="Data repository (assigned archive repository) for the campaign (typically a NASA DAAC)",
+    )
     platform_types = models.ManyToManyField(PlatformType, related_name='campaigns')
-    partner_orgs = models.ManyToManyField(PartnerOrg, related_name='campaigns', default='', blank=True)
-    gcmd_projects = models.ManyToManyField(GcmdProject, related_name='campaigns', default='', blank=True)
-    geophysical_concepts = models.ManyToManyField(GeophysicalConcept, related_name='campaigns')
+    partner_orgs = models.ManyToManyField(
+        PartnerOrg, 
+        related_name='campaigns', 
+        default='', 
+        blank=True,
+        verbose_name="Partner Organization(s)",
+        help_text="Partner organizations involved in the campaign",
+    )
+    gcmd_projects = models.ManyToManyField(
+        GcmdProject, 
+        related_name='campaigns', 
+        default='', 
+        blank=True,
+        verbose_name="Campaign’s GCMD Project Keyword",
+        help_text="GCMD Project Keyword corresponding to this field investigation/campaign",
+    )
     websites = models.ManyToManyField(Website, related_name='campaigns', through='CampaignWebsite', default='', blank=True)
 
     @property
