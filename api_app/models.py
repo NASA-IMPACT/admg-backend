@@ -252,6 +252,20 @@ class ChangeQuerySet(models.QuerySet):
 
 
 class Change(models.Model):
+    # use these field values when assigning the field status in the field_status_tracking dict
+    FIELD_UNVIEWED = 1
+    FIELD_INCORRECT = 2
+    FIELD_UNSURE = 3
+    FIELD_CORRECT = 4
+    FIELD_DEFAULT = FIELD_UNVIEWED
+    
+    FIELD_STATUS_MAPPING = {
+        FIELD_UNVIEWED: 'unviewed',
+        FIELD_INCORRECT: 'incorrect',
+        FIELD_UNSURE: 'unsure',
+        FIELD_CORRECT: 'correct',
+    }
+
     uuid = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     content_type = models.ForeignKey(
         ContentType,
@@ -263,6 +277,7 @@ class Change(models.Model):
 
     status = models.IntegerField(choices=AVAILABLE_STATUSES, default=IN_PROGRESS_CODE)
     update = models.JSONField(default=dict, blank=True)
+    field_status_tracking = models.JSONField(default=dict, blank=True)
     previous = models.JSONField(default=dict)
 
     action = models.CharField(
@@ -274,6 +289,42 @@ class Change(models.Model):
 
     class Meta:
         verbose_name = "Draft"
+
+    def get_field_status_str(self, field_status):
+        """Gets the str value associated with each field status
+
+        Args:
+            field_status (int): Integer field status. Should be one of the
+                built in statuses accessed through the model instance, such as
+                Change.FIELD_UNSURE, or it should come from the field_status_tracking
+                json
+
+        Raises:
+            ValueError: Throws a value error if the provided field_status is not one
+                of the built in statuses.
+
+        Returns:
+            str: String value for the provided status integer
+        """
+
+        try:
+            return self.FIELD_STATUS_MAPPING[field_status]
+        except KeyError as E:
+            raise KeyError('The field_status provided is not among the built statuses') from E
+
+    def generate_field_status_tracking_dict(self):
+        """
+        Creates the field status tracking dictionary used to track whether a
+        particular change object field has been looked at and found to be correct,
+        incorrect, etc. This dictionary is meant to be wiped clean and recreated at
+        different points in the change object's life cycle in order to allow more
+        granularity in the review process.
+        """
+
+        source_model = self.content_type.model_class()
+        self.field_status_tracking = {
+            field.name: {'status': self.FIELD_DEFAULT, 'notes': ''} for field in source_model._meta.fields
+        }
 
     @property
     def model_name(self):
@@ -314,6 +365,9 @@ class Change(models.Model):
         # should only log changes made to the draft while in progress
         elif self.status == CREATED_CODE:
             self.status = IN_PROGRESS_CODE
+
+        if not self.field_status_tracking:
+            self.generate_field_status_tracking_dict()
 
         return super().save(*args, **kwargs)
 
