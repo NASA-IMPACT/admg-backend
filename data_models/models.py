@@ -615,14 +615,37 @@ class IopSe(BaseModel):
 
     deployment = models.ForeignKey(Deployment, on_delete=models.CASCADE, related_name='iops')
 
-    short_name = models.CharField(max_length=256)
-    start_date = models.DateField()
-    end_date = models.DateField()
-    description = models.TextField()
-    region_description = models.TextField()
-    published_list = models.CharField(max_length=1024, default='', blank=True)
-    reports = models.CharField(max_length=1024, default='', blank=True)
-    reference_file = models.CharField(max_length=1024, default='', blank=True)
+    short_name = models.CharField(
+        max_length=256,
+        help_text="ADMG's text identifier for the IOP - format as 'XXX_IOP_#' with XXX as the campaign shortname and # as the integer number of the IOP within the campaign",
+    )
+    start_date = models.DateField(help_text="Start date of event",)
+    end_date = models.DateField(help_text="End date of event")
+    description = models.TextField(help_text="Free text description of the event",)
+    region_description = models.TextField(
+        verbose_name="Location Description",
+        help_text="Free text words identifying the location of the event domain",
+    )
+    published_list = models.CharField(
+        max_length=1024, 
+        default='', 
+        blank=True,
+        help_text="DOI or URL for location of published info noting this event within the campaign",
+    )
+    reports = models.CharField(
+        max_length=1024, 
+        default='', 
+        blank=True,
+        verbose_name="Science/Flight Reports",
+        help_text="DOI or URL for location of published IOP Science of Flight reports",
+    )
+    reference_file = models.CharField(
+        max_length=1024, 
+        default='', 
+        blank=True,
+        verbose_name="Reference Granule/File",
+        help_text="Text filename of a specific granule file for reference",
+    )
 
     class Meta:
         abstract = True
@@ -633,6 +656,19 @@ class IOP(IopSe):
 
 
 class SignificantEvent(IopSe):
+    # short_name and reports overwriting from IopSe to add a unique help_text
+    short_name = models.CharField(
+        max_length=256,
+        help_text="ADMG's text identifier for the SE - format as 'XXX_SE_#' with XXX as the campaign shortname and # as the integer number of the SE within the campaign",
+    )
+    reports = models.CharField(
+        max_length=1024, 
+        default='', 
+        blank=True,
+        verbose_name="Science/Flight Reports",
+        help_text="DOI or URL for location of published info noting this Significant Event within the campaign",
+    )
+
     deployment = models.ForeignKey(Deployment, on_delete=models.CASCADE, related_name='significant_events')
     iop = models.ForeignKey(IOP, on_delete=models.CASCADE, related_name='significant_events', null=True)
 
