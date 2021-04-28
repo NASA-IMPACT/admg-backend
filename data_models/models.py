@@ -212,14 +212,15 @@ class GcmdPhenomena(BaseModel):
     gcmd_uuid = models.UUIDField(unique=True)
 
     def __str__(self):
-        return self.variable_3 or self.variable_2 or self.variable_1 or self.term or self.topic or self.category
-
+        categories = [self.category, self.topic, self.term, self.variable_1, self.variable_2, self.variable_3]
+        return ' > '.join([category for category in categories if category])
 
 class Website(BaseModel):
+    website_type = models.ForeignKey(WebsiteType, on_delete=models.CASCADE, related_name='websites')
+
     url = models.URLField(unique=True)
-    title = models.TextField()
+    title = models.TextField(default='', blank=True)
     description = models.TextField(default='', blank=True)
-    website_types = models.ManyToManyField(WebsiteType, related_name='websites')
 
     def __str__(self):
         return self.title
@@ -273,12 +274,11 @@ class Campaign(DataModel):
     spatial_bounds = geomodels.PolygonField(blank=True, null=True)
     start_date = models.DateField()
     end_date = models.DateField(blank=True, null=True)
-    funding_agency = models.CharField(max_length=256)
+    funding_agency = models.CharField(max_length=256, default='', blank=True)
     funding_program = models.CharField(max_length=256, default='', blank=True)
     funding_program_lead = models.CharField(max_length=256, default='', blank=True)
     lead_investigator = models.CharField(max_length=256)
     technical_contact = models.CharField(max_length=256, default='', blank=True)
-    number_collection_periods = models.PositiveIntegerField()
     campaign_doi = models.CharField(max_length=1024, default='', blank=True)
     data_volume = models.CharField(max_length=256, null=True, blank=True)
 
@@ -316,6 +316,11 @@ class Campaign(DataModel):
     @property
     def iops(self):
         return select_related_distinct_data(self.deployments, 'iops__uuid')
+
+    @property
+    def number_ventures(self):
+        venture_counts = list(self.deployments.select_related().values_list('collection_periods__number_ventures', flat=True))
+        return sum(filter(None, venture_counts))
 
     @property
     def number_data_products(self):
@@ -358,14 +363,14 @@ class Platform(DataModel):
     stationary = models.BooleanField()
 
     gcmd_platforms = models.ManyToManyField(GcmdPlatform, related_name='platforms', default='', blank=True)
-  
+
     @property
     def search_category(self):
         """Returns a custom defined search category based on the platform_type's
         highest level parent (patriarch) and the platform's stationary field.
 
         Returns:
-            search_category [str]: One of 6 search categories 
+            search_category [str]: One of 6 search categories
         """
 
         patriarch = self.platform_type.patriarch
@@ -387,7 +392,7 @@ class Platform(DataModel):
 
         else:
             category = 'Special Cases'
-        
+
         return category
 
     @property
@@ -454,13 +459,13 @@ class Deployment(DataModel):
     campaign = models.ForeignKey(Campaign, on_delete=models.CASCADE, related_name='deployments')
     aliases = GenericRelation(Alias)
 
+    spatial_bounds = geomodels.PolygonField(blank=True, null=True)
     study_region_map = models.TextField(default='', blank=True)
     ground_sites_map = models.TextField(default='', blank=True)
     flight_tracks = models.TextField(default='', blank=True)
 
     start_date = models.DateField()
     end_date = models.DateField()
-    number_collection_periods = models.PositiveIntegerField(null=True, blank=True)
 
     geographical_regions = models.ManyToManyField(
         GeographicalRegion,
@@ -517,7 +522,7 @@ class CollectionPeriod(BaseModel):
     notes_internal = models.TextField(default='', blank=True)
     notes_public = models.TextField(default='', blank=True)
 
-    num_ventures = models.PositiveIntegerField(null=True, blank=True)
+    number_ventures = models.PositiveIntegerField(null=True, blank=True)
     auto_generated = models.BooleanField()
 
     instruments = models.ManyToManyField(Instrument, related_name='collection_periods')
