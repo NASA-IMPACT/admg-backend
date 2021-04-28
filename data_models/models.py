@@ -273,7 +273,7 @@ class Campaign(DataModel):
     spatial_bounds = geomodels.PolygonField(blank=True, null=True)
     start_date = models.DateField()
     end_date = models.DateField(blank=True, null=True)
-    funding_agency = models.CharField(max_length=256)
+    funding_agency = models.CharField(max_length=256, default='', blank=True)
     funding_program = models.CharField(max_length=256, default='', blank=True)
     funding_program_lead = models.CharField(max_length=256, default='', blank=True)
     lead_investigator = models.CharField(max_length=256)
