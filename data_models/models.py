@@ -454,6 +454,7 @@ class Deployment(DataModel):
     campaign = models.ForeignKey(Campaign, on_delete=models.CASCADE, related_name='deployments')
     aliases = GenericRelation(Alias)
 
+    spatial_bounds = geomodels.PolygonField(blank=True, null=True)
     study_region_map = models.TextField(default='', blank=True)
     ground_sites_map = models.TextField(default='', blank=True)
     flight_tracks = models.TextField(default='', blank=True)

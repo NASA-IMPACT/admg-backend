@@ -312,6 +312,14 @@ class DeploymentSerializer(GetAliasSerializer):
     def get_collection_periods(self, obj):
         return get_uuids(obj.collection_periods)
 
+    def create(self, validated_data):
+        validated_data = change_bbox_to_polygon(validated_data)
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data, **kwargs):
+        validated_data = change_bbox_to_polygon(validated_data)
+        return super().update(instance, validated_data, **kwargs)
+
     class Meta:
         model = models.Deployment
         fields = "__all__"
