@@ -305,7 +305,7 @@ class Campaign(DataModel):
     spatial_bounds = geomodels.PolygonField(
         blank=True,
         null=True,
-        # help_text="Latitude & Longitude for domain bounding box; enter as N, S, E, W  or [N, S, E, W], [N, S, E, W]",
+        help_text="Latitude & Longitude for domain bounding box; enter as N, S, E, W  or [N, S, E, W], [N, S, E, W]",
     )
     start_date = models.DateField(help_text="Start date of first deployment")
     end_date = models.DateField(
@@ -359,7 +359,11 @@ class Campaign(DataModel):
     )
     ongoing = models.BooleanField()
     nasa_led = models.BooleanField()
-    nasa_missions = models.TextField(default='', blank=True)
+    nasa_missions = models.TextField(
+        default='', 
+        blank=True,
+        help_text="NASA Missions supported by the campaign. See https://www.nasa.gov/content/earth-missions-list",
+        )
 
     focus_areas = models.ManyToManyField(
         FocusArea, 
@@ -687,7 +691,6 @@ class Instrument(DataModel):
 
     def get_absolute_url(self):
         return urllib.parse.urljoin(FRONTEND_URL, f"/instrument/{self.uuid}/")
-
 
 
 class Deployment(DataModel):
