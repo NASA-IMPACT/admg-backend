@@ -452,16 +452,47 @@ class Campaign(DataModel):
 
 
 class Platform(DataModel):
+    # Overwritten from LimitedFields class for unique help text
+    short_name = models.CharField(
+        max_length=256, 
+        blank=False, 
+        unique=True,
+        help_text='ADMG’s identifying name for the platform',
+    )
+    long_name = models.CharField(
+        max_length=512, 
+        default='', 
+        blank=True,
+        help_text='ADMG’s full name for the platform',
+    )
 
-    platform_type = models.ForeignKey(PlatformType, on_delete=models.SET_NULL, related_name='platforms', null=True)
+    platform_type = models.ForeignKey(
+        PlatformType, 
+        on_delete=models.SET_NULL, 
+        related_name='platforms', 
+        null=True,
+        help_text="Assign the most specific type of platform possible from the list",
+    )
     image = models.ForeignKey(Image, on_delete=models.SET_NULL, null=True, blank=True)
     aliases = GenericRelation(Alias)
 
     description = models.TextField()
-    online_information = models.CharField(max_length=512, default='', blank=True)
+    online_information = models.CharField(
+        max_length=512, 
+        default='', 
+        blank=True,
+        help_text="URL(s) for additional relevant online information for the platform",
+    )
     stationary = models.BooleanField()
 
-    gcmd_platforms = models.ManyToManyField(GcmdPlatform, related_name='platforms', default='', blank=True)
+    gcmd_platforms = models.ManyToManyField(
+        GcmdPlatform, 
+        related_name='platforms',
+        default='', 
+        blank=True,
+        verbose_name="Platform’s GCMD Platform Keyword(s)",
+        help_text="GCMD Platform/Source keyword(s) corresponding to this platform",
+    )
   
     @property
     def search_category(self):
@@ -516,29 +547,134 @@ class Platform(DataModel):
 
 
 class Instrument(DataModel):
+    # Overwritten from LimitedFields class for unique help text
+    short_name = models.CharField(
+        max_length=256, 
+        blank=False, 
+        unique=True,
+        help_text='ADMG’s identifying name of the instrument (often an acronym)',
+    )
+    long_name = models.CharField(
+        max_length=512, 
+        default='', 
+        blank=True,
+        help_text='Full name of the instrument',
+    )
+
     image = models.ForeignKey(Image, on_delete=models.SET_NULL, null=True, blank=True)
-    measurement_type = models.ForeignKey(MeasurementType, on_delete=models.SET_NULL, null=True, blank=True, related_name='instruments')
-    measurement_style = models.ForeignKey(MeasurementStyle, on_delete=models.SET_NULL, null=True, blank=True, related_name='instruments')
+    measurement_type = models.ForeignKey(
+        MeasurementType, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name='instruments',
+        help_text='Broad grouping for the type of measurements the instrument is used for',
+    )
+    measurement_style = models.ForeignKey(
+        MeasurementStyle, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name='instruments',
+        help_text='Primary operation principle of the sensor',
+    )
     aliases = GenericRelation(Alias)
 
-    description = models.TextField()
-    lead_investigator = models.CharField(max_length=256, default='', blank=True)
-    technical_contact = models.CharField(max_length=256)
-    facility = models.CharField(max_length=256, default='', blank=True)
-    funding_source = models.CharField(max_length=1024, default='', blank=True)
-    spatial_resolution = models.CharField(max_length=256)
-    temporal_resolution = models.CharField(max_length=256)
-    radiometric_frequency = models.CharField(max_length=256)
-    calibration_information = models.CharField(max_length=1024, default='', blank=True)
-    instrument_manufacturer = models.CharField(max_length=512, default='', blank=True)
-    overview_publication = models.CharField(max_length=2048, default='', blank=True)
-    online_information = models.CharField(max_length=2048, default='', blank=True)
-    instrument_doi = models.CharField(max_length=1024, default='', blank=True)
-    arbitrary_characteristics = models.JSONField(default=None, blank=True, null=True)
+    description = models.TextField(help_text='Free text description of the instrument')
+    lead_investigator = models.CharField(
+        max_length=256, 
+        default='', 
+        blank=True,
+        verbose_name='Instrument PI/Co-Is',
+        help_text='Name(s) of person/people leading the development of the instrument (typically, the Principle Investigator and/or Co-Investigator)',
+    )
+    technical_contact = models.CharField(
+        max_length=256,
+        help_text='Name(s) of person/people leading the maintenance, integration, and/or operation of the instrument',
+    )
+    facility = models.CharField(
+        max_length=256, 
+        default='', 
+        blank=True,
+        verbose_name='Facility Instrument Location',
+        help_text="If Facility Instrument give location or put 'retired', otherwise N/A",
+    )
+    funding_source = models.CharField(
+        max_length=1024, 
+        default='', 
+        blank=True,
+        help_text='Program or Mission funding the development, maintenance, deployment, and/or operation of the instrument',
+    )
+    spatial_resolution = models.CharField(
+        max_length=256,
+        help_text='Horizontal and vertical resolution of the instrument’s measurements',
+    )
+    temporal_resolution = models.CharField(
+        max_length=256,
+        help_text='Temporal resolution of the instrument’s measurements',
+    )
+    radiometric_frequency = models.CharField(
+        max_length=256,
+        help_text='Operating frequency of the instrument',
+    )
+    calibration_information = models.CharField(
+        max_length=1024, 
+        default='', 
+        blank=True,
+        help_text='URL or DOI for instrument calibration info (may be a webpage or publication)',
+    )
+    instrument_manufacturer = models.CharField(
+        max_length=512, 
+        default='', 
+        blank=True,
+        help_text='Name of lab or company that makes or manufactures the instrument',
+    )
+    overview_publication = models.CharField(
+        max_length=2048, 
+        default='', 
+        blank=True,
+        verbose_name='Instrument Publication',
+        help_text='Highest authority document describing the instrument (DOI or URL)',
+    )
+    online_information = models.CharField(
+        max_length=2048, 
+        default='', 
+        blank=True,
+        verbose_name='URL(s) for additional relevant online information for the instrument',
+    )
+    instrument_doi = models.CharField(
+        max_length=1024, 
+        default='', 
+        blank=True,
+        help_text='The DOI assigned to the instrument.  This may not exist.',
+    )
+    arbitrary_characteristics = models.JSONField(
+        default=None, 
+        blank=True, 
+        null=True,
+        verbose_name='Additional Metadata',
+        help_text='An open item for potential extra metadata element(s)',
+    )
 
-    gcmd_instruments = models.ManyToManyField(GcmdInstrument, related_name='instruments', default='', blank=True)
-    gcmd_phenomenas = models.ManyToManyField(GcmdPhenomena, related_name='instruments')
-    measurement_regions = models.ManyToManyField(MeasurementRegion, related_name='instruments')
+    gcmd_instruments = models.ManyToManyField(
+        GcmdInstrument, 
+        related_name='instruments', 
+        default='', 
+        blank=True,
+        help_text='GCMD Instrument/Sensor keyword(s) corresponding to this instrument',
+    )
+    gcmd_phenomenas = models.ManyToManyField(
+        GcmdPhenomena, 
+        related_name='instruments',
+        verbose_name='Measurements / Variables from GCMD Science Keywords',
+        help_text='Select relevant measurements/variables items from GCMD Science Keywords for Earth Science',
+    )
+    measurement_regions = models.ManyToManyField(
+        MeasurementRegion, 
+        related_name='instruments',
+        verbose_name='Vertical Measurement Region',
+        help_text='Name of the vertical region(s) observed by the instrument',
+    )
     repositories = models.ManyToManyField(Repository, related_name='instruments', default='', blank=True)
 
     @property
