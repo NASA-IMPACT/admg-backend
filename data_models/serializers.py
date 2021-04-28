@@ -312,6 +312,14 @@ class DeploymentSerializer(GetAliasSerializer):
     def get_collection_periods(self, obj):
         return get_uuids(obj.collection_periods)
 
+    def create(self, validated_data):
+        validated_data = change_bbox_to_polygon(validated_data)
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data, **kwargs):
+        validated_data = change_bbox_to_polygon(validated_data)
+        return super().update(instance, validated_data, **kwargs)
+
     class Meta:
         model = models.Deployment
         fields = "__all__"
@@ -382,6 +390,8 @@ class CampaignSerializer(GetAliasSerializer, GetDoiSerializer):
     deployments = serializers.SerializerMethodField(read_only=True)
     significant_events = serializers.ListField(read_only=True)
     iops = serializers.ListField(read_only=True)
+    number_ventures = serializers.IntegerField(read_only=True)
+    number_data_products = serializers.IntegerField(read_only=True)
     number_deployments = serializers.IntegerField(read_only=True)
     instruments = serializers.ListField(read_only=True)
     platforms = serializers.ListField(read_only=True)
