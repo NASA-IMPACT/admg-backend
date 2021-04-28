@@ -212,8 +212,8 @@ class GcmdPhenomena(BaseModel):
     gcmd_uuid = models.UUIDField(unique=True)
 
     def __str__(self):
-        return self.variable_3 or self.variable_2 or self.variable_1 or self.term or self.topic or self.category
-
+        categories = [self.category, self.topic, self.term, self.variable_1, self.variable_2, self.variable_3]
+        return ' > '.join([category for category in categories if category])
 
 class Website(BaseModel):
     url = models.URLField(unique=True)
@@ -460,7 +460,6 @@ class Deployment(DataModel):
 
     start_date = models.DateField()
     end_date = models.DateField()
-    number_collection_periods = models.PositiveIntegerField(null=True, blank=True)
 
     geographical_regions = models.ManyToManyField(
         GeographicalRegion,
