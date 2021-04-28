@@ -217,7 +217,7 @@ class GcmdPhenomena(BaseModel):
 
 class Website(BaseModel):
     url = models.URLField(unique=True)
-    title = models.TextField()
+    title = models.TextField(default='', blank=True)
     description = models.TextField(default='', blank=True)
     website_types = models.ManyToManyField(WebsiteType, related_name='websites')
 
