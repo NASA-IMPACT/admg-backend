@@ -55,8 +55,16 @@ class Image(BaseModel):
 class LimitedInfo(BaseModel):
     short_name = models.CharField(max_length=256, blank=False, unique=True)
     long_name = models.CharField(max_length=512, default='', blank=True)
-    notes_internal = models.TextField(default='', blank=True)
-    notes_public = models.TextField(default='', blank=True)
+    notes_internal = models.TextField(
+        default='', 
+        blank=True,
+        help_text="Free text notes for ADMG staff - not visible to public.",
+    )
+    notes_public = models.TextField(
+        default='', 
+        blank=True, 
+        help_text="Free text notes on the deployment, this IS visible to public.",
+    )
 
     class Meta:
         abstract = True
@@ -270,18 +278,6 @@ class Campaign(DataModel):
         blank=True,
         verbose_name="Campaign Long Name",
         help_text="Full name of field investigation (typically the acronym fully spelled out)",
-    )
-    notes_internal = models.TextField(
-        default='', 
-        blank=True,
-        verbose_name="Campaign Notes - Internal",
-        help_text="Free text notes for ADMG staff - not visible to public",
-    )
-    notes_public = models.TextField(
-        default='', 
-        blank=True,
-        verbose_name="Campaign Notes - Public",
-        help_text="Free text notes on the campaign, this IS visible to public",
     )
 
     logo = models.ForeignKey(Image, on_delete=models.SET_NULL, null=True, blank=True)
@@ -559,22 +555,52 @@ class Instrument(DataModel):
 
 
 class Deployment(DataModel):
+    # These four fields are overwriting the fields inherited from the `Limited Info` class
+    # This is happening so we can specify a custom `verbose_name` and `help_text`
+    short_name = models.CharField(
+        max_length=256, 
+        blank=False, 
+        unique=True,
+        verbose_name="Deployment Short Name",
+        help_text="Format as “dep_YYYY[i]” with YYYY as the year in which deployment begins, and optional lowercase character (i=a, b, …) appended only if there are multiple deployments in a single calendar year for the campaign",
+    )
+    long_name = models.CharField(
+        max_length=512, 
+        default='', 
+        blank=True,
+        verbose_name="Deployment Long Name",
+        help_text="If there are named sub-campaigns, the name used for this deployment (e.g. CAMEX-3).  This may not exist.",
+    )
+    
     campaign = models.ForeignKey(Campaign, on_delete=models.CASCADE, related_name='deployments')
     aliases = GenericRelation(Alias)
 
-    study_region_map = models.TextField(default='', blank=True)
-    ground_sites_map = models.TextField(default='', blank=True)
-    flight_tracks = models.TextField(default='', blank=True)
+    study_region_map = models.TextField(
+        default='', 
+        blank=True,
+        help_text="*these will be images that would be either uploaded or URL to image provided...we don’t have this fully in curation process yet.",
+    )
+    ground_sites_map = models.TextField(
+        default='', 
+        blank=True,
+        help_text="*these will be images that would be either uploaded or URL to image provided...we don’t have this fully in curation process yet.",
+    )
+    flight_tracks = models.TextField(
+        default='', 
+        blank=True,
+        help_text="*these will be images that would be either uploaded or URL to image provided...we don’t have this fully in curation process yet.",
+    )
 
-    start_date = models.DateField()
-    end_date = models.DateField()
+    start_date = models.DateField(help_text="Start date of deployment")
+    end_date = models.DateField(help_text="End date of deployment.")
     number_collection_periods = models.PositiveIntegerField(null=True, blank=True)
 
     geographical_regions = models.ManyToManyField(
         GeographicalRegion,
         related_name='deployments',
         default='',
-        blank=True
+        blank=True,
+        help_text="Type of geographical area(s) over which this deployment occured.  Select all that apply.",
         )
 
     def __str__(self):
