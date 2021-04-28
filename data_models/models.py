@@ -641,21 +641,60 @@ class CollectionPeriod(BaseModel):
 
     deployment = models.ForeignKey(Deployment, on_delete=models.CASCADE, related_name='collection_periods')
     platform = models.ForeignKey(Platform, on_delete=models.CASCADE, related_name='collection_periods')
-    home_base = models.ForeignKey(HomeBase, on_delete=models.CASCADE, related_name='collection_periods', blank=True, null=True)
+    home_base = models.ForeignKey(
+        HomeBase, 
+        on_delete=models.CASCADE, 
+        related_name='collection_periods', 
+        blank=True, 
+        null=True,
+        help_text="ADMG’s identifying name for the platform.  *This should match one of the items in the “Platforms Active” element from Deployment Form.",
+    )
 
     asp_long_name = models.CharField(max_length=512, default='', blank=True)
-    platform_identifier = models.CharField(max_length=128, default='', blank=True)
-    campaign_deployment_base = models.CharField(max_length=256, default='', blank=True)
-    platform_owner = models.CharField(max_length=256, default='', blank=True)
-    platform_technical_contact = models.CharField(max_length=256, default='', blank=True)
-    instrument_information_source = models.CharField(max_length=1024, default='', blank=True)
+    platform_identifier = models.CharField(
+        max_length=128, 
+        default='', 
+        blank=True,
+        help_text="Optional platform identifier, such as an aircraft tail number or vessel registration number, if available",
+    )
+    campaign_deployment_base = models.CharField(
+        max_length=256, 
+        default='', 
+        blank=True,
+        verbose_name="Deployment Base",
+        help_text="Deployment base/operating location for the p platform during the field investigation/deployment",
+    )
+    platform_owner = models.CharField(
+        max_length=256, 
+        default='', 
+        blank=True,
+        help_text="Organization that owns the platform",
+    )
+    platform_technical_contact = models.CharField(
+        max_length=256, 
+        default='', 
+        blank=True,
+        help_text="Name(s) of person/people leading the management, maintenance, integration, and/or operation of the platform",
+    )
+    instrument_information_source = models.CharField(
+        max_length=1024, 
+        default='', 
+        blank=True,
+        verbose_name="Instrument Package Information Source",
+        help_text="DOI or URL for location of lists of instruments used on this platform for the deployment",
+    )
     notes_internal = models.TextField(default='', blank=True)
     notes_public = models.TextField(default='', blank=True)
 
     num_ventures = models.PositiveIntegerField(null=True, blank=True)
     auto_generated = models.BooleanField()
 
-    instruments = models.ManyToManyField(Instrument, related_name='collection_periods')
+    instruments = models.ManyToManyField(
+        Instrument, 
+        related_name='collection_periods',
+        verbose_name="Instrument Package",
+        help_text="ADMG’s Instrument Short Names for all sensors in the platform’s instrument package for this deployment",
+    )
 
     def __str__(self):
         platform_id = f'({self.platform_identifier})' if self.platform_identifier else ''
