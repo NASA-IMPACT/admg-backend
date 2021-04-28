@@ -96,47 +96,74 @@ class PlatformType(LimitedInfoPriority):
         else:
             return self.short_name
 
+    class Meta:
+        ordering = ('short_name',)
 
 class MeasurementType(LimitedInfoPriority):
     parent = models.ForeignKey('MeasurementType', on_delete=models.CASCADE, related_name='sub_types', null=True, blank=True)
     example = models.CharField(max_length=1024, blank=True, default='')
+
+    class Meta:
+        ordering = ('short_name',)
 
 
 class MeasurementStyle(LimitedInfoPriority):
     parent = models.ForeignKey('MeasurementStyle', on_delete=models.CASCADE, related_name='sub_types', null=True, blank=True)
     example = models.CharField(max_length=1024, blank=True, default='')
 
+    class Meta:
+        ordering = ('short_name',)
+
 
 class HomeBase(LimitedInfoPriority):
     location = models.CharField(max_length=512, blank=True, default='')
     additional_info = models.CharField(max_length=2048, blank=True, default='')
 
+    class Meta:
+        ordering = ('short_name',)
+
 
 class FocusArea(LimitedInfoPriority):
     url = models.CharField(max_length=256, blank=True, default='')
 
+    class Meta:
+        ordering = ('short_name',)
+
 
 class Season(LimitedInfoPriority):
-    pass
+    class Meta:
+        ordering = ('short_name',)
 
 
 class Repository(LimitedInfoPriority):
     gcmd_uuid = models.UUIDField(null=True, blank=True)
+
+    class Meta:
+        ordering = ('short_name',)
 
 
 class MeasurementRegion(LimitedInfoPriority):
     gcmd_uuid = models.UUIDField(null=True, blank=True)
     example = models.CharField(max_length=1024, blank=True, default='')
 
+    class Meta:
+        ordering = ('short_name',)
+
 
 class GeographicalRegion(LimitedInfoPriority):
     gcmd_uuid = models.UUIDField(null=True, blank=True)
     example = models.CharField(max_length=1024, blank=True, default='')
 
+    class Meta:
+        ordering = ('short_name',)
+
 
 class GeophysicalConcept(LimitedInfoPriority):
     gcmd_uuid = models.UUIDField(null=True, blank=True)
     example = models.CharField(max_length=1024, blank=True, default='')
+
+    class Meta:
+        ordering = ('short_name',)
 
 
 class WebsiteType(LimitedInfoPriority):
@@ -172,12 +199,17 @@ class PartnerOrg(LimitedInfoPriority):
 
     website = models.CharField(max_length=256, blank=True, default='')
 
+    class Meta:
+        ordering = ('short_name',)
 
 class GcmdProject(BaseModel):
     short_name = models.CharField(max_length=256, blank=False, unique=True)
     long_name = models.CharField(max_length=512, blank=True, default='')
     bucket = models.CharField(max_length=256)
     gcmd_uuid = models.UUIDField()
+
+    class Meta:
+        ordering = ('short_name',)
 
 
 class GcmdInstrument(BaseModel):
@@ -192,6 +224,8 @@ class GcmdInstrument(BaseModel):
     def __str__(self):
         return self.short_name or self.long_name or self.instrument_subtype or self.instrument_type or self.instrument_class or self.instrument_category
 
+    class Meta:
+        ordering = ('short_name',)
 
 class GcmdPlatform(BaseModel):
     short_name = models.CharField(max_length=256, blank=True, default='')
@@ -201,6 +235,8 @@ class GcmdPlatform(BaseModel):
     description = models.TextField(blank=True, default='')
     gcmd_uuid = models.UUIDField()
 
+    class Meta:
+        ordering = ('short_name',)
 
 class GcmdPhenomena(BaseModel):
     category = models.CharField(max_length=256)
