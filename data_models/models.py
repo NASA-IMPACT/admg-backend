@@ -212,6 +212,7 @@ class Website(BaseModel):
     title = models.TextField()
     description = models.TextField(default='', blank=True)
     website_types = models.ManyToManyField(WebsiteType, related_name='websites')
+    notes_internal = models.TextField(default='', blank=True)
 
     def __str__(self):
         return self.title
