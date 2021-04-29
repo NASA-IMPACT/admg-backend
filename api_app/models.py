@@ -20,6 +20,7 @@ UPDATE = "Update"
 DELETE = "Delete"
 PATCH = "Patch"
 
+
 # The change has been freshly ingested, but no one has made edits using the admin interface
 CREATED, CREATED_CODE = "Created", 0
 
@@ -42,6 +43,9 @@ IN_ADMIN_REVIEW, IN_ADMIN_REVIEW_CODE = "In Admin Review", 5
 # The state of the change object can not be changed from this state.
 PUBLISHED, PUBLISHED_CODE = "Published", 6
 
+# The change has been moved to the trash
+IN_TRASH, IN_TRASH_CODE = "In Trash", 7
+
 
 AVAILABLE_STATUSES = (
     (CREATED_CODE, CREATED),
@@ -51,6 +55,7 @@ AVAILABLE_STATUSES = (
     (AWAITING_ADMIN_REVIEW_CODE, AWAITING_ADMIN_REVIEW),
     (IN_ADMIN_REVIEW_CODE, IN_ADMIN_REVIEW),
     (PUBLISHED_CODE, PUBLISHED),
+    (IN_TRASH_CODE, IN_TRASH)
 )
 
 def generate_failure_response(message):
@@ -116,6 +121,8 @@ def is_status(accepted_statuses_list):
 class ApprovalLog(models.Model):
     """Keeps a log of the changes (publish, reject, etc) made to a particular draft"""
 
+    TRASH = -1
+    UNTRASH = 0
     CREATE = 1
     EDIT = 2
     SUBMIT = 3
@@ -126,6 +133,8 @@ class ApprovalLog(models.Model):
     UNCLAIM = 8
 
     ACTION_CHOICES = [
+        (TRASH, 'trash'),
+        (UNTRASH, 'untrash'),
         (CREATE, 'create'),
         (EDIT, 'edit'),
         (SUBMIT, 'submit'),
@@ -271,6 +280,20 @@ class ChangeQuerySet(models.QuerySet):
 
 
 class Change(models.Model):
+    # use these field values when assigning the field status in the field_status_tracking dict
+    FIELD_UNVIEWED = 1
+    FIELD_INCORRECT = 2
+    FIELD_UNSURE = 3
+    FIELD_CORRECT = 4
+    FIELD_DEFAULT = FIELD_UNVIEWED
+    
+    FIELD_STATUS_MAPPING = {
+        FIELD_UNVIEWED: 'unviewed',
+        FIELD_INCORRECT: 'incorrect',
+        FIELD_UNSURE: 'unsure',
+        FIELD_CORRECT: 'correct',
+    }
+
     uuid = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     content_type = models.ForeignKey(
         ContentType,
@@ -282,6 +305,7 @@ class Change(models.Model):
 
     status = models.IntegerField(choices=AVAILABLE_STATUSES, default=IN_PROGRESS_CODE)
     update = models.JSONField(default=dict, blank=True)
+    field_status_tracking = models.JSONField(default=dict, blank=True)
     previous = models.JSONField(default=dict)
 
     action = models.CharField(
@@ -293,6 +317,42 @@ class Change(models.Model):
 
     class Meta:
         verbose_name = "Draft"
+
+    def get_field_status_str(self, field_status):
+        """Gets the str value associated with each field status
+
+        Args:
+            field_status (int): Integer field status. Should be one of the
+                built in statuses accessed through the model instance, such as
+                Change.FIELD_UNSURE, or it should come from the field_status_tracking
+                json
+
+        Raises:
+            ValueError: Throws a value error if the provided field_status is not one
+                of the built in statuses.
+
+        Returns:
+            str: String value for the provided status integer
+        """
+
+        try:
+            return self.FIELD_STATUS_MAPPING[field_status]
+        except KeyError as E:
+            raise KeyError('The field_status provided is not among the built statuses') from E
+
+    def generate_field_status_tracking_dict(self):
+        """
+        Creates the field status tracking dictionary used to track whether a
+        particular change object field has been looked at and found to be correct,
+        incorrect, etc. This dictionary is meant to be wiped clean and recreated at
+        different points in the change object's life cycle in order to allow more
+        granularity in the review process.
+        """
+
+        source_model = self.content_type.model_class()
+        self.field_status_tracking = {
+            field.name: {'status': self.FIELD_DEFAULT, 'notes': ''} for field in source_model._meta.fields
+        }
 
     @property
     def model_name(self):
@@ -333,6 +393,9 @@ class Change(models.Model):
         # should only log changes made to the draft while in progress
         elif self.status == CREATED_CODE:
             self.status = IN_PROGRESS_CODE
+
+        if not self.field_status_tracking:
+            self.generate_field_status_tracking_dict()
 
         return super().save(*args, **kwargs)
 
@@ -538,6 +601,77 @@ class Change(models.Model):
         )
 
 
+    @is_admin
+    @is_status([
+        CREATED_CODE,
+        IN_PROGRESS_CODE,
+        AWAITING_REVIEW_CODE,
+        IN_REVIEW_CODE,
+        AWAITING_ADMIN_REVIEW_CODE,
+        IN_ADMIN_REVIEW_CODE
+    ])
+    def trash(self, user, notes=''):
+        """Moves a change object to the IN_TRASH stage. Expected use case
+        is for DOIs which need to be ignored and items created accidently.
+        Items can be removed from the trash with self.untrash()
+
+        Args:
+            user (User): User trashing the object
+            notes (string): Extra notes that were provided by the trashing user. Default is ''.
+
+        Returns:
+            [dict]: {"success", "message", "data": {"uuid", "status"}}
+        """
+
+        self.status = IN_TRASH_CODE
+        ApprovalLog.objects.create(
+            change = self,
+            user = user,
+            action = ApprovalLog.TRASH,
+            notes = notes
+        )
+        self.save(post_save=True)
+
+        return generate_success_response(
+            status_str=IN_TRASH,
+            data={
+                "uuid": self.uuid,
+                "status": IN_TRASH_CODE
+            }
+        )
+
+
+    @is_admin
+    @is_status([IN_TRASH_CODE])
+    def untrash(self, user, notes=''):
+        """Moves a change object from trash to the in progress stage.
+
+        Args:
+            user (User): User untrashing the object
+            notes (string): Extra notes that were provided by the untrashing user. Default is ''.
+
+        Returns:
+            [dict]: {"success", "message", "data": {"uuid", "status"}}
+        """
+
+        self.status = IN_PROGRESS_CODE
+        ApprovalLog.objects.create(
+            change = self,
+            user = user,
+            action = ApprovalLog.UNTRASH,
+            notes = notes
+        )
+        self.save(post_save=True)
+
+        return generate_success_response(
+            status_str=IN_PROGRESS,
+            data={
+                "uuid": self.uuid,
+                "status": IN_PROGRESS_CODE
+            }
+        )
+
+
     @is_status([IN_REVIEW_CODE, IN_ADMIN_REVIEW_CODE])
     def reject(self, user, notes):
         """
@@ -547,12 +681,10 @@ class Change(models.Model):
         Return is taken care of by the decorator
 
         Args:
-            admin_user (User):
-                the admin_user that approves the change.
-                This is not an unused variable. The decorator uses it
+            user (User):
+                the user that approves the change.
             notes (string):
-                Extra notes that were provided by the approving/rejecting admin
-                This is not an unused variable. The decorator uses it
+                Extra notes that were provided by the approving/rejecting
 
         Returns:
             (dict): {
