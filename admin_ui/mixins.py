@@ -6,9 +6,9 @@ from django.contrib.gis.geos import Polygon
 from django.contrib.gis.db.models.fields import PolygonField
 from django.db import models
 from django.db.models.fields.related import ForeignKey
-from django.db.models import DateField
+from django.db.models import DateField, BooleanField
 from django.db.models.query import QuerySet
-from django.forms import modelform_factory
+from django.forms import modelform_factory, RadioSelect
 from django.views.generic.edit import ModelFormMixin
 
 from .fields import ChangeChoiceField, BboxField, CustomDateField
@@ -32,6 +32,13 @@ def formfield_callback(f, **kwargs):
             **kwargs,
             "form_class": CustomDateField,
         }
+    if isinstance(f, BooleanField):
+        # TODO comment
+        f.choices = ((True, 'Yes'), (False, 'No'))
+        kwargs = {
+            **kwargs,
+            # "form_class": RadioBooleanField,
+        }
 
     return f.formfield(**kwargs)
 
@@ -47,11 +54,22 @@ class ChangeModelFormMixin(ModelFormMixin):
     @property
     def destination_model_form(self):
         """ Helper to return a form for the destination of the Draft object """
-        return modelform_factory(
+        # TODO create model class var
+        # def get_labels, def get_helptext w/ first argument as the class type
+        # by default they pass empty dicts
+        # if self.get_model_form_content_type().model_class() == 'Deployment':
+        labels= {'short_name':'myshoranme'}
+        help_texts = {'short_name':'helptextsss'}
+        modelform = modelform_factory(
             self.get_model_form_content_type().model_class(),
             exclude=[],
             formfield_callback=formfield_callback,
-        )
+            labels=labels,  # labels = get_lables(my_Modeltype)
+            help_texts=help_texts,
+        )  # modelform generates a form class
+        # TODO fix
+        # modelform.field_order = get_ordering(my_modeltype)
+        return modelform
 
     def get_model_form_content_type(self) -> ContentType:
         raise NotImplementedError("Subclass must implement this property")

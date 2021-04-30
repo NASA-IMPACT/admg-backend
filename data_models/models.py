@@ -71,6 +71,7 @@ class LimitedInfo(BaseModel):
         abstract = True
 
 
+
 class LimitedInfoPriority(LimitedInfo):
     order_priority = models.PositiveIntegerField(unique=True, blank=True, null=True)
 
@@ -405,8 +406,8 @@ class Campaign(DataModel):
         verbose_name="Campaign Total Data Storage Volume",
         help_text="Total volume of published campaign data products (in GB or TB)",
     )
-    ongoing = models.BooleanField()
-    nasa_led = models.BooleanField()
+    ongoing = models.BooleanField(verbose_name='Is this field investigation currently ongoing?')
+    nasa_led = models.BooleanField(verbose_name='Is this a NASA-led field investigation?')
     nasa_missions = models.TextField(
         default='', 
         blank=True,
