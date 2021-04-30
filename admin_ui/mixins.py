@@ -1,4 +1,5 @@
 from functools import partial
+from typing import Dict, AnyStr
 
 from django.contrib import messages
 from django.contrib.contenttypes.models import ContentType
@@ -12,6 +13,7 @@ from django.forms import modelform_factory, RadioSelect
 from django.views.generic.edit import ModelFormMixin
 
 from .fields import ChangeChoiceField, BboxField, CustomDateField
+from data_models import models
 
 
 def formfield_callback(f, **kwargs):
@@ -54,18 +56,13 @@ class ChangeModelFormMixin(ModelFormMixin):
     @property
     def destination_model_form(self):
         """ Helper to return a form for the destination of the Draft object """
-        # TODO create model class var
-        # def get_labels, def get_helptext w/ first argument as the class type
-        # by default they pass empty dicts
-        # if self.get_model_form_content_type().model_class() == 'Deployment':
-        labels= {'short_name':'myshoranme'}
-        help_texts = {'short_name':'helptextsss'}
+        model_type = self.get_model_form_content_type().model_class()
         modelform = modelform_factory(
-            self.get_model_form_content_type().model_class(),
+            model_type,
             exclude=[],
             formfield_callback=formfield_callback,
-            labels=labels,  # labels = get_lables(my_Modeltype)
-            help_texts=help_texts,
+            labels=self.get_verbose_names(model_type),
+            help_texts=self.get_help_texts(model_type),
         )  # modelform generates a form class
         # TODO fix
         # modelform.field_order = get_ordering(my_modeltype)
@@ -85,6 +82,43 @@ class ChangeModelFormMixin(ModelFormMixin):
                 prefix=self.destination_model_prefix,
             )
         return super().get_context_data(**kwargs)
+
+    @staticmethod
+    def get_verbose_names(model_type) -> Dict:
+        # TODO capitalize
+        return {
+                'short_name': model_type._meta.model_name + ' Short Name', 
+                'long_name': model_type._meta.model_name + ' Long Name',
+            }
+    
+    @staticmethod
+    def get_help_texts(model_type) -> Dict:
+        if model_type == models.Campaign:
+            return {
+                'short_name':'Abbreviation for field investigation name (typically an acronym)',
+                'long_name': 'Full name of field investigation (typically the acronym fully spelled out)',
+            }
+        elif model_type == models.Deployment:
+            return {
+                'short_name':'Format as “dep_YYYY[i]” with YYYY as the year in which deployment begins, and optional lowercase character (i=a, b, …) appended only if there are multiple deployments in a single calendar year for the campaign',
+                'long_name': 'If there are named sub-campaigns, the name used for this deployment (e.g. CAMEX-3).  This may not exist.',
+            }
+        elif model_type == models.Platform:
+            return {
+                'short_name':"ADMG’s identifying name for the platform",
+                'long_name': "ADMG’s full name for the platform",
+            }
+        elif model_type == models.Instrument:
+            return {
+                'short_name':"ADMG’s identifying name of the instrument (often an acronym)",
+                'long_name': "Full name of the instrument",
+            }
+        elif model_type == models.SignificantEvent:
+            return {
+                'short_name':"ADMG's text identifier for the SE - format as 'XXX_SE_#' with XXX as the campaign shortname and # as the integer number of the SE within the campaign",
+            }
+        else:
+            return {}
 
     def post(self, request, *args, **kwargs):
         """

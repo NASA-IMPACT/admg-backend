@@ -311,22 +311,6 @@ class DataModel(LimitedInfo):
 
 
 class Campaign(DataModel):
-    # These four fields are overwriting the fields inherited from the `Limited Info` class
-    # This is happening so we can specify a custom `verbose_name` and `help_text`
-    short_name = models.CharField(
-        max_length=256, 
-        blank=False, 
-        unique=True,
-        verbose_name="Campaign Short Name",
-        help_text="Abbreviation for field investigation name (typically an acronym)",
-    )
-    long_name = models.CharField(
-        max_length=512, 
-        default='', 
-        blank=True,
-        verbose_name="Campaign Long Name",
-        help_text="Full name of field investigation (typically the acronym fully spelled out)",
-    )
 
     logo = models.ForeignKey(Image, on_delete=models.SET_NULL, null=True, blank=True)
     aliases = GenericRelation(Alias)
@@ -405,7 +389,7 @@ class Campaign(DataModel):
         blank=True,
         verbose_name="Campaign Total Data Storage Volume",
         help_text="Total volume of published campaign data products (in GB or TB)",
-    )
+)
     ongoing = models.BooleanField(verbose_name='Is this field investigation currently ongoing?')
     nasa_led = models.BooleanField(verbose_name='Is this a NASA-led field investigation?')
     nasa_missions = models.TextField(
@@ -514,19 +498,6 @@ class Campaign(DataModel):
 
 
 class Platform(DataModel):
-    # Overwritten from LimitedFields class for unique help text
-    short_name = models.CharField(
-        max_length=256, 
-        blank=False, 
-        unique=True,
-        help_text='ADMG’s identifying name for the platform',
-    )
-    long_name = models.CharField(
-        max_length=512, 
-        default='', 
-        blank=True,
-        help_text='ADMG’s full name for the platform',
-    )
 
     platform_type = models.ForeignKey(
         PlatformType, 
@@ -607,19 +578,6 @@ class Platform(DataModel):
 
 
 class Instrument(DataModel):
-    # Overwritten from LimitedFields class for unique help text
-    short_name = models.CharField(
-        max_length=256, 
-        blank=False, 
-        unique=True,
-        help_text='ADMG’s identifying name of the instrument (often an acronym)',
-    )
-    long_name = models.CharField(
-        max_length=512, 
-        default='', 
-        blank=True,
-        help_text='Full name of the instrument',
-    )
 
     image = models.ForeignKey(Image, on_delete=models.SET_NULL, null=True, blank=True)
     measurement_type = models.ForeignKey(
@@ -748,24 +706,7 @@ class Instrument(DataModel):
         return urllib.parse.urljoin(FRONTEND_URL, f"/instrument/{self.uuid}/")
 
 
-class Deployment(DataModel):
-    # These four fields are overwriting the fields inherited from the `Limited Info` class
-    # This is happening so we can specify a custom `verbose_name` and `help_text`
-    short_name = models.CharField(
-        max_length=256, 
-        blank=False, 
-        unique=True,
-        verbose_name="Deployment Short Name",
-        help_text="Format as “dep_YYYY[i]” with YYYY as the year in which deployment begins, and optional lowercase character (i=a, b, …) appended only if there are multiple deployments in a single calendar year for the campaign",
-    )
-    long_name = models.CharField(
-        max_length=512, 
-        default='', 
-        blank=True,
-        verbose_name="Deployment Long Name",
-        help_text="If there are named sub-campaigns, the name used for this deployment (e.g. CAMEX-3).  This may not exist.",
-    )
-    
+class Deployment(DataModel):    
     campaign = models.ForeignKey(Campaign, on_delete=models.CASCADE, related_name='deployments')
     aliases = GenericRelation(Alias)
 
@@ -850,11 +791,7 @@ class IOP(IopSe):
 
 
 class SignificantEvent(IopSe):
-    # short_name and reports overwriting from IopSe to add a unique help_text
-    short_name = models.CharField(
-        max_length=256,
-        help_text="ADMG's text identifier for the SE - format as 'XXX_SE_#' with XXX as the campaign shortname and # as the integer number of the SE within the campaign",
-    )
+
     reports = models.CharField(
         max_length=1024, 
         default='', 
