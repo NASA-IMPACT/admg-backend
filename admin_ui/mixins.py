@@ -1,5 +1,5 @@
 from functools import partial
-from typing import Dict, AnyStr
+from typing import Dict, List
 
 from django.contrib import messages
 from django.contrib.contenttypes.models import ContentType
@@ -64,8 +64,7 @@ class ChangeModelFormMixin(ModelFormMixin):
             labels=self.get_verbose_names(model_type),
             help_texts=self.get_help_texts(model_type),
         )  # modelform generates a form class
-        # TODO fix
-        # modelform.field_order = get_ordering(my_modeltype)
+        modelform.field_order = self.get_ordering(model_type)
         return modelform
 
     def get_model_form_content_type(self) -> ContentType:
@@ -119,6 +118,14 @@ class ChangeModelFormMixin(ModelFormMixin):
             }
         else:
             return {}
+
+    @staticmethod
+    def get_ordering(model_type) -> List:
+    # TODO specify string type
+        if model_type == models.Deployment:
+            return ['campaign',]
+        else:
+            return []
 
     def post(self, request, *args, **kwargs):
         """
