@@ -218,7 +218,7 @@ class GcmdPhenomena(BaseModel):
 class Website(BaseModel):
     website_type = models.ForeignKey(WebsiteType, on_delete=models.CASCADE, related_name='websites')
 
-    url = models.URLField(unique=True)
+    url = models.URLField(unique=True, max_length=1024)
     title = models.TextField(default='', blank=True)
     description = models.TextField(default='', blank=True)
     notes_internal = models.TextField(default='', blank=True)
