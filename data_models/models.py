@@ -44,12 +44,13 @@ def get_file_path(instance, path):
 
 class Image(BaseModel):
     image = models.ImageField(upload_to=get_file_path)
-    description = models.CharField(max_length=1024, default='', blank=True)
+    title = models.CharField(max_length=1024, default='', blank=True)
+    description = models.CharField(max_length=2048, default='', blank=True)
     owner = models.CharField(max_length=512, default='', blank=True)
     source_url = models.TextField(blank=True, default='')
 
     def __str__(self):
-        return self.description or self.image.name
+        return self.title or self.image.name
 
 
 class LimitedInfo(BaseModel):
