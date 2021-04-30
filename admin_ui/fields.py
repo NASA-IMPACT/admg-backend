@@ -3,7 +3,7 @@ from django.contrib.gis.forms.fields import PolygonField
 from django.db.models.fields.related import ForeignKey
 from django.db.models import functions, expressions, TextField
 from django.db.models.fields.json import KeyTextTransform
-from django.forms import ModelChoiceField, MultipleChoiceField
+from django.forms import ModelChoiceField, DateField, DateInput
 from django.utils.translation import gettext_lazy as _
 
 from api_app import models
@@ -173,3 +173,6 @@ class BboxField(PolygonField):
                 ) from e
 
         return super().clean(value)
+
+class CustomDateField(DateField):
+    widget = DateInput(attrs={'class': 'datepicker', 'placeholder': 'Select a date', 'type': 'date'})

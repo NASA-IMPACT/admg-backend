@@ -6,11 +6,12 @@ from django.contrib.gis.geos import Polygon
 from django.contrib.gis.db.models.fields import PolygonField
 from django.db import models
 from django.db.models.fields.related import ForeignKey
+from django.db.models import DateField
 from django.db.models.query import QuerySet
 from django.forms import modelform_factory
 from django.views.generic.edit import ModelFormMixin
 
-from .fields import ChangeChoiceField, BboxField
+from .fields import ChangeChoiceField, BboxField, CustomDateField
 
 
 def formfield_callback(f, **kwargs):
@@ -26,6 +27,12 @@ def formfield_callback(f, **kwargs):
             **kwargs,
             "form_class": BboxField,
         }
+    if isinstance(f, DateField):
+        kwargs = {
+            **kwargs,
+            "form_class": CustomDateField,
+        }
+
     return f.formfield(**kwargs)
 
 

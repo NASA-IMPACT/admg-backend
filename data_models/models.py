@@ -44,12 +44,13 @@ def get_file_path(instance, path):
 
 class Image(BaseModel):
     image = models.ImageField(upload_to=get_file_path)
-    description = models.CharField(max_length=1024, default='', blank=True)
+    title = models.CharField(max_length=1024, default='', blank=True)
+    description = models.CharField(max_length=2048, default='', blank=True)
     owner = models.CharField(max_length=512, default='', blank=True)
     source_url = models.TextField(blank=True, default='')
 
     def __str__(self):
-        return self.description or self.image.name
+        return self.title or self.image.name
 
 
 class LimitedInfo(BaseModel):
@@ -203,23 +204,28 @@ class PartnerOrg(LimitedInfoPriority):
         ordering = ('short_name',)
 
 class GcmdProject(BaseModel):
-    short_name = models.CharField(max_length=256, blank=False, unique=True)
+    short_name = models.CharField(max_length=256, blank=True, default='')
     long_name = models.CharField(max_length=512, blank=True, default='')
     bucket = models.CharField(max_length=256)
-    gcmd_uuid = models.UUIDField()
+    gcmd_uuid = models.UUIDField(unique=True)
+
+    def __str__(self):
+        return self.short_name or self.long_name or self.bucket
 
     class Meta:
         ordering = ('short_name',)
 
 
 class GcmdInstrument(BaseModel):
-    short_name = models.CharField(max_length=256, blank=True, unique=False)
+    short_name = models.CharField(max_length=256, blank=True, default='')
     long_name = models.CharField(max_length=512, blank=True, default='')
-    instrument_category = models.CharField(max_length=256, blank=True, default='') # these make more sense without 'instrument'
-    instrument_class = models.CharField(max_length=256, blank=True, default='') # however class and type are default variables
-    instrument_type = models.CharField(max_length=256, blank=True, default='') # so instrument was added to all 4 for consistency
+    # these make more sense without 'instrument', however class and type are
+    # default variables so instrument was added to all 4 for consistency
+    instrument_category = models.CharField(max_length=256, blank=True, default='')
+    instrument_class = models.CharField(max_length=256, blank=True, default='')
+    instrument_type = models.CharField(max_length=256, blank=True, default='')
     instrument_subtype = models.CharField(max_length=256, blank=True, default='')
-    gcmd_uuid = models.UUIDField()
+    gcmd_uuid = models.UUIDField(unique=True)
 
     def __str__(self):
         return self.short_name or self.long_name or self.instrument_subtype or self.instrument_type or self.instrument_class or self.instrument_category
@@ -233,7 +239,10 @@ class GcmdPlatform(BaseModel):
     category = models.CharField(max_length=256)
     series_entry = models.CharField(max_length=256, blank=True, default='')
     description = models.TextField(blank=True, default='')
-    gcmd_uuid = models.UUIDField()
+    gcmd_uuid = models.UUIDField(unique=True)
+
+    def __str__(self):
+        return self.short_name or self.long_name or self.category
 
     class Meta:
         ordering = ('short_name',)
@@ -245,17 +254,19 @@ class GcmdPhenomena(BaseModel):
     variable_1 = models.CharField(max_length=256, blank=True, default='')
     variable_2 = models.CharField(max_length=256, blank=True, default='')
     variable_3 = models.CharField(max_length=256, blank=True, default='')
-    gcmd_uuid = models.UUIDField()
+    gcmd_uuid = models.UUIDField(unique=True)
 
     def __str__(self):
-        return self.variable_3 or self.variable_2 or self.variable_1 or self.term or self.topic or self.category
-
+        categories = [self.category, self.topic, self.term, self.variable_1, self.variable_2, self.variable_3]
+        return ' > '.join([category for category in categories if category])
 
 class Website(BaseModel):
-    url = models.URLField(unique=True)
-    title = models.TextField()
+    website_type = models.ForeignKey(WebsiteType, on_delete=models.CASCADE, related_name='websites')
+
+    url = models.URLField(unique=True, max_length=1024)
+    title = models.TextField(default='', blank=True)
     description = models.TextField(default='', blank=True)
-    website_types = models.ManyToManyField(WebsiteType, related_name='websites')
+    notes_internal = models.TextField(default='', blank=True)
 
     def __str__(self):
         return self.title
@@ -318,15 +329,14 @@ class Campaign(DataModel):
 
     logo = models.ForeignKey(Image, on_delete=models.SET_NULL, null=True, blank=True)
     aliases = GenericRelation(Alias)
-
     description_short = models.TextField(
-        default="",
+        default='',
         blank=True,
         verbose_name="Admin Description",
         help_text="Concise, shortened text description of the field investigation, follows a similar format for all campaigns",
     )
     description_long = models.TextField(
-        default="",
+        default='',
         blank=True,
         verbose_name="Draft Description",
         help_text="Free text full campaign description including items such as the science or research objectives, regional location, supported mission(s), and equipment used",
@@ -351,6 +361,8 @@ class Campaign(DataModel):
     )
     funding_agency = models.CharField(
         max_length=256, 
+        default='', 
+        blank=True,
         help_text="Name of agency funding the campaign (e.g. NASA, NOAA, NSF…)",
     )
     funding_program = models.CharField(
@@ -466,6 +478,15 @@ class Campaign(DataModel):
         return select_related_distinct_data(self.deployments, 'iops__uuid')
 
     @property
+    def number_ventures(self):
+        venture_counts = list(self.deployments.select_related().values_list('collection_periods__number_ventures', flat=True))
+        return sum(filter(None, venture_counts))
+
+    @property
+    def number_data_products(self):
+        return self.dois.count()
+
+    @property
     def number_deployments(self):
         return self.deployments.count()
 
@@ -524,7 +545,6 @@ class Platform(DataModel):
         help_text="URL(s) for additional relevant online information for the platform",
     )
     stationary = models.BooleanField()
-
     gcmd_platforms = models.ManyToManyField(
         GcmdPlatform, 
         related_name='platforms',
@@ -533,14 +553,13 @@ class Platform(DataModel):
         verbose_name="Platform’s GCMD Platform Keyword(s)",
         help_text="GCMD Platform/Source keyword(s) corresponding to this platform",
     )
-  
     @property
     def search_category(self):
         """Returns a custom defined search category based on the platform_type's
         highest level parent (patriarch) and the platform's stationary field.
 
         Returns:
-            search_category [str]: One of 6 search categories 
+            search_category [str]: One of 6 search categories
         """
 
         patriarch = self.platform_type.patriarch
@@ -562,7 +581,7 @@ class Platform(DataModel):
 
         else:
             category = 'Special Cases'
-        
+
         return category
 
     @property
@@ -619,7 +638,6 @@ class Instrument(DataModel):
         help_text='Primary operation principle of the sensor',
     )
     aliases = GenericRelation(Alias)
-
     description = models.TextField(help_text='Free text description of the instrument')
     lead_investigator = models.CharField(
         max_length=256, 
@@ -688,7 +706,7 @@ class Instrument(DataModel):
         blank=True,
         help_text='The DOI assigned to the instrument.  This may not exist.',
     )
-    arbitrary_characteristics = models.JSONField(
+    additional_metadata = models.JSONField(
         default=None, 
         blank=True, 
         null=True,
@@ -750,6 +768,7 @@ class Deployment(DataModel):
     campaign = models.ForeignKey(Campaign, on_delete=models.CASCADE, related_name='deployments')
     aliases = GenericRelation(Alias)
 
+    spatial_bounds = geomodels.PolygonField(blank=True, null=True)
     study_region_map = models.TextField(
         default='', 
         blank=True,
@@ -768,7 +787,6 @@ class Deployment(DataModel):
 
     start_date = models.DateField(help_text="Start date of deployment")
     end_date = models.DateField(help_text="End date of deployment.")
-    number_collection_periods = models.PositiveIntegerField(null=True, blank=True)
 
     geographical_regions = models.ManyToManyField(
         GeographicalRegion,
@@ -861,7 +879,6 @@ class CollectionPeriod(BaseModel):
         help_text="ADMG’s identifying name for the platform.  *This should match one of the items in the “Platforms Active” element from Deployment Form.",
     )
 
-    asp_long_name = models.CharField(max_length=512, default='', blank=True)
     platform_identifier = models.CharField(
         max_length=128, 
         default='', 
@@ -897,7 +914,7 @@ class CollectionPeriod(BaseModel):
     notes_internal = models.TextField(default='', blank=True)
     notes_public = models.TextField(default='', blank=True)
 
-    num_ventures = models.PositiveIntegerField(null=True, blank=True)
+    number_ventures = models.PositiveIntegerField(null=True, blank=True)
     auto_generated = models.BooleanField()
 
     instruments = models.ManyToManyField(
