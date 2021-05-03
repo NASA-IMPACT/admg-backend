@@ -1,6 +1,7 @@
 import json
 import logging
 
+from django import forms
 from django.conf import settings
 from django.contrib.gis import gdal
 from django.contrib.gis.forms import widgets
@@ -14,17 +15,17 @@ from data_models.serializers import get_geojson_from_bb
 logger = logging.getLogger(__name__)
 
 
-def get_json_representation(value: str):
-    try:
-        json.loads(value)
-        return value
-    except json.JSONDecodeError:
-        return get_geojson_from_bb(value)
-
-
 class BoundingBoxWidget(widgets.OpenLayersWidget):
     template_name = "widgets/custommap.html"
     map_srid = 3857
+
+    @staticmethod
+    def get_json_representation(value: str):
+        try:
+            json.loads(value)
+            return value
+        except json.JSONDecodeError:
+            return get_geojson_from_bb(value)
 
     def get_context(self, name, value, attrs):
         context = super().get_context(name, value, attrs)
@@ -50,7 +51,7 @@ class BoundingBoxWidget(widgets.OpenLayersWidget):
     def to_geojson(self, value):
         """ Create a geometry object from string """
         try:
-            geom = GEOSGeometry(get_json_representation(value))
+            geom = GEOSGeometry(self.get_json_representation(value))
             if geom.srid != self.map_srid:
                 geom.transform(
                     CoordTransform(
@@ -61,3 +62,14 @@ class BoundingBoxWidget(widgets.OpenLayersWidget):
         except (GEOSException, GDALException, ValueError, TypeError) as err:
             logger.error("Error creating geometry from value '%s' (%s)", value, err)
         return None
+
+
+class IconBoolean(forms.CheckboxInput):
+    template_name = "widgets/icon_radio.html"
+
+    def value_from_datadict(self, data, files, name):
+        if name not in data:
+            # Unlike a standard checkbox, unspecified data will stay as None and
+            # False values must be explicitely sent from browser.
+            return None
+        return super().value_from_datadict(data, files, name)

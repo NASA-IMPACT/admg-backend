@@ -191,8 +191,8 @@ class CampaignDetailView(DetailView):
             .filter(update__deployment__in=[str(d.uuid) for d in deployments])
             .select_related("content_type")
             .prefetch_approvals()
-            .annotate_with_identifier_from_model(
-                model=Platform, uuid_from="platform", to_attr="platform_name"
+            .annotate_from_relationship(
+                of_type=Platform, uuid_from="platform", to_attr="platform_name"
             )
         )
 
@@ -253,12 +253,16 @@ class DoiFetchView(View):
     def post(self, request, **kwargs):
         campaign = self.get_object()
         task = tasks.match_dois.delay(campaign.content_type.model, campaign.uuid)
-        request.session["doi_task_ids"] = [
-            task.id,
-            *request.session.get("doi_task_ids", []),
-        ]
+        past_doi_fetches = request.session.get("doi_task_ids", {})
+        uuid = str(self.kwargs["pk"])
+        request.session["doi_task_ids"] = {
+            **past_doi_fetches,
+            uuid: [task.id, *past_doi_fetches.get(uuid, [])],
+        }
         messages.add_message(
-            request, messages.INFO, f"Fetching DOIs for {campaign.uuid}..."
+            request,
+            messages.INFO,
+            f"Fetching DOIs for {campaign.update.get('short_name', uuid)}...",
         )
         return HttpResponseRedirect(reverse("mi-doi-approval", args=[campaign.uuid]))
 
@@ -271,44 +275,91 @@ class DoiApprovalView(SingleObjectMixin, FormView):
 
     def get_context_data(self, **kwargs):
         self.object = self.get_object()
-        return {
-            **super().get_context_data(**kwargs),
-            "doi_tasks": (
-                TaskResult.objects.filter(
-                    task_id__in=self.request.session["doi_task_ids"]
-                )[:5]
-                if self.request.session.get("doi_task_ids")
-                else []
-            ),
-            "doi_formset_helper": forms.TableInlineFormSetHelper(),
-        }
+        uuid = str(self.object.uuid)
+        past_doi_fetches = self.request.session.get("doi_task_ids", {})
+        return super().get_context_data(
+            **{
+                "form": None,
+                "formset": self.get_form(),
+                "doi_tasks": (
+                    TaskResult.objects.filter(task_id__in=past_doi_fetches[uuid])[:5]
+                    if past_doi_fetches.get(uuid)
+                    else []
+                ),
+            }
+        )
 
     def get_initial(self):
+        # This is where we generate the DOI data to be shown in the formset
         return [
-            {"uuid": v["uuid"], **v["update"]}
+            {
+                "uuid": v["uuid"],
+                "keep": True if v["status"] > 0 else None,
+                **v["update"],
+            }
             for v in (
                 Change.objects.of_type(DOI)
                 .filter(update__campaigns__contains=str(self.object.uuid))
-                .values("uuid", "update")
+                .order_by("update__concept_id")
+                .values("uuid", "status", "update")
             )
         ]
 
+    def form_valid(self, formset):
+        changed_dois = [
+            form.cleaned_data for form in formset.forms if form.has_changed()
+        ]
+
+        to_update = []
+        to_delete = []
+        for doi in changed_dois:
+            if doi["keep"] is True:
+                to_update.append(doi)
+            elif doi["keep"] is False:
+                to_delete.append(doi)
+
+        if to_delete:
+            Change.objects.filter(uuid__in=[doi["uuid"] for doi in to_delete]).delete()
+
+        if to_update:
+            updated_statuses = []
+            stored_dois = Change.objects.in_bulk([doi["uuid"] for doi in to_update])
+            for doi in to_update:
+                for field, value in doi.items():
+                    if field in ["uuid", "keep"]:
+                        continue
+                    stored_doi = stored_dois[doi["uuid"]]
+                    stored_doi.update[field] = value
+                    if stored_doi.status == 0:
+                        stored_doi.status = 1
+                        updated_statuses.append(stored_doi)
+
+            Change.objects.bulk_update(
+                stored_dois.values(),
+                ["update", "status"],
+                batch_size=100,
+            )
+            ApprovalLog.objects.bulk_create(
+                [
+                    ApprovalLog(
+                        change=doi, user=self.request.user, action=ApprovalLog.EDIT
+                    )
+                    for doi in updated_statuses
+                ]
+            )
+
+        messages.info(
+            self.request,
+            f"Updated {len(to_update)} and removed {len(to_delete)} DOIs.",
+        )
+        return super().form_valid(formset)
+
     def post(self, request, **kwargs):
+        self.object = self.get_object()
+        return super().post(request, **kwargs)
 
-        #     campaign = self.get_object()
-        #     task = tasks.match_dois.delay(campaign.content_type.model, campaign.uuid)
-        #     request.session["doi_task_ids"] = [
-        #         task.id,
-        #         *request.session.get("doi_task_ids", []),
-        #     ]
-
-        messages.warning(
-            request,
-            f"This is still under development. No DOI selection was actually made.",
-        )
-        return HttpResponseRedirect(
-            reverse("mi-campaign-detail", args=[self.kwargs["pk"]])
-        )
+    def get_success_url(self):
+        return reverse("mi-doi-approval", args=[self.kwargs["pk"]])
 
 
 @method_decorator(login_required, name="dispatch")
@@ -329,7 +380,7 @@ class ChangeCreateView(mixins.ChangeModelFormMixin, CreateView):
         return {
             **super().get_context_data(**kwargs),
             "content_type_name": (
-                self.get_model_form_content_type().model_class().__name__,
+                self.get_model_form_content_type().model_class().__name__
             ),
         }
 
@@ -408,8 +459,8 @@ class PlatformListView(SingleTableMixin, FilterView):
             Change.objects.of_type(Platform)
             .filter(action=CREATE)
             .add_updated_at()
-            .annotate_with_identifier_from_model(
-                model=PlatformType,
+            .annotate_from_relationship(
+                of_type=PlatformType,
                 uuid_from="platform_type",
                 to_attr="platform_type_name",
             )
@@ -509,9 +560,6 @@ class LimitedFieldScienceListView(SingleTableMixin, FilterView):
             "is_multi_modelview": True,
             "item_types": [m._meta.model_name for m in self.item_types],
         }
-
-
-1
 
 
 @method_decorator(user_passes_test(lambda user: user.is_admg_admin()), name="dispatch")
