@@ -80,8 +80,8 @@ class ChangeModelFormMixin(ModelFormMixin):
     @staticmethod
     def get_verbose_names(model_type) -> Dict:
         return {
-                'short_name': ' '.join([model_type._meta.model_name.capitalize(), ' Short Name']), 
-                'long_name': ' '.join([model_type._meta.model_name.capitalize(), ' Long Name']),
+                'short_name': ' '.join([model_type._meta.model_name.title(), 'Short Name']), 
+                'long_name': ' '.join([model_type._meta.model_name.title(), 'Long Name']),
             }
     
     @staticmethod
