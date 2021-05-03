@@ -37,9 +37,6 @@ def formfield_callback(f, **kwargs):
     if isinstance(f, BooleanField):
         # Adding choices assigns a "yes/no" option and creates a dropdown widget
         f.choices = ((True, 'Yes'), (False, 'No'))
-        kwargs = {
-            **kwargs,
-        }
     return f.formfield(**kwargs)
 
 
