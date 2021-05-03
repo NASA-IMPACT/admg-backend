@@ -342,7 +342,7 @@ class Campaign(DataModel):
     spatial_bounds = geomodels.PolygonField(
         blank=True,
         null=True,
-        help_text="Latitude & Longitude for domain bounding box; enter as N, S, E, W  or [N, S, E, W], [N, S, E, W]",
+        help_text="Latitude & Longitude for domain bounding box; enter as N, S, E, W",
     )
     seasons = models.ManyToManyField(
         Season, 
