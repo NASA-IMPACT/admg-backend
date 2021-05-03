@@ -1,0 +1,18 @@
+{% load humanize %}
+<div class="card">
+  <ul class="list-group list-group-flush">
+    {% for key, value in related_fields.items %}
+    <li class="list-group-item">
+      <h5>{{ key }}</h5>
+      {% for object in value %}
+        <p>{{ object }}</p>
+        {% endfor %}
+      <a>Add New</a>
+      {% comment %} <a class="btn btn-primary" href="{% url 'mi-change-add' 'deployment' %}?campaign={{ object.uuid }}">+</a> {% endcomment %}
+        {% comment %} <a href="{% url 'mi-change-update' object.uuid %}" class="btn btn-outline-secondary ml-3">
+      Edit Entry
+        </a> {% endcomment %}
+    </li>
+    {% endfor %}
+    </ul>
+</div>

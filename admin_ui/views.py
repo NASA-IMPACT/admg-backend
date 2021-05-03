@@ -1,4 +1,5 @@
 from urllib.parse import urlparse
+from typing import Dict
 
 from django.conf import settings
 from django.contrib import messages
@@ -39,6 +40,7 @@ from api_app.models import (
 )
 from cmr import tasks
 from data_models.models import (
+    Alias,
     Campaign,
     CollectionPeriod,
     Deployment,
@@ -62,6 +64,7 @@ from data_models.models import (
     GeographicalRegion,
     Season,
     WebsiteType,
+    Website,
     Repository,
 )
 from . import tables, forms, mixins, filters
@@ -430,10 +433,20 @@ class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
                 "SignificantEvent",
                 "CollectionPeriod",
             ],
+            "related_fields": self.get_related_fields(),
         }
 
     def get_model_form_content_type(self) -> ContentType:
         return self.object.content_type
+    
+    def get_related_fields(self) -> Dict:
+        related_fields = {}
+        content_type = self.get_model_form_content_type().model_class().__name__
+        if content_type in ['Campaign', 'Platform', 'Deployment', 'Insrument', 'PartnerOrg']:
+            related_fields['Aliases'] = Alias.objects.filter(object_id=self.object.uuid)
+        if content_type == 'Campaign':
+            related_fields['Websites'] = Change.objects.of_type(Website).filter(action=CREATE)
+        return related_fields
 
     def get_model_form_intial(self):
         return self.object.update

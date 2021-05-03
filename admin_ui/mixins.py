@@ -19,11 +19,12 @@ from data_models import models
 def formfield_callback(f, **kwargs):
     # Use ChangeChoiceField for any ForeignKey field in the model class
     if isinstance(f, ForeignKey):
-        kwargs = {
-            **kwargs,
-            "form_class": partial(ChangeChoiceField, dest_model=f.remote_field.model),
-            "queryset": ChangeChoiceField.get_queryset_for_model(f.remote_field.model),
-        }
+        if not f.remote_field.model == ContentType: 
+            kwargs = {
+                **kwargs,
+                "form_class": partial(ChangeChoiceField, dest_model=f.remote_field.model),
+                "queryset": ChangeChoiceField.get_queryset_for_model(f.remote_field.model),
+            }
     if isinstance(f, PolygonField):
         kwargs = {
             **kwargs,
