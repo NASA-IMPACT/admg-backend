@@ -696,6 +696,7 @@ class Instrument(DataModel):
         max_length=1024, 
         default='', 
         blank=True,
+        verbose_name="Instrument DOI",
         help_text='The DOI assigned to the instrument.  This may not exist.',
     )
     repositories = models.ManyToManyField(Repository, related_name='instruments', default='', blank=True)
@@ -868,7 +869,7 @@ class CollectionPeriod(BaseModel):
         max_length=256, 
         default='', 
         blank=True,
-        verbose_name="Deployment Base",
+        verbose_name="Platform Deployment Base",
         help_text="Deployment base/operating location for the p platform during the field investigation/deployment",
     )
 
