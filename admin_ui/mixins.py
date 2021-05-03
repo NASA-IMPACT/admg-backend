@@ -120,6 +120,13 @@ class ChangeModelFormMixin(ModelFormMixin):
     def get_ordering(model_type) -> List[str]:
         if model_type == models.Deployment:
             return ['campaign',]
+        if model_type in [models.IopSe, models.IOP]:
+            return ['deployment', ]
+        if model_type == models.SignificantEvent:
+            return ['deployment', 'iop', 'short_name', 'start_date', 'end_date', 'description', \
+                'region_description', 'published_list', 'reports', ]
+        if model_type == models.Platform:
+            return ['short_name', 'long_name', 'platform_type', ]
         else:
             return []
 

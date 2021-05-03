@@ -267,7 +267,11 @@ class Website(BaseModel):
     url = models.URLField(unique=True, max_length=1024)
     title = models.TextField(default='', blank=True)
     description = models.TextField(default='', blank=True)
-    notes_internal = models.TextField(default='', blank=True)
+    notes_internal = models.TextField(
+        default='', 
+        blank=True,
+        help_text="Free text notes for ADMG staff - not visible to public.",
+    )
 
     def __str__(self):
         return self.title
@@ -509,17 +513,10 @@ class Platform(DataModel):
         null=True,
         help_text="Assign the most specific type of platform possible from the list",
     )
-    image = models.ForeignKey(Image, on_delete=models.SET_NULL, null=True, blank=True)
-    aliases = GenericRelation(Alias)
 
-    description = models.TextField()
-    online_information = models.CharField(
-        max_length=512, 
-        default='', 
-        blank=True,
-        help_text="URL(s) for additional relevant online information for the platform",
-    )
-    stationary = models.BooleanField()
+    aliases = GenericRelation(Alias)
+    description = models.TextField(help_text='Free text description of the platform')
+    stationary = models.BooleanField(verbose_name='Can the platform move?')
     gcmd_platforms = models.ManyToManyField(
         GcmdPlatform, 
         related_name='platforms',
@@ -528,6 +525,16 @@ class Platform(DataModel):
         verbose_name="Platform’s GCMD Platform Keyword(s)",
         help_text="GCMD Platform/Source keyword(s) corresponding to this platform",
     )
+
+    image = models.ForeignKey(Image, on_delete=models.SET_NULL, null=True, blank=True)
+
+    online_information = models.CharField(
+        max_length=512, 
+        default='', 
+        blank=True,
+        help_text="URL(s) for additional relevant online information for the platform",
+    )
+
     @property
     def search_category(self):
         """Returns a custom defined search category based on the platform_type's
@@ -581,16 +588,8 @@ class Platform(DataModel):
 
 
 class Instrument(DataModel):
+    aliases = GenericRelation(Alias)
 
-    image = models.ForeignKey(Image, on_delete=models.SET_NULL, null=True, blank=True)
-    measurement_type = models.ForeignKey(
-        MeasurementType, 
-        on_delete=models.SET_NULL, 
-        null=True, 
-        blank=True, 
-        related_name='instruments',
-        help_text='Broad grouping for the type of measurements the instrument is used for',
-    )
     measurement_style = models.ForeignKey(
         MeasurementStyle, 
         on_delete=models.SET_NULL, 
@@ -599,7 +598,16 @@ class Instrument(DataModel):
         related_name='instruments',
         help_text='Primary operation principle of the sensor',
     )
-    aliases = GenericRelation(Alias)
+    measurement_type = models.ForeignKey(
+        MeasurementType, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name='instruments',
+        help_text='Broad grouping for the type of measurements the instrument is used for',
+    )
+
+    
     description = models.TextField(help_text='Free text description of the instrument')
     lead_investigator = models.CharField(
         max_length=256, 
@@ -619,12 +627,19 @@ class Instrument(DataModel):
         verbose_name='Facility Instrument Location',
         help_text="If Facility Instrument give location or put 'retired', otherwise N/A",
     )
+    gcmd_phenomenas = models.ManyToManyField(
+        GcmdPhenomena, 
+        related_name='instruments',
+        verbose_name='Measurements / Variables from GCMD Science Keywords',
+        help_text='Select relevant measurements/variables items from GCMD Science Keywords for Earth Science',
+    )
     funding_source = models.CharField(
         max_length=1024, 
         default='', 
         blank=True,
         help_text='Program or Mission funding the development, maintenance, deployment, and/or operation of the instrument',
     )
+
     spatial_resolution = models.CharField(
         max_length=256,
         help_text='Horizontal and vertical resolution of the instrument’s measurements',
@@ -636,6 +651,12 @@ class Instrument(DataModel):
     radiometric_frequency = models.CharField(
         max_length=256,
         help_text='Operating frequency of the instrument',
+    )
+    measurement_regions = models.ManyToManyField(
+        MeasurementRegion, 
+        related_name='instruments',
+        verbose_name='Vertical Measurement Region',
+        help_text='Name of the vertical region(s) observed by the instrument',
     )
     calibration_information = models.CharField(
         max_length=1024, 
@@ -649,6 +670,7 @@ class Instrument(DataModel):
         blank=True,
         help_text='Name of lab or company that makes or manufactures the instrument',
     )
+
     overview_publication = models.CharField(
         max_length=2048, 
         default='', 
@@ -656,26 +678,13 @@ class Instrument(DataModel):
         verbose_name='Instrument Publication',
         help_text='Highest authority document describing the instrument (DOI or URL)',
     )
+    image = models.ForeignKey(Image, on_delete=models.SET_NULL, null=True, blank=True)
     online_information = models.CharField(
         max_length=2048, 
         default='', 
         blank=True,
-        verbose_name='URL(s) for additional relevant online information for the instrument',
+        help_text='URL(s) for additional relevant online information for the instrument',
     )
-    instrument_doi = models.CharField(
-        max_length=1024, 
-        default='', 
-        blank=True,
-        help_text='The DOI assigned to the instrument.  This may not exist.',
-    )
-    additional_metadata = models.JSONField(
-        default=None, 
-        blank=True, 
-        null=True,
-        verbose_name='Additional Metadata',
-        help_text='An open item for potential extra metadata element(s)',
-    )
-
     gcmd_instruments = models.ManyToManyField(
         GcmdInstrument, 
         related_name='instruments', 
@@ -683,19 +692,20 @@ class Instrument(DataModel):
         blank=True,
         help_text='GCMD Instrument/Sensor keyword(s) corresponding to this instrument',
     )
-    gcmd_phenomenas = models.ManyToManyField(
-        GcmdPhenomena, 
-        related_name='instruments',
-        verbose_name='Measurements / Variables from GCMD Science Keywords',
-        help_text='Select relevant measurements/variables items from GCMD Science Keywords for Earth Science',
-    )
-    measurement_regions = models.ManyToManyField(
-        MeasurementRegion, 
-        related_name='instruments',
-        verbose_name='Vertical Measurement Region',
-        help_text='Name of the vertical region(s) observed by the instrument',
+    instrument_doi = models.CharField(
+        max_length=1024, 
+        default='', 
+        blank=True,
+        help_text='The DOI assigned to the instrument.  This may not exist.',
     )
     repositories = models.ManyToManyField(Repository, related_name='instruments', default='', blank=True)
+    additional_metadata = models.JSONField(
+        default=None, 
+        blank=True, 
+        null=True,
+        verbose_name='Additional Metadata',
+        help_text='An open item for potential extra metadata element(s)',
+    )
 
     @property
     def campaigns(self):
@@ -751,7 +761,12 @@ class Deployment(DataModel):
 
 class IopSe(BaseModel):
 
-    deployment = models.ForeignKey(Deployment, on_delete=models.CASCADE, related_name='iops')
+    deployment = models.ForeignKey(
+        Deployment, 
+        on_delete=models.CASCADE, 
+        related_name='iops',
+        help_text="ADMG’s deployment identifier",
+    )
 
     short_name = models.CharField(
         max_length=256,
@@ -790,10 +805,29 @@ class IopSe(BaseModel):
 
 
 class IOP(IopSe):
-    deployment = models.ForeignKey(Deployment, on_delete=models.CASCADE, related_name='iops')
+    deployment = models.ForeignKey(
+        Deployment, 
+        on_delete=models.CASCADE, 
+        related_name='iops',
+        help_text="ADMG’s deployment identifier",
+    )
 
 
 class SignificantEvent(IopSe):
+
+    deployment = models.ForeignKey(
+        Deployment, 
+        on_delete=models.CASCADE, 
+        related_name='significant_events',
+        help_text="ADMG’s deployment identifier",
+    )
+    iop = models.ForeignKey(
+        IOP, 
+        on_delete=models.CASCADE, 
+        related_name='significant_events', 
+        null=True,
+        help_text="ADMG's IOP identifier, if this SE occurred within an IOP",
+    )
 
     reports = models.CharField(
         max_length=1024, 
@@ -803,14 +837,25 @@ class SignificantEvent(IopSe):
         help_text="DOI or URL for location of published info noting this Significant Event within the campaign",
     )
 
-    deployment = models.ForeignKey(Deployment, on_delete=models.CASCADE, related_name='significant_events')
-    iop = models.ForeignKey(IOP, on_delete=models.CASCADE, related_name='significant_events', null=True)
-
 
 class CollectionPeriod(BaseModel):
 
     deployment = models.ForeignKey(Deployment, on_delete=models.CASCADE, related_name='collection_periods')
     platform = models.ForeignKey(Platform, on_delete=models.CASCADE, related_name='collection_periods')
+
+    platform_identifier = models.CharField(
+        max_length=128, 
+        default='', 
+        blank=True,
+        help_text="Optional platform identifier, such as an aircraft tail number or vessel registration number, if available",
+    )
+    number_ventures = models.PositiveIntegerField(
+        null=True, 
+        blank=True,
+        verbose_name='Total Number of CDCPs',
+        help_text='Total number of Continuous Data Collection Periods (CDCPs) conducted by the platform during the deployment',
+    )
+    
     home_base = models.ForeignKey(
         HomeBase, 
         on_delete=models.CASCADE, 
@@ -819,13 +864,6 @@ class CollectionPeriod(BaseModel):
         null=True,
         help_text="ADMG’s identifying name for the platform.  *This should match one of the items in the “Platforms Active” element from Deployment Form.",
     )
-
-    platform_identifier = models.CharField(
-        max_length=128, 
-        default='', 
-        blank=True,
-        help_text="Optional platform identifier, such as an aircraft tail number or vessel registration number, if available",
-    )
     campaign_deployment_base = models.CharField(
         max_length=256, 
         default='', 
@@ -833,6 +871,7 @@ class CollectionPeriod(BaseModel):
         verbose_name="Deployment Base",
         help_text="Deployment base/operating location for the p platform during the field investigation/deployment",
     )
+
     platform_owner = models.CharField(
         max_length=256, 
         default='', 
@@ -845,18 +884,6 @@ class CollectionPeriod(BaseModel):
         blank=True,
         help_text="Name(s) of person/people leading the management, maintenance, integration, and/or operation of the platform",
     )
-    instrument_information_source = models.CharField(
-        max_length=1024, 
-        default='', 
-        blank=True,
-        verbose_name="Instrument Package Information Source",
-        help_text="DOI or URL for location of lists of instruments used on this platform for the deployment",
-    )
-    notes_internal = models.TextField(default='', blank=True)
-    notes_public = models.TextField(default='', blank=True)
-
-    number_ventures = models.PositiveIntegerField(null=True, blank=True)
-    auto_generated = models.BooleanField()
 
     instruments = models.ManyToManyField(
         Instrument, 
@@ -864,6 +891,26 @@ class CollectionPeriod(BaseModel):
         verbose_name="Instrument Package",
         help_text="ADMG’s Instrument Short Names for all sensors in the platform’s instrument package for this deployment",
     )
+    instrument_information_source = models.CharField(
+        max_length=1024, 
+        default='', 
+        blank=True,
+        verbose_name="Instrument Package Information Source",
+        help_text="DOI or URL for location of lists of instruments used on this platform for the deployment",
+    )
+
+    notes_internal = models.TextField(
+        default='', 
+        blank=True,
+        help_text="Free text notes for ADMG staff - not visible to public.",
+    )
+    notes_public = models.TextField(
+        default='', 
+        blank=True,
+        help_text="Free text notes on the deployment, this IS visible to public.",
+    )
+
+    auto_generated = models.BooleanField()
 
     def __str__(self):
         platform_id = f'({self.platform_identifier})' if self.platform_identifier else ''
