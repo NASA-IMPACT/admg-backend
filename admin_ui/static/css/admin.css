@@ -1,0 +1,57 @@
+/* Utils */
+.active {
+  font-weight: 700;
+}
+
+.inline-link {
+  text-decoration: underline;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+dt {
+  font-size: 80%;
+  text-transform: uppercase;
+  color: #6c757d;
+}
+
+/* Views */
+#sidebar .nav-link.collapsed .minus {
+  display: none;
+}
+
+#sidebar .nav-link:not(.collapsed) .plus {
+  display: none;
+}
+
+.campaign-summary li.list-group-item {
+  padding-bottom: 0;
+}
+
+.campaign-summary .list-group-item-primary, .campaign-summary .list-group-item-primary:hover {
+  color: inherit;
+}
+
+.campaign-summary .list-group-item-primary .row, .campaign-summary .list-group-item-primary .col {
+  border-color: #6c757d !important;
+}
+
+.campaign-summary .list-group-item-primary {
+  padding-left: 15px;
+  /* 21 - border-width */
+  border-left: 6px solid;
+}
+
+.campaign-summary dd {
+  margin-bottom: 1em;
+}
+
+.campaign-summary .caret {
+  display: none;
+}
+
+.campaign-summary .show-caret .caret {
+  display: inline;
+}

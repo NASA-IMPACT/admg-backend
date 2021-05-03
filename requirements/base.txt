@@ -1,24 +1,25 @@
 pytz==2019.1  # https://github.com/stub42/pytz
 python-slugify==3.0.2  # https://github.com/un33k/python-slugify
-Pillow==6.1.0  # https://github.com/python-pillow/Pillow
+Pillow==8.0.0  # https://github.com/python-pillow/Pillow
 argon2-cffi==20.1.0  # https://github.com/hynek/argon2_cffi
 redis==3.2.1  # https://github.com/antirez/redis
 
 # Django
 # ------------------------------------------------------------------------------
-django==2.2.3  # pyup: < 3.0  # https://www.djangoproject.com/
+django==3.1.3  # pyup: < 4.0  # https://www.djangoproject.com/
 django-environ==0.4.5  # https://github.com/joke2k/django-environ
 django-model-utils==3.2.0  # https://github.com/jazzband/django-model-utils
-django-allauth==0.39.1  # https://github.com/pennersr/django-allauth
-django-crispy-forms==1.7.2  # https://github.com/django-crispy-forms/django-crispy-forms
+django-allauth==0.43.0  # https://github.com/pennersr/django-allauth
+django-crispy-forms==1.9.1  # https://github.com/django-crispy-forms/django-crispy-forms
 django-redis==4.10.0  # https://github.com/niwinz/django-redis
+django-active-link==0.1.7 # https://django-active-link.readthedocs.io/en/latest/readme.html#quick-start
 
 # Django REST Framework
-djangorestframework==3.9.4  # https://github.com/encode/django-rest-framework
+djangorestframework==3.12.1  # https://github.com/encode/django-rest-framework
 coreapi==2.3.3  # https://github.com/core-api/python-client
 
 # Swagger API
-drf-yasg==1.17.1
+drf-yasg==1.20.0
 
 django-oauth-toolkit==1.3.0
 
@@ -28,3 +29,15 @@ django-cors-headers
 # AWS S3 Integration
 boto3==1.14.9
 botocore==1.17.9
+django-storages==1.11.1
+
+celery==5.0.5
+django-celery-results==2.0.1
+
+# current user logging
+django-crum==0.7.9
+
+# Tables
+django-tables2==2.3.4  # https://django-tables2.readthedocs.io/en/latest/
+django-filter==2.4.0  # https://django-filter.readthedocs.io/en/stable/
+django-sass==1.0.1

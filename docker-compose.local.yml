@@ -1,25 +1,55 @@
-version: '3.7'
+version: "3.7"
 
 services:
   web:
-    build: ./
-    command: python manage.py runserver 0.0.0.0:8000
+    build:
+      context: ./
+      dockerfile: Dockerfile.local
+    command: python manage.py runserver 0.0.0.0:8001
     volumes:
-      - ./:/usr/src/app/
+      - .:/code
     ports:
-      - 8000:8000
+      - 8001:8001 # mapped to 8001 to prevent clashes with local django instances
+      - 8890:8888 # allows use of django shell notebooks during local development
     env_file:
       - ./.env
     depends_on:
       - db
+
   db:
-    image: kartoza/postgis
+    image: postgis
     volumes:
-      - postgres_data:/var/lib/postgresql/data/
+      - postgres_data:/var/lib/postgresql/data
     environment:
-      - POSTGRES_USER=nimda
-      - POSTGRES_PASS=yourpasswordhere
-      - POSTGRES_DBNAME=admg_dev
+      - POSTGRES_USER=alukach
+      - POSTGRES_PASSWORD=lukach
+      - POSTGRES_DB=postgres
+
+  rabbitmq:
+    container_name: rabbitmq
+    hostname: rabbitmq
+    image: amd64/rabbitmq:latest
+    ports:
+      - "5672:5672"
+    restart: on-failure
+
+  celery_worker:
+    command: celery -A config worker -l info
+    container_name: celery_worker
+    hostname: celery_worker
+    build:
+      context: ./
+      dockerfile: Dockerfile.local
+    volumes:
+      - .:/code
+    restart: on-failure
+    env_file:
+      - ./.env
+    depends_on:
+      - web
+      - rabbitmq
 
 volumes:
   postgres_data:
+  static_volume:
+  media_volume:

@@ -6,15 +6,20 @@ from drf_yasg.views import get_schema_view
 from rest_framework import permissions
 
 from .views.change_view import (
-    ChangeApproveRejectView,
+    ApprovalLogListView,
+    ChangeSubmitView,
+    ChangeReviewView,
+    ChangePublishView,
+    ChangeRejectView,
+    ChangeClaimView,
+    ChangeUnclaimView,
     ChangeListView,
     ChangeListUpdateView,
-    ChangePushView,
-    APPROVE,
-    REJECT
+    ChangeValidationView,
 )
 from .views.generic_views import GenericCreateGetAllView, GenericPutPatchDeleteView
 from .views.image_view import ImageListCreateAPIView, ImageRetrieveDestroyAPIView
+from .views.validation_view import JsonValidationView
 
 
 info = openapi.Info(
@@ -33,8 +38,8 @@ schema_view = get_schema_view(
 
 urls = [
     "PlatformType",
-    "NasaMission",
-    "InstrumentType",
+    "MeasurementType",
+    "MeasurementStyle",
     "HomeBase",
     "FocusArea",
     "Season",
@@ -56,6 +61,9 @@ urls = [
     "IOP",
     "SignificantEvent",
     "CollectionPeriod",
+    "Website",
+    "WebsiteType",
+    "CampaignWebsite",
 ]
 
 urlpatterns = []
@@ -86,6 +94,11 @@ for url in urls:
 
 urlpatterns += [
     path(
+        "approval_log",
+        ApprovalLogListView.as_view(),
+        name="approval_log_list"
+    ),
+    path(
         "change_request",
         ChangeListView.as_view(),
         name="change_request_list"
@@ -96,30 +109,54 @@ urlpatterns += [
         name="change_request_list_update"
     ),
     path(
-        f"change_request/<str:uuid>/{APPROVE}",
-        ChangeApproveRejectView(APPROVE),
-        name="change_request_approve"
+        "change_request/<str:uuid>/validate",
+        ChangeValidationView.as_view(),
+        name="change_request_validate"
     ),
     path(
-        f"change_request/<str:uuid>/{REJECT}",
-        ChangeApproveRejectView(REJECT),
+        "change_request/<str:uuid>/submit",
+        ChangeSubmitView.as_view(),
+        name="change_request_submit"
+    ),
+    path(
+        "change_request/<str:uuid>/review",
+        ChangeReviewView.as_view(),
+        name="change_request_review"
+    ),
+    path(
+        "change_request/<str:uuid>/publish",
+        ChangePublishView.as_view(),
+        name="change_request_publish"
+    ),
+    path(
+        "change_request/<str:uuid>/reject",
+        ChangeRejectView.as_view(),
         name="change_request_reject"
     ),
     path(
-        f"change_request/<str:uuid>/push",
-        ChangePushView.as_view(),
-        name="change_request_push"
+        "change_request/<str:uuid>/claim",
+        ChangeClaimView.as_view(),
+        name="change_request_claim"
     ),
-
+    path(
+        "change_request/<str:uuid>/unclaim",
+        ChangeUnclaimView.as_view(),
+        name="change_request_unclaim"
+    ),
     path(
         "image",
         ImageListCreateAPIView.as_view(),
         name="image_list_create"
     ),
     path(
-        f"image/<str:uuid>",
+        "image/<str:uuid>",
         ImageRetrieveDestroyAPIView.as_view(),
         name="image_retrieve_destroy"
+    ),
+    path(
+        "validate_json",
+        JsonValidationView.as_view(),
+        name="validate_json"
     ),
     path(
         "docs/",

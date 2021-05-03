@@ -13,15 +13,16 @@
 
     - name: Install required system packages
       apt: name={{ item }} state=latest update_cache=yes
-      loop: [
-        'apt-transport-https',
-        'ca-certificates',
-        'curl',
-        'git',
-        'python3-pip',
-        'python3-setuptools',
-        'software-properties-common',
-      ]
+      loop:
+        [
+          "apt-transport-https",
+          "ca-certificates",
+          "curl",
+          "git",
+          "python3-pip",
+          "python3-setuptools",
+          "software-properties-common",
+        ]
 
     - name: Add Docker GPG apt Key
       apt_key:
@@ -42,11 +43,11 @@
 
     - name: Create ssh key on the server
       openssh_keypair:
-        owner: ubuntu 
-        path: /home/ubuntu/.ssh/id_rsa
+        owner: "{{ user }}"
+        path: "/home/{{ user }}/.ssh/id_rsa"
 
     - name: Link to the github
-      become_user: '{{ user }}'
+      become_user: "{{ user }}"
       git:
         accept_hostkey: yes
         repo: "{{ git_repo }}"
@@ -56,50 +57,57 @@
     - name: Tear down existing services
       docker_compose:
         project_src: "{{ project_src }}"
+        files: ["docker-compose.prod.yml"]
         state: absent
-  
+
+    # making sure we don't run out of space because of older images
+    - name: Prune everything (including non-dangling images)
+      docker_prune:
+        containers: yes
+        images: yes
+        images_filters:
+          dangling: false
+        networks: yes
+        builder_cache: yes
+
+    # Building and starting services
     - name: Create and start services
       docker_compose:
         project_src: "{{ project_src }}"
+        files: ["docker-compose.prod.yml"]
+        build: yes
       register: output
-  
+
     - debug:
         var: output
-  
-    - name: Run `docker-compose up` again
-      docker_compose:
-        project_src: "{{ project_src }}"
-        build: no
-      register: output
-  
-    - debug:
-        var: output
-  
+
     - name: Stop all services
       docker_compose:
         project_src: "{{ project_src }}"
+        files: ["docker-compose.prod.yml"]
         build: no
         stopped: yes
       register: output
-  
+
     - debug:
         var: output
-  
+
     - assert:
         that:
           - "not web.admg_webapp_web_1.state.running"
           - "'not nginx-proxy.nginx-proxy.state.running'"
-  
+
     - name: Restart services
       docker_compose:
         project_src: "{{ project_src }}"
+        files: ["docker-compose.prod.yml"]
         build: no
         restarted: yes
       register: output
-  
+
     - debug:
         var: output
-  
+
     - assert:
         that:
           - "web.admg_webapp_web_1.state.running"

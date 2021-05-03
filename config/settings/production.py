@@ -78,10 +78,6 @@ ADMIN_URL = env("DJANGO_ADMIN_URL")
 # ------------------------------------------------------------------------------
 # https://anymail.readthedocs.io/en/stable/installation/#installing-anymail
 
-# Collectfast
-# ------------------------------------------------------------------------------
-# https://github.com/antonagestam/collectfast#installation
-INSTALLED_APPS = ["collectfast"] + INSTALLED_APPS  # noqa F405
 AWS_PRELOAD_METADATA = True
 
 # LOGGING
@@ -140,3 +136,13 @@ AWS_ACCESS_KEY_ID = None
 AWS_SECRET_ACCESS_KEY = None
 
 AWS_DEFAULT_ACL = None
+
+
+# Github Configuration (for deployment)
+GITHUB_WORKFLOW = {
+    "repo": "developmentseed/admg-inventory",
+    "id": "deploy.yml",  # Name of workflow file
+    "name": "Deploy",  # Name of workflow
+    "token": env("GH_TOKEN"),
+    "branch": "manual-deploy-support",  # Branch to be deployed
+}

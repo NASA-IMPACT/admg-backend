@@ -47,7 +47,7 @@ DATABASES = {
         "ENGINE": env("DB_ENGINE"),
         "NAME": env("DB_NAME"),
         "USER": env("DB_USER"),
-        "PASSWORD": env("DB_PASSWORD"),
+        "PASSWORD": env("DB_PASSWORD", default=None),
         "HOST": env("DB_HOST"),
         "PORT": env("DB_PORT"),
     }
@@ -71,21 +71,26 @@ DJANGO_APPS = [
     "django.contrib.sites",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    # "django.contrib.humanize", # Handy template tags
+    "django.contrib.humanize",  # Handy template tags
+    "admin_ui",  # Must be before django.contrib.admin
     "django.contrib.admin",
     "django.contrib.gis",  # add this line
+    "active_link",  # for formating navigation links
 ]
 
 THIRD_PARTY_APPS = [
-    "corsheaders",
-    "crispy_forms",
-    "allauth",
     "allauth.account",
     "allauth.socialaccount",
-    "rest_framework",
-    "rest_framework.authtoken",
+    "allauth",
+    "corsheaders",
+    "crispy_forms",
+    "django_celery_results",
+    "django_sass",
+    "django_tables2",
     "drf_yasg",
     "oauth2_provider",
+    "rest_framework.authtoken",
+    "rest_framework",
     "storages",
 ]
 
@@ -93,6 +98,7 @@ LOCAL_APPS = [
     "admg_webapp.users.apps.UsersConfig",
     "data_models.apps.DataModelsConfig",
     "api_app",
+    "cmr",
     # Your stuff: custom apps go here
 ]
 
@@ -151,6 +157,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "crum.CurrentRequestUserMiddleware",
 ]
 
 # STATIC
@@ -206,6 +213,9 @@ TEMPLATES = [
 ]
 # http://django-crispy-forms.readthedocs.io/en/latest/install.html#template-packs
 CRISPY_TEMPLATE_PACK = "bootstrap4"
+
+# https://django-tables2.readthedocs.io/en/latest/pages/custom-rendering.html?highlight=DJANGO_TABLES2_TEMPLATE#available-templates
+DJANGO_TABLES2_TEMPLATE = "django_tables2/bootstrap4.html"
 
 # FIXTURES
 # ------------------------------------------------------------------------------
@@ -265,10 +275,36 @@ LOGGING = {
     "root": {"level": "INFO", "handlers": ["console"]},
 }
 
+# Celery
+# ------------------------------------------------------------------------------
+if USE_TZ:
+    # http://docs.celeryproject.org/en/latest/userguide/configuration.html#std:setting-timezone
+    CELERY_TIMEZONE = TIME_ZONE
+# http://docs.celeryproject.org/en/latest/userguide/configuration.html#std:setting-broker_url
+# CELERY_BROKER_URL = 'pyamqp://rabbitmq:5672'
+CELERY_BROKER_URL = env(
+    "CELERY_BROKER_URL", default="amqp://guest:guest@rabbitmq:5672/"
+)
+# http://docs.celeryproject.org/en/latest/userguide/configuration.html#std:setting-result_backend
+CELERY_RESULT_BACKEND = "django-db"
+# http://docs.celeryproject.org/en/latest/userguide/configuration.html#std:setting-accept_content
+CELERY_ACCEPT_CONTENT = ["json"]
+# http://docs.celeryproject.org/en/latest/userguide/configuration.html#std:setting-task_serializer
+CELERY_TASK_SERIALIZER = "json"
+# http://docs.celeryproject.org/en/latest/userguide/configuration.html#std:setting-result_serializer
+CELERY_RESULT_SERIALIZER = "json"
+# http://docs.celeryproject.org/en/latest/userguide/configuration.html#task-time-limit
+# TODO: set to whatever value is adequate in your circumstances
+CELERY_TASK_TIME_LIMIT = 3600
+# http://docs.celeryproject.org/en/latest/userguide/configuration.html#task-soft-time-limit
+# TODO: set to whatever value is adequate in your circumstances
+CELERY_TASK_SOFT_TIME_LIMIT = 3600
+# http://docs.celeryproject.org/en/latest/userguide/configuration.html#beat-scheduler
+CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
 
 # django-allauth
 # ------------------------------------------------------------------------------
-ACCOUNT_ALLOW_REGISTRATION = env.bool("DJANGO_ACCOUNT_ALLOW_REGISTRATION", True)
+ACCOUNT_ALLOW_REGISTRATION = env.bool("DJANGO_ACCOUNT_ALLOW_REGISTRATION", False)
 # https://django-allauth.readthedocs.io/en/latest/configuration.html
 ACCOUNT_AUTHENTICATION_METHOD = "username"
 # https://django-allauth.readthedocs.io/en/latest/configuration.html
@@ -285,44 +321,44 @@ SOCIALACCOUNT_ADAPTER = "admg_webapp.users.adapters.SocialAccountAdapter"
 # ------------------------------------------------------------------------------
 
 REST_FRAMEWORK = {
-    'DEFAULT_RENDERER_CLASSES': [
-        'rest_framework.renderers.JSONRenderer',
+    "DEFAULT_RENDERER_CLASSES": [
+        "rest_framework.renderers.JSONRenderer",
     ],
-    'DEFAULT_PARSER_CLASSES': [
-        'rest_framework.parsers.JSONParser',
-        'rest_framework.parsers.MultiPartParser',
+    "DEFAULT_PARSER_CLASSES": [
+        "rest_framework.parsers.JSONParser",
+        "rest_framework.parsers.MultiPartParser",
     ],
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticated',
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.IsAuthenticated",
     ],
-    'DEFAULT_AUTHENTICATION_CLASSES': [
-        'oauth2_provider.contrib.rest_framework.OAuth2Authentication',
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "oauth2_provider.contrib.rest_framework.OAuth2Authentication",
     ],
 }
 
 SWAGGER_SETTINGS = {
-    'JSON_EDITOR': True,
-    'DEFAULT_INFO': 'api_app.urls.info',
-    'SUPPORTED_SUBMIT_METHODS': ['get', 'post', 'put', 'delete', 'patch'],
-    'DEFAULT_AUTO_SCHEMA_CLASS': 'api_app.utils.XcodeAutoSchema',
-    'SECURITY_DEFINITIONS': {
+    "JSON_EDITOR": True,
+    "DEFAULT_INFO": "api_app.urls.info",
+    "SUPPORTED_SUBMIT_METHODS": ["get", "post", "put", "delete", "patch"],
+    "DEFAULT_AUTO_SCHEMA_CLASS": "api_app.utils.XcodeAutoSchema",
+    "SECURITY_DEFINITIONS": {
         # TODO: does not work right now. Need to make it work
-        'ADMG API - Swagger': {
-            'type': 'oauth2',
-            'authorizationUrl': '/authenticate/authorize',
-            'tokenUrl': '/authenticate/token/',
-            'flow': 'accessCode',
-            'scopes': {
-                'read:groups': 'read groups',
+        "ADMG API - Swagger": {
+            "type": "oauth2",
+            "authorizationUrl": "/authenticate/authorize",
+            "tokenUrl": "/authenticate/token/",
+            "flow": "accessCode",
+            "scopes": {
+                "read:groups": "read groups",
             },
         }
     },
 }
 
 OAUTH2_PROVIDER = {
-    'SCOPES': {
-        'read': 'Read scope',
-        'write': 'Write scope',
+    "SCOPES": {
+        "read": "Read scope",
+        "write": "Write scope",
     }
 }
 

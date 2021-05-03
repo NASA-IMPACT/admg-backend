@@ -1,18 +1,16 @@
 from django.conf import settings
 from django.urls import include, path
 from django.conf.urls.static import static
-from django.contrib import admin
 from django.views.generic import TemplateView
 from django.views import defaults as default_views
 from api_app.utils import CustomTokenView
 
 urlpatterns = [
-    path("", TemplateView.as_view(template_name="pages/home.html"), name="home"),
+    # Admin
+    path("", include('admin_ui.urls')),
     path(
         "about/", TemplateView.as_view(template_name="pages/about.html"), name="about"
     ),
-    # Django Admin, use {% url 'admin:index' %}
-    path(settings.ADMIN_URL, admin.site.urls),
     # User management
     path("users/", include("admg_webapp.users.urls", namespace="users")),
     path("accounts/", include("allauth.urls")),

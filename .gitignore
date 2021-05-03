@@ -68,6 +68,7 @@ target/
 .venv
 venv/
 ENV/
+env/
 
 # Rope project settings
 .ropeproject
@@ -261,10 +262,6 @@ Session.vim
 # Temporary
 .netrwhist
 
-# Auto-generated tag files
-tags
-
-
 ### VirtualEnv template
 # Virtualenv
 admg_env*
@@ -281,7 +278,15 @@ pip-selfcheck.json
 ### Project template
 
 admg_webapp/media/
+cmr/config.py
 
 .pytest_cache/
 .ipynb_checkpoints/
-hosts
+*.xlsx
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.sql
+hosts/*
+!hosts/*.sample
