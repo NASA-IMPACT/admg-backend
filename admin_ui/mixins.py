@@ -9,7 +9,7 @@ from django.db import models
 from django.db.models.fields.related import ForeignKey
 from django.db.models import DateField, BooleanField
 from django.db.models.query import QuerySet
-from django.forms import modelform_factory, RadioSelect
+from django.forms import modelform_factory
 from django.views.generic.edit import ModelFormMixin
 
 from .fields import ChangeChoiceField, BboxField, CustomDateField
@@ -35,13 +35,11 @@ def formfield_callback(f, **kwargs):
             "form_class": CustomDateField,
         }
     if isinstance(f, BooleanField):
-        # TODO comment
+        # Adding choices assigns a "yes/no" option and creates a dropdown widget
         f.choices = ((True, 'Yes'), (False, 'No'))
         kwargs = {
             **kwargs,
-            # "form_class": RadioBooleanField,
         }
-
     return f.formfield(**kwargs)
 
 
@@ -84,14 +82,13 @@ class ChangeModelFormMixin(ModelFormMixin):
 
     @staticmethod
     def get_verbose_names(model_type) -> Dict:
-        # TODO capitalize
         return {
-                'short_name': model_type._meta.model_name + ' Short Name', 
-                'long_name': model_type._meta.model_name + ' Long Name',
+                'short_name': ' '.join([model_type._meta.model_name.capitalize(), ' Short Name']), 
+                'long_name': ' '.join([model_type._meta.model_name.capitalize(), ' Long Name']),
             }
     
     @staticmethod
-    def get_help_texts(model_type) -> Dict:
+    def get_help_texts(model_type) -> Dict[str, str]:
         if model_type == models.Campaign:
             return {
                 'short_name':'Abbreviation for field investigation name (typically an acronym)',
@@ -120,8 +117,7 @@ class ChangeModelFormMixin(ModelFormMixin):
             return {}
 
     @staticmethod
-    def get_ordering(model_type) -> List:
-    # TODO specify string type
+    def get_ordering(model_type) -> List[str]:
         if model_type == models.Deployment:
             return ['campaign',]
         else:
