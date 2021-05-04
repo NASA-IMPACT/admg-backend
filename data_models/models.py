@@ -422,8 +422,7 @@ class Campaign(DataModel):
     ongoing = models.BooleanField(verbose_name='Is this field investigation currently ongoing?')
     nasa_led = models.BooleanField(verbose_name='Is this a NASA-led field investigation?')
 
-    platform_types = models.ManyToManyField(PlatformType, related_name='campaigns') 
-    number_collection_periods = models.PositiveIntegerField()
+    platform_types = models.ManyToManyField(PlatformType, related_name='campaigns')
 
     partner_orgs = models.ManyToManyField(
         PartnerOrg, 
