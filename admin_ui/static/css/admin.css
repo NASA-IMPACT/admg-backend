@@ -18,6 +18,7 @@
 
 select.selectmultiple {
   overflow-x: auto;
+  resize: auto;
 }
 
 dt {
