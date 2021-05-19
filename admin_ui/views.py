@@ -522,6 +522,27 @@ class PartnerOrgListView(SingleTableMixin, FilterView):
             "model": PartnerOrg._meta.model_name,
         }
 
+@method_decorator(login_required, name="dispatch")
+class WebsiteListView(SingleTableMixin, FilterView):
+    model = Change
+    template_name = "api_app/change_list.html"
+    table_class = tables.WebsiteChangeListTable
+    filterset_class = filters.ChangeStatusFilter
+
+    def get_queryset(self):
+        return (
+            Change.objects.of_type(Website)
+            .filter(action=CREATE)
+            .add_updated_at()
+        )
+
+    def get_context_data(self, **kwargs):
+        return {
+            **super().get_context_data(**kwargs),
+            "display_name": "Website",
+            "model": Website._meta.model_name,
+        }
+
 
 @method_decorator(user_passes_test(lambda user: user.is_admg_admin()), name="dispatch")
 class LimitedFieldGCMDListView(SingleTableMixin, FilterView):
