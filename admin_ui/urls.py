@@ -39,6 +39,11 @@ urlpatterns = [
         name="website-list",
     ),
     path(
+        "aliases",
+        views.AliasListView.as_view(),
+        name="alias-list",
+    ),
+    path(
         "drafts/add/<str:model>", views.ChangeCreateView.as_view(), name="mi-change-add"
     ),
     path(

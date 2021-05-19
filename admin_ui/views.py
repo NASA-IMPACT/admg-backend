@@ -42,6 +42,7 @@ from cmr import tasks
 from data_models.models import (
     Alias,
     Campaign,
+    CampaignWebsite,
     CollectionPeriod,
     Deployment,
     DOI,
@@ -530,8 +531,10 @@ class WebsiteListView(SingleTableMixin, FilterView):
     filterset_class = filters.ChangeStatusFilter
 
     def get_queryset(self):
+        # self.kwargs["uuid"]
+        campaign_uuid = ''
         return (
-            Change.objects.of_type(Website)
+            Change.objects.of_type(CampaignWebsite)
             .filter(action=CREATE)
             .add_updated_at()
         )
@@ -541,6 +544,27 @@ class WebsiteListView(SingleTableMixin, FilterView):
             **super().get_context_data(**kwargs),
             "display_name": "Website",
             "model": Website._meta.model_name,
+        }
+
+@method_decorator(login_required, name="dispatch")
+class AliasListView(SingleTableMixin, FilterView):
+    model = Change
+    template_name = "api_app/change_list.html"
+    table_class = tables.AliasChangeListTable
+    filterset_class = filters.ChangeStatusFilter
+
+    def get_queryset(self):
+        return (
+            Change.objects.of_type(Alias)
+            .filter(action=CREATE)
+            .add_updated_at()
+        )
+
+    def get_context_data(self, **kwargs):
+        return {
+            **super().get_context_data(**kwargs),
+            "display_name": "Alias",
+            "model": Alias._meta.model_name,
         }
 
 

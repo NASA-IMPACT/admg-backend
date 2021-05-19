@@ -123,3 +123,24 @@ class WebsiteChangeListTable(tables.Table):
             "th": {"style": "min-width: 10em"},
         }
         fields = ["title", "url", "website_type", "status", "updated_at"]
+
+
+class AliasChangeListTable(tables.Table):
+    short_name = tables.Column(
+        linkify=("mi-change-update", [A("uuid")]),
+        verbose_name="Short Name", 
+        accessor="update__short_name"
+    )
+    # TODO replace model_type which short_name of related object
+    model_type = tables.Column(verbose_name="Item Type", accessor="update__model_name")
+    status = tables.Column(verbose_name="Status", accessor="status")
+    updated_at = tables.DateTimeColumn(verbose_name="Last Edit Date")
+
+    class Meta:
+        model = Change
+        attrs = {
+            "class": "table table-striped",
+            "thead": {"class": "table-primary"},
+            "th": {"style": "min-width: 10em"},
+        }
+        fields = ["short_name", "model_type", "status", "updated_at"]
