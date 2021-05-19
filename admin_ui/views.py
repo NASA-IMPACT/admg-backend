@@ -534,7 +534,7 @@ class WebsiteListView(SingleTableMixin, FilterView):
         # self.kwargs["uuid"]
         campaign_uuid = ''
         return (
-            Change.objects.of_type(CampaignWebsite)
+            Change.objects.of_type(Website)
             .filter(action=CREATE)
             .add_updated_at()
         )
@@ -546,6 +546,29 @@ class WebsiteListView(SingleTableMixin, FilterView):
             "model": Website._meta.model_name,
         }
 
+@method_decorator(login_required, name="dispatch")
+class CampaignWebsiteListView(SingleTableMixin, FilterView):
+    model = Change
+    template_name = "api_app/change_list.html"
+    table_class = tables.WebsiteChangeListTable
+    filterset_class = filters.ChangeStatusFilter
+
+    def get_queryset(self):
+        # self.kwargs["uuid"]
+        campaign_uuid = ''
+        return (
+            Change.objects.of_type(CampaignWebsite)
+            .filter(action=CREATE)
+            .add_updated_at()
+        )
+
+    def get_context_data(self, **kwargs):
+        return {
+            **super().get_context_data(**kwargs),
+            "display_name": "Campaign Website",
+            "model": CampaignWebsite._meta.model_name,
+        }
+ 
 @method_decorator(login_required, name="dispatch")
 class AliasListView(SingleTableMixin, FilterView):
     model = Change

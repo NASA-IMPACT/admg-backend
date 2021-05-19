@@ -3,6 +3,7 @@
 {% load active_link_tags %}
 {% block extrahead %}
 <link href="{% static 'css/admin.css' %}" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 {% endblock %}
 {% block content %}
 <div id="sidebar" class="row align-items-start">
@@ -69,4 +70,9 @@
     {% endblock page %}
   </div>
 </div>
+{% endblock %}
+
+{% block javascript %}
+  {{ block.super }}
+  <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 {% endblock %}
