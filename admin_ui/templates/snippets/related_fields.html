@@ -1,18 +1,27 @@
 {% load humanize %}
 <div class="card">
+  <small>Click each item to edit.</small>
   <ul class="list-group list-group-flush">
     
-    {% for key, value in related_fields.items %}
+    {% for key, values in related_fields.items %}
     <li class="list-group-item">
-      <h5>{{ key }}<small>(View All)</small></h5>
-      {% for object in value %}
-        <a>Add New</a>
-        <p>{{ object }}</p>
+      <h5>{{ key }}</h5>
+      {% comment %} {% with values|first as v %}{{ v.content_type.model }}{% endwith %} {% endcomment %}
+      {% comment %} TODO get 'website' to be promgramtically determined {% endcomment %}
+      <a class="btn-sm btn-primary" href="{% url 'mi-change-add' "alias" %}">
+        Add New +
+      </a>
+      <ul>
+      {% for object in values %}
+        <li><a href="{% url 'mi-change-update' object.uuid %}" class="btn btn-outline-secondary ml-3">
+        {% if object.content_type.model == 'website' %}
+        {{ object.update.title }}
+        {% else %}
+        {{ object }}
+        {% endif %}
+        </a></li>
         {% endfor %}
-      {% comment %} <a class="btn btn-primary" href="{% url 'mi-change-add' 'deployment' %}?campaign={{ object.uuid }}">+</a> {% endcomment %}
-        {% comment %} <a href="{% url 'mi-change-update' object.uuid %}" class="btn btn-outline-secondary ml-3">
-      Edit Entry
-        </a> {% endcomment %}
+      </ul>
     </li>
     {% endfor %}
     </ul>

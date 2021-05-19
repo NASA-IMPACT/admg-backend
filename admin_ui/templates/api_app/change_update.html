@@ -16,7 +16,11 @@
         {% endspaceless %}">
       &larr; Back
     </a>
+    {% if object.content_type.model == 'website' %}
+    <h1>{{ object.update.title | default:object.uuid }}</h1>
+    {% else %}
     <h1>{{ object.update.short_name | default:object.uuid }}</h1>
+    {% endif %}
   </div>
 {% endblock header %}
 
