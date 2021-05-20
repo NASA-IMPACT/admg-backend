@@ -3,8 +3,8 @@
 
 {% block extrahead %}
   {{ block.super }}
-  {{ form.media }}
-  {{ model_form.media }}
+  {{ form.media.css }}
+  {{ model_form.media.css }}
 {% endblock %}
 
 {% block page %}
@@ -29,3 +29,9 @@
   </div>
 
 {% endblock page %}
+
+{% block javascript %}
+  {{ block.super }}
+  {{ form.media.js }}
+  {{ model_form.media.js }}
+{% endblock %}
