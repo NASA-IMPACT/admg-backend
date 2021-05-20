@@ -132,11 +132,11 @@ class DoiFormSet(forms.formset_factory(DoiForm, extra=0)):
             "campaigns": ChangeMultipleChoiceField.get_queryset_for_model(
                 data_models.Campaign
             ),
-            "instruments": ChangeMultipleChoiceField.get_queryset_for_model(
-                data_models.Instrument
-            ),
             "platforms": ChangeMultipleChoiceField.get_queryset_for_model(
                 data_models.Platform
+            ),
+            "instruments": ChangeMultipleChoiceField.get_queryset_for_model(
+                data_models.Instrument
             ),
             "collection_periods": ChangeMultipleChoiceField.get_queryset_for_model(
                 data_models.CollectionPeriod
