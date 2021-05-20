@@ -1,5 +1,6 @@
 {% extends "api_app/base.html" %}
 {% load crispy_forms_tags static %}
+{% load bsmodal %}
 
 {% block extrahead %}
   {{ block.super }}
@@ -8,25 +9,29 @@
 {% endblock %}
 
 {% block page %}
-  <header class="mx-3 my-4 py-3 sticky-top bg-white border-bottom">
-    <div class="row align-items-center">
-      {% block header %}{% endblock header %}
-    </div>
-    
-    <div class="row">
-      {% block object_details %}{% endblock object_details %}
-
-      <div class="col d-flex flex-row-reverse">
-       {% block actions %}{% endblock actions %}
-      </div>
-    </div>
-  </header>
-
-  {% block tabs %}{% endblock tabs %}
-
-  <div class="row mx-3">
-    {% block main %}{% endblock main %}
+<header class="mx-3 my-4 py-3 sticky-top bg-white border-bottom">
+  <div class="row align-items-center">
+    {% block header %}{% endblock header %}
   </div>
+
+  <div class="row">
+    {% block object_details %}{% endblock object_details %}
+
+    <div class="col d-flex flex-row-reverse">
+      {% block actions %}{% endblock actions %}
+    </div>
+  </div>
+</header>
+
+{% block tabs %}{% endblock tabs %}
+
+<div class="row mx-3">
+  {% block main %}{% endblock main %}
+  {% bsmodal '??' 'add-related-modal' close_title_button=Yes %}
+    {# modal body will be filled in by jQuery.load(<new_object_url>) return value #}
+    ??
+  {% endbsmodal %}
+</div>
 
 {% endblock page %}
 
