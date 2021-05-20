@@ -7,9 +7,9 @@ from django.contrib.gis.geos import Polygon
 from django.contrib.gis.db.models.fields import PolygonField
 from django.db import models
 from django.db.models.fields.related import ForeignKey
-from django.db.models import DateField, BooleanField
+from django.db.models import DateField, BooleanField, UUIDField
 from django.db.models.query import QuerySet
-from django.forms import modelform_factory
+from django.forms import modelform_factory, HiddenInput
 from django.views.generic.edit import ModelFormMixin
 
 from .fields import ChangeChoiceField, BboxField, CustomDateField
@@ -19,12 +19,22 @@ from data_models import models
 def formfield_callback(f, **kwargs):
     # Use ChangeChoiceField for any ForeignKey field in the model class
     if isinstance(f, ForeignKey):
-        if not f.remote_field.model == ContentType: 
+        if f.remote_field.model == ContentType:
+            kwargs = {
+                **kwargs,
+                "widget": HiddenInput()
+            } 
+        else:
             kwargs = {
                 **kwargs,
                 "form_class": partial(ChangeChoiceField, dest_model=f.remote_field.model),
                 "queryset": ChangeChoiceField.get_queryset_for_model(f.remote_field.model),
             }
+    if isinstance(f, UUIDField):
+        kwargs = {
+                **kwargs,
+                "widget": HiddenInput()
+        } 
     if isinstance(f, PolygonField):
         kwargs = {
             **kwargs,
@@ -38,9 +48,6 @@ def formfield_callback(f, **kwargs):
     if isinstance(f, BooleanField):
         # Adding choices assigns a "yes/no" option and creates a dropdown widget
         f.choices = ((True, 'Yes'), (False, 'No'))
-        kwargs = {
-            **kwargs,
-        }
     return f.formfield(**kwargs)
 
 
