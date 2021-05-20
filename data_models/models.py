@@ -228,8 +228,7 @@ class GcmdProject(BaseModel):
     gcmd_uuid = models.UUIDField(unique=True)
 
     def __str__(self):
-        categories =  [self.bucket, self.long_name, self.short_name]
-        return create_gcmd_str(categories)
+        return self.short_name or self.long_name or self.bucket
 
     class Meta():
         ordering = ('short_name', )
@@ -262,7 +261,8 @@ class GcmdPlatform(BaseModel):
     gcmd_uuid = models.UUIDField(unique=True)
 
     def __str__(self):
-        return self.short_name or self.long_name or self.category
+        categories =  [self.bucket, self.long_name, self.short_name]
+        return create_gcmd_str(categories)
 
     class Meta():
         ordering = ('short_name', )
