@@ -5,7 +5,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.gis.db.models.fields import PolygonField
 from django.db import models
 from django.db.models import DateField
-from django.forms import modelform_factory
+from django.forms import modelform_factory, FileField
 from django.views.generic.edit import ModelFormMixin
 from django.urls import reverse_lazy
 
