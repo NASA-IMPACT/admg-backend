@@ -82,7 +82,7 @@ class ImagePreviewWidget(forms.widgets.FileInput):
         value = Image(image=value).image if isinstance(value, str) else value
         input_html = super().render(name, value, attrs=None, **kwargs)
         if value:
-            img_html = mark_safe(f'<img src="{value.url}"/>')
-            return f"{input_html}{img_html}"
+            img_html = mark_safe(f'<img class="img-thumbnail" src="{value.url}"/>')
+            return f"{img_html}{input_html}"
         else:
             return input_html
