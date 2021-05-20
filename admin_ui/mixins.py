@@ -10,18 +10,34 @@ from django.db.models import DateField
 from django.db.models.query import QuerySet
 from django.forms import modelform_factory
 from django.views.generic.edit import ModelFormMixin
+from django.urls import reverse_lazy
 
 from .fields import ChangeChoiceField, BboxField, CustomDateField
+
+from popupcrud.widgets import RelatedFieldPopupFormWidget
 
 
 def formfield_callback(f, **kwargs):
     # Use ChangeChoiceField for any ForeignKey field in the model class
     if isinstance(f, ForeignKey):
-        kwargs = {
-            **kwargs,
-            "form_class": partial(ChangeChoiceField, dest_model=f.remote_field.model),
-            "queryset": ChangeChoiceField.get_queryset_for_model(f.remote_field.model),
-        }
+        if f.remote_field.model != ContentType:
+            kwargs = {
+                **kwargs,
+                # Render link to load popup for creating new record
+                "widget": RelatedFieldPopupFormWidget(
+                    widget=f.formfield().widget,
+                    new_url=reverse_lazy(
+                        "mi-change-addform",
+                        kwargs={"model": f.remote_field.model._meta.model_name},
+                    ),
+                ),
+                "form_class": partial(
+                    ChangeChoiceField, dest_model=f.remote_field.model
+                ),
+                "queryset": ChangeChoiceField.get_queryset_for_model(
+                    f.remote_field.model
+                ),
+            }
     if isinstance(f, PolygonField):
         kwargs = {
             **kwargs,

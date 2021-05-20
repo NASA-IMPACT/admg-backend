@@ -37,6 +37,14 @@ urlpatterns = [
         "drafts/add/<str:model>", views.ChangeCreateView.as_view(), name="mi-change-add"
     ),
     path(
+        "drafts/add-form/<str:model>",
+        views.ChangeCreateFormView.as_view(),
+        name="mi-change-addform",
+    ),
+    path(
+        "drafts/add/<str:model>", views.ChangeCreateView.as_view(), name="mi-change-add"
+    ),
+    path(
         "drafts/edit/<uuid:pk>",
         views.ChangeUpdateView.as_view(),
         name="mi-change-update",
