@@ -20,28 +20,33 @@ def formfield_callback(f, **kwargs):
         if f.remote_field.model != ContentType:
             kwargs.update(
                 {
-                # Render link to load popup for creating new record
-                "widget": RelatedFieldPopupFormWidget(
-                    widget=f.formfield().widget,
-                    new_url=reverse_lazy(
-                        "mi-change-addform",
-                        kwargs={"model": f.remote_field.model._meta.model_name},
+                    # Render link to load popup for creating new record
+                    "widget": RelatedFieldPopupFormWidget(
+                        widget=f.formfield().widget,
+                        new_url=reverse_lazy(
+                            "mi-change-addform",
+                            kwargs={"model": f.remote_field.model._meta.model_name},
+                        ),
                     ),
-                ),
-                "form_class": partial(
+                    "form_class": partial(
                         fields.ChangeChoiceField, dest_model=f.remote_field.model
-                ),
+                    ),
                     "queryset": fields.ChangeChoiceField.get_queryset_for_model(
-                    f.remote_field.model
-                ),
-            }
+                        f.remote_field.model
+                    ),
+                }
             )
-        }
+    elif isinstance(f, models.ImageField):
+        kwargs.update(
+            {
+                "widget": widgets.ImagePreviewWidget,
+            }
+        )
     elif isinstance(f, PolygonField):
         kwargs.update(
             {
                 "form_class": fields.BboxField,
-        }
+            }
         )
     elif isinstance(f, DateField):
         kwargs.update(

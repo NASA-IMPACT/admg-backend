@@ -9,8 +9,10 @@ from django.contrib.gis.gdal import SpatialReference, CoordTransform
 from django.contrib.gis.gdal.error import GDALException
 from django.contrib.gis.geos import GEOSException, GEOSGeometry
 from django.utils import translation
+from django.utils.safestring import mark_safe
 
 from data_models.serializers import get_geojson_from_bb
+from data_models.models import Image
 
 logger = logging.getLogger(__name__)
 
@@ -73,3 +75,14 @@ class IconBoolean(forms.CheckboxInput):
             # False values must be explicitely sent from browser.
             return None
         return super().value_from_datadict(data, files, name)
+
+
+class ImagePreviewWidget(forms.widgets.FileInput):
+    def render(self, name, value, attrs=None, **kwargs):
+        value = Image(image=value).image if isinstance(value, str) else value
+        input_html = super().render(name, value, attrs=None, **kwargs)
+        if value:
+            img_html = mark_safe(f'<img src="{value.url}"/>')
+            return f"{input_html}{img_html}"
+        else:
+            return input_html
