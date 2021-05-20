@@ -1,14 +1,5 @@
 <div class="icon-radio">
   <div id="{{ widget.attrs.id }}" class="btn-group btn-group-toggle" data-toggle="buttons">
-    <label class="btn btn-primary mx-1">
-      <input 
-        type="radio" 
-        name="{{ widget.name }}" 
-        autocomplete="off"
-        value="false"
-      /> 
-      <i class="bi bi-trash-fill"></i>
-    </label>
     <label class="btn btn-primary mx-1 {% if widget.attrs.checked %}active{% endif %}">
       <input 
         type="radio" 
@@ -18,6 +9,15 @@
         {% if widget.attrs.checked %}checked{% endif %}
       /> 
       <i class="bi bi-check2"></i>
+    </label>
+    <label class="btn btn-primary mx-1">
+      <input 
+        type="radio" 
+        name="{{ widget.name }}" 
+        autocomplete="off"
+        value="false"
+      /> 
+      <i class="bi bi-trash-fill"></i>
     </label>
     {{ widget.errors }}
   </div>
