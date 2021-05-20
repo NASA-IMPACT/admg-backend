@@ -443,7 +443,7 @@ class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
     def get_related_fields(self) -> Dict:
         related_fields = {}
         content_type = self.get_model_form_content_type().model_class().__name__
-        if content_type in ['Campaign', 'Platform', 'Deployment', 'Insrument', 'PartnerOrg']:
+        if content_type in ['Campaign', 'Platform', 'Deployment', 'Instrument', 'PartnerOrg']:
             related_fields['alias'] = (
                 Change.objects.of_type(Alias)
                 .filter(update__object_id=str(self.object.uuid))
