@@ -32,16 +32,7 @@
 {% endblock actions %}
 
 {% block main %}
-  <main class="col-8">
-    {{ form.errors }}
-    <table class="table table-responsive">
-      <form method="post" id="model-form">
-        {% csrf_token %}
-        {% for field in form %} {{ field.as_hidden }} {% endfor %}
-        {{ model_form | crispy }}
-      </form>
-    </table>
-  </main>
+  {% include "api_app/change_form.html" with class="col-8" %}
 
   {# Sidebar #}
   <aside class="col-sm-4">
