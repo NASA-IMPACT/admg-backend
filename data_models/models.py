@@ -181,7 +181,7 @@ class Alias(BaseModel):
     object_id = models.UUIDField()
     parent_fk = GenericForeignKey('content_type', 'object_id')
 
-    model_name = models.CharField(max_length=64, blank=False)
+    # model_name = models.CharField(max_length=64, blank=False)
     short_name = models.CharField(max_length=512, blank=False)
     source = models.TextField(blank=True, default='')
 
@@ -194,6 +194,10 @@ class Alias(BaseModel):
 
     class Meta:
         verbose_name_plural='Aliases'
+
+    @property
+    def model_name(self):
+        return self.content_type.model_class
 
 
 class PartnerOrg(LimitedInfoPriority):

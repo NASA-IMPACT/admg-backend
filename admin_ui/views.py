@@ -444,10 +444,21 @@ class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
         related_fields = {}
         content_type = self.get_model_form_content_type().model_class().__name__
         if content_type in ['Campaign', 'Platform', 'Deployment', 'Insrument', 'PartnerOrg']:
-            related_fields['Aliases'] = Alias.objects.filter(object_id=self.object.uuid)
+            related_fields['alias'] = (
+                Change.objects.of_type(Alias)
+                .filter(update__object_id=str(self.object.uuid))
+                )
         if content_type == 'Campaign':
-            related_fields['Websites'] = Change.objects.of_type(Website).filter(action=CREATE)
-            # TODO filter by campaign
+            related_fields['campaignwebsite'] = (
+                Change.objects.of_type(CampaignWebsite)
+                .filter(action=CREATE)
+                .annotate_from_relationship(
+                    of_type=Website,
+                    to_attr='title',
+                    uuid_from='website',
+                    identifier="title",
+                    )
+                )
         return related_fields
 
     def get_model_form_intial(self):
