@@ -41,9 +41,14 @@
     {% include 'snippets/related_approval_logs.html' with approval_logs=object.approvallog_set.all show_notes=True%}
 
     <hr />
-
-    <h3>Raw Data</h3>
-    <code>{{ object.update | pprint }}</code>
+    
+    <details>
+      <summary>
+        <h3>Raw Data</h3>
+      </summary>
+      
+      <code>{{ object.update | pprint }}</code>
+    </details>
 
   </aside>
 {% endblock main%}

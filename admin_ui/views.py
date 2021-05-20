@@ -410,7 +410,7 @@ class ChangeCreateView(mixins.ChangeModelFormMixin, CreateView):
 
 @method_decorator(login_required, name="dispatch")
 class ChangeCreateFormView(ChangeCreateView):
-    template_name = "api_app/change_create_form.html"
+    template_name = "api_app/change_form_modal.html"
 
 
 @method_decorator(login_required, name="dispatch")

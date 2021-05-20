@@ -1,9 +1,9 @@
-{% load crispy_forms_tags static %}
+{% load crispy_forms_tags %}
 
 {% block main %}
-<main class="{{ class|default_if_none:'col'}}">
+<main class="{% firstof class 'col' %}">
     {{ form.errors }}
-    <form id="model-form" method="post" action='{{ request.path_info }}' enctype="multipart/form-data">
+    <form id="create-edit-form" method="post" action='{{ request.path_info }}' enctype="multipart/form-data">
         {% csrf_token %}
         {{ model_form | crispy }}
         {% for field in form %} {{ field.as_hidden }} {% endfor %}
