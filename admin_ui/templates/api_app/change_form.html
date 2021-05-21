@@ -3,7 +3,7 @@
 {% block main %}
 <main class="{% firstof class 'col' %}">
     {{ form.errors }}
-    <form id="{% if request.is_ajax %}popup-form{% else %}create-edit-form{% endif %}" method="post" action='{{ request.path_info }}' enctype="multipart/form-data">
+    <form id="create-edit-form" method="post" enctype="multipart/form-data">
         {% csrf_token %}
         {{ model_form | crispy }}
         {% for field in form %} {{ field.as_hidden }} {% endfor %}

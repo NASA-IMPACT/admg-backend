@@ -8,6 +8,7 @@ from django.contrib.gis.forms import widgets
 from django.contrib.gis.gdal import SpatialReference, CoordTransform
 from django.contrib.gis.gdal.error import GDALException
 from django.contrib.gis.geos import GEOSException, GEOSGeometry
+from django.urls import reverse
 from django.utils import translation
 from django.utils.safestring import mark_safe
 
@@ -86,3 +87,24 @@ class ImagePreviewWidget(forms.widgets.FileInput):
             return f"{img_html}{input_html}"
         else:
             return input_html
+
+
+class AddAnotherChoiceFieldWidget(forms.Select):
+    def __init__(self, model, *args, **kwargs):
+        self.model = model
+        return super().__init__(*args, **kwargs)
+
+    def render(self, name, value, *args, **kwargs):
+        model_name = self.model._meta.model_name
+        create_form_url = reverse("mi-change-add", kwargs={"model": model_name})
+
+        output = [
+            super().render(name, value, *args, **kwargs),
+            f"<small class='add-another cursor-pointer' data-select_id='id_{name}' data-form_url='{create_form_url}?_popup=1'>"
+            f"&plus; Add new {model_name}"
+            "</small>",
+        ]
+        return mark_safe("".join(output))
+
+    class Media:
+        js = ("js/add-another-choice-field.js",)

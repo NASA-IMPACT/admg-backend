@@ -6,8 +6,8 @@ from django.contrib.gis.db.models.fields import PolygonField
 from django.db import models
 from django.db.models import DateField
 from django.forms import modelform_factory, FileField
+from django.shortcuts import render
 from django.views.generic.edit import ModelFormMixin
-from django.urls import reverse_lazy
 
 from . import fields, widgets
 
@@ -21,12 +21,8 @@ def formfield_callback(f, **kwargs):
             kwargs.update(
                 {
                     # Render link to load popup for creating new record
-                    "widget": RelatedFieldPopupFormWidget(
-                        widget=f.formfield().widget,
-                        new_url=reverse_lazy(
-                            "mi-change-addform",
-                            kwargs={"model": f.remote_field.model._meta.model_name},
-                        ),
+                    "widget": widgets.AddAnotherChoiceFieldWidget(
+                        model=f.remote_field.model
                     ),
                     "form_class": partial(
                         fields.ChangeChoiceField, dest_model=f.remote_field.model
@@ -123,6 +119,8 @@ class ChangeModelFormMixin(ModelFormMixin):
             if not isinstance(field, FileField):
                 continue
             model_field = getattr(model_form.instance, name)
+            if not model_field._file:
+                continue
             model_field.save(model_field.url, model_form.cleaned_data[name])
             form.instance.update[name] = model_field.name
 
@@ -133,12 +131,21 @@ class ChangeModelFormMixin(ModelFormMixin):
         # Important to run super first to set self.object
         redirect = super().form_valid(form)
 
+        # If we're running validation...
         if "_validate" in self.request.POST:
             messages.success(self.request, f'Successfully validated "{self.object}".')
             return self.render_to_response(
                 self.get_context_data(form=form, model_form=model_form)
             )
 
+        # If form was submitted from a popup window...
+        if "_popup" in self.request.GET:
+            return render(
+                self.request,
+                template_name="snippets/close_popup_form.html",
+                context={"object": self.object},
+                status=201,
+            )
         messages.success(self.request, 'Successfully saved "%s".' % self.object)
         return redirect
 
