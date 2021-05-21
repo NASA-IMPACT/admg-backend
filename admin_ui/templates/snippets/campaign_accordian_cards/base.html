@@ -45,7 +45,7 @@
     </div>
 
     <div class="col align-self-center">
-        <a href="{% url 'mi-change-update' change.uuid %}" class="btn btn-sm btn-outline-secondary btn-block">
+        <a href="{% url 'mi-change-update' change.uuid %}?next={{ request.path }}" class="btn btn-sm btn-outline-secondary btn-block">
             Edit
         </a>
     </div>

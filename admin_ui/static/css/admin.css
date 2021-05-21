@@ -1,10 +1,4 @@
 /* Utils */
-.wraptext {
-  overflow: hidden; 
-  text-overflow: ellipsis; 
-  white-space: nowrap;
-}
-
 .active {
   font-weight: 700;
 }
@@ -22,7 +16,7 @@
   border-color: #aaa;
 }
 
-select.selectmultiple {
+select.selectmultiple, .select2-selection {
   overflow: auto;
   resize: auto;
 }
@@ -70,8 +64,4 @@ dt {
 
 .campaign-summary .show-caret .caret {
   display: inline;
-}
-
-.table-doi td {
-  max-width: 5em;
 }
