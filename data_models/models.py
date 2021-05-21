@@ -25,7 +25,7 @@ def select_related_distinct_data(queryset, related_data_string):
 
 
 def create_gcmd_str(categories):
-    """Inputs a list of GCMD category strings and combines them with > if the exist. 
+    """Inputs a list of GCMD category strings and combines them with > if they exist. 
     This is used in some GCMD models to make a better __str__ representation that shows
     the entire GCMD path.
 
@@ -36,7 +36,7 @@ def create_gcmd_str(categories):
         str: __str__ representation. ie: 'first > second > third'
     """
 
-    return ' > '.join([category for category in categories if category])
+    return ' > '.join(category for category in categories if category)
 
 class BaseModel(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False, unique=True)
@@ -228,7 +228,7 @@ class GcmdProject(BaseModel):
     gcmd_uuid = models.UUIDField(unique=True)
 
     def __str__(self):
-        categories = [self.short_name, self.long_name]
+        categories = (self.short_name, self.long_name)
         return create_gcmd_str(categories)
 
     class Meta():
@@ -247,7 +247,7 @@ class GcmdInstrument(BaseModel):
     gcmd_uuid = models.UUIDField(unique=True)
 
     def __str__(self):
-        categories = [self.instrument_category, self.instrument_class, self.instrument_type, self.instrument_subtype, self.long_name, self.short_name]
+        categories = (self.instrument_category, self.instrument_class, self.instrument_type, self.instrument_subtype, self.long_name, self.short_name)
         return create_gcmd_str(categories)
 
     class Meta():
@@ -262,7 +262,7 @@ class GcmdPlatform(BaseModel):
     gcmd_uuid = models.UUIDField(unique=True)
 
     def __str__(self):
-        categories =  [self.bucket, self.long_name, self.short_name]
+        categories =  (self.bucket, self.long_name, self.short_name)
         return create_gcmd_str(categories)
 
     class Meta():
@@ -278,7 +278,7 @@ class GcmdPhenomena(BaseModel):
     gcmd_uuid = models.UUIDField(unique=True)
 
     def __str__(self):
-        categories = [self.category, self.topic, self.term, self.variable_1, self.variable_2, self.variable_3]
+        categories = (self.category, self.topic, self.term, self.variable_1, self.variable_2, self.variable_3)
         return create_gcmd_str(categories)
     
 
