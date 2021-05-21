@@ -73,5 +73,7 @@ dt {
 }
 
 .table-doi td {
-  max-width: 5em;
+  min-width: 12em;
+  text-overflow: ellipsis;
+  overflow-x: scroll;
 }
