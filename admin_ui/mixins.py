@@ -11,8 +11,6 @@ from django.views.generic.edit import ModelFormMixin
 
 from . import fields, widgets
 
-from popupcrud.widgets import RelatedFieldPopupFormWidget
-
 
 def formfield_callback(f, **kwargs):
     # Use ChangeChoiceField for any ForeignKey field in the model class
@@ -20,13 +18,15 @@ def formfield_callback(f, **kwargs):
         if f.remote_field.model != ContentType:
             kwargs.update(
                 {
-                    # Render link to load popup for creating new record
+                    # Render link to open new window for creating new record
                     "widget": widgets.AddAnotherChoiceFieldWidget(
                         model=f.remote_field.model
                     ),
+                    # Use field to handle drafts rather than published models
                     "form_class": partial(
                         fields.ChangeChoiceField, dest_model=f.remote_field.model
                     ),
+                    # Choices consist of drafts rather than published models
                     "queryset": fields.ChangeChoiceField.get_queryset_for_model(
                         f.remote_field.model
                     ),

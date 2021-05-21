@@ -1,11 +1,10 @@
 {% extends "api_app/base.html" %}
 {% load crispy_forms_tags static %}
-{% load bsmodal %}
 
 {% block extrahead %}
-  {{ block.super }}
-  {{ form.media.css }}
-  {{ model_form.media.css }}
+{{ block.super }}
+{{ form.media.css }}
+{{ model_form.media.css }}
 {% endblock %}
 
 {% block page %}
@@ -27,10 +26,6 @@
 
 <div class="row mx-3">
   {% block main %}{% endblock main %}
-  {% bsmodal '??' 'add-related-modal' close_title_button=Yes %}
-    {# modal body will be filled in by jQuery.load(<new_object_url>) return value #}
-    ??
-  {% endbsmodal %}
 </div>
 
 {% endblock page %}

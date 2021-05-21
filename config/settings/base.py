@@ -89,7 +89,6 @@ THIRD_PARTY_APPS = [
     "django_tables2",
     "drf_yasg",
     "oauth2_provider",
-    "popupcrud",
     "rest_framework.authtoken",
     "rest_framework",
     "storages",
