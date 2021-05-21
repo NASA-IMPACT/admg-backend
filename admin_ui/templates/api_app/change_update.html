@@ -36,6 +36,12 @@
 
   {# Sidebar #}
   <aside class="col-sm-4">
+    {% if object.logo_url %}
+    <h3>Logo</h3>
+    <img class="image-thumbnail" src="{% get_media_prefix %}/{{ object.logo_url }}" />
+    
+    <hr />
+    {% endif %}
 
     <h3>Activity</h3>
     {% include 'snippets/related_approval_logs.html' with approval_logs=object.approvallog_set.all show_notes=True%}
