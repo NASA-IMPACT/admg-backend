@@ -29,3 +29,13 @@
   </div>
 
 {% endblock page %}
+
+{% block javascript %}
+  {{ block.super }}
+  <script>
+  // Override all multiselect elements to use this library
+  $(document).ready(function() {
+    $(".form-group select").select2();
+});
+</script>
+{% endblock %}

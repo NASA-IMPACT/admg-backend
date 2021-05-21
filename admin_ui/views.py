@@ -1,4 +1,5 @@
 from urllib.parse import urlparse
+from typing import Dict
 
 from django.conf import settings
 from django.contrib import messages
@@ -39,7 +40,9 @@ from api_app.models import (
 )
 from cmr import tasks
 from data_models.models import (
+    Alias,
     Campaign,
+    CampaignWebsite,
     CollectionPeriod,
     Deployment,
     DOI,
@@ -62,6 +65,7 @@ from data_models.models import (
     GeographicalRegion,
     Season,
     WebsiteType,
+    Website,
     Repository,
 )
 from . import tables, forms, mixins, filters
@@ -430,10 +434,32 @@ class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
                 "SignificantEvent",
                 "CollectionPeriod",
             ],
+            "related_fields": self.get_related_fields(),
         }
 
     def get_model_form_content_type(self) -> ContentType:
         return self.object.content_type
+    
+    def get_related_fields(self) -> Dict:
+        related_fields = {}
+        content_type = self.get_model_form_content_type().model_class().__name__
+        if content_type in ['Campaign', 'Platform', 'Deployment', 'Instrument', 'PartnerOrg']:
+            related_fields['alias'] = (
+                Change.objects.of_type(Alias)
+                .filter(update__object_id=str(self.object.uuid))
+                )
+        if content_type == 'Campaign':
+            related_fields['campaignwebsite'] = (
+                Change.objects.of_type(CampaignWebsite)
+                .filter(action=CREATE)
+                .annotate_from_relationship(
+                    of_type=Website,
+                    to_attr='title',
+                    uuid_from='website',
+                    identifier="title",
+                    )
+                )
+        return related_fields
 
     def get_model_form_intial(self):
         return self.object.update
@@ -507,6 +533,73 @@ class PartnerOrgListView(SingleTableMixin, FilterView):
             **super().get_context_data(**kwargs),
             "display_name": "Partner Organization",
             "model": PartnerOrg._meta.model_name,
+        }
+
+@method_decorator(login_required, name="dispatch")
+class WebsiteListView(SingleTableMixin, FilterView):
+    model = Change
+    template_name = "api_app/change_list.html"
+    table_class = tables.WebsiteChangeListTable
+    filterset_class = filters.ChangeStatusFilter
+
+    def get_queryset(self):
+        # self.kwargs["uuid"]
+        campaign_uuid = ''
+        return (
+            Change.objects.of_type(Website)
+            .filter(action=CREATE)
+            .add_updated_at()
+        )
+
+    def get_context_data(self, **kwargs):
+        return {
+            **super().get_context_data(**kwargs),
+            "display_name": "Website",
+            "model": Website._meta.model_name,
+        }
+
+@method_decorator(login_required, name="dispatch")
+class CampaignWebsiteListView(SingleTableMixin, FilterView):
+    model = Change
+    template_name = "api_app/change_list.html"
+    table_class = tables.WebsiteChangeListTable
+    filterset_class = filters.ChangeStatusFilter
+
+    def get_queryset(self):
+        # self.kwargs["uuid"]
+        campaign_uuid = ''
+        return (
+            Change.objects.of_type(CampaignWebsite)
+            .filter(action=CREATE)
+            .add_updated_at()
+        )
+
+    def get_context_data(self, **kwargs):
+        return {
+            **super().get_context_data(**kwargs),
+            "display_name": "Campaign Website",
+            "model": CampaignWebsite._meta.model_name,
+        }
+ 
+@method_decorator(login_required, name="dispatch")
+class AliasListView(SingleTableMixin, FilterView):
+    model = Change
+    template_name = "api_app/change_list.html"
+    table_class = tables.AliasChangeListTable
+    filterset_class = filters.ChangeStatusFilter
+
+    def get_queryset(self):
+        return (
+            Change.objects.of_type(Alias)
+            .filter(action=CREATE)
+            .add_updated_at()
+        )
+
+    def get_context_data(self, **kwargs):
+        return {
+            **super().get_context_data(**kwargs),
+            "display_name": "Alias",
+            "model": Alias._meta.model_name,
         }
 
 

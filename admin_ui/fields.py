@@ -54,6 +54,7 @@ class ChangeChoiceMixin:
         # Field to use for textual description of field
         identifier_field = {
             "image": "image",
+            "website": "title",
         }.get(dest_model_name, "short_name")
 
         return (

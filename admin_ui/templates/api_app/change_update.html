@@ -11,12 +11,17 @@
         {% elif object.model_name == "Platform" %}{% url 'mi-platform-list' %}
         {% elif object.model_name == "Instrument" %}{% url 'mi-instrument-list' %}
         {% elif object.model_name == "PartnerOrg" %}{% url 'mi-organization-list' %}
+        {% comment %} {% elif object.model_name == 'Website' %}{% url 'mi-change-update' object.update.campaign %} {% endcomment %}
         {% else %}{% url 'mi-summary' %}
         {% endif %}
         {% endspaceless %}">
       &larr; Back
     </a>
+    {% if object.content_type.model == 'website' %}
+    <h1>{{ object.update.title | default:object.uuid }}</h1>
+    {% else %}
     <h1>{{ object.update.short_name | default:object.uuid }}</h1>
+    {% endif %}
   </div>
 {% endblock header %}
 
@@ -50,9 +55,9 @@
     {% include 'snippets/related_approval_logs.html' with approval_logs=object.approvallog_set.all show_notes=True%}
 
     <hr />
-
-    <h3>Raw Data</h3>
-    <code>{{ object.update | pprint }}</code>
+    
+    <h3>Related Fields</h3>
+    {% include 'snippets/related_fields.html' with related_fields=related_fields%}
 
   </aside>
 {% endblock main%}
