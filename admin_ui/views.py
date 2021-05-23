@@ -410,11 +410,6 @@ class ChangeCreateView(mixins.ChangeModelFormMixin, CreateView):
 
 
 @method_decorator(login_required, name="dispatch")
-class ChangeCreateFormView(ChangeCreateView):
-    template_name = "api_app/change_create_modal.html"
-
-
-@method_decorator(login_required, name="dispatch")
 class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
     fields = ["content_type", "model_instance_uuid", "action", "update", "status"]
     prefix = "change"
