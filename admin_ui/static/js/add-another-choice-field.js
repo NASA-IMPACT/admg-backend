@@ -7,8 +7,10 @@ https://github.com/yourlabs/django-autocomplete-light/commit/599687fc71fe5ecf054
 https://usefulangle.com/post/4/javascript-communication-parent-child-window
 */
 
-document.querySelector(".add-another").addEventListener('click', function () {
-    child_window_handle = window.open(this.dataset.form_url, id_to_windowname(this.dataset.select_id));
+document.querySelectorAll(".add-another").forEach(function (elem) {
+    return elem.addEventListener('click', function () {
+        window.open(this.dataset.form_url, id_to_windowname(this.dataset.select_id));
+    });
 });
 
 var dismissAddAnotherPopup = function (win, newId, newRepr) {
