@@ -1,12 +1,15 @@
 from django.core.exceptions import ValidationError
 from django.contrib.gis.forms.fields import PolygonField
-from django import forms
+from django.db.models.fields.related import ForeignKey
+from django.db.models import functions, expressions, TextField
+from django.db.models.fields.json import KeyTextTransform
+from django.forms import ModelChoiceField, MultipleChoiceField, DateField, DateInput
 from django.utils.translation import gettext_lazy as _
 
 from api_app import models
 from data_models import models as data_models
 from data_models.serializers import get_geojson_from_bb
-from . import widgets
+from .widgets import BoundingBoxWidget
 
 
 def get_attr(data, path):
@@ -36,11 +39,6 @@ def ChangeWithIdentifier(*fields):
 
 
 class ChangeChoiceMixin:
-    """
-    A mixin to handle the challenging part of make Choice Fields work with the
-    Change models
-    """
-
     def __init__(self, *args, dest_model, **kwargs):
         super().__init__(*args, **kwargs)
         self.dest_model = dest_model
@@ -56,7 +54,6 @@ class ChangeChoiceMixin:
         # Field to use for textual description of field
         identifier_field = {
             "image": "image",
-            "website": "title",
         }.get(dest_model_name, "short_name")
 
         return (
@@ -125,7 +122,7 @@ class ChangeChoiceMixin:
         )
 
 
-class ChangeMultipleChoiceField(ChangeChoiceMixin, forms.MultipleChoiceField):
+class ChangeMultipleChoiceField(ChangeChoiceMixin, MultipleChoiceField):
     """
     A MultipleChoiceField that renders Choice models rather than the actual target models
     """
@@ -133,7 +130,7 @@ class ChangeMultipleChoiceField(ChangeChoiceMixin, forms.MultipleChoiceField):
     ...
 
 
-class ChangeChoiceField(ChangeChoiceMixin, forms.ModelChoiceField):
+class ChangeChoiceField(ChangeChoiceMixin, ModelChoiceField):
     """
     A ModelChoiceField that renders Choice models rather than the actual target models
     """
@@ -156,7 +153,7 @@ class ChangeChoiceField(ChangeChoiceMixin, forms.ModelChoiceField):
 
 
 class BboxField(PolygonField):
-    widget = widgets.BoundingBoxWidget
+    widget = BoundingBoxWidget
     default_error_messages = {
         **PolygonField.default_error_messages,
         "invalid_geom": _(
@@ -177,8 +174,5 @@ class BboxField(PolygonField):
 
         return super().clean(value)
 
-
-class CustomDateField(forms.DateField):
-    widget = forms.DateInput(
-        attrs={"class": "datepicker", "placeholder": "Select a date", "type": "date"}
-    )
+class CustomDateField(DateField):
+    widget = DateInput(attrs={'class': 'datepicker', 'placeholder': 'Select a date', 'type': 'date'})
