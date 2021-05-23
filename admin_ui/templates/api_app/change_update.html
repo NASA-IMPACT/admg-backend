@@ -26,8 +26,8 @@
   </div>
 
   <div class="px-1">
-    <button class="btn btn-primary" form="create-edit-form" formnovalidate>Save</button>
-    <button class="btn btn-secondary" form="create-edit-form" name="_validate">Validate</button>
+    <button class="btn btn-primary" form="model-form" formnovalidate>Save</button>
+    <button class="btn btn-secondary" form="model-form" name="_validate">Validate</button>
   </div>
 {% endblock actions %}
 
@@ -49,12 +49,12 @@
     {% include 'snippets/related_approval_logs.html' with approval_logs=object.approvallog_set.all show_notes=True%}
 
     <hr />
-    
+
     <details>
       <summary>
         <h3>Raw Data</h3>
       </summary>
-      
+
       <code>{{ object.update | pprint }}</code>
     </details>
 
