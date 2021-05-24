@@ -474,6 +474,10 @@ class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
         return self.object.update
 
     def get_back_button_url(self):
+        """
+        In the case where the back button returns the user to the table view for that model type, specify
+        which table view the user should be redirected to.
+        """
         content_type = self.get_model_form_content_type().model_class().__name__
         button_mapping = {
             "Platform": "mi-platform-list",
