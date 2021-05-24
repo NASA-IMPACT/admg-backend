@@ -25,6 +25,20 @@ def select_related_distinct_data(queryset, related_data_string):
     )
 
 
+def create_gcmd_str(categories):
+    """Inputs a list of GCMD category strings and combines them with > if they exist. 
+    This is used in some GCMD models to make a better __str__ representation that shows
+    the entire GCMD path.
+
+    Args:
+        categories (list): List of strings. ie: ['first', 'second', 'third']
+
+    Returns:
+        str: __str__ representation. ie: 'first > second > third'
+    """
+
+    return ' > '.join(category for category in categories if category)
+
 class BaseModel(models.Model):
     uuid = models.UUIDField(
         default=uuid.uuid4, primary_key=True, editable=False, unique=True
@@ -244,7 +258,8 @@ class GcmdProject(BaseModel):
     gcmd_uuid = models.UUIDField(unique=True)
 
     def __str__(self):
-        return self.short_name or self.long_name or self.bucket
+        categories = (self.short_name, self.long_name)
+        return create_gcmd_str(categories)
 
     class Meta:
         ordering = ("short_name",)
@@ -262,18 +277,18 @@ class GcmdInstrument(BaseModel):
     gcmd_uuid = models.UUIDField(unique=True)
 
     def __str__(self):
-        return (
+        categories = (
+            self.instrument_category,
+            self.instrument_class,
+            self.instrument_type,
+            self.instrument_subtype,
+            self.long_name,
             self.short_name
-            or self.long_name
-            or self.instrument_subtype
-            or self.instrument_type
-            or self.instrument_class
-            or self.instrument_category
         )
-
+        return create_gcmd_str(categories)
+    
     class Meta:
         ordering = ("short_name",)
-
 
 class GcmdPlatform(BaseModel):
     short_name = models.CharField(max_length=256, blank=True, default="")
@@ -284,7 +299,12 @@ class GcmdPlatform(BaseModel):
     gcmd_uuid = models.UUIDField(unique=True)
 
     def __str__(self):
-        return self.short_name or self.long_name or self.category
+        categories = (
+            self.bucket,
+            self.long_name,
+            self.short_name
+        )
+        return create_gcmd_str(categories)
 
     class Meta:
         ordering = ("short_name",)
@@ -300,16 +320,16 @@ class GcmdPhenomena(BaseModel):
     gcmd_uuid = models.UUIDField(unique=True)
 
     def __str__(self):
-        categories = [
+        categories = (
             self.category,
             self.topic,
             self.term,
             self.variable_1,
             self.variable_2,
-            self.variable_3,
-        ]
-        return " > ".join([category for category in categories if category])
-
+            self.variable_3
+        )
+        return create_gcmd_str(categories)
+    
 
 class Website(BaseModel):
     website_type = models.ForeignKey(
