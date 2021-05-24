@@ -387,8 +387,8 @@ class ChangeCreateView(mixins.ChangeModelFormMixin, CreateView):
 
     def get_success_url(self):
         url = reverse("mi-change-update", args=[self.object.pk])
-        if self.request.GET.get("next"):
-            return f'{url}?next={self.request.GET["next"]}'
+        if self.request.GET.get("back"):
+            return f'{url}?back={self.request.GET["back"]}'
         return url
 
     def get_model_form_content_type(self) -> ContentType:
@@ -421,8 +421,8 @@ class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
 
     def get_success_url(self):
         url = reverse("mi-change-update", args=[self.object.pk])
-        if self.request.GET.get("next"):
-            return f'{url}?next={self.request.GET["next"]}'
+        if self.request.GET.get("back"):
+            return f'{url}?back={self.request.GET["back"]}'
         return url
 
     def get_context_data(self, **kwargs):

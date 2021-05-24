@@ -6,7 +6,7 @@
 {% block header %}
   <div class="col">
     <a href="{% spaceless %}
-        {% if "next" in request.GET %} {{ request.GET.next }}
+        {% if "back" in request.GET %} {{ request.GET.back }}
         {% else %}{% url back_button %}
         {% endif %}
         {% endspaceless %}">
