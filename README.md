@@ -1,4 +1,8 @@
-# admg_webapp
+# Contents of this readme
+1. `admg_webapp` backend documentation
+2. `admin_ui` frontend setup
+
+# `admg_webapp` backend documentation
 
 ## ER Diagrams
 
@@ -88,3 +92,73 @@ To build Sass files for the project:
 ```sh
 python manage.py sass admin_ui/static/scss admin_ui/static/css --watch
 ```
+
+# `admin_ui` frontend setup
+
+## Installation
+1. Install prerequisite technologies (for example, with `brew` on a mac): postgres, postgis
+
+2. Create a virtual environment
+
+> `python3 -m venv .venv` → `source .venv/bin/activate`
+
+3. Install requirements
+
+Part 1 - general requirements
+> `pip install -r requirements/base.txt`
+
+Part 2 - local requirements
+> `pip install -r local.txt`
+
+4. Start postgres
+
+`brew info posgresql` should give a path that you can use to start it (It will probably look something like `pg_ctl -D /usr/local/var/postgres start`)
+
+5. Check that postgres is working
+If `psql -l` gives you a list of tables all is well.
+
+6. Create a database
+> `createdb admg_prod`
+
+7. Load a dump of the database
+- download the latest zip file of example data (get this from one of the database maintainers)
+For example:
+> `cat ./production_dump-2020.01.28.sql | psql admg_prod` 
+
+(change the filename to match your local db data)
+
+## Start service
+
+1. Activate your environment
+> `source .venv/bin/activate`
+
+### Understanding `python manage.py`
+`python manage.py`
+
+- `manage.py` is your entry point into the django app. It has several commands, including:
+    - `test` `migrate` `makemigrations` `runserver_plus` `shell_plus`
+    - django extensions — third party modules
+
+### Set up your database
+1. Create the migrations
+> `python manage.py migrate`
+
+2. (varies depending on how the data model develops)
+You first have to delete all the problematic tables `psql admg_prod -c "delete from data_models_doi";`) also `data_models_instrument_dois`; `data_models_platform_dois`; `data_models_collectionperiod_dois`;
+
+3. Create yourself a user
+
+> `python manage.py creatersuperuser`
+
+4. Run the server
+
+`python manage.py runserver_plus`
+
+5. Open the webiste 
+http://localhost:8000/
+
+### Optional additional tool
+interactive way to interact with the database and the database models.
+
+> `python manage.py shell_plus`
+
