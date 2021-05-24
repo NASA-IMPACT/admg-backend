@@ -6,17 +6,17 @@
 {% block header %}
   <div class="col">
     <a href="{% spaceless %}
-        {% if object.model_name == "Campaign" %}{% url 'mi-campaign-detail' object.uuid %}
-        {% elif object.model_name in campaign_subitems and object.update.campaign %}{% url 'mi-campaign-detail' object.update.campaign %}
-        {% elif object.model_name == "Platform" %}{% url 'mi-platform-list' %}
-        {% elif object.model_name == "Instrument" %}{% url 'mi-instrument-list' %}
-        {% elif object.model_name == "PartnerOrg" %}{% url 'mi-organization-list' %}
-        {% else %}{% url 'mi-summary' %}
+        {% if "back" in request.GET %} {{ request.GET.back }}
+        {% else %}{% url back_button %}
         {% endif %}
         {% endspaceless %}">
       &larr; Back
     </a>
+    {% if object.content_type.model == 'website' %}
+    <h1>{{ object.update.title | default:object.uuid }}</h1>
+    {% else %}
     <h1>{{ object.update.short_name | default:object.uuid }}</h1>
+    {% endif %}
   </div>
 {% endblock header %}
 
@@ -49,6 +49,9 @@
     {% include 'snippets/related_approval_logs.html' with approval_logs=object.approvallog_set.all show_notes=True%}
 
     <hr />
+    
+    <h3>Related Fields</h3>
+    {% include 'snippets/related_fields.html' with related_fields=related_fields%}
 
     <details class="small">
       <summary>Debug Data</summary>

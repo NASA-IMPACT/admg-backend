@@ -1,21 +1,28 @@
 from functools import partial
+from typing import Dict, List
 
 from django.contrib import messages
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.gis.db.models.fields import PolygonField
-from django.db import models
-from django.db.models import DateField
-from django.forms import modelform_factory, FileField
+from django.db import models as model_fields
+from django.forms import modelform_factory, FileField, HiddenInput
 from django.shortcuts import render
 from django.views.generic.edit import ModelFormMixin
 
+from data_models import models
 from . import fields, widgets
 
 
 def formfield_callback(f, **kwargs):
     # Use ChangeChoiceField for any ForeignKey field in the model class
-    if isinstance(f, models.ForeignKey):
-        if f.remote_field.model != ContentType:
+    if isinstance(f, model_fields.ForeignKey):
+        if f.remote_field.model == ContentType:
+            kwargs.update(
+                {
+                    "widget": HiddenInput(),
+                }
+            )
+        else:
             kwargs.update(
                 {
                     # Render link to open new window for creating new record
@@ -32,7 +39,13 @@ def formfield_callback(f, **kwargs):
                     ),
                 }
             )
-    elif isinstance(f, models.ImageField):
+    if isinstance(f, model_fields.UUIDField):
+        kwargs.update(
+            {
+                "widget": HiddenInput(),
+            }
+        )
+    elif isinstance(f, model_fields.ImageField):
         kwargs.update(
             {
                 "widget": widgets.ImagePreviewWidget,
@@ -44,12 +57,15 @@ def formfield_callback(f, **kwargs):
                 "form_class": fields.BboxField,
             }
         )
-    elif isinstance(f, DateField):
+    elif isinstance(f, model_fields.DateField):
         kwargs.update(
             {
                 "form_class": fields.CustomDateField,
             }
         )
+    elif isinstance(f, model_fields.BooleanField):
+        # Adding choices assigns a "yes/no" option and creates a dropdown widget
+        f.choices = ((True, "Yes"), (False, "No"))
     return f.formfield(**kwargs)
 
 
@@ -64,11 +80,16 @@ class ChangeModelFormMixin(ModelFormMixin):
     @property
     def destination_model_form(self):
         """ Helper to return a form for the destination of the Draft object """
-        return modelform_factory(
-            self.get_model_form_content_type().model_class(),
+        model_type = self.get_model_form_content_type().model_class()
+        modelform = modelform_factory(
+            model_type,
             exclude=[],
             formfield_callback=formfield_callback,
-        )
+            labels=self.get_verbose_names(model_type),
+            help_texts=self.get_help_texts(model_type),
+        )  # modelform generates a form class
+        modelform.field_order = self.get_ordering(model_type)
+        return modelform
 
     def get_model_form_content_type(self) -> ContentType:
         raise NotImplementedError("Subclass must implement this property")
@@ -84,6 +105,77 @@ class ChangeModelFormMixin(ModelFormMixin):
                 prefix=self.destination_model_prefix,
             )
         return super().get_context_data(**kwargs)
+
+    @staticmethod
+    def get_verbose_names(model_type) -> Dict:
+        return {
+            "short_name": " ".join(
+                [model_type._meta.model_name.capitalize(), " Short Name"]
+            ),
+            "long_name": " ".join(
+                [model_type._meta.model_name.capitalize(), " Long Name"]
+            ),
+        }
+
+    @staticmethod
+    def get_help_texts(model_type) -> Dict[str, str]:
+        if model_type == models.Campaign:
+            return {
+                "short_name": "Abbreviation for field investigation name (typically an acronym)",
+                "long_name": "Full name of field investigation (typically the acronym fully spelled out)",
+            }
+        elif model_type == models.Deployment:
+            return {
+                "short_name": "Format as “dep_YYYY[i]” with YYYY as the year in which deployment begins, and optional lowercase character (i=a, b, …) appended only if there are multiple deployments in a single calendar year for the campaign",
+                "long_name": "If there are named sub-campaigns, the name used for this deployment (e.g. CAMEX-3).  This may not exist.",
+            }
+        elif model_type == models.Platform:
+            return {
+                "short_name": "ADMG’s identifying name for the platform",
+                "long_name": "ADMG’s full name for the platform",
+            }
+        elif model_type == models.Instrument:
+            return {
+                "short_name": "ADMG’s identifying name of the instrument (often an acronym)",
+                "long_name": "Full name of the instrument",
+            }
+        elif model_type == models.SignificantEvent:
+            return {
+                "short_name": "ADMG's text identifier for the SE - format as 'XXX_SE_#' with XXX as the campaign shortname and # as the integer number of the SE within the campaign",
+            }
+        else:
+            return {}
+
+    @staticmethod
+    def get_ordering(model_type) -> List[str]:
+        if model_type == models.Deployment:
+            return [
+                "campaign",
+            ]
+        if model_type in [models.IopSe, models.IOP]:
+            return [
+                "deployment",
+            ]
+        if model_type == models.SignificantEvent:
+            return [
+                "deployment",
+                "iop",
+                "short_name",
+                "start_date",
+                "end_date",
+                "description",
+                "region_description",
+                "published_list",
+                "reports",
+            ]
+        if model_type == models.Platform:
+            return [
+                "short_name",
+                "long_name",
+                "platform_type",
+            ]
+        else:
+            return []
 
     def post(self, request, *args, **kwargs):
         """

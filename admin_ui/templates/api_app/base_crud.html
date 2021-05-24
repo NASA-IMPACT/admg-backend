@@ -34,4 +34,10 @@
   {{ block.super }}
   {{ form.media.js }}
   {{ model_form.media.js }}
+  <script>
+  // Override all multiselect elements to use this library
+  $(document).ready(function() {
+    $(".form-group select").select2();
+  });
+  </script>
 {% endblock %}

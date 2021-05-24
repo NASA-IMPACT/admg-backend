@@ -16,7 +16,7 @@
   border-color: #aaa;
 }
 
-select.selectmultiple {
+select.selectmultiple, .select2-selection {
   overflow: auto;
   resize: auto;
 }
