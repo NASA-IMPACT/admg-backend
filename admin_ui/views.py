@@ -587,8 +587,6 @@ class WebsiteListView(SingleTableMixin, FilterView):
     filterset_class = filters.ChangeStatusFilter
 
     def get_queryset(self):
-        # self.kwargs["uuid"]
-        campaign_uuid = ""
         return Change.objects.of_type(Website).filter(action=CREATE).add_updated_at()
 
     def get_context_data(self, **kwargs):
