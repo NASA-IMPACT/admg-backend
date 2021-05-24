@@ -133,7 +133,6 @@ class CampaignWebsiteChangeListTable(tables.Table):
             "thead": {"class": "table-primary"},
             "th": {"style": "min-width: 10em"},
         }
-        # fields = ["title", "url", "website_type", "status", "updated_at"]
 
 
 class AliasChangeListTable(tables.Table):
