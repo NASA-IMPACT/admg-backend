@@ -14,7 +14,7 @@
   </div>
 
   <div class="px-1">
-    <a href="{% url 'mi-change-update' object.uuid %}" class="btn btn-outline-secondary ml-3">
+    <a href="{% url 'mi-change-update' object.uuid %}?back={{ request.path }}" class="btn btn-outline-secondary ml-3">
       Edit campaign details
     </a>
   </div>
@@ -51,7 +51,7 @@
         </div>
         
         <div class="ml-auto">
-          <a class="btn btn-primary" href="{% url 'mi-change-add' 'deployment' %}?campaign={{ object.uuid }}">+</a>
+          <a class="btn btn-primary" href="{% url 'mi-change-add' 'deployment' %}?campaign={{ object.uuid }}&back={{ request.path }}">+</a>
         </div>
       </li>
       {% for deployment in deployments %}
@@ -72,7 +72,7 @@
             </button>
             <span id="iops-badge" class="badge badge-primary badge-pill"></span>
           </h5>
-          <a class="add-deployment-child btn btn-primary" href="{% url 'mi-change-add' 'iop' %}">+</a>
+          <a class="add-deployment-child btn btn-primary" href="{% url 'mi-change-add' 'iop' %}?back={{ request.path }}">+</a>
         </div>
         <div id="iops" class="collapse" aria-labelledby="iops-header" data-parent="#accordion">
           <ul class="list-group">
@@ -93,7 +93,7 @@
             </button>
             <span id="significant-events-badge" class="badge badge-primary badge-pill"></span>
           </h5>
-          <a class="add-deployment-child btn btn-primary" href="{% url 'mi-change-add' 'significantevent' %}">+</a>
+          <a class="add-deployment-child btn btn-primary" href="{% url 'mi-change-add' 'significantevent' %}?back={{ request.path }}">+</a>
         </div>
 
         <div id="significant-events" class="collapse" aria-labelledby="significant-events-header" data-parent="#accordion">
@@ -116,7 +116,7 @@
             </button>
             <span id="collection-periods-badge" class="badge badge-primary badge-pill"></span>
           </h5>
-          <a class="add-deployment-child btn btn-primary" href="{% url 'mi-change-add' 'collectionperiod' %}">+</a>
+          <a class="add-deployment-child btn btn-primary" href="{% url 'mi-change-add' 'collectionperiod' %}?back={{ request.path }}">+</a>
         </div>
         <div id="collection-periods" class="collapse show" aria-labelledby="collection-periods-header" data-parent="#accordion">
           <ul class="list-group">
