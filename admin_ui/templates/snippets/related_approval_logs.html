@@ -16,7 +16,7 @@
          Draft
         {% endif %}
          was
-        <span>{{ approval.past_tense_action }}</span> 
+        <span>{{ approval.get_action_display_past_tense }}</span> 
         {% if approval.user %} by {{ approval.user }}{% endif %}
       </div>
 

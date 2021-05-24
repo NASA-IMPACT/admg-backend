@@ -46,6 +46,7 @@ from data_models.models import (
     CollectionPeriod,
     Deployment,
     DOI,
+    Image,
     Instrument,
     Platform,
     PlatformType,
@@ -417,7 +418,13 @@ class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
     fields = ["content_type", "model_instance_uuid", "action", "update", "status"]
     prefix = "change"
     template_name = "api_app/change_update.html"
-    queryset = Change.objects.select_related("content_type").prefetch_approvals()
+    queryset = (
+        Change.objects.select_related("content_type")
+        .prefetch_approvals()
+        .annotate_from_relationship(
+            of_type=Image, to_attr="logo_url", uuid_from="logo", identifier="image"
+        )
+    )
 
     def get_success_url(self):
         url = reverse("mi-change-update", args=[self.object.pk])
@@ -426,11 +433,10 @@ class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
         return url
 
     def get_context_data(self, **kwargs):
+        obj = self.get_object()
         return {
             **super().get_context_data(**kwargs),
-            "transition_form": forms.TransitionForm(
-                change=self.get_object(), user=self.request.user
-            ),
+            "transition_form": forms.TransitionForm(change=obj, user=self.request.user),
             "campaign_subitems": [
                 "Deployment",
                 "IOP",

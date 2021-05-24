@@ -32,19 +32,18 @@
 {% endblock actions %}
 
 {% block main %}
-  <main class="col-8">
-    {{ form.errors }}
-    <table class="table table-responsive">
-      <form method="post" id="model-form">
-        {% csrf_token %}
-        {% for field in form %} {{ field.as_hidden }} {% endfor %}
-        {{ model_form | crispy }}
-      </form>
-    </table>
-  </main>
+  {% include "api_app/change_form.html" with class="col-8" %}
 
   {# Sidebar #}
   <aside class="col-sm-4">
+    {% if object.logo_url %}
+    <h3>Logo</h3>
+    <a href="{% url 'mi-change-update' object.update.logo %}">
+      <img class="img-thumbnail" src="{% get_media_prefix %}/{{ object.logo_url }}" />
+    </a>
+
+    <hr />
+    {% endif %}
 
     <h3>Activity</h3>
     {% include 'snippets/related_approval_logs.html' with approval_logs=object.approvallog_set.all show_notes=True%}
@@ -53,6 +52,12 @@
     
     <h3>Related Fields</h3>
     {% include 'snippets/related_fields.html' with related_fields=related_fields%}
+
+    <details class="small">
+      <summary>Debug Data</summary>
+
+      <pre>{{ object.update | pprint }}</pre>
+    </details>
 
   </aside>
 {% endblock main%}
