@@ -171,6 +171,10 @@ class ApprovalLog(models.Model):
     class Meta:
         ordering = ['-date']
 
+    def get_action_display_past_tense(self):
+        action = self.get_action_display()
+        return f"{action}d" if action.endswith('e') else f"{action}ed"
+
 
 
 class ChangeQuerySet(models.QuerySet):
