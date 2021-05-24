@@ -8,9 +8,12 @@ from django.contrib.gis.forms import widgets
 from django.contrib.gis.gdal import SpatialReference, CoordTransform
 from django.contrib.gis.gdal.error import GDALException
 from django.contrib.gis.geos import GEOSException, GEOSGeometry
+from django.urls import reverse
 from django.utils import translation
+from django.utils.safestring import mark_safe
 
 from data_models.serializers import get_geojson_from_bb
+from data_models.models import Image
 
 logger = logging.getLogger(__name__)
 
@@ -73,3 +76,34 @@ class IconBoolean(forms.CheckboxInput):
             # False values must be explicitely sent from browser.
             return None
         return super().value_from_datadict(data, files, name)
+
+
+class ImagePreviewWidget(forms.widgets.FileInput):
+    def render(self, name, value, attrs=None, **kwargs):
+        value = Image(image=value).image if isinstance(value, str) else value
+        input_html = super().render(name, value, attrs=None, **kwargs)
+        if value:
+            img_html = mark_safe(f'<img class="img-thumbnail" src="{value.url}"/>')
+            return f"{img_html}{input_html}"
+        else:
+            return input_html
+
+
+class AddAnotherChoiceFieldWidget(forms.Select):
+    def __init__(self, model, *args, **kwargs):
+        self.model = model
+        return super().__init__(*args, **kwargs)
+
+    def render(self, name, value, *args, **kwargs):
+        create_form_url = reverse("mi-change-add", kwargs={"model": self.model._meta.model_name})
+
+        output = [
+            super().render(name, value, *args, **kwargs),
+            f"<small class='add-another cursor-pointer' data-select_id='id_{name}' data-form_url='{create_form_url}?_popup=1'>"
+            f"&plus; Add new {self.model._meta.verbose_name.title()}"
+            "</small>",
+        ]
+        return mark_safe("".join(output))
+
+    class Media:
+        js = ("js/add-another-choice-field.js",)
