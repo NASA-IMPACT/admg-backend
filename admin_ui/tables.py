@@ -126,18 +126,6 @@ class WebsiteChangeListTable(tables.Table):
 
 
 class CampaignWebsiteChangeListTable(tables.Table):
-    # title = tables.Column(
-    #     linkify=("mi-change-update", [A("uuid")]),
-    #     verbose_name="Title", 
-    #     accessor="update__title"
-    # )
-    # url = tables.Column(verbose_name="URL", accessor="update__url")
-    # status = tables.Column(verbose_name="Status", accessor="status")
-    # updated_at = tables.DateTimeColumn(verbose_name="Last Edit Date")
-    # website_type = tables.Column(
-    #     verbose_name="Website Type", accessor="website_type_name"
-    # )
-
     class Meta:
         model = Change
         attrs = {
