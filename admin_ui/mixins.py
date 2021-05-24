@@ -109,6 +109,7 @@ class ChangeModelFormMixin(ModelFormMixin):
     @staticmethod
     def get_verbose_names(model_type) -> Dict:
         return {
+<<<<<<< HEAD
             "short_name": " ".join(
                 [model_type._meta.model_name.capitalize(), " Short Name"]
             ),
@@ -117,6 +118,12 @@ class ChangeModelFormMixin(ModelFormMixin):
             ),
         }
 
+=======
+                'short_name': ' '.join([model_type._meta.model_name.title(), 'Short Name']), 
+                'long_name': ' '.join([model_type._meta.model_name.title(), 'Long Name']),
+            }
+    
+>>>>>>> dev
     @staticmethod
     def get_help_texts(model_type) -> Dict[str, str]:
         if model_type == models.Campaign:
