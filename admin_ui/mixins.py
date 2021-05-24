@@ -17,11 +17,7 @@ def formfield_callback(f, **kwargs):
     # Use ChangeChoiceField for any ForeignKey field in the model class
     if isinstance(f, model_fields.ForeignKey):
         if f.remote_field.model == ContentType:
-            kwargs.update(
-                {
-                    "widget": HiddenInput(),
-                }
-            )
+            kwargs.update({"widget": HiddenInput()})
         else:
             kwargs.update(
                 {
@@ -40,29 +36,13 @@ def formfield_callback(f, **kwargs):
                 }
             )
     if isinstance(f, model_fields.UUIDField):
-        kwargs.update(
-            {
-                "widget": HiddenInput(),
-            }
-        )
+        kwargs.update({"widget": HiddenInput()})
     elif isinstance(f, model_fields.ImageField):
-        kwargs.update(
-            {
-                "widget": widgets.ImagePreviewWidget,
-            }
-        )
+        kwargs.update({"widget": widgets.ImagePreviewWidget})
     elif isinstance(f, PolygonField):
-        kwargs.update(
-            {
-                "form_class": fields.BboxField,
-            }
-        )
+        kwargs.update({"form_class": fields.BboxField})
     elif isinstance(f, model_fields.DateField):
-        kwargs.update(
-            {
-                "form_class": fields.CustomDateField,
-            }
-        )
+        kwargs.update({"form_class": fields.CustomDateField})
     elif isinstance(f, model_fields.BooleanField):
         # Adding choices assigns a "yes/no" option and creates a dropdown widget
         f.choices = ((True, "Yes"), (False, "No"))
@@ -109,21 +89,10 @@ class ChangeModelFormMixin(ModelFormMixin):
     @staticmethod
     def get_verbose_names(model_type) -> Dict:
         return {
-<<<<<<< HEAD
-            "short_name": " ".join(
-                [model_type._meta.model_name.capitalize(), " Short Name"]
-            ),
-            "long_name": " ".join(
-                [model_type._meta.model_name.capitalize(), " Long Name"]
-            ),
+            "short_name": " ".join([model_type._meta.model_name.title(), "Short Name"]),
+            "long_name": " ".join([model_type._meta.model_name.title(), "Long Name"]),
         }
 
-=======
-                'short_name': ' '.join([model_type._meta.model_name.title(), 'Short Name']), 
-                'long_name': ' '.join([model_type._meta.model_name.title(), 'Long Name']),
-            }
-    
->>>>>>> dev
     @staticmethod
     def get_help_texts(model_type) -> Dict[str, str]:
         if model_type == models.Campaign:
@@ -148,7 +117,7 @@ class ChangeModelFormMixin(ModelFormMixin):
             }
         elif model_type == models.SignificantEvent:
             return {
-                "short_name": "ADMG's text identifier for the SE - format as 'XXX_SE_#' with XXX as the campaign shortname and # as the integer number of the SE within the campaign",
+                "short_name": "ADMG's text identifier for the SE - format as 'XXX_SE_#' with XXX as the campaign shortname and # as the integer number of the SE within the campaign"
             }
         else:
             return {}
@@ -156,13 +125,9 @@ class ChangeModelFormMixin(ModelFormMixin):
     @staticmethod
     def get_ordering(model_type) -> List[str]:
         if model_type == models.Deployment:
-            return [
-                "campaign",
-            ]
+            return ["campaign"]
         if model_type in [models.IopSe, models.IOP]:
-            return [
-                "deployment",
-            ]
+            return ["deployment"]
         if model_type == models.SignificantEvent:
             return [
                 "deployment",
@@ -176,11 +141,7 @@ class ChangeModelFormMixin(ModelFormMixin):
                 "reports",
             ]
         if model_type == models.Platform:
-            return [
-                "short_name",
-                "long_name",
-                "platform_type",
-            ]
+            return ["short_name", "long_name", "platform_type"]
         else:
             return []
 
