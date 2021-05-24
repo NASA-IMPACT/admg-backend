@@ -439,26 +439,31 @@ class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
 
     def get_model_form_content_type(self) -> ContentType:
         return self.object.content_type
-    
+
     def get_related_fields(self) -> Dict:
         related_fields = {}
         content_type = self.get_model_form_content_type().model_class().__name__
-        if content_type in ['Campaign', 'Platform', 'Deployment', 'Instrument', 'PartnerOrg']:
-            related_fields['alias'] = (
-                Change.objects.of_type(Alias)
-                .filter(update__object_id=str(self.object.uuid))
-                )
-        if content_type == 'Campaign':
-            related_fields['campaignwebsite'] = (
+        if content_type in [
+            "Campaign",
+            "Platform",
+            "Deployment",
+            "Instrument",
+            "PartnerOrg",
+        ]:
+            related_fields["alias"] = Change.objects.of_type(Alias).filter(
+                update__object_id=str(self.object.uuid)
+            )
+        if content_type == "Campaign":
+            related_fields["campaignwebsite"] = (
                 Change.objects.of_type(CampaignWebsite)
                 .filter(action=CREATE)
                 .annotate_from_relationship(
                     of_type=Website,
-                    to_attr='title',
-                    uuid_from='website',
+                    to_attr="title",
+                    uuid_from="website",
                     identifier="title",
-                    )
                 )
+            )
         return related_fields
 
     def get_model_form_intial(self):
@@ -535,6 +540,7 @@ class PartnerOrgListView(SingleTableMixin, FilterView):
             "model": PartnerOrg._meta.model_name,
         }
 
+
 @method_decorator(login_required, name="dispatch")
 class WebsiteListView(SingleTableMixin, FilterView):
     model = Change
@@ -543,13 +549,7 @@ class WebsiteListView(SingleTableMixin, FilterView):
     filterset_class = filters.ChangeStatusFilter
 
     def get_queryset(self):
-        # self.kwargs["uuid"]
-        campaign_uuid = ''
-        return (
-            Change.objects.of_type(Website)
-            .filter(action=CREATE)
-            .add_updated_at()
-        )
+        return Change.objects.of_type(Website).filter(action=CREATE).add_updated_at()
 
     def get_context_data(self, **kwargs):
         return {
@@ -557,6 +557,7 @@ class WebsiteListView(SingleTableMixin, FilterView):
             "display_name": "Website",
             "model": Website._meta.model_name,
         }
+
 
 @method_decorator(login_required, name="dispatch")
 class CampaignWebsiteListView(SingleTableMixin, FilterView):
@@ -566,8 +567,6 @@ class CampaignWebsiteListView(SingleTableMixin, FilterView):
     filterset_class = filters.ChangeStatusFilter
 
     def get_queryset(self):
-        # self.kwargs["uuid"]
-        campaign_uuid = ''
         return (
             Change.objects.of_type(CampaignWebsite)
             .filter(action=CREATE)
@@ -580,7 +579,8 @@ class CampaignWebsiteListView(SingleTableMixin, FilterView):
             "display_name": "Campaign Website",
             "model": CampaignWebsite._meta.model_name,
         }
- 
+
+
 @method_decorator(login_required, name="dispatch")
 class AliasListView(SingleTableMixin, FilterView):
     model = Change
@@ -589,11 +589,7 @@ class AliasListView(SingleTableMixin, FilterView):
     filterset_class = filters.ChangeStatusFilter
 
     def get_queryset(self):
-        return (
-            Change.objects.of_type(Alias)
-            .filter(action=CREATE)
-            .add_updated_at()
-        )
+        return Change.objects.of_type(Alias).filter(action=CREATE).add_updated_at()
 
     def get_context_data(self, **kwargs):
         return {
