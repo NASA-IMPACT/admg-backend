@@ -386,7 +386,10 @@ class ChangeCreateView(mixins.ChangeModelFormMixin, CreateView):
         }
 
     def get_success_url(self):
-        return reverse("mi-change-update", args=[self.object.pk])
+        url = reverse("mi-change-update", args=[self.object.pk])
+        if self.request.GET.get("next"):
+            return f'{url}?next={self.request.GET["next"]}'
+        return url
 
     def get_model_form_content_type(self) -> ContentType:
         if not hasattr(self, "model_form_content_type"):

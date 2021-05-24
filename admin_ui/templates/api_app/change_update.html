@@ -8,9 +8,9 @@
     <a href="{% spaceless %}
         {% if "next" in request.GET %} {{ request.GET.next }}
         {% elif object.model_name == "Campaign" %}{% url back_button.0 back_button.1 %}
-        {% elif object.model_name in campaign_subitems and object.update.campaign %}{% url back_button.0 back_button.1 %}
+        {% comment %} {% elif object.model_name in campaign_subitems and object.update.campaign %}{% url back_button.0 back_button.1 %} {% endcomment %}
         {% comment %} {% elif object.model_name == 'Website' %}{% url 'mi-change-update' object.update.campaign %} {% endcomment %}
-        {% else %}{% url back_button %}
+        {% comment %} {% else %}{% url back_button %} {% endcomment %}
         {% endif %}
         {% endspaceless %}">
       &larr; Back
