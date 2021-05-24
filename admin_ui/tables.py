@@ -1,3 +1,4 @@
+from data_models.models import Website
 import django_tables2 as tables
 from django_tables2 import A
 
@@ -99,3 +100,57 @@ class ChangeSummaryTable(tables.Table):
         model = Change
         attrs = {"class": "table table-striped", "thead": {"class": "table-primary"}}
         fields = ["name", "content_type__model", "updated_at", "status"]
+
+
+class WebsiteChangeListTable(tables.Table):
+    title = tables.Column(
+        linkify=("mi-change-update", [A("uuid")]),
+        verbose_name="Title", 
+        accessor="update__title"
+    )
+    url = tables.Column(verbose_name="URL", accessor="update__url")
+    status = tables.Column(verbose_name="Status", accessor="status")
+    updated_at = tables.DateTimeColumn(verbose_name="Last Edit Date")
+    website_type = tables.Column(
+        verbose_name="Website Type", accessor="website_type_name"
+    )
+
+    class Meta:
+        model = Change
+        attrs = {
+            "class": "table table-striped",
+            "thead": {"class": "table-primary"},
+            "th": {"style": "min-width: 10em"},
+        }
+        fields = ["title", "url", "website_type", "status", "updated_at"]
+
+
+class CampaignWebsiteChangeListTable(tables.Table):
+    class Meta:
+        model = Change
+        attrs = {
+            "class": "table table-striped",
+            "thead": {"class": "table-primary"},
+            "th": {"style": "min-width: 10em"},
+        }
+
+
+class AliasChangeListTable(tables.Table):
+    short_name = tables.Column(
+        linkify=("mi-change-update", [A("uuid")]),
+        verbose_name="Short Name", 
+        accessor="update__short_name"
+    )
+    # TODO replace model_type which short_name of related object
+    model_type = tables.Column(verbose_name="Item Type", accessor="update__model_name")
+    status = tables.Column(verbose_name="Status", accessor="status")
+    updated_at = tables.DateTimeColumn(verbose_name="Last Edit Date")
+
+    class Meta:
+        model = Change
+        attrs = {
+            "class": "table table-striped",
+            "thead": {"class": "table-primary"},
+            "th": {"style": "min-width: 10em"},
+        }
+        fields = ["short_name", "model_type", "status", "updated_at"]

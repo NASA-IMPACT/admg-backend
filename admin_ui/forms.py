@@ -96,13 +96,13 @@ class DoiForm(forms.Form):
     campaigns = ChangeMultipleChoiceField(
         dest_model=data_models.Campaign, required=False
     )
-    instruments = ChangeMultipleChoiceField(
-        dest_model=data_models.Instrument, required=False
-    )
     platforms = ChangeMultipleChoiceField(
         dest_model=data_models.Platform, required=False
     )
-    collection_periods = forms.MultipleChoiceField(required=False)
+    instruments = ChangeMultipleChoiceField(
+        dest_model=data_models.Instrument, required=False
+    )
+    collection_periods = forms.MultipleChoiceField(label="CDPIs", required=False)
     keep = forms.NullBooleanField(
         help_text="Mark as saved or deleted",
         widget=IconBoolean,
@@ -132,11 +132,11 @@ class DoiFormSet(forms.formset_factory(DoiForm, extra=0)):
             "campaigns": ChangeMultipleChoiceField.get_queryset_for_model(
                 data_models.Campaign
             ),
-            "instruments": ChangeMultipleChoiceField.get_queryset_for_model(
-                data_models.Instrument
-            ),
             "platforms": ChangeMultipleChoiceField.get_queryset_for_model(
                 data_models.Platform
+            ),
+            "instruments": ChangeMultipleChoiceField.get_queryset_for_model(
+                data_models.Instrument
             ),
             "collection_periods": ChangeMultipleChoiceField.get_queryset_for_model(
                 data_models.CollectionPeriod
@@ -148,10 +148,7 @@ class DoiFormSet(forms.formset_factory(DoiForm, extra=0)):
         }
 
     def get_form_kwargs(self, index):
-        return {
-            **super().get_form_kwargs(index),
-            "choices": self.choices,
-        }
+        return {**super().get_form_kwargs(index), "choices": self.choices}
 
 
 class TableInlineFormSetHelper(FormHelper):

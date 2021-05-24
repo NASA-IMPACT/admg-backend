@@ -18,6 +18,11 @@
 }
 
 
+select.selectmultiple, .select2-selection {
+  overflow: auto;
+  resize: auto;
+}
+
 dt {
   font-size: 80%;
   text-transform: uppercase;
@@ -56,5 +61,11 @@ dt {
   }
   .show-caret .caret {
     display: inline;
+  }
+}
+
+.table-doi {
+  td {
+    min-width: 12em;
   }
 }

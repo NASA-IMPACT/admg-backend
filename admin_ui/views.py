@@ -1,4 +1,5 @@
 from urllib.parse import urlparse
+from typing import Dict
 
 from django.conf import settings
 from django.contrib import messages
@@ -39,10 +40,13 @@ from api_app.models import (
 )
 from cmr import tasks
 from data_models.models import (
+    Alias,
     Campaign,
+    CampaignWebsite,
     CollectionPeriod,
     Deployment,
     DOI,
+    Image,
     Instrument,
     Platform,
     PlatformType,
@@ -62,6 +66,7 @@ from data_models.models import (
     GeographicalRegion,
     Season,
     WebsiteType,
+    Website,
     Repository,
 )
 from . import tables, forms, mixins, filters
@@ -335,9 +340,7 @@ class DoiApprovalView(SingleObjectMixin, FormView):
                         updated_statuses.append(stored_doi)
 
             Change.objects.bulk_update(
-                stored_dois.values(),
-                ["update", "status"],
-                batch_size=100,
+                stored_dois.values(), ["update", "status"], batch_size=100
             )
             ApprovalLog.objects.bulk_create(
                 [
@@ -349,8 +352,7 @@ class DoiApprovalView(SingleObjectMixin, FormView):
             )
 
         messages.info(
-            self.request,
-            f"Updated {len(to_update)} and removed {len(to_delete)} DOIs.",
+            self.request, f"Updated {len(to_update)} and removed {len(to_delete)} DOIs."
         )
         return super().form_valid(formset)
 
@@ -385,7 +387,10 @@ class ChangeCreateView(mixins.ChangeModelFormMixin, CreateView):
         }
 
     def get_success_url(self):
-        return reverse("mi-change-update", args=[self.object.pk])
+        url = reverse("mi-change-update", args=[self.object.pk])
+        if self.request.GET.get("back"):
+            return f'{url}?back={self.request.GET["back"]}'
+        return url
 
     def get_model_form_content_type(self) -> ContentType:
         if not hasattr(self, "model_form_content_type"):
@@ -413,30 +418,94 @@ class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
     fields = ["content_type", "model_instance_uuid", "action", "update", "status"]
     prefix = "change"
     template_name = "api_app/change_update.html"
-    queryset = Change.objects.select_related("content_type").prefetch_approvals()
+    queryset = (
+        Change.objects.select_related("content_type")
+        .prefetch_approvals()
+        .annotate_from_relationship(
+            of_type=Image, to_attr="logo_url", uuid_from="logo", identifier="image"
+        )
+    )
 
     def get_success_url(self):
-        return reverse("mi-change-update", args=[self.object.pk])
+        url = reverse("mi-change-update", args=[self.object.pk])
+        if self.request.GET.get("back"):
+            return f'{url}?back={self.request.GET["back"]}'
+        return url
 
     def get_context_data(self, **kwargs):
+        obj = self.get_object()
         return {
             **super().get_context_data(**kwargs),
-            "transition_form": forms.TransitionForm(
-                change=self.get_object(), user=self.request.user
-            ),
+            "transition_form": forms.TransitionForm(change=obj, user=self.request.user),
             "campaign_subitems": [
                 "Deployment",
                 "IOP",
                 "SignificantEvent",
                 "CollectionPeriod",
             ],
+            "related_fields": self.get_related_fields(),
+            "back_button": self.get_back_button_url(),
         }
 
     def get_model_form_content_type(self) -> ContentType:
         return self.object.content_type
 
+    def get_related_fields(self) -> Dict:
+        related_fields = {}
+        content_type = self.get_model_form_content_type().model_class().__name__
+        if content_type in [
+            "Campaign",
+            "Platform",
+            "Deployment",
+            "Instrument",
+            "PartnerOrg",
+        ]:
+            related_fields["alias"] = Change.objects.of_type(Alias).filter(
+                update__object_id=str(self.object.uuid)
+            )
+        if content_type == "Campaign":
+            related_fields["campaignwebsite"] = (
+                Change.objects.of_type(CampaignWebsite)
+                .filter(action=CREATE)
+                .annotate_from_relationship(
+                    of_type=Website,
+                    to_attr="title",
+                    uuid_from="website",
+                    identifier="title",
+                )
+            )
+        return related_fields
+
     def get_model_form_intial(self):
         return self.object.update
+
+    def get_back_button_url(self):
+        """
+        In the case where the back button returns the user to the table view for that model type, specify
+        which table view the user should be redirected to.
+        """
+        content_type = self.get_model_form_content_type().model_class().__name__
+        button_mapping = {
+            "Platform": "mi-platform-list",
+            "Instrument": "mi-instrument-list",
+            "PartnerOrg": "mi-organization-list",
+            "GcmdInstrument": "lf-gcmd-list",
+            "GcmdPhenomena": "lf-gcmd-list",
+            "GcmdPlatform": "lf-gcmd-list",
+            "GcmdProject": "lf-gcmd-list",
+            "FocusArea": "lf-science-list",
+            "GeophysicalConcept": "lf-science-list",
+            "MeasurementRegion": "lf-measure-platform-list",
+            "MeasurementStyle": "lf-measure-platform-list",
+            "MeasurementType": "lf-measure-platform-list",
+            "HomeBase": "lf-measure-platform-list",
+            "PlatformType": "lf-measure-platform-list",
+            "GeographicalRegion": "lf-region-season-list",
+            "Season": "lf-region-season-list",
+            "WebsiteType": "lf-website-list",
+            "Repository": "lf-website-list",
+        }
+        return button_mapping.get(content_type, "mi-summary")
 
     def post(self, *args, **kwargs):
         """
@@ -507,6 +576,64 @@ class PartnerOrgListView(SingleTableMixin, FilterView):
             **super().get_context_data(**kwargs),
             "display_name": "Partner Organization",
             "model": PartnerOrg._meta.model_name,
+        }
+
+
+@method_decorator(login_required, name="dispatch")
+class WebsiteListView(SingleTableMixin, FilterView):
+    model = Change
+    template_name = "api_app/change_list.html"
+    table_class = tables.WebsiteChangeListTable
+    filterset_class = filters.ChangeStatusFilter
+
+    def get_queryset(self):
+        return Change.objects.of_type(Website).filter(action=CREATE).add_updated_at()
+
+    def get_context_data(self, **kwargs):
+        return {
+            **super().get_context_data(**kwargs),
+            "display_name": "Website",
+            "model": Website._meta.model_name,
+        }
+
+
+@method_decorator(login_required, name="dispatch")
+class CampaignWebsiteListView(SingleTableMixin, FilterView):
+    model = Change
+    template_name = "api_app/change_list.html"
+    table_class = tables.WebsiteChangeListTable
+    filterset_class = filters.ChangeStatusFilter
+
+    def get_queryset(self):
+        return (
+            Change.objects.of_type(CampaignWebsite)
+            .filter(action=CREATE)
+            .add_updated_at()
+        )
+
+    def get_context_data(self, **kwargs):
+        return {
+            **super().get_context_data(**kwargs),
+            "display_name": "Campaign Website",
+            "model": CampaignWebsite._meta.model_name,
+        }
+
+
+@method_decorator(login_required, name="dispatch")
+class AliasListView(SingleTableMixin, FilterView):
+    model = Change
+    template_name = "api_app/change_list.html"
+    table_class = tables.AliasChangeListTable
+    filterset_class = filters.ChangeStatusFilter
+
+    def get_queryset(self):
+        return Change.objects.of_type(Alias).filter(action=CREATE).add_updated_at()
+
+    def get_context_data(self, **kwargs):
+        return {
+            **super().get_context_data(**kwargs),
+            "display_name": "Alias",
+            "model": Alias._meta.model_name,
         }
 
 
