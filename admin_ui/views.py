@@ -607,8 +607,6 @@ class CampaignWebsiteListView(SingleTableMixin, FilterView):
     filterset_class = filters.ChangeStatusFilter
 
     def get_queryset(self):
-        # self.kwargs["uuid"]
-        campaign_uuid = ""
         return (
             Change.objects.of_type(CampaignWebsite)
             .filter(action=CREATE)
