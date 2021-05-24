@@ -1,10 +1,4 @@
 /* Utils */
-.wraptext {
-  overflow: hidden; 
-  text-overflow: ellipsis; 
-  white-space: nowrap;
-}
-
 .active {
   font-weight: 700;
 }
@@ -74,6 +68,4 @@ dt {
 
 .table-doi td {
   min-width: 12em;
-  text-overflow: ellipsis;
-  overflow-x: scroll;
 }
