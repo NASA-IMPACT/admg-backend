@@ -14,6 +14,8 @@
         matcher won't be able to automatically relate proposed DOIs to this campaign. After creating 
         instruments, platforms, or CDPIs for this campaign, it is recommended to re-run the DOI matcher 
         to update the proposed DOIs.
+
+        Please refresh the page a few minutes after clicking "Generate DOIs".
       </p>
       <form action="{% url 'mi-doi-fetch' object.uuid %}" method="post">
         {% csrf_token %}

@@ -65,3 +65,7 @@ dt {
 .campaign-summary .show-caret .caret {
   display: inline;
 }
+
+.table-doi td {
+  min-width: 12em;
+}
