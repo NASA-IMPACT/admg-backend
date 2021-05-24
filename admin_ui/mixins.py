@@ -17,7 +17,11 @@ def formfield_callback(f, **kwargs):
     # Use ChangeChoiceField for any ForeignKey field in the model class
     if isinstance(f, model_fields.ForeignKey):
         if f.remote_field.model == ContentType:
-            kwargs.update({"widget": HiddenInput()})
+            kwargs.update(
+                {
+                    "widget": HiddenInput(),
+                }
+            )
         else:
             kwargs.update(
                 {
@@ -36,7 +40,11 @@ def formfield_callback(f, **kwargs):
                 }
             )
     if isinstance(f, model_fields.UUIDField):
-        kwargs.update({"widget": HiddenInput()})
+        kwargs.update(
+            {
+                "widget": HiddenInput(),
+            }
+        )
     elif isinstance(f, model_fields.ImageField):
         kwargs.update(
             {
