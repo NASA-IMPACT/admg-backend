@@ -6,15 +6,14 @@ from django.contrib import messages
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.db.models import aggregates
-from django.forms import formset_factory
 from django.http import HttpResponseRedirect, Http404
 from django.utils.decorators import method_decorator
 from django.utils.safestring import mark_safe
 from django.urls import reverse
 from django.views import View
-from django.views.generic import DetailView, ListView
+from django.views.generic import DetailView
 from django.views.generic.detail import SingleObjectMixin
-
+from django.views.generic.list import ListView, MultipleObjectMixin
 from django.views.generic.edit import (
     CreateView,
     UpdateView,
@@ -22,6 +21,7 @@ from django.views.generic.edit import (
     FormMixin,
     ProcessFormView,
 )
+
 from django_celery_results.models import TaskResult
 import django_tables2
 from django_tables2.views import SingleTableMixin
@@ -273,17 +273,32 @@ class DoiFetchView(View):
 
 
 @method_decorator(login_required, name="dispatch")
-class DoiApprovalView(SingleObjectMixin, FormView):
+class DoiApprovalView(SingleObjectMixin, MultipleObjectMixin, FormView):
     form_class = forms.DoiFormSet
-    queryset = Change.objects.of_type(Campaign)
     template_name = "api_app/campaign_dois.html"
+    paginate_by = 15
+    campaign_queryset = Change.objects.of_type(Campaign)
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object(queryset=self.campaign_queryset)
+        return super().get(request, *args, **kwargs)
+
+    def get_queryset(self):
+        return (
+            Change.objects.of_type(DOI)
+            .filter(update__campaigns__contains=str(self.kwargs["pk"]))
+            # Order the DOIs by status so that unapproved DOIs are shown first
+            .order_by("status", "update__concept_id")
+        )
 
     def get_context_data(self, **kwargs):
-        self.object = self.get_object()
-        uuid = str(self.object.uuid)
+        uuid = str(self.kwargs["pk"])
         past_doi_fetches = self.request.session.get("doi_task_ids", {})
+        if not isinstance(past_doi_fetches, dict):
+            past_doi_fetches = {}
         return super().get_context_data(
             **{
+                "object_list": self.get_queryset(),
                 "form": None,
                 "formset": self.get_form(),
                 "doi_tasks": (
@@ -296,18 +311,16 @@ class DoiApprovalView(SingleObjectMixin, FormView):
 
     def get_initial(self):
         # This is where we generate the DOI data to be shown in the formset
+        queryset = self.get_queryset()
+        page_size = self.get_paginate_by(queryset)
+        _, _, paginated_queryset, _ = self.paginate_queryset(queryset, page_size)
         return [
             {
                 "uuid": v["uuid"],
                 "keep": True if v["status"] > 0 else None,
                 **v["update"],
             }
-            for v in (
-                Change.objects.of_type(DOI)
-                .filter(update__campaigns__contains=str(self.object.uuid))
-                .order_by("update__concept_id")
-                .values("uuid", "status", "update")
-            )
+            for v in paginated_queryset.values("uuid", "status", "update")
         ]
 
     def form_valid(self, formset):
@@ -355,10 +368,6 @@ class DoiApprovalView(SingleObjectMixin, FormView):
             self.request, f"Updated {len(to_update)} and removed {len(to_delete)} DOIs."
         )
         return super().form_valid(formset)
-
-    def post(self, request, **kwargs):
-        self.object = self.get_object()
-        return super().post(request, **kwargs)
 
     def get_success_url(self):
         return reverse("mi-doi-approval", args=[self.kwargs["pk"]])

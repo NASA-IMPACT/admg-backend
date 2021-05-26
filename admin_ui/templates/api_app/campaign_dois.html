@@ -10,9 +10,9 @@
       <h2>Generate DOI Recommendations</h2>
       <p>
         The DOI matcher will search for DOIs based on this campaign's <code>short_name</code>.
-        If you have not made drafts of this campaign's instrument, platforms, or CDPIs, the DOI 
-        matcher won't be able to automatically relate proposed DOIs to this campaign. After creating 
-        instruments, platforms, or CDPIs for this campaign, it is recommended to re-run the DOI matcher 
+        If you have not made drafts of this campaign's instrument, platforms, or CDPIs, the DOI
+        matcher won't be able to automatically relate proposed DOIs to this campaign. After creating
+        instruments, platforms, or CDPIs for this campaign, it is recommended to re-run the DOI matcher
         to update the proposed DOIs.
 
         Please refresh the page a few minutes after clicking "Generate DOIs".
@@ -58,38 +58,77 @@
   <div class="row">
     <div class="col">
       <h2 class="mt-4">Recommended DOIs</h2>
+      {% if page_obj.paginator.count %}
+      We've found {{ page_obj.paginator.count }} potentially related DOIs. Unreviewed DOIs are shown first.
+      {% endif %}
+      
       {{ formset.management_form|crispy }}
       {% crispy formset %}
+      
+      {% if page_obj.has_other_pages %}
+      <ul class="pagination">
+        {% if page_obj.has_previous %}
+        <li class="page-item ">
+          <a class="page-link" href="?page={{ page_obj.previous_page_number }}">&laquo;</a>
+        </li>
+        {% else %}
+        <li class="page-item disabled">
+          <span class="page-link">&laquo;</span>
+        </li>
+        {% endif %}
+
+        {% for i in page_obj.paginator.page_range %}
+          <li class="page-item {% if page_obj.number == i %}active{% endif %}">
+            <a class="page-link" href="?page={{ i }}">{{ i }}</a>
+          </li>
+        {% endfor %}
+        
+        {% if page_obj.has_next %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ page_obj.next_page_number }}">&raquo;</a>
+        </li>
+        {% else %}
+        <li class="disabled">
+          <span>&raquo;</span>
+        </li>
+        {% endif %}
+
+      </ul>
+      {% endif %}
+      <span class="text-muted">
+        Showing {{ page_obj.start_index }}-{{ page_obj.end_index }} of {{ page_obj.paginator.count }} recommmended DOIs.
+      </span>
+
     </div>
   </div>
 </div>
 {% endblock main %}
 
 {% block javascript %}
-  {{ block.super }}
+{{ block.super }}
 
-  <script>
-    // Support unchecking radio button icons
-    $('.icon-radio label').click(function(event) {
-      var input = $(this).children('input');
-      
-      if (input.is(':checked')) {
-        // Don't allow us to uncheck if was checked on load
-        if (input.attr('checked')) return;
-        
-        event.stopPropagation(); // Prevent Bootstrap from handling click
-        input.prop('checked', false); // Uncheck input
-        $(this).removeClass('active'); // Rm active class on label
+<script>
+  // Support unchecking radio button icons
+  $('.icon-radio label').click(function (event) {
+    var input = $(this).children('input');
 
-        // Handle unchecking of sibling of input that was checked on load
-        var checkedOnLoadSibling = $(this).parent().find('input[checked]');
-        if (checkedOnLoadSibling.length) {
-          checkedOnLoadSibling.prop('checked', true);
-          checkedOnLoadSibling.parent('label').addClass('active');
-        }
+    if (input.is(':checked')) {
+      // Don't allow us to uncheck if was checked on load
+      if (input.attr('checked')) return;
+
+      event.stopPropagation(); // Prevent Bootstrap from handling click
+      input.prop('checked', false); // Uncheck input
+      $(this).removeClass('active'); // Rm active class on label
+
+      // Handle unchecking of sibling of input that was checked on load
+      var checkedOnLoadSibling = $(this).parent().find('input[checked]');
+      if (checkedOnLoadSibling.length) {
+        checkedOnLoadSibling.prop('checked', true);
+        checkedOnLoadSibling.parent('label').addClass('active');
       }
-    })
+    }
+  })
 
-    
-  </script>
+
+</script>
 {% endblock javascript %}
