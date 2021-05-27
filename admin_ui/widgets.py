@@ -67,7 +67,7 @@ class BoundingBoxWidget(widgets.OpenLayersWidget):
         return None
 
 
-class IconBoolean(forms.CheckboxInput):
+class IconBooleanWidget(forms.CheckboxInput):
     template_name = "widgets/icon_radio.html"
 
     def value_from_datadict(self, data, files, name):
@@ -76,6 +76,10 @@ class IconBoolean(forms.CheckboxInput):
             # False values must be explicitely sent from browser.
             return None
         return super().value_from_datadict(data, files, name)
+
+    class Media:
+        css = {"all": ("css/icon-boolean.css",)}
+        js = ("js/icon-boolean.js",)
 
 
 class ImagePreviewWidget(forms.widgets.FileInput):
@@ -95,7 +99,9 @@ class AddAnotherChoiceFieldWidget(forms.Select):
         return super().__init__(*args, **kwargs)
 
     def render(self, name, value, *args, **kwargs):
-        create_form_url = reverse("mi-change-add", kwargs={"model": self.model._meta.model_name})
+        create_form_url = reverse(
+            "mi-change-add", kwargs={"model": self.model._meta.model_name}
+        )
 
         output = [
             super().render(name, value, *args, **kwargs),
