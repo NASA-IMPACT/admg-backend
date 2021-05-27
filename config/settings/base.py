@@ -194,8 +194,13 @@ TEMPLATES = [
             # https://docs.djangoproject.com/en/dev/ref/settings/#template-loaders
             # https://docs.djangoproject.com/en/dev/ref/templates/api/#loader-types
             "loaders": [
+                # (
+                #     "django.template.loaders.cached.Loader",
+                #     [
                 "django.template.loaders.filesystem.Loader",
                 "django.template.loaders.app_directories.Loader",
+                #     ],
+                # ),
             ],
             # https://docs.djangoproject.com/en/dev/ref/settings/#template-context-processors
             "context_processors": [

@@ -2,6 +2,11 @@
 {% load crispy_forms_tags %}
 {% load humanize %}
 
+{% block extrahead %}
+{{ block.super }}
+{{ formset.media.css }}
+{% endblock %}
+
 {% block main %}
 <div class="col">
 
@@ -10,9 +15,9 @@
       <h2>Generate DOI Recommendations</h2>
       <p>
         The DOI matcher will search for DOIs based on this campaign's <code>short_name</code>.
-        If you have not made drafts of this campaign's instrument, platforms, or CDPIs, the DOI 
-        matcher won't be able to automatically relate proposed DOIs to this campaign. After creating 
-        instruments, platforms, or CDPIs for this campaign, it is recommended to re-run the DOI matcher 
+        If you have not made drafts of this campaign's instrument, platforms, or CDPIs, the DOI
+        matcher won't be able to automatically relate proposed DOIs to this campaign. After creating
+        instruments, platforms, or CDPIs for this campaign, it is recommended to re-run the DOI matcher
         to update the proposed DOIs.
 
         Please refresh the page a few minutes after clicking "Generate DOIs".
@@ -66,30 +71,6 @@
 {% endblock main %}
 
 {% block javascript %}
-  {{ block.super }}
-
-  <script>
-    // Support unchecking radio button icons
-    $('.icon-radio label').click(function(event) {
-      var input = $(this).children('input');
-      
-      if (input.is(':checked')) {
-        // Don't allow us to uncheck if was checked on load
-        if (input.attr('checked')) return;
-        
-        event.stopPropagation(); // Prevent Bootstrap from handling click
-        input.prop('checked', false); // Uncheck input
-        $(this).removeClass('active'); // Rm active class on label
-
-        // Handle unchecking of sibling of input that was checked on load
-        var checkedOnLoadSibling = $(this).parent().find('input[checked]');
-        if (checkedOnLoadSibling.length) {
-          checkedOnLoadSibling.prop('checked', true);
-          checkedOnLoadSibling.parent('label').addClass('active');
-        }
-      }
-    })
-
-    
-  </script>
+{{ block.super }}
+{{ formset.media.js }}
 {% endblock javascript %}

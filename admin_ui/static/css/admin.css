@@ -11,11 +11,6 @@
   cursor: pointer;
 }
 
-.icon-radio label:not(.active) {
-  background-color: #aaa;
-  border-color: #aaa;
-}
-
 select.selectmultiple, .select2-selection {
   overflow: auto;
   resize: auto;
