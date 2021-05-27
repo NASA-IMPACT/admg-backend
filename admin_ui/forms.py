@@ -20,7 +20,7 @@ from api_app.models import (
 from admg_webapp.users.models import User, ADMIN_CODE
 from data_models import models as data_models
 from api_app.models import Change
-from .widgets import IconBoolean
+from .widgets import IconBooleanWidget
 from .fields import ChangeMultipleChoiceField
 
 
@@ -105,7 +105,7 @@ class DoiForm(forms.Form):
     collection_periods = forms.MultipleChoiceField(label="CDPIs", required=False)
     keep = forms.NullBooleanField(
         help_text="Mark as saved or deleted",
-        widget=IconBoolean,
+        widget=IconBooleanWidget,
         # NOTE: Must use required=False or else False responses will be treated
         # as missing and throw validation error
         required=False,

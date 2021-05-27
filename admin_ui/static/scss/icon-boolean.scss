@@ -1,0 +1,15 @@
+.icon-radio {
+    input[type="radio"] {
+        // Make invisible (hiding this way is preferrable to display:none
+        // as it allows elements to still be focused and navigated via
+        // keyboard (https://markheath.net/post/customize-radio-button-css)
+        opacity: 0;
+        position: fixed;
+        width: 0;
+
+        &:not(:checked) + label {
+            background-color: #aaa;
+            border-color: #aaa;
+        }
+    }
+}
