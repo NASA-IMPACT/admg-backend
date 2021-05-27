@@ -285,10 +285,11 @@ class DoiApprovalView(SingleObjectMixin, MultipleObjectMixin, FormView):
 
     def get_queryset(self):
         return (
-            Change.objects.of_type(DOI)
-            .filter(update__campaigns__contains=str(self.kwargs["pk"]))
-            # Order the DOIs by status so that unapproved DOIs are shown first
-            .order_by("status", "update__concept_id")
+            Change.objects.of_type(DOI).filter(
+                update__campaigns__contains=str(self.kwargs["pk"])
+            )
+            # Order the DOIs by review status so that unreviewed DOIs are shown first
+            .order_by("-update__reviewed", "update__concept_id")
         )
 
     def get_context_data(self, **kwargs):
@@ -317,10 +318,10 @@ class DoiApprovalView(SingleObjectMixin, MultipleObjectMixin, FormView):
         return [
             {
                 "uuid": v["uuid"],
-                "keep": True if v["status"] > 0 else None,
+                "keep": bool(v["update"].get("reviewed")),
                 **v["update"],
             }
-            for v in paginated_queryset.values("uuid", "status", "update")
+            for v in paginated_queryset.values("uuid", "update")
         ]
 
     def form_valid(self, formset):
@@ -343,6 +344,7 @@ class DoiApprovalView(SingleObjectMixin, MultipleObjectMixin, FormView):
             updated_statuses = []
             stored_dois = Change.objects.in_bulk([doi["uuid"] for doi in to_update])
             for doi in to_update:
+                # Persist DOI updates
                 for field, value in doi.items():
                     if field in ["uuid", "keep"]:
                         continue
@@ -351,6 +353,9 @@ class DoiApprovalView(SingleObjectMixin, MultipleObjectMixin, FormView):
                     if stored_doi.status == 0:
                         stored_doi.status = 1
                         updated_statuses.append(stored_doi)
+
+                # Mark as reviewed
+                stored_doi.update["reviewed"] = 1
 
             Change.objects.bulk_update(
                 stored_dois.values(), ["update", "status"], batch_size=100
