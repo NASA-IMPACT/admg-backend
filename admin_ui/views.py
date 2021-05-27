@@ -276,7 +276,7 @@ class DoiFetchView(View):
 class DoiApprovalView(SingleObjectMixin, MultipleObjectMixin, FormView):
     form_class = forms.DoiFormSet
     template_name = "api_app/campaign_dois.html"
-    paginate_by = 100
+    paginate_by = 10
     campaign_queryset = Change.objects.of_type(Campaign)
 
     def get(self, request, *args, **kwargs):
