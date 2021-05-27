@@ -285,27 +285,30 @@ class DoiApprovalView(SingleObjectMixin, MultipleObjectMixin, FormView):
 
     def get_queryset(self):
         return (
-            Change.objects.of_type(DOI)
-            .filter(update__campaigns__contains=str(self.kwargs["pk"]))
+            Change.objects.of_type(DOI).filter(
+                update__campaigns__contains=str(self.kwargs["pk"])
+            )
             # Order the DOIs by status so that unapproved DOIs are shown first
             .order_by("status", "update__concept_id")
         )
 
     def get_context_data(self, **kwargs):
         uuid = str(self.kwargs["pk"])
-        past_doi_fetches = self.request.session.get("doi_task_ids", {})
-        if not isinstance(past_doi_fetches, dict):
-            past_doi_fetches = {}
+        all_past_doi_fetches = self.request.session.get("doi_task_ids", {})
+        if not isinstance(all_past_doi_fetches, dict):
+            all_past_doi_fetches = {}
+        relevant_doi_fetches = all_past_doi_fetches.get(uuid, [])
+        doi_tasks = {task_id: None for task_id in relevant_doi_fetches}
+        if relevant_doi_fetches:
+            doi_tasks.update(
+                TaskResult.objects.in_bulk(relevant_doi_fetches, field_name="task_id")
+            )
         return super().get_context_data(
             **{
                 "object_list": self.get_queryset(),
                 "form": None,
                 "formset": self.get_form(),
-                "doi_tasks": (
-                    TaskResult.objects.filter(task_id__in=past_doi_fetches[uuid])[:5]
-                    if past_doi_fetches.get(uuid)
-                    else []
-                ),
+                "doi_tasks": doi_tasks,
             }
         )
 
