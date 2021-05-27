@@ -40,7 +40,7 @@
               {% firstof task.date_done|naturaltime task.date_created|naturaltime as task_date %}
               <small>{{ task_date }}</small>
             {% else %}
-              <h5 class="mb-1">IN PROGRESS</h5>
+              <h5 class="mb-1">QUEUED</h5>
             {% endif %}
           </div>
           <dl id="task_{{ task_id }}_details" class="collapse">
