@@ -2,7 +2,9 @@ $('.icon-radio label').click(function (event) {
   var input = $('input#' + $(this).attr('for'));
 
   if (input.is(':checked')) {
-    // Don't allow us to uncheck if was checked on load
+    // Don't allow us to uncheck if was checked on load. This plays on the
+    // fact that the checked _attribute_ represents the on load checked state
+    // while the checked _prop_ represents the current checked status.
     if (input.attr('checked')) return;
 
     // Prevent HTML from clicking radio
