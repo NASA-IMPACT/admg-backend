@@ -100,7 +100,11 @@ python manage.py sass admin_ui/static/scss admin_ui/static/css --watch
 
 2. Create a virtual environment
 
-> `python3 -m venv .venv` → `source .venv/bin/activate`
+Set up the env (only need to do once)
+> `python3 -m venv .venv`
+
+To activate the env (do this every time you start the project)
+> `source .venv/bin/activate`
 
 3. Install requirements
 
@@ -115,7 +119,7 @@ Part 2 - local requirements
 `brew info posgresql` should give a path that you can use to start it (It will probably look something like `pg_ctl -D /usr/local/var/postgres start`)
 
 5. Check that postgres is working
-If `psql -l` gives you a list of tables all is well.
+If `psql -l` gives you a list of tables then all is well.
 
 6. Create a database
 > `createdb admg_prod`
@@ -133,7 +137,7 @@ For example:
 > `source .venv/bin/activate`
 
 ### Understanding `python manage.py`
-`python manage.py`
+`python manage.py <command>`
 
 - `manage.py` is your entry point into the django app. It has several commands, including:
     - `test` `migrate` `makemigrations` `runserver_plus` `shell_plus`
@@ -162,3 +166,13 @@ interactive way to interact with the database and the database models.
 
 > `python manage.py shell_plus`
 
+### Running the infrastructure for DOI fetching
+DOI fetching uses rabbitmq and celery.
+
+Installation
+install `rabbitmq` (probs using `brew` if you’re on a Mac)
+
+Starting the service
+1. start rabbitmq with `rabbitmq-server` 
+2. start the celery worker with
+`celery -A config.celery_app worker -l INFO`
