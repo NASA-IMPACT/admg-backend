@@ -285,8 +285,9 @@ class DoiApprovalView(SingleObjectMixin, MultipleObjectMixin, FormView):
 
     def get_queryset(self):
         return (
-            Change.objects.of_type(DOI)
-            .filter(update__campaigns__contains=str(self.kwargs["pk"]))
+            Change.objects.of_type(DOI).filter(
+                update__campaigns__contains=str(self.kwargs["pk"])
+            )
             # Order the DOIs by status so that unapproved DOIs are shown first
             .order_by("status", "update__concept_id")
         )
@@ -475,7 +476,7 @@ class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
         if content_type == "Campaign":
             related_fields["campaignwebsite"] = (
                 Change.objects.of_type(CampaignWebsite)
-                .filter(action=CREATE)
+                .filter(action=CREATE, update__campaign=str(self.object.uuid))
                 .annotate_from_relationship(
                     of_type=Website,
                     to_attr="title",
