@@ -320,7 +320,7 @@ class DoiApprovalView(SingleObjectMixin, MultipleObjectMixin, FormView):
         return [
             {
                 "uuid": v["uuid"],
-                "keep": bool(v["update"].get("reviewed")),
+                "keep": "reviewed" in v["update"] or None,
                 **v["update"],
             }
             for v in paginated_queryset.values("uuid", "update")
