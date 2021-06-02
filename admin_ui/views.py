@@ -289,7 +289,7 @@ class DoiApprovalView(SingleObjectMixin, MultipleObjectMixin, FormView):
                 update__campaigns__contains=str(self.kwargs["pk"])
             )
             # Order the DOIs by review status so that unreviewed DOIs are shown first
-            .order_by("-update__reviewed", "update__concept_id")
+            .order_by("-update__reviewed", "-status", "update__concept_id")
         )
 
     def get_context_data(self, **kwargs):
