@@ -358,6 +358,8 @@ class DoiApprovalView(SingleObjectMixin, MultipleObjectMixin, FormView):
                     if stored_doi.status == 0:
                         stored_doi.status = 1
                         updated_statuses.append(stored_doi)
+                    elif stored_doi.status == 7:
+                        stored_doi.untrash(user=self.request.user)
 
                 # Mark as reviewed
                 stored_doi.update["reviewed"] = 1
@@ -365,6 +367,7 @@ class DoiApprovalView(SingleObjectMixin, MultipleObjectMixin, FormView):
             Change.objects.bulk_update(
                 stored_dois.values(), ["update", "status"], batch_size=100
             )
+            # TODO: does this need to be only done on items which weren't untrashed?
             ApprovalLog.objects.bulk_create(
                 [
                     ApprovalLog(
