@@ -319,11 +319,12 @@ class DoiApprovalView(SingleObjectMixin, MultipleObjectMixin, FormView):
         _, _, paginated_queryset, _ = self.paginate_queryset(queryset, page_size)
         return [
             {
-                "uuid": v["uuid"],
-                "keep": "reviewed" in v["update"] or None,
-                **v["update"],
+                "uuid": v.uuid,
+                "keep": "reviewed" in v.update or None,
+                "status": v.get_status_display(),
+                **v.update,
             }
-            for v in paginated_queryset.values("uuid", "update")
+            for v in paginated_queryset.only("uuid", "status", "update")
         ]
 
     def form_valid(self, formset):
