@@ -373,7 +373,7 @@ class DoiApprovalView(SingleObjectMixin, MultipleObjectMixin, FormView):
             )
 
         messages.info(
-            self.request, f"Updated {len(to_update)} and removed {len(to_delete)} DOIs."
+            self.request, f"Updated {len(to_update)} and removed {len(to_trash)} DOIs."
         )
         return super().form_valid(formset)
 
