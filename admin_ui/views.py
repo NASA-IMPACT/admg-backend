@@ -332,15 +332,16 @@ class DoiApprovalView(SingleObjectMixin, MultipleObjectMixin, FormView):
         ]
 
         to_update = []
-        to_delete = []
+        to_trash = []
         for doi in changed_dois:
             if doi["keep"] is True:
                 to_update.append(doi)
             elif doi["keep"] is False:
-                to_delete.append(doi)
+                to_trash.append(doi)
 
-        if to_delete:
-            Change.objects.filter(uuid__in=[doi["uuid"] for doi in to_delete]).trash()
+        if to_trash:
+            for doi in Change.objects.filter(uuid__in=[doi["uuid"] for doi in to_trash]):
+                doi.trash()
 
         if to_update:
             updated_statuses = []
