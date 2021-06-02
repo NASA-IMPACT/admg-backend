@@ -342,6 +342,8 @@ class DoiApprovalView(SingleObjectMixin, MultipleObjectMixin, FormView):
         if to_trash:
             for doi in Change.objects.filter(uuid__in=[doi["uuid"] for doi in to_trash]):
                 doi.trash(user=self.request.user)
+                doi.update["reviewed"] = 0
+                doi.save()
 
         if to_update:
             updated_statuses = []
