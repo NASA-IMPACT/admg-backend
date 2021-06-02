@@ -340,7 +340,7 @@ class DoiApprovalView(SingleObjectMixin, MultipleObjectMixin, FormView):
                 to_delete.append(doi)
 
         if to_delete:
-            Change.objects.filter(uuid__in=[doi["uuid"] for doi in to_delete]).delete()
+            Change.objects.filter(uuid__in=[doi["uuid"] for doi in to_delete]).trash()
 
         if to_update:
             updated_statuses = []
