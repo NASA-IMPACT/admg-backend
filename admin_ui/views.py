@@ -320,7 +320,7 @@ class DoiApprovalView(SingleObjectMixin, MultipleObjectMixin, FormView):
         return [
             {
                 "uuid": v["uuid"],
-                "keep": bool(v["update"].get("reviewed")),
+                "keep": v["update"].get("keep"),
                 **v["update"],
             }
             for v in paginated_queryset.values("uuid", "update")
@@ -340,9 +340,11 @@ class DoiApprovalView(SingleObjectMixin, MultipleObjectMixin, FormView):
                 to_trash.append(doi)
 
         if to_trash:
-            for doi in Change.objects.filter(uuid__in=[doi["uuid"] for doi in to_trash]):
+            for doi in Change.objects.filter(
+                uuid__in=[doi["uuid"] for doi in to_trash]
+            ):
                 doi.trash(user=self.request.user)
-                doi.update["reviewed"] = 0
+                doi.update["keep"] = False
                 doi.save()
 
         if to_update:
@@ -362,7 +364,7 @@ class DoiApprovalView(SingleObjectMixin, MultipleObjectMixin, FormView):
                         stored_doi.untrash(user=self.request.user)
 
                 # Mark as reviewed
-                stored_doi.update["reviewed"] = 1
+                stored_doi.update["keep"] = True
 
             Change.objects.bulk_update(
                 stored_dois.values(), ["update", "status"], batch_size=100
