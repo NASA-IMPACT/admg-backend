@@ -1,6 +1,7 @@
 from django.core.exceptions import ValidationError
 from django.contrib.gis.forms.fields import PolygonField
 from django.forms import (
+    MultipleChoiceField,
     ModelChoiceField,
     ModelMultipleChoiceField,
     DateField,
@@ -125,7 +126,7 @@ class ChangeChoiceMixin:
         )
 
 
-class ChangeMultipleChoiceField(ChangeChoiceMixin, ModelMultipleChoiceField):
+class ChangeMultipleChoiceField(ChangeChoiceMixin, MultipleChoiceField):
     """
     A MultipleChoiceField that renders Choice models rather than the actual target models
     """

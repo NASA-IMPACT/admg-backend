@@ -94,13 +94,13 @@ class TransitionForm(forms.Form):
 class DoiForm(forms.Form):
     uuid = forms.UUIDField(disabled=True, widget=forms.HiddenInput)
     campaigns = ChangeMultipleChoiceField(
-        dest_model=data_models.Campaign, required=False, queryset=None
+        dest_model=data_models.Campaign, required=False
     )
     platforms = ChangeMultipleChoiceField(
-        dest_model=data_models.Platform, required=False, queryset=None
+        dest_model=data_models.Platform, required=False
     )
     instruments = ChangeMultipleChoiceField(
-        dest_model=data_models.Instrument, required=False, queryset=None
+        dest_model=data_models.Instrument, required=False
     )
     collection_periods = forms.MultipleChoiceField(label="CDPIs", required=False)
     keep = forms.NullBooleanField(

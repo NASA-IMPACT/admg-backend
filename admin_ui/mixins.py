@@ -35,20 +35,7 @@ def formfield_callback(f, **kwargs):
                     ),
                 }
             )
-    # Use ChangeChoiceField for any ManyToManyField field in the model class
-    if isinstance(f, model_fields.ManyToManyField):
-        kwargs.update(
-            {
-                # Use field to handle drafts rather than published models
-                "form_class": partial(
-                    fields.ChangeMultipleChoiceField, dest_model=f.remote_field.model
-                ),
-                # Choices consist of drafts rather than published models
-                "queryset": fields.ChangeMultipleChoiceField.get_queryset_for_model(
-                    f.remote_field.model
-                ),
-            }
-        )
+
     if isinstance(f, model_fields.UUIDField):
         kwargs.update({"widget": HiddenInput()})
     elif isinstance(f, model_fields.ImageField):
