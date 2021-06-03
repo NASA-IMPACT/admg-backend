@@ -312,6 +312,7 @@ class DoiApprovalView(SingleObjectMixin, MultipleObjectMixin, FormView):
             }
         )
 
+
     def get_initial(self):
         # This is where we generate the DOI data to be shown in the formset
         queryset = self.get_queryset()
@@ -320,10 +321,11 @@ class DoiApprovalView(SingleObjectMixin, MultipleObjectMixin, FormView):
         return [
             {
                 "uuid": v["uuid"],
-                "keep": v["update"].get("keep"),
+                # "keep": v["update"].get("keep"),
+                "keep": False if v['status']==7 else (True if v['status'] not in [0,1] else None),
                 **v["update"],
             }
-            for v in paginated_queryset.values("uuid", "update")
+            for v in paginated_queryset.values("uuid", "update", "status")
         ]
 
     def form_valid(self, formset):
@@ -334,21 +336,22 @@ class DoiApprovalView(SingleObjectMixin, MultipleObjectMixin, FormView):
         to_update = []
         to_trash = []
         for doi in changed_dois:
-            if doi["keep"] is True:
-                to_update.append(doi)
-            elif doi["keep"] is False:
+            if doi["keep"] is False:
                 to_trash.append(doi)
+            else:
+                to_update.append(doi)
 
         if to_trash:
             for doi in Change.objects.filter(
                 uuid__in=[doi["uuid"] for doi in to_trash]
             ):
                 doi.trash(user=self.request.user)
-                doi.update["keep"] = False
+                # doi.update["keep"] = False
                 doi.save()
 
         if to_update:
-            updated_statuses = []
+            change_status_to_edit = []
+            change_status_to_review = []
             stored_dois = Change.objects.in_bulk([doi["uuid"] for doi in to_update])
             for doi in to_update:
                 # Persist DOI updates
@@ -357,25 +360,36 @@ class DoiApprovalView(SingleObjectMixin, MultipleObjectMixin, FormView):
                         continue
                     stored_doi = stored_dois[doi["uuid"]]
                     stored_doi.update[field] = value
-                    if stored_doi.status == 0:
-                        stored_doi.status = 1
-                        updated_statuses.append(stored_doi)
-                    elif stored_doi.status == 7:
+                # never been previously edited and checkmark and trash haven't been selected
+                if stored_doi.status == 0 and doi['keep'] == None:
+                    stored_doi.status = 1
+                    change_status_to_edit.append(stored_doi)
+                # checkmark was selected
+                elif doi['keep'] == True:
+                    if stored_doi.status == 7:
                         stored_doi.untrash(user=self.request.user)
-
-                # Mark as reviewed
-                stored_doi.update["keep"] = True
+                    stored_doi.status = 3
+                    change_status_to_review.append(stored_doi)
 
             Change.objects.bulk_update(
                 stored_dois.values(), ["update", "status"], batch_size=100
             )
-            # TODO: does this need to be only done on items which weren't untrashed?
+
             ApprovalLog.objects.bulk_create(
                 [
                     ApprovalLog(
                         change=doi, user=self.request.user, action=ApprovalLog.EDIT
                     )
-                    for doi in updated_statuses
+                    for doi in change_status_to_edit
+                ]
+            )
+
+            ApprovalLog.objects.bulk_create(
+                [
+                    ApprovalLog(
+                        change=doi, user=self.request.user, action=ApprovalLog.SUBMIT
+                    )
+                    for doi in change_status_to_review
                 ]
             )
 
