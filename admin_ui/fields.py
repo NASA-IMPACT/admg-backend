@@ -1,9 +1,11 @@
 from django.core.exceptions import ValidationError
 from django.contrib.gis.forms.fields import PolygonField
-from django.db.models.fields.related import ForeignKey
-from django.db.models import functions, expressions, TextField
-from django.db.models.fields.json import KeyTextTransform
-from django.forms import ModelChoiceField, MultipleChoiceField, DateField, DateInput
+from django.forms import (
+    ModelChoiceField,
+    ModelMultipleChoiceField,
+    DateField,
+    DateInput,
+)
 from django.utils.translation import gettext_lazy as _
 
 from api_app import models
@@ -123,7 +125,7 @@ class ChangeChoiceMixin:
         )
 
 
-class ChangeMultipleChoiceField(ChangeChoiceMixin, MultipleChoiceField):
+class ChangeMultipleChoiceField(ChangeChoiceMixin, ModelMultipleChoiceField):
     """
     A MultipleChoiceField that renders Choice models rather than the actual target models
     """
@@ -175,5 +177,8 @@ class BboxField(PolygonField):
 
         return super().clean(value)
 
+
 class CustomDateField(DateField):
-    widget = DateInput(attrs={'class': 'datepicker', 'placeholder': 'Select a date', 'type': 'date'})
+    widget = DateInput(
+        attrs={"class": "datepicker", "placeholder": "Select a date", "type": "date"}
+    )
