@@ -33,9 +33,12 @@ from api_app.models import (
     Change,
     CREATE,
     UPDATE,
-    IN_REVIEW_CODE,
+    CREATED_CODE,
+    IN_PROGRESS_CODE,
+    AWAITING_REVIEW_CODE,
     IN_ADMIN_REVIEW_CODE,
     PUBLISHED_CODE,
+    IN_TRASH_CODE,
     AVAILABLE_STATUSES,
 )
 from cmr import tasks
@@ -321,8 +324,7 @@ class DoiApprovalView(SingleObjectMixin, MultipleObjectMixin, FormView):
         return [
             {
                 "uuid": v.uuid,
-                # "keep": v["update"].get("keep"),
-                "keep": False if v.status==7 else (True if v.status not in [0,1] else None),
+                "keep": False if v.status==IN_TRASH_CODE else (None if v.status in [CREATED_CODE, IN_PROGRESS_CODE] else True),
                 "status": v.get_status_display(),
                 **v.update,
             }
@@ -363,14 +365,14 @@ class DoiApprovalView(SingleObjectMixin, MultipleObjectMixin, FormView):
                     stored_doi = stored_dois[doi["uuid"]]
                     stored_doi.update[field] = value
                 # never been previously edited and checkmark and trash haven't been selected
-                if stored_doi.status == 0 and doi['keep'] == None:
-                    stored_doi.status = 1
+                if stored_doi.status == CREATED_CODE and doi['keep'] == None:
+                    stored_doi.status = IN_PROGRESS_CODE
                     change_status_to_edit.append(stored_doi)
                 # checkmark was selected
                 elif doi['keep'] == True:
-                    if stored_doi.status == 7:
+                    if stored_doi.status == IN_TRASH_CODE:
                         stored_doi.untrash(user=self.request.user)
-                    stored_doi.status = 3
+                    stored_doi.status = AWAITING_REVIEW_CODE
                     change_status_to_review.append(stored_doi)
 
             Change.objects.bulk_update(
