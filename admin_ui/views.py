@@ -350,7 +350,7 @@ class DoiApprovalView(SingleObjectMixin, MultipleObjectMixin, FormView):
             for doi in Change.objects.filter(
                 uuid__in=[doi["uuid"] for doi in to_trash]
             ):
-                doi.trash(user=self.request.user)
+                doi.trash(user=self.request.user, doi=True)
                 # doi.update["keep"] = False
                 doi.save()
 
@@ -372,7 +372,7 @@ class DoiApprovalView(SingleObjectMixin, MultipleObjectMixin, FormView):
                 # checkmark was selected
                 elif doi['keep'] == True:
                     if stored_doi.status == IN_TRASH_CODE:
-                        stored_doi.untrash(user=self.request.user)
+                        stored_doi.untrash(user=self.request.user, doi=True)
                     stored_doi.status = AWAITING_REVIEW_CODE
                     change_status_to_review.append(stored_doi)
 

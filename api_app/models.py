@@ -90,10 +90,11 @@ def is_not_admin(user):
 
 
 def is_admin(function):
-    def wrapper(self, user, notes=""):
+    def wrapper(self, user, notes="", **kwargs):
 
         if not_admin := is_not_admin(user):
-            return not_admin
+            if not kwargs.get('doi'):
+                return not_admin
 
         result = function(self, user, notes)
 
@@ -614,7 +615,7 @@ class Change(models.Model):
         AWAITING_ADMIN_REVIEW_CODE,
         IN_ADMIN_REVIEW_CODE
     ])
-    def trash(self, user, notes=''):
+    def trash(self, user, notes='', doi=False):
         """Moves a change object to the IN_TRASH stage. Expected use case
         is for DOIs which need to be ignored and items created accidently.
         Items can be removed from the trash with self.untrash()
@@ -647,7 +648,7 @@ class Change(models.Model):
 
     @is_admin
     @is_status([IN_TRASH_CODE])
-    def untrash(self, user, notes=''):
+    def untrash(self, user, notes='', doi=False):
         """Moves a change object from trash to the in progress stage.
 
         Args:
