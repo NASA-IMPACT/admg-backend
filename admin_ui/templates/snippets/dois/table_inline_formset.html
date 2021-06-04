@@ -48,6 +48,16 @@
                     <tr>
                         <td class="text-nowrap" style="max-width:8em; overflow-x: auto">
                             <dl>
+                                <dt>DOI</dt>
+                                <dd>
+                                    {% if form.initial.doi %}
+                                    <a href="//doi.org/{{ form.initial.doi }}" target="_blank">
+                                    {{ form.initial.doi }}
+                                    </a>
+                                    {% else %}
+                                    &dash;
+                                    {% endif %}
+                                </dd>
                                 <dt>CMR</dt>
                                 <dd>
                                     {% if form.initial.concept_id %}
