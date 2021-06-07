@@ -28,6 +28,7 @@
                                 </th>
                             {% endif %}
                         {% endfor %}
+                        <th scope="col">Status</th>
                     </tr>
                 {% endif %}
             </thead>
@@ -57,7 +58,6 @@
                                     &dash;
                                     {% endif %}
                                 </dd>
-                                
                                 <dt>CMR</dt>
                                 <dd>
                                     {% if form.initial.concept_id %}
@@ -74,6 +74,12 @@
                         {% for field in form %}
                             {% include 'bootstrap4/field.html' with tag="td" form_show_labels=False %}
                         {% endfor %}
+                        <td>
+                            <a href="{% url 'mi-change-update' form.initial.uuid %}?back={{ request.path }}">
+                                <i class="bi bi-box-arrow-up-right"></i>
+                                {{ form.initial.status }}
+                            </a>
+                        </td>
                     </tr>
                 {% endfor %}
             </tbody>

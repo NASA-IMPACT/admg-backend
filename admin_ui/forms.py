@@ -104,7 +104,7 @@ class DoiForm(forms.Form):
     )
     collection_periods = forms.MultipleChoiceField(label="CDPIs", required=False)
     keep = forms.NullBooleanField(
-        help_text="Mark as saved or deleted",
+        help_text="Mark as reviewed or deleted",
         widget=IconBooleanWidget,
         # NOTE: Must use required=False or else False responses will be treated
         # as missing and throw validation error

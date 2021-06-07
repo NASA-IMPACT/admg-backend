@@ -35,6 +35,7 @@ def formfield_callback(f, **kwargs):
                     ),
                 }
             )
+
     if isinstance(f, model_fields.UUIDField):
         kwargs.update({"widget": HiddenInput()})
     elif isinstance(f, model_fields.ImageField):

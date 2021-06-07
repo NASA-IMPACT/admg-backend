@@ -33,9 +33,13 @@ from api_app.models import (
     Change,
     CREATE,
     UPDATE,
+    CREATED_CODE,
     IN_REVIEW_CODE,
+    IN_PROGRESS_CODE,
+    AWAITING_REVIEW_CODE,
     IN_ADMIN_REVIEW_CODE,
     PUBLISHED_CODE,
+    IN_TRASH_CODE,
     AVAILABLE_STATUSES,
 )
 from cmr import tasks
@@ -289,7 +293,7 @@ class DoiApprovalView(SingleObjectMixin, MultipleObjectMixin, FormView):
                 update__campaigns__contains=str(self.kwargs["pk"])
             )
             # Order the DOIs by review status so that unreviewed DOIs are shown first
-            .order_by("-update__reviewed", "update__concept_id")
+            .order_by("status", "update__concept_id")
         )
 
     def get_context_data(self, **kwargs):
@@ -312,6 +316,7 @@ class DoiApprovalView(SingleObjectMixin, MultipleObjectMixin, FormView):
             }
         )
 
+
     def get_initial(self):
         # This is where we generate the DOI data to be shown in the formset
         queryset = self.get_queryset()
@@ -319,11 +324,13 @@ class DoiApprovalView(SingleObjectMixin, MultipleObjectMixin, FormView):
         _, _, paginated_queryset, _ = self.paginate_queryset(queryset, page_size)
         return [
             {
-                "uuid": v["uuid"],
-                "keep": bool(v["update"].get("reviewed")),
-                **v["update"],
+                "uuid": v.uuid,
+                "keep": False if v.status==IN_TRASH_CODE else (None if v.status in [CREATED_CODE, IN_PROGRESS_CODE] else True),
+                "status": v.get_status_display(),
+                **v.update,
             }
-            for v in paginated_queryset.values("uuid", "update")
+            for v in paginated_queryset.only("uuid", "update", "status")
+
         ]
 
     def form_valid(self, formset):
@@ -332,18 +339,24 @@ class DoiApprovalView(SingleObjectMixin, MultipleObjectMixin, FormView):
         ]
 
         to_update = []
-        to_delete = []
+        to_trash = []
         for doi in changed_dois:
-            if doi["keep"] is True:
+            if doi["keep"] is False:
+                to_trash.append(doi)
+            else:
                 to_update.append(doi)
-            elif doi["keep"] is False:
-                to_delete.append(doi)
 
-        if to_delete:
-            Change.objects.filter(uuid__in=[doi["uuid"] for doi in to_delete]).delete()
+        if to_trash:
+            for doi in Change.objects.filter(
+                uuid__in=[doi["uuid"] for doi in to_trash]
+            ):
+                doi.trash(user=self.request.user, doi=True)
+                # doi.update["keep"] = False
+                doi.save()
 
         if to_update:
-            updated_statuses = []
+            change_status_to_edit = []
+            change_status_to_review = []
             stored_dois = Change.objects.in_bulk([doi["uuid"] for doi in to_update])
             for doi in to_update:
                 # Persist DOI updates
@@ -352,27 +365,41 @@ class DoiApprovalView(SingleObjectMixin, MultipleObjectMixin, FormView):
                         continue
                     stored_doi = stored_dois[doi["uuid"]]
                     stored_doi.update[field] = value
-                    if stored_doi.status == 0:
-                        stored_doi.status = 1
-                        updated_statuses.append(stored_doi)
-
-                # Mark as reviewed
-                stored_doi.update["reviewed"] = 1
+                # never been previously edited and checkmark and trash haven't been selected
+                if stored_doi.status == CREATED_CODE and doi['keep'] == None:
+                    stored_doi.status = IN_PROGRESS_CODE
+                    change_status_to_edit.append(stored_doi)
+                # checkmark was selected
+                elif doi['keep'] == True:
+                    if stored_doi.status == IN_TRASH_CODE:
+                        stored_doi.untrash(user=self.request.user, doi=True)
+                    stored_doi.status = AWAITING_REVIEW_CODE
+                    change_status_to_review.append(stored_doi)
 
             Change.objects.bulk_update(
                 stored_dois.values(), ["update", "status"], batch_size=100
             )
+
             ApprovalLog.objects.bulk_create(
                 [
                     ApprovalLog(
                         change=doi, user=self.request.user, action=ApprovalLog.EDIT
                     )
-                    for doi in updated_statuses
+                    for doi in change_status_to_edit
+                ]
+            )
+
+            ApprovalLog.objects.bulk_create(
+                [
+                    ApprovalLog(
+                        change=doi, user=self.request.user, action=ApprovalLog.SUBMIT
+                    )
+                    for doi in change_status_to_review
                 ]
             )
 
         messages.info(
-            self.request, f"Updated {len(to_update)} and removed {len(to_delete)} DOIs."
+            self.request, f"Updated {len(to_update)} and removed {len(to_trash)} DOIs."
         )
         return super().form_valid(formset)
 
