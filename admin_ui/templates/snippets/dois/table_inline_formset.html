@@ -1,0 +1,92 @@
+{% load crispy_forms_tags %}
+{% load crispy_forms_utils %}
+{% load crispy_forms_field %}
+
+{% specialspaceless %}
+{% if formset_tag %}
+<form {{ flat_attrs|safe }} method="{{ form_method }}" {% if formset.is_multipart %} enctype="multipart/form-data"{% endif %}>
+{% endif %}
+    {% if formset_method|lower == 'post' and not disable_csrf %}
+        {% csrf_token %}
+    {% endif %}
+
+    <div>
+        {{ formset.management_form|crispy }}
+    </div>
+
+    <div class="table-responsive">
+        <table{% if form_id %} id="{{ form_id }}_table"{% endif%} class="table table-striped table-sm table-doi">
+            <thead class="table-primary">
+                {% if formset.readonly and not formset.queryset.exists %}
+                {% else %}
+                    <tr>
+                        <th scope="col">Links</th>
+                        {% for field in formset.forms.0 %}
+                            {% if field.label and not field.is_hidden %}
+                                <th for="{{ field.auto_id }}" class="col-form-label {% if field.field.required %}requiredField{% endif %}">
+                                    {{ field.label|safe }}{% if field.field.required and not field|is_checkbox %}<span class="asteriskField">*</span>{% endif %}
+                                </th>
+                            {% endif %}
+                        {% endfor %}
+                        <th scope="col">Status</th>
+                    </tr>
+                {% endif %}
+            </thead>
+
+            <tbody>
+                <tr class="d-none empty-form">
+                    {% for field in formset.empty_form %}
+                        {% include 'bootstrap4/field.html' with tag="td" form_show_labels=False %}
+                    {% endfor %}
+                </tr>
+
+                {% for form in formset %}
+                    {% if form_show_errors and not form.is_extra %}
+                        {% include "bootstrap4/errors.html" %}
+                    {% endif %}
+
+                    <tr>
+                        <td class="text-nowrap" style="max-width:8em; overflow-x: auto">
+                            <dl>
+                                <dt>DOI</dt>
+                                <dd>
+                                    {% if form.initial.doi %}
+                                    <a href="//doi.org/{{ form.initial.doi }}" target="_blank">
+                                    {{ form.initial.doi }}
+                                    </a>
+                                    {% else %}
+                                    &dash;
+                                    {% endif %}
+                                </dd>
+                                <dt>CMR</dt>
+                                <dd>
+                                    {% if form.initial.concept_id %}
+                                    <a href="//cmr.earthdata.nasa.gov/search/concepts/{{ form.initial.concept_id }}" target="_blank">
+                                    {{ form.initial.concept_id }}
+                                    </a>
+                                    {% else %}
+                                    &dash;
+                                    {% endif %}
+                                </dd>
+                            </dl>
+                            
+                        </td>
+                        {% for field in form %}
+                            {% include 'bootstrap4/field.html' with tag="td" form_show_labels=False %}
+                        {% endfor %}
+                        <td>
+                            <a href="{% url 'mi-change-update' form.initial.uuid %}?back={{ request.path }}">
+                                <i class="bi bi-box-arrow-up-right"></i>
+                                {{ form.initial.status }}
+                            </a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% include "bootstrap4/inputs.html" %}
+
+{% if formset_tag %}</form>{% endif %}
+{% endspecialspaceless %}

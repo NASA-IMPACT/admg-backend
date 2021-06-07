@@ -301,6 +301,8 @@ CELERY_TASK_TIME_LIMIT = 3600
 CELERY_TASK_SOFT_TIME_LIMIT = 3600
 # http://docs.celeryproject.org/en/latest/userguide/configuration.html#beat-scheduler
 CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
+# https://docs.celeryproject.org/en/stable/userguide/configuration.html#std-setting-task_track_started
+CELERY_TASK_TRACK_STARTED = True
 
 # django-allauth
 # ------------------------------------------------------------------------------

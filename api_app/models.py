@@ -90,10 +90,11 @@ def is_not_admin(user):
 
 
 def is_admin(function):
-    def wrapper(self, user, notes=""):
+    def wrapper(self, user, notes="", **kwargs):
 
         if not_admin := is_not_admin(user):
-            return not_admin
+            if not kwargs.get('doi'):
+                return not_admin
 
         result = function(self, user, notes)
 
@@ -168,15 +169,13 @@ class ApprovalLog(models.Model):
     def __str__(self):
         return f"{self.user} | {self.get_action_display()} | {self.notes} | {self.date}"
 
-    def past_tense_action(self):
-        action = self.get_action_display()
-        if action == 'submit':
-            action = action + 't'
-        suffix = 'd' if action.endswith('e') else 'ed'
-        return f"{action}{suffix}"
-
     class Meta:
         ordering = ['-date']
+
+    def get_action_display_past_tense(self):
+        action = self.get_action_display()
+        return f"{action}d" if action.endswith('e') else f"{action}ed"
+
 
 
 class ChangeQuerySet(models.QuerySet):
@@ -206,22 +205,27 @@ class ChangeQuerySet(models.QuerySet):
             )
         )
 
-    def annotate_with_identifier_from_model(
+    def annotate_from_relationship(
         self,
-        model: models.Model,
+        of_type: models.Model,
         to_attr: str,
         uuid_from: str,
         identifier="short_name",
     ):
         """
-        Annotate records with an identifier obtained from joining on a referenced model.
+        Annotate queryset with an identifier obtained from a related model.
 
-        model: class of model that contains our desired identifier
-        to_attr: attribute to where identifier will be annotated
-        uuid_from: attribute in the "update" dict of source model that holds the uuid of the model to be joined
-        identifier: attribute in the "update" dict of joined model that holds the identifier
+        of_type:
+            class of model that contains our desired identifier
+        to_attr:
+            attribute to where identifier will be annotated
+        uuid_from:
+            attribute in the "update" dict of source model that holds the uuid
+            of the model to be joined
+        identifier:
+            attribute in the "update" dict of joined model that holds the identifier
         """
-        uuid_dest_attr = f"{model._meta.model_name}_uuid"
+        uuid_dest_attr = f"{of_type._meta.model_name}_uuid"
         return self.annotate(
             **{
                 uuid_dest_attr: functions.Cast(
@@ -231,15 +235,15 @@ class ChangeQuerySet(models.QuerySet):
                         ),
                         # In the event that the Change model doesn't have the uuid_from property in its
                         # 'update' object, the operation to retrieve the value from the 'update' will return
-                        # NULL.  The DB will complain if we try to try to join a UUID on a NULL value, so in
-                        #  the event that the uuid_from key isn't present in the 'update' object, we use a 
+                        # NULL. The DB will complain if we try to try to join a UUID on a NULL value, so in
+                        # the event that the uuid_from key isn't present in the 'update' object, we use a
                         # dummy UUID fallback for the join which won't exist in the join table.
                         expressions.Value("00000000-0000-0000-0000-000000000000"),
                     ),
                     output_field=models.UUIDField(),
                 ),
                 to_attr: models.Subquery(
-                    Change.objects.of_type(model)
+                    Change.objects.of_type(of_type)
                     .filter(
                         # NOTE: This only shows the first created short_name, but doesn't reflect updated short_names
                         action=CREATE,
@@ -249,6 +253,35 @@ class ChangeQuerySet(models.QuerySet):
                 ),
             },
         )
+
+    def annotate_from_published(self, of_type, to_attr, identifier="short_name"):
+        """
+        Retrieve an identifier string from published model if possible, falling
+        back to change model if no published model is available.
+
+        of_type:
+            class of model that contains our desired identifier
+        to_attr:
+            attribute to where identifier will be annotated
+        identifier:
+            attribute in the "update" dict of joined model that holds the identifier
+        """
+        return self.annotate(
+            **{
+                to_attr: functions.Coalesce(
+                    expressions.Subquery(
+                        (
+                            of_type.objects.filter(uuid=expressions.OuterRef("uuid"))[
+                                :1
+                            ]
+                        ).values(identifier)
+                    ),
+                    KeyTextTransform(identifier, "update"),
+                    output_field=models.TextField(),
+                )
+            }
+        )
+
 
 
 class Change(models.Model):
@@ -582,7 +615,7 @@ class Change(models.Model):
         AWAITING_ADMIN_REVIEW_CODE,
         IN_ADMIN_REVIEW_CODE
     ])
-    def trash(self, user, notes=''):
+    def trash(self, user, notes='', doi=False):
         """Moves a change object to the IN_TRASH stage. Expected use case
         is for DOIs which need to be ignored and items created accidently.
         Items can be removed from the trash with self.untrash()
@@ -615,7 +648,7 @@ class Change(models.Model):
 
     @is_admin
     @is_status([IN_TRASH_CODE])
-    def untrash(self, user, notes=''):
+    def untrash(self, user, notes='', doi=False):
         """Moves a change object from trash to the in progress stage.
 
         Args:

@@ -5,6 +5,7 @@ from django.core.exceptions import ValidationError
 from django.utils.functional import cached_property
 from django.utils.safestring import mark_safe
 from crispy_forms.helper import FormHelper
+from crispy_forms.layout import Submit
 
 from api_app.models import (
     Change,
@@ -18,6 +19,9 @@ from api_app.models import (
 )
 from admg_webapp.users.models import User, ADMIN_CODE
 from data_models import models as data_models
+from api_app.models import Change
+from .widgets import IconBooleanWidget
+from .fields import ChangeMultipleChoiceField
 
 
 class TransitionForm(forms.Form):
@@ -87,21 +91,25 @@ class TransitionForm(forms.Form):
         return actions.items()
 
 
-class DoiForm(forms.ModelForm):
-    # TODO:
-    # - FK fields should show Drafts, not just published data
-    # - QuerySets on formset seem redundnat, slow render time
-    # - If a DOI does not have a DOI field, render the Concept ID with a link to
-    #   EarthdataSearch
-    # - Allow a user to edit DOI if no value is provided?
-    class Meta:
-        model = data_models.DOI
-        fields = [
-            "campaigns",
-            "instruments",
-            "platforms",
-            "collection_periods",
-        ]
+class DoiForm(forms.Form):
+    uuid = forms.UUIDField(disabled=True, widget=forms.HiddenInput)
+    campaigns = ChangeMultipleChoiceField(
+        dest_model=data_models.Campaign, required=False
+    )
+    platforms = ChangeMultipleChoiceField(
+        dest_model=data_models.Platform, required=False
+    )
+    instruments = ChangeMultipleChoiceField(
+        dest_model=data_models.Instrument, required=False
+    )
+    collection_periods = forms.MultipleChoiceField(label="CDPIs", required=False)
+    keep = forms.NullBooleanField(
+        help_text="Mark as reviewed or deleted",
+        widget=IconBooleanWidget,
+        # NOTE: Must use required=False or else False responses will be treated
+        # as missing and throw validation error
+        required=False,
+    )
 
     def __init__(self, *args, choices, **kwargs):
         super().__init__(*args, **kwargs)
@@ -110,36 +118,38 @@ class DoiForm(forms.ModelForm):
 
 
 class DoiFormSet(forms.formset_factory(DoiForm, extra=0)):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = TableInlineFormSetHelper()
+        self.helper.add_input(Submit("submit", "Save"))
+
     @cached_property
     def choices(self):
         # To avoid redundant queries for the M2M fields within each of this
         # formset's forms, we manually build the choices outside of the form.
         # https://code.djangoproject.com/ticket/22841
+        querysets = {
+            "campaigns": ChangeMultipleChoiceField.get_queryset_for_model(
+                data_models.Campaign
+            ),
+            "platforms": ChangeMultipleChoiceField.get_queryset_for_model(
+                data_models.Platform
+            ),
+            "instruments": ChangeMultipleChoiceField.get_queryset_for_model(
+                data_models.Instrument
+            ),
+            "collection_periods": ChangeMultipleChoiceField.get_queryset_for_model(
+                data_models.CollectionPeriod
+            ),
+        }
         return {
-            "campaigns": list(
-                forms.ModelChoiceField(data_models.Campaign.objects.all()).choices
-            ),
-            "instruments": list(
-                forms.ModelChoiceField(data_models.Instrument.objects.all()).choices
-            ),
-            "platforms": list(
-                forms.ModelChoiceField(data_models.Platform.objects.all()).choices
-            ),
-            "collection_periods": list(
-                forms.ModelChoiceField(
-                    data_models.CollectionPeriod.objects.all().select_related(
-                        "deployment__campaign", "platform"
-                    )
-                ).choices
-            ),
+            field: list(forms.ModelChoiceField(qs).choices)
+            for field, qs in querysets.items()
         }
 
     def get_form_kwargs(self, index):
-        return {
-            **super().get_form_kwargs(index),
-            "choices": self.choices,
-        }
+        return {**super().get_form_kwargs(index), "choices": self.choices}
 
 
 class TableInlineFormSetHelper(FormHelper):
-    template = "bootstrap/table_inline_formset.html"
+    template = "snippets/dois/table_inline_formset.html"
