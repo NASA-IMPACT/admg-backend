@@ -846,11 +846,4 @@ class ChangeTransition(FormMixin, ProcessFormView, DetailView):
         return super().form_valid(form)
 
     def get_success_url(self):
-        referer = urlparse(self.request.META.get("HTTP_REFERER"))
-
-        # Return user to the ?back=/foo/bar url from the referer
-        back_url_list = parse_qs(referer.query).get("back")
-        if back_url_list:
-            return back_url_list[0]
-
-        return referer.path or super().get_success_url()
+        return self.request.META.get("HTTP_REFERER") or super().get_success_url()
