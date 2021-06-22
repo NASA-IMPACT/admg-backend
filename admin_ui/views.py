@@ -95,7 +95,7 @@ def trigger_deploy(request):
             messages.INFO,
             mark_safe(
                 "Successfully triggered deployment. See details "
-                f'<a href="https://github.com/{workflow["repo"]}/actions?query=workflow%3ADeploy" target="_blank">here</a>.'
+                f'<a href="https://github.com/{workflow["repo"]}/actions/workflows/{workflow['id']}" target="_blank">here</a>.'
             ),
         )
     else:
