@@ -140,9 +140,8 @@ AWS_DEFAULT_ACL = None
 
 # Github Configuration (for deployment)
 GITHUB_WORKFLOW = {
-    "repo": "developmentseed/admg-inventory",
-    "id": "deploy.yml",  # Name of workflow file
-    "name": "Deploy",  # Name of workflow
+    "repo": env("GH_REPO", "NASA-IMPACT/admg-inventory"),
+    "id": env("GH_WORKFLOW_ID", "deploy-to-production.yml"),  # Name of workflow file
     "token": env("GH_TOKEN"),
-    "branch": "manual-deploy-support",  # Branch to be deployed
+    "branch": env("GH_BRANCH", "production"),  # Branch to be deployed
 }
