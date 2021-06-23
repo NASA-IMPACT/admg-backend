@@ -42,6 +42,10 @@ def formfield_callback(f, **kwargs):
         kwargs.update({"widget": widgets.ImagePreviewWidget})
     elif isinstance(f, PolygonField):
         kwargs.update({"form_class": fields.BboxField})
+    elif isinstance(f, model_fields.DateTimeField):
+        # DateTimeField is a subclass of DateTime, we don't want to use 
+        # CustomDateField widget
+        pass  
     elif isinstance(f, model_fields.DateField):
         kwargs.update({"form_class": fields.CustomDateField})
     elif isinstance(f, model_fields.BooleanField):
