@@ -1,4 +1,3 @@
-from urllib.parse import urlparse
 from typing import Dict
 
 from django.conf import settings
@@ -846,5 +845,4 @@ class ChangeTransition(FormMixin, ProcessFormView, DetailView):
         return super().form_valid(form)
 
     def get_success_url(self):
-        # TODO: Where should we direct to after approving a model?
-        return urlparse(self.request.META.get("HTTP_REFERER")).path
+        return self.request.META.get("HTTP_REFERER") or super().get_success_url()
