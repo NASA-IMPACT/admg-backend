@@ -94,7 +94,7 @@ def trigger_deploy(request):
             messages.INFO,
             mark_safe(
                 "Successfully triggered deployment. See details "
-                f'<a href="https://github.com/{workflow["repo"]}/actions?query=workflow%3ADeploy" target="_blank">here</a>.'
+                f'<a href="https://github.com/{workflow["repo"]}/actions/workflows/{workflow["id"]}" target="_blank">here</a>.'
             ),
         )
     else:
@@ -315,7 +315,6 @@ class DoiApprovalView(SingleObjectMixin, MultipleObjectMixin, FormView):
             }
         )
 
-
     def get_initial(self):
         # This is where we generate the DOI data to be shown in the formset
         queryset = self.get_queryset()
@@ -324,12 +323,13 @@ class DoiApprovalView(SingleObjectMixin, MultipleObjectMixin, FormView):
         return [
             {
                 "uuid": v.uuid,
-                "keep": False if v.status==IN_TRASH_CODE else (None if v.status in [CREATED_CODE, IN_PROGRESS_CODE] else True),
+                "keep": False
+                if v.status == IN_TRASH_CODE
+                else (None if v.status in [CREATED_CODE, IN_PROGRESS_CODE] else True),
                 "status": v.get_status_display(),
                 **v.update,
             }
             for v in paginated_queryset.only("uuid", "update", "status")
-
         ]
 
     def form_valid(self, formset):
@@ -365,11 +365,11 @@ class DoiApprovalView(SingleObjectMixin, MultipleObjectMixin, FormView):
                     stored_doi = stored_dois[doi["uuid"]]
                     stored_doi.update[field] = value
                 # never been previously edited and checkmark and trash haven't been selected
-                if stored_doi.status == CREATED_CODE and doi['keep'] == None:
+                if stored_doi.status == CREATED_CODE and doi["keep"] == None:
                     stored_doi.status = IN_PROGRESS_CODE
                     change_status_to_edit.append(stored_doi)
                 # checkmark was selected
-                elif doi['keep'] == True:
+                elif doi["keep"] == True:
                     if stored_doi.status == IN_TRASH_CODE:
                         stored_doi.untrash(user=self.request.user, doi=True)
                     stored_doi.status = AWAITING_REVIEW_CODE
