@@ -300,7 +300,7 @@ class GcmdPlatform(BaseModel):
 
     def __str__(self):
         categories = (
-            self.bucket,
+            self.category,
             self.long_name,
             self.short_name
         )
