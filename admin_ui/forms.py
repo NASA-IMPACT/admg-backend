@@ -114,7 +114,12 @@ class DoiForm(forms.Form):
     def __init__(self, *args, choices, **kwargs):
         super().__init__(*args, **kwargs)
         for field_name, choices in choices.items():
-            self.fields[field_name].choices = choices
+            field = self.fields[field_name]
+
+            field.choices = choices
+
+            if (self.initial.get('readonly')):
+                field.widget.attrs['readonly'] = True
 
 
 class DoiFormSet(forms.formset_factory(DoiForm, extra=0)):

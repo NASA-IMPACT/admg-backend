@@ -38,6 +38,7 @@
   // Override all multiselect elements to use this library
   $(document).ready(function() {
     $(".form-group select").select2();
+    $(".form-group select[readonly]").select2("enable", false)
   });
   </script>
 {% endblock %}

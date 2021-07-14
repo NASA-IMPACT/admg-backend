@@ -323,10 +323,15 @@ class DoiApprovalView(SingleObjectMixin, MultipleObjectMixin, FormView):
         return [
             {
                 "uuid": v.uuid,
-                "keep": False
+                "keep": (
+                    False
                 if v.status == IN_TRASH_CODE
-                else (None if v.status in [CREATED_CODE, IN_PROGRESS_CODE] else True),
+                    else (
+                        None if v.status in [CREATED_CODE, IN_PROGRESS_CODE] else True
+                    )
+                ),
                 "status": v.get_status_display(),
+                "readonly": v.status == PUBLISHED_CODE,
                 **v.update,
             }
             for v in paginated_queryset.only("uuid", "update", "status")
