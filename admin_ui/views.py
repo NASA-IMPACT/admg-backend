@@ -325,7 +325,7 @@ class DoiApprovalView(SingleObjectMixin, MultipleObjectMixin, FormView):
                 "uuid": v.uuid,
                 "keep": (
                     False
-                if v.status == IN_TRASH_CODE
+                    if v.status == IN_TRASH_CODE
                     else (
                         None if v.status in [CREATED_CODE, IN_PROGRESS_CODE] else True
                     )
@@ -344,6 +344,8 @@ class DoiApprovalView(SingleObjectMixin, MultipleObjectMixin, FormView):
 
         to_update = []
         to_trash = []
+        ignored_updates = []
+
         for doi in changed_dois:
             if doi["keep"] is False:
                 to_trash.append(doi)
@@ -355,7 +357,6 @@ class DoiApprovalView(SingleObjectMixin, MultipleObjectMixin, FormView):
                 uuid__in=[doi["uuid"] for doi in to_trash]
             ):
                 doi.trash(user=self.request.user, doi=True)
-                # doi.update["keep"] = False
                 doi.save()
 
         if to_update:
@@ -363,11 +364,16 @@ class DoiApprovalView(SingleObjectMixin, MultipleObjectMixin, FormView):
             change_status_to_review = []
             stored_dois = Change.objects.in_bulk([doi["uuid"] for doi in to_update])
             for doi in to_update:
+                stored_doi = stored_dois[doi["uuid"]]
+
+                if stored_doi.status == PUBLISHED_CODE:
+                    ignored_updates.append(doi)
+                    continue
+
                 # Persist DOI updates
                 for field, value in doi.items():
                     if field in ["uuid", "keep"]:
                         continue
-                    stored_doi = stored_dois[doi["uuid"]]
                     stored_doi.update[field] = value
                 # never been previously edited and checkmark and trash haven't been selected
                 if stored_doi.status == CREATED_CODE and doi["keep"] == None:
@@ -409,8 +415,14 @@ class DoiApprovalView(SingleObjectMixin, MultipleObjectMixin, FormView):
             )
 
         messages.info(
-            self.request, f"Updated {len(to_update)} and removed {len(to_trash)} DOIs."
+            self.request,
+            f"Updated {len(to_update) - len(ignored_updates)} and removed {len(to_trash)} DOIs.",
         )
+        if ignored_updates:
+            messages.warning(
+                self.request,
+                f"Ignored changes to published {len(ignored_updates)} DOIs.",
+            )
         return super().form_valid(formset)
 
     def get_success_url(self):
