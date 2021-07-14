@@ -387,7 +387,10 @@ class DoiApprovalView(SingleObjectMixin, MultipleObjectMixin, FormView):
             ApprovalLog.objects.bulk_create(
                 [
                     ApprovalLog(
-                        change=doi, user=self.request.user, action=ApprovalLog.EDIT
+                        change=doi,
+                        user=self.request.user,
+                        action=ApprovalLog.EDIT,
+                        notes="Transitioned via the DOI Approval form",
                     )
                     for doi in change_status_to_edit
                 ]
@@ -396,7 +399,10 @@ class DoiApprovalView(SingleObjectMixin, MultipleObjectMixin, FormView):
             ApprovalLog.objects.bulk_create(
                 [
                     ApprovalLog(
-                        change=doi, user=self.request.user, action=ApprovalLog.SUBMIT
+                        change=doi,
+                        user=self.request.user,
+                        action=ApprovalLog.SUBMIT,
+                        notes="Transitioned via the DOI Approval form",
                     )
                     for doi in change_status_to_review
                 ]
