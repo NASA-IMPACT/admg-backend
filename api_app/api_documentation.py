@@ -25,7 +25,10 @@ Below is a contrived example of the results from a campaign query, with ... indi
     ]
 }
 ```
-
+<h2>Response Content</h2>All API responses contain `success` boolean, a `message` string, and a `data` list. 
+<h4>success</h4>A `success` value of `True` only indicates that your reqeust was completed, and nothing on the backend threw an error. It does not indicate that a query returned any result data.
+Values of `False` are used to indicate that an action was not allowed, such as if you are attempting to POST to an endpoint and your token is not associated with an account that has the correct permisions. 
+<h4>message</h4>The message field will contain a description of the failure if `sucess` was returned as `True` and it will sometimes give a description about the action if it was successful.
 <h2>Using UUIDs</h2>As you can see from the above example, some fields return a human readable value, while others return a UUID. If you see a human readable value, then this is all the information contained
 in that field. However, if a UUID is listed, then this indicated this field is linked to an object with additional metadata.
 
@@ -46,6 +49,16 @@ It is generally the case that if a linked field is singular, it will correspond 
 for example
 
 `/campaign?short_name=ACES`.
+<h2>Permissions: POST vs GET</h2>
+<h2>API Content and Field Names</h2>
+Below this section, there is a listing of every API endpoint and the available methods. If you are trying to figure out what data is available from the api, this is the place to look.
+If you click on an endpoint, it will enlarge and you will be able to see all the fields that are available.
+Each field has several values listed:
+ - field name - the field name returned by the api
+ - data type - for example string or integer
+ - title - a human readable title for the field name
+ - other parameters - values such as maxLength and minLength will appear here
+ - description - A sentence or paragraph long description of what the field contains, and any clarifications that might be needed
 
 """
 
