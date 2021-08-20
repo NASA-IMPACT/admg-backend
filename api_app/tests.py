@@ -1,6 +1,7 @@
 # to run this test file, use 'pytest -k api_app'
 
 import json
+import requests
 
 import pytest
 from admg_webapp.users.models import ADMIN_CODE, STAFF_CODE, User
@@ -310,3 +311,100 @@ class TestChange:
         assert response['success'] is False
         assert change.status == IN_ADMIN_REVIEW_CODE
         assert approval_log.action == ApprovalLog.CLAIM
+
+@pytest.mark.django_db
+class TestApi:
+    def __init__(self):
+        self.endpoints = [
+            'website_type',
+            'platform_type',
+            'home_base',
+            'repository',
+            'focus_area',
+            'season',
+            'instrument_type',
+            'measurement_style',
+            'measurement_type',
+            'measurement_region',
+            'geographical_region',
+            'geophysical_concept',
+            'campaign',
+            'platform',
+            'instrument',
+            'deployment',
+            'iop',
+            'significant_event',
+            'partner_org',
+            'collection_period',
+            'gcmd_phenomena',
+            'gcmd_project',
+            'gcmd_platform',
+            'gcmd_instrument',
+            'measurement_keywords',
+            'alias',
+            'website'
+        ]
+
+
+    @staticmethod
+    def get(self, endpoint):
+        """Takes an ADMG endpoint as a string and runs a get request
+
+        Args:
+            endpoint (str): API endpoint such as 'campaign'
+
+        Returns:
+            dict: API response dictionary
+        """
+
+        get_url = f'http://localhost:8001/api/{endpoint}'
+        response = requests.get(get_url)
+
+        return self._generate_response_dict(response)
+
+
+    @staticmethod
+    def post(self, endpoint):
+        """Takes an ADMG endpoint as a string and runs a get request
+
+        Args:
+            endpoint (str): API endpoint such as 'campaign'
+
+        Returns:
+            dict: API response dictionary
+        """
+
+        get_url = f'http://localhost:8001/api/{endpoint}'
+        response = requests.post(get_url, data=json.dumps({'fake_data':'fake'}))
+
+        return self._generate_response_dict(response)
+
+
+    @staticmethod
+    def _generate_response_dict(self, response):
+        """Takes a response and raises any HTTPErrors. If no errors are found, it will
+        convert the response text to a dict.
+
+        Args:
+            response (response): response
+
+        Returns:
+            response_dict [dict]: dictionary of the response.text
+        """
+
+        response.raise_for_status()
+        response_dict =  response.json()
+
+        return response_dict
+
+
+    def test_get_endpoints(self):
+        for endpoint in self.endpoints:
+            response_dict = self.get(endpoint)
+            assert response_dict == {"success": True, "message": "", "data": []}
+
+
+    def test_post_arent_public(self):
+        for endpoint in self.endpoints:
+            response_dict = self.post(endpoint)
+            assert response_dict == {'detail': 'Authentication credentials were not provided.'}
