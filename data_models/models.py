@@ -587,7 +587,6 @@ class Campaign(DataModel):
             "short_name",
             "long_name",
             "description_short",
-            "description_long",
             "focus_phenomena",
         ]
 
