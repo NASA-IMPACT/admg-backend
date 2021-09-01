@@ -78,7 +78,13 @@ from . import tables, forms, mixins, filters
 @login_required
 @user_passes_test(lambda user: user.is_admg_admin())
 def trigger_deploy(request):
-    workflow = settings.GITHUB_WORKFLOW
+    try:
+        workflow = settings.GITHUB_WORKFLOW
+    except AttributeError:
+        messages.add_message(
+            request, messages.ERROR, f"Failed to trigger deployment: Github workflow not specified in settings."
+        )
+        return HttpResponseRedirect(reverse("mi-summary"))
 
     response = requests.post(
         url=f"https://api.github.com/repos/{workflow['repo']}/actions/workflows/{workflow['id']}/dispatches",
