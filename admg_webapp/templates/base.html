@@ -75,7 +75,9 @@
             </li>
             {% if request.user.is_admg_admin %}
             <li class="nav-item mx-1">
-              <a class="nav-link btn btn-light" disabled >Deploy Website</a>
+              <form action="{% url 'mi-trigger-deploy' %}">
+                <input type="submit" value="Deploy Website" class="nav-link btn btn-light" />
+              </form>
             </li>
             {% endif %}
           </ul>
