@@ -5,7 +5,22 @@ from django_tables2 import A
 from api_app.models import Change
 
 
-class CampaignChangeListTable(tables.Table):
+class CustomTemplateColumn(tables.TemplateColumn):
+    # change here accordingly
+    def render(self, record, table, value, bound_column, **kwargs):
+        if record.status != 6: # published
+            return ''
+        return super().render(record, table, value, bound_column, **kwargs)
+
+class CustomTable(tables.Table):
+    # change here accordingly
+    type = tables.Column(verbose_name="Type of request", accessor="type")
+    T1     = '<button type="button" class="btn">update</button>'
+    T2     = '<button type="button" class="btn">delete</button>'
+    edit   = CustomTemplateColumn(T1)
+    delete = CustomTemplateColumn(T2)
+
+class CampaignChangeListTable(CustomTable):
     short_name = tables.Column(
         linkify=("mi-campaign-detail", [A("uuid")]),
         verbose_name="Short Name",
@@ -28,7 +43,7 @@ class CampaignChangeListTable(tables.Table):
         fields = ["short_name", "long_name", "funding_agency", "status", "updated_at"]
 
 
-class PlatformChangeListTable(tables.Table):
+class PlatformChangeListTable(CustomTable):
     short_name = tables.Column(
         linkify=("mi-change-update", [A("uuid")]),
         verbose_name="Short Name",
@@ -51,7 +66,7 @@ class PlatformChangeListTable(tables.Table):
         fields = ["short_name", "long_name", "platform_type", "status", "updated_at"]
 
 
-class BasicChangeListTable(tables.Table):
+class BasicChangeListTable(CustomTable):
     short_name = tables.Column(
         linkify=("mi-change-update", [A("uuid")]),
         verbose_name="Short Name",
@@ -83,7 +98,7 @@ class MultiItemListTable(BasicChangeListTable):
         fields = ["short_name", "long_name", "model_name", "status", "updated_at"]
 
 
-class ChangeSummaryTable(tables.Table):
+class ChangeSummaryTable(CustomTable):
     name = tables.LinkColumn(
         viewname="mi-campaign-detail",
         args=[A("uuid")],
@@ -102,7 +117,7 @@ class ChangeSummaryTable(tables.Table):
         fields = ["name", "content_type__model", "updated_at", "status"]
 
 
-class WebsiteChangeListTable(tables.Table):
+class WebsiteChangeListTable(CustomTable):
     title = tables.Column(
         linkify=("mi-change-update", [A("uuid")]),
         verbose_name="Title", 
@@ -125,7 +140,7 @@ class WebsiteChangeListTable(tables.Table):
         fields = ["title", "url", "website_type", "status", "updated_at"]
 
 
-class CampaignWebsiteChangeListTable(tables.Table):
+class CampaignWebsiteChangeListTable(CustomTable):
     class Meta:
         model = Change
         attrs = {
@@ -135,7 +150,7 @@ class CampaignWebsiteChangeListTable(tables.Table):
         }
 
 
-class AliasChangeListTable(tables.Table):
+class AliasChangeListTable(CustomTable):
     short_name = tables.Column(
         linkify=("mi-change-update", [A("uuid")]),
         verbose_name="Short Name", 
