@@ -101,6 +101,9 @@ class PlatformTypeSerializer(BaseSerializer):
     class Meta:
         model = models.PlatformType
         fields = "__all__"
+        extra_kwargs = {
+            'notes_internal': {'write_only': True},
+        }
 
 
 class MeasurementTypeSerializer(BaseSerializer):
@@ -116,6 +119,9 @@ class MeasurementTypeSerializer(BaseSerializer):
     class Meta:
         model = models.MeasurementType
         fields = "__all__"
+        extra_kwargs = {
+            'notes_internal': {'write_only': True},
+        }
 
 
 class MeasurementStyleSerializer(BaseSerializer):
@@ -131,12 +137,18 @@ class MeasurementStyleSerializer(BaseSerializer):
     class Meta:
         model = models.MeasurementStyle
         fields = "__all__"
+        extra_kwargs = {
+            'notes_internal': {'write_only': True},
+        }
 
 
 class HomeBaseSerializer(BaseSerializer):
     class Meta:
         model = models.HomeBase
         fields = "__all__"
+        extra_kwargs = {
+            'notes_internal': {'write_only': True},
+        }
 
 
 class FocusAreaSerializer(BaseSerializer):
@@ -148,6 +160,9 @@ class FocusAreaSerializer(BaseSerializer):
     class Meta:
         model = models.FocusArea
         fields = "__all__"
+        extra_kwargs = {
+            'notes_internal': {'write_only': True},
+        }
 
 
 class SeasonSerializer(BaseSerializer):
@@ -159,6 +174,9 @@ class SeasonSerializer(BaseSerializer):
     class Meta:
         model = models.Season
         fields = "__all__"
+        extra_kwargs = {
+            'notes_internal': {'write_only': True},
+        }
 
 
 class RepositorySerializer(BaseSerializer):
@@ -174,6 +192,9 @@ class RepositorySerializer(BaseSerializer):
     class Meta:
         model = models.Repository
         fields = "__all__"
+        extra_kwargs = {
+            'notes_internal': {'write_only': True},
+        }
 
 
 class MeasurementRegionSerializer(BaseSerializer):
@@ -185,6 +206,9 @@ class MeasurementRegionSerializer(BaseSerializer):
     class Meta:
         model = models.MeasurementRegion
         fields = "__all__"
+        extra_kwargs = {
+            'notes_internal': {'write_only': True},
+        }
 
 
 class GeographicalRegionSerializer(BaseSerializer):
@@ -196,6 +220,9 @@ class GeographicalRegionSerializer(BaseSerializer):
     class Meta:
         model = models.GeographicalRegion
         fields = "__all__"
+        extra_kwargs = {
+            'notes_internal': {'write_only': True},
+        }
 
 
 class GeophysicalConceptSerializer(BaseSerializer):
@@ -207,6 +234,9 @@ class GeophysicalConceptSerializer(BaseSerializer):
     class Meta:
         model = models.GeophysicalConcept
         fields = "__all__"
+        extra_kwargs = {
+            'notes_internal': {'write_only': True},
+        }
 
 
 class WebsiteTypeSerializer(BaseSerializer):
@@ -218,6 +248,9 @@ class WebsiteTypeSerializer(BaseSerializer):
     class Meta:
         model = models.WebsiteType
         fields = "__all__"
+        extra_kwargs = {
+            'notes_internal': {'write_only': True},
+        }
 
 
 class PartnerOrgSerializer(GetAliasSerializer):
@@ -229,6 +262,9 @@ class PartnerOrgSerializer(GetAliasSerializer):
     class Meta:
         model = models.PartnerOrg
         fields = "__all__"
+        extra_kwargs = {
+            'notes_internal': {'write_only': True},
+        }
 
 
 class AliasSerializer(BaseSerializer):
@@ -290,6 +326,9 @@ class WebsiteSerializer(BaseSerializer):
     class Meta:
         model = models.Website
         fields = "__all__"
+        extra_kwargs = {
+            'notes_internal': {'write_only': True},
+        }
 
 
 class DOISerializer(BaseSerializer):
@@ -323,6 +362,9 @@ class DeploymentSerializer(GetAliasSerializer):
     class Meta:
         model = models.Deployment
         fields = "__all__"
+        extra_kwargs = {
+            'notes_internal': {'write_only': True},
+        }
 
 
 class IOPSerializer(BaseSerializer):
@@ -346,6 +388,11 @@ class CollectionPeriodSerializer(GetDoiSerializer):
     class Meta:
         model = models.CollectionPeriod
         fields = "__all__"
+        extra_kwargs = {
+            'platform_identifier': {'write_only': True},
+            'home_base': {'write_only': True},
+            'notes_internal': {'write_only': True},
+        }
 
 
 class PlatformSerializer(GetAliasSerializer, GetDoiSerializer):
@@ -360,6 +407,10 @@ class PlatformSerializer(GetAliasSerializer, GetDoiSerializer):
     class Meta:
         model = models.Platform
         fields = "__all__"
+        extra_kwargs = {
+            'stationary': {'write_only': True},
+            'notes_internal': {'write_only': True},
+        }
 
 
 class InstrumentSerializer(GetAliasSerializer, GetDoiSerializer):
@@ -373,6 +424,11 @@ class InstrumentSerializer(GetAliasSerializer, GetDoiSerializer):
     class Meta:
         model = models.Instrument
         fields = "__all__"
+        extra_kwargs = {
+            'lead_investigator': {'write_only': True},
+            'technical_contact': {'write_only': True},
+            'notes_internal': {'write_only': True},
+        }
 
 
 class CampaignWebsiteSerializer(BaseSerializer):
@@ -411,3 +467,7 @@ class CampaignSerializer(GetAliasSerializer, GetDoiSerializer):
     class Meta:
         model = models.Campaign
         fields = "__all__"
+        extra_kwargs = {
+            'description_long': {'write_only': True},
+            'notes_internal': {'write_only': True},
+        }
