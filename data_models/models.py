@@ -528,9 +528,7 @@ class Campaign(DataModel):
     def website_details(self):
         websites = []
         for website in self.websites.all():
-            website_types = list(
-                website.website_types.values_list("long_name", flat=True)
-            )
+            website_type = website.website_type.long_name
             order_priority = self.campaign_websites.get(
                 campaign=self.uuid, website=website
             ).order_priority
@@ -538,7 +536,7 @@ class Campaign(DataModel):
                 {
                     "title": website.title,
                     "url": website.url,
-                    "website_types": website_types,
+                    "website_type": website_type,
                     "order_priority": order_priority,
                 }
             )
@@ -589,7 +587,6 @@ class Campaign(DataModel):
             "short_name",
             "long_name",
             "description_short",
-            "description_long",
             "focus_phenomena",
         ]
 

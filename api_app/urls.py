@@ -20,16 +20,10 @@ from .views.change_view import (
 from .views.generic_views import GenericCreateGetAllView, GenericPutPatchDeleteView
 from .views.image_view import ImageListCreateAPIView, ImageRetrieveDestroyAPIView
 from .views.validation_view import JsonValidationView
+from .api_documentation import api_info
 
 
-info = openapi.Info(
-    title="ADMG API",
-    default_version="v1",
-    description="API endpoints for ADMG application",
-    terms_of_service="https://www.google.com/policies/terms/",
-    contact=openapi.Contact(email="contact@snippets.local"),
-    license=openapi.License(name="BSD License"),
-)
+info = api_info
 
 schema_view = get_schema_view(
     public=True,
