@@ -1,11 +1,12 @@
 <div class="icon-radio">
-  <div id="{{ widget.attrs.id }}" class="">
+  <div id="{{ widget.attrs.id }}">
     <input 
       type="radio" 
       name="{{ widget.name }}" 
       autocomplete="off" 
       value="true"
       id="{{ widget.name }}_true"
+      disabled="{{ widget.readonly }}"
       {% if widget.value == 'true' %}checked{% endif %}
     > 
     <label class="btn btn-primary mx-1 my-0" for="{{ widget.name }}_true">
@@ -18,6 +19,7 @@
       autocomplete="off"
       value="false"
       id="{{ widget.name }}_false"
+      disabled="{{ widget.readonly }}"
       {% if widget.value == 'false' %}checked{% endif %}
     > 
     <label class="btn btn-primary mx-1 my-0" for="{{ widget.name }}_false">
