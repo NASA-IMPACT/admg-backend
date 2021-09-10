@@ -408,7 +408,6 @@ class PlatformSerializer(GetAliasSerializer, GetDoiSerializer):
         model = models.Platform
         fields = "__all__"
         extra_kwargs = {
-            'stationary': {'write_only': True},
             'notes_internal': {'write_only': True},
         }
 
@@ -425,8 +424,6 @@ class InstrumentSerializer(GetAliasSerializer, GetDoiSerializer):
         model = models.Instrument
         fields = "__all__"
         extra_kwargs = {
-            'lead_investigator': {'write_only': True},
-            'technical_contact': {'write_only': True},
             'notes_internal': {'write_only': True},
         }
 
