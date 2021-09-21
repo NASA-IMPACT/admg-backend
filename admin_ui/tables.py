@@ -1,4 +1,4 @@
-from data_models.models import Website
+from data_models.models import Campaign, Website
 import django_tables2 as tables
 from django_tables2 import A
 
@@ -20,19 +20,29 @@ class CustomTable(tables.Table):
     edit   = CustomTemplateColumn(T1)
     delete = CustomTemplateColumn(T2)
 
-class CampaignChangeListTable(CustomTable):
+class PublishedCampaignListTable(CustomTable):
     short_name = tables.Column(
         linkify=("mi-campaign-detail", [A("uuid")]),
         verbose_name="Short Name",
         accessor="update__short_name",
     )
     long_name = tables.Column(verbose_name="Long name", accessor="update__long_name")
-    status = tables.Column(verbose_name="Status", accessor="status")
     updated_at = tables.DateTimeColumn(verbose_name="Last Edit Date")
     funding_agency = tables.Column(
         verbose_name="Funding Agency", accessor="update__funding_agency"
     )
 
+    class Meta:
+        model = Campaign
+        attrs = {
+            "class": "table table-striped",
+            "thead": {"class": "table-primary"},
+            "th": {"style": "min-width: 10em"},
+        }
+        fields = ["short_name", "long_name", "funding_agency", "updated_at"]
+
+class CampaignChangeListTable(PublishedCampaignListTable):
+    status = tables.Column(verbose_name="Status", accessor="status")
     class Meta:
         model = Change
         attrs = {
