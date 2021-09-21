@@ -2,6 +2,32 @@
 {% load static %}
 {% load crispy_forms_tags %}
 {% load render_table from django_tables2 %}
+{% load active_link_tags %}
+
+
+{% block maintabs %}
+  <div class="row mx-3 mb-5">
+    {# Tabs #}
+    <div class="col">
+      <ul class="nav nav-tabs" role="tablist">
+        <li class="nav-item">
+          {% with my_url="mi-"|add:model|add:"-list-published" %}
+            <a class="nav-link {% active_link 'mi-campaign-detail' 'active' pk=object.uuid strict=True %}" href="{% url my_url %}" role="tab" aria-controls="details" aria-selected="true">
+              Published Data
+            </a>
+          {% endwith %}
+        </li>
+        <li class="nav-item">
+          {% with my_url="mi-"|add:model|add:"-list" %}
+            <a class="nav-link {% active_link 'mi-campaign-detail' 'active' pk=object.uuid strict=True %}" href="{% url my_url %}" role="tab" aria-controls="details" aria-selected="true">
+              Drafts
+            </a>
+          {% endwith %}
+        </li>
+      </ul>
+    </div>
+  </div>
+{% endblock maintabs %}
 
 {% block header %}
 <div class="col">
@@ -52,3 +78,6 @@
     {% render_table table %}
   </div>
 {% endblock %}
+
+
+# TODO: fix multiple views for published and drafts from this file
