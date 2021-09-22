@@ -1,0 +1,27 @@
+{% extends "api_app/base_crud.html" %}
+{% load active_link_tags %}
+
+{% block maintabs %}
+  <div class="row mx-3 mb-5">
+    {# Tabs #}
+    <div class="col">
+      <ul class="nav nav-tabs" role="tablist">
+        <li class="nav-item">
+          {% with my_url="mi-"|add:model|add:"-list-published" %}
+            <a class="nav-link {% if 'published' in request.path %} active {% endif %}" href="{% url my_url %}" role="tab" aria-controls="details" aria-selected="true">
+              Published Data
+            </a>
+          {% endwith %}
+        </li>
+        <li class="nav-item">
+          {% with my_url="mi-"|add:model|add:"-list" %}
+            <a class="nav-link {% if 'drafts' in request.path %} active {% endif %}" href="{% url my_url %}" role="tab" aria-controls="details" aria-selected="true">
+              Drafts
+            </a>
+          {% endwith %}
+        </li>
+      </ul>
+    </div>
+  </div>
+{% endblock maintabs %}
+

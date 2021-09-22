@@ -73,29 +73,29 @@ from data_models.models import (
     Website,
     Repository,
 )
-from . import tables, forms, mixins, filters
+from . import published_tables, forms, mixins, filters
 
 
 @method_decorator(login_required, name="dispatch")
 class CampaignListView(SingleTableMixin, FilterView):
     model = Campaign
-    template_name = "api_app/change_list.html"
-    table_class = tables.CampaignChangeListTable
+    template_name = "api_app/published_list.html"
+    table_class = published_tables.PublishedCampaignListTable
     filterset_class = filters.ChangeStatusFilter
 
     def get_context_data(self, **kwargs):
         return {
             **super().get_context_data(**kwargs),
-            "display_name": "Platform",
-            "model": Platform._meta.model_name,
+            "display_name": "Camapaign",
+            "model": Campaign._meta.model_name,
         }
 
 
 @method_decorator(login_required, name="dispatch")
 class PlatformListView(SingleTableMixin, FilterView):
     model = Platform
-    template_name = "api_app/change_list.html"
-    table_class = tables.PlatformChangeListTable
+    template_name = "api_app/published_list.html"
+    table_class = published_tables.PublishedPlatformListTable
     filterset_class = filters.ChangeStatusFilter
 
     def get_context_data(self, **kwargs):
@@ -109,60 +109,60 @@ class PlatformListView(SingleTableMixin, FilterView):
 @method_decorator(login_required, name="dispatch")
 class InstrumentListView(SingleTableMixin, FilterView):
     model = Instrument
-    template_name = "api_app/change_list.html"
-    table_class = tables.BasicChangeListTable
+    template_name = "api_app/published_list.html"
+    table_class = published_tables.PublishedBasicListTable
     filterset_class = filters.ChangeStatusFilter
 
     def get_context_data(self, **kwargs):
         return {
             **super().get_context_data(**kwargs),
-            "display_name": "Platform",
-            "model": Platform._meta.model_name,
+            "display_name": "Instrument",
+            "model": Instrument._meta.model_name,
         }
 
 
 @method_decorator(login_required, name="dispatch")
 class PartnerOrgListView(SingleTableMixin, FilterView):
     model = PartnerOrg
-    template_name = "api_app/change_list.html"
-    table_class = tables.BasicChangeListTable
+    template_name = "api_app/published_list.html"
+    table_class = published_tables.PublishedBasicListTable
     filterset_class = filters.ChangeStatusFilter
 
     def get_context_data(self, **kwargs):
         return {
             **super().get_context_data(**kwargs),
-            "display_name": "Platform",
-            "model": Platform._meta.model_name,
+            "display_name": "Partner Organization",
+            "model": PartnerOrg._meta.model_name,
         }
 
 
 @method_decorator(login_required, name="dispatch")
 class WebsiteListView(SingleTableMixin, FilterView):
     model = Website
-    template_name = "api_app/change_list.html"
-    table_class = tables.WebsiteChangeListTable
+    template_name = "api_app/published_list.html"
+    table_class = published_tables.PublishedWebsiteListTable
     filterset_class = filters.ChangeStatusFilter
 
     def get_context_data(self, **kwargs):
         return {
             **super().get_context_data(**kwargs),
-            "display_name": "Platform",
-            "model": Platform._meta.model_name,
+            "display_name": "Website",
+            "model": Website._meta.model_name,
         }
 
 
 @method_decorator(login_required, name="dispatch")
 class AliasListView(SingleTableMixin, FilterView):
     model = Alias
-    template_name = "api_app/change_list.html"
-    table_class = tables.AliasChangeListTable
+    template_name = "api_app/published_list.html"
+    table_class = published_tables.PublishedAliasListTable
     filterset_class = filters.ChangeStatusFilter
 
     def get_context_data(self, **kwargs):
         return {
             **super().get_context_data(**kwargs),
-            "display_name": "Platform",
-            "model": Platform._meta.model_name,
+            "display_name": "Alias",
+            "model": Alias._meta.model_name,
         }
 
 
