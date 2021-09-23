@@ -16,11 +16,10 @@ class BasePublishedListTable(tables.Table):
     pass
 
 
-class PublishedCampaignListTable(tables.Table):
+class PublishedCampaignListTable(BasePublishedListTable):
     short_name = tables.Column(
         linkify=("mi-published-view", [A("uuid")]),
-        verbose_name="Short Name",
-        accessor="short_name",
+        verbose_name="Short Name"
     )
     class Meta:
         model = Campaign
@@ -31,7 +30,7 @@ class PublishedPlatformListTable(BasePublishedListTable):
     class Meta:
         model = Platform
 
-
+# TODO: add more tables for the other models
 class PublishedBasicListTable(BasePublishedListTable):
     class Meta:
         model = GcmdInstrument
