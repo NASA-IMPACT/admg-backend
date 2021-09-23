@@ -85,7 +85,7 @@ urlpatterns = [
     ),
      path(
         "published/<uuid:pk>",
-        views.ChangeUpdateView.as_view(),
+        published_views.PublishedModelView.as_view(),
         name="mi-published-view",
     ),
     path(
