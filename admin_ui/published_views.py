@@ -86,7 +86,7 @@ class CampaignListView(SingleTableMixin, FilterView):
     def get_context_data(self, **kwargs):
         return {
             **super().get_context_data(**kwargs),
-            "display_name": "Camapaign",
+            "display_name": "Campaign",
             "model": Campaign._meta.model_name,
         }
 
@@ -165,6 +165,38 @@ class AliasListView(SingleTableMixin, FilterView):
             "model": Alias._meta.model_name,
         }
 
+# class PublishedModelView(mixins.ReadOnlyModelFormMixin, DetailView):
+#     model = Campaign
+#     template_name = "api_app/published_detail.html"
+#     fields = '__all__'
+class PublishedModelView(DetailView):
+    model = Campaign
+    template_name = 'api_app/published_detail.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        print('#'*100, kwargs)
+        context['model_form'] = MyFormClass(
+            instance=kwargs.get('object')
+        )
+        return context
+
+from django.forms import ModelForm
+
+class MyFormClass(ModelForm):
+    def get_form(self, form_class=None):
+
+        form = super().get_form()
+
+        for field in form.fields:
+            # Set html attributes as needed for all fields
+            form.fields[field].widget.attrs['readonly'] = 'readonly'          
+            form.fields[field].widget.attrs['disabled'] = 'disabled'
+
+        return form
+    class Meta:
+        model = Campaign
+        fields = '__all__'
 
 # TODO: Come back to this. Multi model views
 # @method_decorator(user_passes_test(lambda user: user.is_admg_admin()), name="dispatch")
