@@ -83,6 +83,11 @@ urlpatterns = [
         views.ChangeUpdateView.as_view(),
         name="mi-change-update",
     ),
+     path(
+        "published/<uuid:pk>",
+        views.ChangeUpdateView.as_view(),
+        name="mi-published-view",
+    ),
     path(
         "drafts/edit/<uuid:pk>/transition",
         views.ChangeTransition.as_view(),

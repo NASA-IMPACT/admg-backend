@@ -17,6 +17,11 @@ class BasePublishedListTable(tables.Table):
 
 
 class PublishedCampaignListTable(tables.Table):
+    short_name = tables.Column(
+        linkify=("mi-published-view", [A("uuid")]),
+        verbose_name="Short Name",
+        accessor="short_name",
+    )
     class Meta:
         model = Campaign
         fields = ["short_name", "long_name", "funding_agency"]
