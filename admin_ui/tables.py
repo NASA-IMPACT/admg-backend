@@ -38,7 +38,7 @@ class CampaignChangeListTable(DraftTableBase):
             "updated_at"
         )
 
-
+# TODO: add sequences for all of the tables
 class PlatformChangeListTable(DraftTableBase):
     short_name = tables.Column(
         linkify=("mi-change-update", [A("uuid")]),
