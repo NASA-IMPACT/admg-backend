@@ -14,16 +14,16 @@
           <a class="nav-link {% active_link 'mi-summary' 'active' strict=True %}" href="{% url 'mi-summary' %}">Summary</a>
         </li>
         <li class="nav-item list-group-item">
-          <a class="nav-link {% active_link 'mi-campaign-list-published || mi-campaign-list' 'active' %}" href="{% url 'mi-campaign-list-published' %}">Campaigns</a>
+          <a class="nav-link {% active_link 'mi-campaign-list-published || mi-campaign-list' 'active' %}" href="{% url 'mi-campaign-list' %}">Campaigns</a>
         </li>
         <li class="nav-item list-group-item">
-          <a class="nav-link {% active_link 'mi-platform-list-published || mi-platform-list' 'active' %}" href="{% url 'mi-platform-list-published' %}">Platforms</a>
+          <a class="nav-link {% active_link 'mi-platform-list-published || mi-platform-list' 'active' %}" href="{% url 'mi-platform-list' %}">Platforms</a>
         </li>
         <li class="nav-item list-group-item">
-          <a class="nav-link {% active_link 'mi-instrument-list-published || mi-instrument-list' 'active' %}" href="{% url 'mi-instrument-list-published' %}">Instruments</a>
+          <a class="nav-link {% active_link 'mi-instrument-list-published || mi-instrument-list' 'active' %}" href="{% url 'mi-instrument-list' %}">Instruments</a>
         </li>
         <li class="nav-item list-group-item">
-          <a class="nav-link {% active_link 'mi-organization-list-published || mi-organization-list' 'active' %}" href="{% url 'mi-organization-list-published' %}">Partner Organizations</a>
+          <a class="nav-link {% active_link 'mi-organization-list-published || mi-organization-list' 'active' %}" href="{% url 'mi-organization-list' %}">Partner Organizations</a>
         </li>
         {% if request.user.is_admg_admin %}
         <li class="nav-item list-group-item dropdown-tab">
