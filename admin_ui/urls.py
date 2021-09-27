@@ -6,6 +6,37 @@ from django.views.generic.base import TemplateView, RedirectView
 from . import views
 from .published_urls import published_urls
 
+model_url_map = {
+    "PlatformType": "platform_types",
+    "MeasurementType": "measurement_types",
+    "MeasurementStyle": "measurement_styles",
+    "HomeBase": "homebases",
+    "FocusArea": "focus_areas",
+    "Season": "seasons",
+    "Repository": "repositories",
+    "MeasurementRegion": "measurement_regions",
+    "GeographicalRegion": "geographical_regions",
+    "GeophysicalConcept": "geophysical_concepts",
+    "PartnerOrg": "partner_orgs",
+    "Alias": "aliases",
+    "GcmdProject": "gcmd_projects",
+    "GcmdInstrument": "gcmd_instruments",
+    "GcmdPlatform": "gcmd_platforms",
+    "GcmdPhenomena": "gcmd_phenomena",
+    "DOI": "doi",
+    "Campaign": "campaigns",
+    "Platform": "platforms",
+    "Instrument": "instruments",
+    "Deployment": "deployments",
+    "IOP": "iops",
+    "SignificantEvent": "significant_events",
+    "CollectionPeriod": "collection_periods",
+    "Website": "websites",
+    "WebsiteType": "website_types",
+    "CampaignWebsite": "campaign_websites",
+}
+
+
 urlpatterns = [
     path(settings.ADMIN_URL, admin.site.urls),
     # Actions
@@ -32,12 +63,6 @@ urlpatterns = [
     path("platforms/drafts", views.PlatformListView.as_view(), name="mi-platform-list"),
     
     path("instruments/drafts", views.InstrumentListView.as_view(), name="mi-instrument-list"),
-
-    path(
-        "organizations/published",
-        published_views.PartnerOrgListView.as_view(),
-        name="mi-organization-list-published",
-    ),
     path(
         "organizations/drafts",
         views.PartnerOrgListView.as_view(),
