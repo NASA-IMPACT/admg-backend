@@ -173,6 +173,15 @@ class PublishedModelView(DetailView):
     model = Campaign
     template_name = 'api_app/published_detail.html'
 
+    def __init__(self, **kwargs) -> None:
+        # It is guaranteed that the published data's uuid corresponds to a create draft uuid in the change table
+        # - Carson
+
+        # get the change object
+        change_object = Change.objects.get(kwargs.get("pk"))
+
+        super().__init__(**kwargs)
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         print('#'*100, kwargs)
@@ -185,9 +194,7 @@ from django.forms import ModelForm
 
 class MyFormClass(ModelForm):
     def get_form(self, form_class=None):
-
         form = super().get_form()
-
         for field in form.fields:
             # Set html attributes as needed for all fields
             form.fields[field].widget.attrs['readonly'] = 'readonly'          
