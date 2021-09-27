@@ -158,7 +158,7 @@ You first have to delete all the problematic tables `psql admg_prod -c "delete f
 
 `python manage.py runserver_plus`
 
-5. Open the webiste 
+5. Open the website 
 http://localhost:8000/
 
 ### Optional additional tool
@@ -176,3 +176,11 @@ Starting the service
 1. start rabbitmq with `rabbitmq-server` 
 2. start the celery worker with
 `celery -A config.celery_app worker -l INFO`
+  
+
+### Configuring system to deploy CASEI
+  
+One feature of the Maintenance Interface is that it should be able to trigger a deployment of [CASEI](https://github.com/NASA-IMPACT/admg-inventory/).  This works by triggering a [workflow dispatch event](https://docs.github.com/en/rest/reference/actions#create-a-workflow-dispatch-event) on CASEI's [`deploy-to-production` workflow](https://github.com/NASA-IMPACT/admg-inventory/actions/workflows/deploy-to-production.yml).
+
+As described in the Github documentation, the Personal Access Token (used to 
+One feature of the Maintenance Interface is that it should be able to trigger a deployment of [CASEI](https://github.com/NASA-IMPACT/admg-inventory/).  This works by triggering a [workflow dispatch event](https://docs.github.com/en/rest/reference/actions#create-a-workflow-dispatch-event) on CASEI's [`deploy-to-production` workflow](https://github.com/NASA-IMPACT/admg-inventory/actions/workflows/deploy-to-production.yml).  To allow the Maintenance Interface to trigger CASEI, a token provided via an `CASEI_GH_TOKEN` env var must have `actions:write` permissions.
