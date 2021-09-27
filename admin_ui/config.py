@@ -244,11 +244,11 @@ MODEL_CONFIG_MAP = {
         "table": PublishedWebsiteTypeTable,
         "filter": GenericPublishedListFilter,
     },
-    "CampaignWebsite": {
-        "display_name": camel_to_snake("CampaignWebsite"),
-        "url": "campaign_websites",
-        "model": CampaignWebsite,
-        "table": PublishedCampaignWebsiteTable,
-        "filter": GenericPublishedListFilter,
-    },
+    # "CampaignWebsite": {
+    #     "display_name": camel_to_snake("CampaignWebsite"),
+    #     "url": "campaign_websites",
+    #     "model": CampaignWebsite,
+    #     "table": PublishedCampaignWebsiteTable,
+    #     "filter": GenericPublishedListFilter,
+    # },
 }
