@@ -2,6 +2,7 @@ from typing import Dict
 
 from django.conf import settings
 from django.contrib import messages
+from django.contrib.contenttypes import models
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.db.models import aggregates
@@ -13,6 +14,7 @@ from django.views import View
 from django.views.generic import DetailView
 from django.views.generic.detail import SingleObjectMixin
 from django.views.generic.list import ListView, MultipleObjectMixin
+from django.forms import ModelForm
 
 from django.views.generic.edit import (
     CreateView,
@@ -42,189 +44,57 @@ from api_app.models import (
     IN_TRASH_CODE,
     AVAILABLE_STATUSES,
 )
-from cmr import tasks
-from data_models.models import (
-    Alias,
-    Campaign,
-    CampaignWebsite,
-    CollectionPeriod,
-    Deployment,
-    DOI,
-    Image,
-    Instrument,
-    Platform,
-    PlatformType,
-    PartnerOrg,
-    IOP,
-    SignificantEvent,
-    GcmdInstrument,
-    GcmdProject,
-    GcmdPhenomena,
-    GcmdPlatform,
-    FocusArea,
-    GeophysicalConcept,
-    MeasurementRegion,
-    MeasurementStyle,
-    MeasurementType,
-    HomeBase,
-    GeographicalRegion,
-    Season,
-    WebsiteType,
-    Website,
-    Repository,
-)
+
 from . import published_tables, forms, mixins, filters
+from .config import MODEL_CONFIG_MAP
 
 
-@method_decorator(login_required, name="dispatch")
-class CampaignListView(SingleTableMixin, FilterView):
-    model = Campaign
-    template_name = "api_app/published_list.html"
-    table_class = published_tables.PublishedCampaignListTable
-    filterset_class = filters.ChangeStatusFilter
+def GenericListView(model_name):
+    print("comes here", model_name)
+    @method_decorator(login_required, name="dispatch")
+    class GenericListViewClass(SingleTableMixin, FilterView):
+        model = MODEL_CONFIG_MAP[model_name]["model"]
+        template_name = "api_app/published_list.html"
+        table_class = MODEL_CONFIG_MAP[model_name]["table"]
+        filterset_class = MODEL_CONFIG_MAP[model_name]["filter"]
 
-    def get_context_data(self, **kwargs):
-        return {
-            **super().get_context_data(**kwargs),
-            "display_name": "Campaign",
-            "model": Campaign._meta.model_name,
-        }
-
-
-@method_decorator(login_required, name="dispatch")
-class PlatformListView(SingleTableMixin, FilterView):
-    model = Platform
-    template_name = "api_app/published_list.html"
-    table_class = published_tables.PublishedPlatformListTable
-    filterset_class = filters.ChangeStatusFilter
-
-    def get_context_data(self, **kwargs):
-        return {
-            **super().get_context_data(**kwargs),
-            "display_name": "Platform",
-            "model": Platform._meta.model_name,
-        }
+        def get_context_data(self, **kwargs):
+            print("model name is ", MODEL_CONFIG_MAP[model_name]["model"]._meta.model_name)
+            return {
+                **super().get_context_data(**kwargs),
+                "display_name": model_name,
+                "model": MODEL_CONFIG_MAP[model_name]["display_name"],
+            }
+    return GenericListViewClass
 
 
-@method_decorator(login_required, name="dispatch")
-class InstrumentListView(SingleTableMixin, FilterView):
-    model = Instrument
-    template_name = "api_app/published_list.html"
-    table_class = published_tables.PublishedBasicListTable
-    filterset_class = filters.ChangeStatusFilter
+def GenericFormClass(model_name):
+    class MyFormClass(ModelForm):
+        def get_form(self, form_class=None):
+            form = super().get_form()
+            for field in form.fields:
+                # Set html attributes as needed for all fields
+                form.fields[field].widget.attrs['readonly'] = 'readonly'          
+                form.fields[field].widget.attrs['disabled'] = 'disabled'
 
-    def get_context_data(self, **kwargs):
-        return {
-            **super().get_context_data(**kwargs),
-            "display_name": "Instrument",
-            "model": Instrument._meta.model_name,
-        }
-
-
-@method_decorator(login_required, name="dispatch")
-class PartnerOrgListView(SingleTableMixin, FilterView):
-    model = PartnerOrg
-    template_name = "api_app/published_list.html"
-    table_class = published_tables.PublishedBasicListTable
-    filterset_class = filters.ChangeStatusFilter
-
-    def get_context_data(self, **kwargs):
-        return {
-            **super().get_context_data(**kwargs),
-            "display_name": "Partner Organization",
-            "model": PartnerOrg._meta.model_name,
-        }
+            return form
+        class Meta:
+            model = MODEL_CONFIG_MAP[model_name]["model"]
+            fields = '__all__'
+        
+    return MyFormClass
 
 
-@method_decorator(login_required, name="dispatch")
-class WebsiteListView(SingleTableMixin, FilterView):
-    model = Website
-    template_name = "api_app/published_list.html"
-    table_class = published_tables.PublishedWebsiteListTable
-    filterset_class = filters.ChangeStatusFilter
-
-    def get_context_data(self, **kwargs):
-        return {
-            **super().get_context_data(**kwargs),
-            "display_name": "Website",
-            "model": Website._meta.model_name,
-        }
-
-
-@method_decorator(login_required, name="dispatch")
-class AliasListView(SingleTableMixin, FilterView):
-    model = Alias
-    template_name = "api_app/published_list.html"
-    table_class = published_tables.PublishedAliasListTable
-    filterset_class = filters.ChangeStatusFilter
-
-    def get_context_data(self, **kwargs):
-        return {
-            **super().get_context_data(**kwargs),
-            "display_name": "Alias",
-            "model": Alias._meta.model_name,
-        }
-
-# class PublishedModelView(mixins.ReadOnlyModelFormMixin, DetailView):
-#     model = Campaign
-#     template_name = "api_app/published_detail.html"
-#     fields = '__all__'
-class PublishedModelView(DetailView):
-    model = Campaign
-    template_name = 'api_app/published_detail.html'
-
-    def __init__(self, **kwargs) -> None:
-        # It is guaranteed that the published data's uuid corresponds to a create draft uuid in the change table
-        # - Carson
-
-        # get the change object
-        change_object = Change.objects.get(kwargs.get("pk"))
-
-        super().__init__(**kwargs)
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        print('#'*100, kwargs)
-        context['model_form'] = MyFormClass(
-            instance=kwargs.get('object')
-        )
-        return context
-
-from django.forms import ModelForm
-
-class MyFormClass(ModelForm):
-    def get_form(self, form_class=None):
-        form = super().get_form()
-        for field in form.fields:
-            # Set html attributes as needed for all fields
-            form.fields[field].widget.attrs['readonly'] = 'readonly'          
-            form.fields[field].widget.attrs['disabled'] = 'disabled'
-
-        return form
-    class Meta:
-        model = Campaign
-        fields = '__all__'
-
-# TODO: Come back to this. Multi model views
-# @method_decorator(user_passes_test(lambda user: user.is_admg_admin()), name="dispatch")
-class LimitedFieldGCMDListView(View):
-    pass
-
-# @method_decorator(user_passes_test(lambda user: user.is_admg_admin()), name="dispatch")
-class LimitedFieldScienceListView(View):
-    pass
-
-
-# @method_decorator(user_passes_test(lambda user: user.is_admg_admin()), name="dispatch")
-class LimitedFieldMeasurmentPlatformListView(View):
-    pass
-
-
-# @method_decorator(user_passes_test(lambda user: user.is_admg_admin()), name="dispatch")
-class LimitedFieldRegionSeasonListView(View):
-    pass
-
-
-# @method_decorator(user_passes_test(lambda user: user.is_admg_admin()), name="dispatch")
-class LimitedFieldWebsiteListView(View):
-    pass
+def GenericDetailView(model_name):
+    @method_decorator(login_required, name="dispatch")
+    class GenericDetailViewClass(DetailView):
+        model = MODEL_CONFIG_MAP[model_name]["model"]
+        template_name = 'api_app/published_detail.html'
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            print('#'*100, kwargs)
+            context['model_form'] = GenericFormClass(model_name)(
+                instance=kwargs.get('object')
+            )
+            return context
+    return GenericDetailViewClass
