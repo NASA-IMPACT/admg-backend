@@ -14,8 +14,6 @@ from django.views import View
 from django.views.generic import DetailView
 from django.views.generic.detail import SingleObjectMixin
 from django.views.generic.list import ListView, MultipleObjectMixin
-from django.forms import ModelForm
-
 from django.views.generic.edit import (
     CreateView,
     UpdateView,
@@ -45,12 +43,11 @@ from api_app.models import (
     AVAILABLE_STATUSES,
 )
 
-from . import published_tables, forms, mixins, filters
 from .config import MODEL_CONFIG_MAP
+from .published_forms import GenericFormClass
 
 
 def GenericListView(model_name):
-    print("comes here", model_name)
     @method_decorator(login_required, name="dispatch")
     class GenericListViewClass(SingleTableMixin, FilterView):
         model = MODEL_CONFIG_MAP[model_name]["model"]
@@ -68,33 +65,22 @@ def GenericListView(model_name):
     return GenericListViewClass
 
 
-def GenericFormClass(model_name):
-    class MyFormClass(ModelForm):
-        def get_form(self, form_class=None):
-            form = super().get_form()
-            for field in form.fields:
-                # Set html attributes as needed for all fields
-                form.fields[field].widget.attrs['readonly'] = 'readonly'          
-                form.fields[field].widget.attrs['disabled'] = 'disabled'
-
-            return form
-        class Meta:
-            model = MODEL_CONFIG_MAP[model_name]["model"]
-            fields = '__all__'
-        
-    return MyFormClass
-
-
 def GenericDetailView(model_name):
     @method_decorator(login_required, name="dispatch")
     class GenericDetailViewClass(DetailView):
         model = MODEL_CONFIG_MAP[model_name]["model"]
         template_name = 'api_app/published_detail.html'
+
         def get_context_data(self, **kwargs):
-            context = super().get_context_data(**kwargs)
-            print('#'*100, kwargs)
-            context['model_form'] = GenericFormClass(model_name)(
-                instance=kwargs.get('object')
-            )
-            return context
+            # disable the form here
+            form = GenericFormClass(model_name)(instance=kwargs.get('object'))
+            for fieldname in form.fields:
+                form.fields[fieldname].disabled = True
+
+            return {
+                **super().get_context_data(**kwargs),
+                "model_form": form,
+                "model_name": model_name,
+            }
+
     return GenericDetailViewClass

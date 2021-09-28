@@ -5,22 +5,17 @@
 
 {% block header %}
   <div class="col">
-    {% if object.content_type.model == 'website' %}
-    <h1>{{ object.update.title | default:object.uuid }}</h1>
-    {% else %}
-    <h1>{{ object.update.short_name | default:object.uuid }}</h1>
-    {% endif %}
+    <h1>{{ model_name }} Details</h1>
   </div>
 {% endblock header %}
 
+{% block object_details %}
+{% endblock object_details %}
+
 {% block actions %}
   <div class="px-1">
-    {% include "snippets/approval_dropdown.html" %}
-  </div>
-
-  <div class="px-1">
-    <button class="btn btn-primary" form="model-form" formnovalidate>Save</button>
-    <button class="btn btn-secondary" form="model-form" name="_validate">Validate</button>
+    <button class="btn btn-primary" form="model-form" formnovalidate>Create Edit Draft</button>
+    <button class="btn btn-secondary" form="model-form" name="_validate">Create Edit Draft</button>
   </div>
 {% endblock actions %}
 
