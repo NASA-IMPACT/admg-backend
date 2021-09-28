@@ -17,12 +17,12 @@
     </button>
     <div class="dropdown-menu">
       {% for item in item_types %}
-      <a class="dropdown-item" href="{% url 'mi-change-add' item %}">{{ item | title }}</a>
+      <a class="dropdown-item" href="{% url 'change-add' item %}">{{ item | title }}</a>
       {% endfor %}
     </div>
   
   {% else %}
-    <a class="btn btn-primary" href="{% url 'mi-change-add' model %}">
+    <a class="btn btn-primary" href="{% url 'change-add' model %}">
       Add New {{ display_name }} +
     </a>
   {% endif %}
@@ -39,11 +39,11 @@
         <a 
           class="btn btn-light btn-sm" 
           href="{% spaceless %}
-            {% if model == "campaign" %}{% url 'mi-campaign-list' %}
-            {% elif model == "platform" %}{% url 'mi-platform-list' %}
-            {% elif model == "instrument" %}{% url 'mi-instrument-list' %}
-            {% elif model == "partnerorg" %}{% url 'mi-organization-list' %}
-            {% else %}{% url 'mi-summary' %}
+            {% if model == "campaign" %}{% url 'campaign-list' %}
+            {% elif model == "platform" %}{% url 'platform-list' %}
+            {% elif model == "instrument" %}{% url 'instrument-list' %}
+            {% elif model == "partnerorg" %}{% url 'organization-list' %}
+            {% else %}{% url 'summary' %}
             {% endif %}
           {% endspaceless %}">
           Clear filters
