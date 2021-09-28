@@ -31,7 +31,7 @@ edit_urls = [
     path(
         f"{MODEL_CONFIG_MAP[item]['url']}/published/<uuid:pk>/edit",
         published_views.GenericEditView(item).as_view(),
-        name=f"mi-{MODEL_CONFIG_MAP[item]['display_name']}-edit-published"
+        name=f"{MODEL_CONFIG_MAP[item]['display_name']}-edit-published"
     )
     for item in MODEL_CONFIG_MAP
 ]

@@ -81,17 +81,17 @@ urlpatterns = [
     path(
         "gcmd_projects/draft",
         views.GcmdProjectListView.as_view(),
-        name="gcmd_projects-list"
+        name="gcmd_project-list"
     ),
     path(
         "gcmd_instruments/draft",
         views.GcmdInstrumentListView.as_view(),
-        name="gcmd_instruments-list"
+        name="gcmd_instrument-list"
     ),
     path(
         "gcmd_platforms/draft",
         views.GcmdPlatformListView.as_view(),
-        name="gcmd_platforms-list"
+        name="gcmd_platform-list"
     ),
     path(
         "gcmd_phenomena/draft",

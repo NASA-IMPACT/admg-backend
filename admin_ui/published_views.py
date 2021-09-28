@@ -61,6 +61,7 @@ def GenericListView(model_name):
                 **super().get_context_data(**kwargs),
                 "display_name": model_name,
                 "model": MODEL_CONFIG_MAP[model_name]["display_name"],
+                "url_name": MODEL_CONFIG_MAP[model_name]["display_name"],
             }
     return GenericListViewClass
 

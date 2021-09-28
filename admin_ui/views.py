@@ -183,6 +183,7 @@ class CampaignListView(SingleTableMixin, FilterView):
             **super().get_context_data(**kwargs),
             "display_name": "Campaign",
             "model": "campaign",
+            "url_name": "campaign",
         }
 
 
@@ -560,9 +561,9 @@ class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
             "Platform": "platform-list",
             "Instrument": "instrument-list",
             "PartnerOrg": "organization-list",
-            "GcmdProject": "gcmd_projects-list",
-            "GcmdInstrument": "gcmd_instruments-list",
-            "GcmdPlatform": "gcmd_platforms-list",
+            "GcmdProject": "gcmd_project-list",
+            "GcmdInstrument": "gcmd_instrument-list",
+            "GcmdPlatform": "gcmd_platform-list",
             "GcmdPhenomena": "gcmd_phenomena-list",
             "FocusArea": "science-list",
             "GeophysicalConcept": "science-list",
@@ -687,6 +688,7 @@ class CampaignWebsiteListView(SingleTableMixin, FilterView):
             **super().get_context_data(**kwargs),
             "display_name": "Campaign Website",
             "model": CampaignWebsite._meta.model_name,
+            "url_name": "campaign_website",
         }
 
 
@@ -749,6 +751,7 @@ class GcmdProjectListView(SingleTableMixin, FilterView):
             **super().get_context_data(**kwargs),
             "display_name": "GCMD Project",
             "model": GcmdProject._meta.model_name,
+            "url_name": "gcmd_project",
         }
 
 @method_decorator(user_passes_test(lambda user: user.is_admg_admin()), name="dispatch")
@@ -800,6 +803,7 @@ class GcmdPhenomenaListView(SingleTableMixin, FilterView):
             **super().get_context_data(**kwargs),
             "display_name": "GCMD Phenomena",
             "model": GcmdPhenomena._meta.model_name,
+            "url_name": "gcmd_phenomena",
         }
 
 @method_decorator(user_passes_test(lambda user: user.is_admg_admin()), name="dispatch")

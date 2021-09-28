@@ -7,14 +7,14 @@
     <div class="col">
       <ul class="nav nav-tabs" role="tablist">
         <li class="nav-item">
-          {% with tab_url=model|add:"-list" %}
+          {% with tab_url=url_name|add:"-list" %}
             <a class="nav-link {% if 'drafts' in request.path %} active {% endif %}" href="{% url tab_url %}" role="tab" aria-controls="details" aria-selected="true">
               Drafts
             </a>
           {% endwith %}
         </li>
         <li class="nav-item">
-          {% with tab_url=model|add:"-list-published" %}
+          {% with tab_url=url_name|add:"-list-published" %}
             <a class="nav-link {% if 'published' in request.path %} active {% endif %}" href="{% url tab_url %}" role="tab" aria-controls="details" aria-selected="true">
               Published Data
             </a>
