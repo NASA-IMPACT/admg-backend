@@ -11,19 +11,19 @@
     <nav class="card">
       <ul class="nav flex-column list-group">
         <li class="nav-item list-group-item">
-          <a class="nav-link {% active_link 'mi-summary' 'active' strict=True %}" href="{% url 'mi-summary' %}">Summary</a>
+          <a class="nav-link {% active_link 'summary' 'active' strict=True %}" href="{% url 'summary' %}">Summary</a>
         </li>
         <li class="nav-item list-group-item">
-          <a class="nav-link {% active_link 'mi-campaign-list-published || mi-campaign-list' 'active' %}" href="{% url 'mi-campaign-list' %}">Campaigns</a>
+          <a class="nav-link {% active_link 'campaign-list-published || campaign-list' 'active' %}" href="{% url 'campaign-list' %}">Campaigns</a>
         </li>
         <li class="nav-item list-group-item">
-          <a class="nav-link {% active_link 'mi-platform-list-published || mi-platform-list' 'active' %}" href="{% url 'mi-platform-list' %}">Platforms</a>
+          <a class="nav-link {% active_link 'platform-list-published || platform-list' 'active' %}" href="{% url 'platform-list' %}">Platforms</a>
         </li>
         <li class="nav-item list-group-item">
-          <a class="nav-link {% active_link 'mi-instrument-list-published || mi-instrument-list' 'active' %}" href="{% url 'mi-instrument-list' %}">Instruments</a>
+          <a class="nav-link {% active_link 'instrument-list-published || instrument-list' 'active' %}" href="{% url 'instrument-list' %}">Instruments</a>
         </li>
         <li class="nav-item list-group-item">
-          <a class="nav-link {% active_link 'mi-organization-list-published || mi-organization-list' 'active' %}" href="{% url 'mi-organization-list' %}">Partner Organizations</a>
+          <a class="nav-link {% active_link 'organization-list-published || organization-list' 'active' %}" href="{% url 'organization-list' %}">Partner Organizations</a>
         </li>
         {% if request.user.is_admg_admin %}
         <li class="nav-item list-group-item dropdown-tab">
@@ -32,29 +32,61 @@
             <svg class="minus ml-auto my-auto" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-dash" viewBox="0 0 16 16"> <path d="M4 8a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7A.5.5 0 0 1 4 8z" /> </svg>
             <svg class="plus ml-auto my-auto" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus" viewBox="0 0 16 16"> <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/> </svg>
           </span>
-          <ul id="limited-fields-submenu" class="list-group list-group-flush collapse mt-2 {% active_link 'lf-base' 'show' %}">
-            <li class="list-group-item">
-              <a href="{% url 'lf-gcmd-list' %}" class="mx-0 {% active_link 'lf-gcmd-list' %}">
+          <ul id="limited-fields-submenu" class="list-group list-group-flush collapse mt-2 {% active_link science-list' 'show' %}">
+
+
+            <li class="nav-item list-group-item dropdown-tab">
+              <span class="nav-link d-flex cursor-pointer {% if 'limitedfields' in request.path %}active{% else %}collapsed{% endif %}" data-toggle="collapse" data-target="#gcmd-fields-submenu">
                 GCMD Items
-              </a>
+                <svg class="minus ml-auto my-auto" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-dash" viewBox="0 0 16 16"> <path d="M4 8a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7A.5.5 0 0 1 4 8z" /> </svg>
+                <svg class="plus ml-auto my-auto" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus" viewBox="0 0 16 16"> <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/> </svg>
+              </span>
+
+              <ul id="gcmd-fields-submenu" class="list-group list-group-flush collapse mt-2 {% active_link science-list' 'show' %}">
+                
+                <li class="list-group-item">
+                  <a href="{% url gcmd_projects-list' %}" class="mx-0 {% active_link gcmd_projects-list' %}">
+                    GCMD Projects
+                  </a>
+                </li>
+                <li class="list-group-item">
+                  <a href="{% url gcmd_instruments-list' %}" class="mx-0 {% active_link gcmd_instruments-list' %}">
+                    GCMD Instruments
+                  </a>
+                </li>
+                <li class="list-group-item">
+                  <a href="{% url gcmd_platforms-list' %}" class="mx-0 {% active_link gcmd_platforms-list' %}">
+                    GCMD Platforms
+                  </a>
+                </li>
+                <li class="list-group-item">
+                  <a href="{% url gcmd_phenomena-list' %}" class="mx-0 {% active_link gcmd_phenomena-list' %}">
+                    GCMD Phenomena
+                  </a>
+                </li>
+
+              </ul>
+
             </li>
+
+
             <li class="list-group-item">
-              <a href="{% url 'lf-science-list' %}" class="mx-0 {% active_link 'lf-science-list' %}">
+              <a href="{% url science-list' %}" class="mx-0 {% active_link science-list' %}">
                 Science Concepts
               </a>
             </li>
             <li class="list-group-item">
-              <a href="{% url 'lf-measure-platform-list' %}" class="mx-0 {% active_link 'lf-measure-platform-list' %}">
+              <a href="{% url measure-platform-list' %}" class="mx-0 {% active_link measure-platform-list' %}">
                 Measurement &amp; Platform Items
               </a>
             </li>
             <li class="list-group-item">
-              <a href="{% url 'lf-region-season-list' %}" class="mx-0 {% active_link 'lf-region-season-list' %}">
+              <a href="{% url region-season-list' %}" class="mx-0 {% active_link region-season-list' %}">
                 Geographical Region &amp; Season Items
               </a>
             </li>
             <li class="list-group-item">
-              <a href="{% url 'lf-website-list' %}" class="mx-0 {% active_link 'lf-website-list' %}">
+              <a href="{% url website-list' %}" class="mx-0 {% active_link website-list' %}">
                 Website Items
               </a>
             </li>
