@@ -10,35 +10,48 @@ from .published_urls import published_urls
 urlpatterns = [
     path(settings.ADMIN_URL, admin.site.urls),
     # Actions
-    path("actions/deploy-admin", views.trigger_deploy, name="mi-trigger-deploy"),
-    path("", views.SummaryView.as_view(), name="mi-summary"),
-    path("campaigns/drafts", views.CampaignListView.as_view(), name="mi-campaign-list"),
+    path("actions/deploy-admin",
+        views.trigger_deploy,
+        name="trigger-deploy"
+    ),
+    path("",
+        views.SummaryView.as_view(),
+        name="summary"
+    ),
+    path("campaigns/drafts",
+        views.CampaignListView.as_view(),
+        name="campaign-list"
+    ),
     path(
         "campaigns/<uuid:pk>",
         views.CampaignDetailView.as_view(),
-        name="mi-campaign-detail",
+        name="campaign-detail",
     ),
     path(
         "campaigns/<uuid:pk>/doi-fetch",
         views.DoiFetchView.as_view(),
-        name="mi-doi-fetch",
+        name="doi-fetch",
     ),
     path(
         "campaigns/<uuid:pk>/doi-approval",
         views.DoiApprovalView.as_view(),
-        name="mi-doi-approval",
+        name="doi-approval",
+    ),  
+    path(
+        "platforms/drafts",
+        views.PlatformListView.as_view(),
+        name="platform-list"
     ),
-
-    
-    path("platforms/drafts", views.PlatformListView.as_view(), name="mi-platform-list"),
-    
-    path("instruments/drafts", views.InstrumentListView.as_view(), name="mi-instrument-list"),
+    path(
+        "instruments/drafts",
+        views.InstrumentListView.as_view(),
+        name="instrument-list"
+    ),
     path(
         "organizations/drafts",
         views.PartnerOrgListView.as_view(),
-        name="mi-organization-list",
+        name="organization-list",
     ),
-    
     path(
         "websites/drafts",
         views.WebsiteListView.as_view(),
@@ -51,52 +64,63 @@ urlpatterns = [
         name="alias-list",
     ),
     path(
-        "drafts/add/<str:model>", views.ChangeCreateView.as_view(), name="mi-change-add"
+        "drafts/add/<str:model>",
+        views.ChangeCreateView.as_view(),
+        name="change-add"
     ),
     path(
         "drafts/edit/<uuid:pk>",
         views.ChangeUpdateView.as_view(),
-        name="mi-change-update",
+        name="change-update",
     ),
     path(
         "drafts/edit/<uuid:pk>/transition",
         views.ChangeTransition.as_view(),
-        name="mi-change-transition",
+        name="change-transition",
     ),
     path(
-        "limitedfields",
-        RedirectView.as_view(pattern_name="lf-gcmd-list"),
-        name="lf-base",
+        "gcmd_projects/draft",
+        views.GcmdProjectListView.as_view(),
+        name="gcmd_projects-list"
     ),
-    
     path(
-        "limitedfields/gcmd/draft",
-        views.LimitedFieldGCMDListView.as_view(),
-        name="lf-gcmd-list",
+        "gcmd_instruments/draft",
+        views.GcmdInstrumentListView.as_view(),
+        name="gcmd_instruments-list"
+    ),
+    path(
+        "gcmd_platforms/draft",
+        views.GcmdPlatformListView.as_view(),
+        name="gcmd_platforms-list"
+    ),
+    path(
+        "gcmd_phenomena/draft",
+        views.GcmdPhenomenaListView.as_view(),
+        name="gcmd_phenomena-list"
     ),
     
     path(
         "limitedfields/science/drafts",
         views.LimitedFieldScienceListView.as_view(),
-        name="lf-science-list",
+        name="science-list",
     ),
     
     path(
         "limitedfields/measurementplatform/drafts",
         views.LimitedFieldMeasurmentPlatformListView.as_view(),
-        name="lf-measure-platform-list",
+        name="measure-platform-list",
     ),
     
     path(
         "limitedfields/regionseason/drafts",
         views.LimitedFieldRegionSeasonListView.as_view(),
-        name="lf-region-season-list",
+        name="region-season-list",
     ),
     
     path(
         "limitedfields/website/drafts",
         views.LimitedFieldWebsiteListView.as_view(),
-        name="lf-website-list",
+        name="website-list",
     ),
     path(
         "tbd",

@@ -12,7 +12,7 @@ class DraftTableBase(tables.Table):
 
 class CampaignChangeListTable(DraftTableBase):
     short_name = tables.Column(
-        linkify=("mi-campaign-detail", [A("uuid")]),
+        linkify=("campaign-detail", [A("uuid")]),
         verbose_name="Short Name",
         accessor="update__short_name",
     )
@@ -41,7 +41,7 @@ class CampaignChangeListTable(DraftTableBase):
 # TODO: add sequences for all of the tables
 class PlatformChangeListTable(DraftTableBase):
     short_name = tables.Column(
-        linkify=("mi-change-update", [A("uuid")]),
+        linkify=("change-update", [A("uuid")]),
         verbose_name="Short Name",
         accessor="update__short_name",
     )
@@ -64,7 +64,7 @@ class PlatformChangeListTable(DraftTableBase):
 
 class BasicChangeListTable(DraftTableBase):
     short_name = tables.Column(
-        linkify=("mi-change-update", [A("uuid")]),
+        linkify=("change-update", [A("uuid")]),
         verbose_name="Short Name",
         accessor="update__short_name",
     )
@@ -96,7 +96,7 @@ class MultiItemListTable(BasicChangeListTable):
 
 class ChangeSummaryTable(DraftTableBase):
     name = tables.LinkColumn(
-        viewname="mi-campaign-detail",
+        viewname="campaign-detail",
         args=[A("uuid")],
         verbose_name="Name",
         accessor="update__short_name",
@@ -115,7 +115,7 @@ class ChangeSummaryTable(DraftTableBase):
 
 class WebsiteChangeListTable(DraftTableBase):
     title = tables.Column(
-        linkify=("mi-change-update", [A("uuid")]),
+        linkify=("change-update", [A("uuid")]),
         verbose_name="Title", 
         accessor="update__title"
     )
@@ -148,7 +148,7 @@ class CampaignWebsiteChangeListTable(DraftTableBase):
 
 class AliasChangeListTable(DraftTableBase):
     short_name = tables.Column(
-        linkify=("mi-change-update", [A("uuid")]),
+        linkify=("change-update", [A("uuid")]),
         verbose_name="Short Name", 
         accessor="update__short_name"
     )
@@ -165,3 +165,167 @@ class AliasChangeListTable(DraftTableBase):
             "th": {"style": "min-width: 10em"},
         }
         fields = ["short_name", "model_type", "status", "updated_at"]
+
+
+class GcmdProjectChangeListTable(DraftTableBase):
+    short_name = tables.Column(
+        linkify=("change-update", [A("uuid")]),
+        verbose_name="Short Name", 
+        accessor="update__short_name"
+    )
+    long_name = tables.Column(verbose_name="Long Name", accessor="update__long_name")
+    bucket = tables.Column(
+        verbose_name="Bucket", accessor="update__bucket"
+    )
+    status = tables.Column(verbose_name="Status", accessor="status")
+    updated_at = tables.DateTimeColumn(verbose_name="Last Edit Date")
+
+    class Meta:
+        model = Change
+        attrs = {
+            "class": "table table-striped",
+            "thead": {"class": "table-primary"},
+            "th": {"style": "min-width: 10em"},
+        }
+        fields = ["title", "long_name", "status", "updated_at", "bucket",]
+
+
+class GcmdInstrumentChangeListTable(DraftTableBase):
+    short_name = tables.Column(
+        linkify=("change-update", [A("uuid")]),
+        verbose_name="short_name",
+        accessor="update__short_name",
+    )
+    long_name = tables.Column(
+        linkify=("change-update", [A("uuid")]),
+        verbose_name="long_name",
+        accessor="update__long_name",
+    )
+    instrument_category = tables.Column(
+        linkify=("change-update", [A("uuid")]),
+        verbose_name="instrument_category",
+        accessor="update__instrument_category",
+    )
+    instrument_class = tables.Column(
+        linkify=("change-update", [A("uuid")]),
+        verbose_name="instrument_class",
+        accessor="update__instrument_class",
+    )
+    instrument_type = tables.Column(
+        linkify=("change-update", [A("uuid")]),
+        verbose_name="instrument_type",
+        accessor="update__instrument_type",
+    )
+    instrument_subtype = tables.Column(
+        linkify=("change-update", [A("uuid")]),
+        verbose_name="instrument_subtype",
+        accessor="update__instrument_subtype",
+    )
+    short_name = tables.Column(
+        linkify=("change-update", [A("uuid")]),
+        verbose_name="Short Name", 
+        accessor="update__short_name"
+    )
+    status = tables.Column(verbose_name="Status", accessor="status")
+    updated_at = tables.DateTimeColumn(verbose_name="Last Edit Date")
+
+    class Meta:
+        model = Change
+        attrs = {
+            "class": "table table-striped",
+            "thead": {"class": "table-primary"},
+            "th": {"style": "min-width: 10em"},
+        }
+        fields = [
+            "short_name",
+            "long_name",
+            "instrument_category",
+            "instrument_class",
+            "instrument_type",
+            "instrument_subtype",
+            "status",
+            "updated_at",
+        ]
+
+
+class GcmdPlatformChangeListTable(DraftTableBase):
+    short_name = tables.Column(
+        linkify=("change-update", [A("uuid")]),
+        verbose_name="short_name", 
+        accessor="update__short_name"
+    )
+    long_name = tables.Column(
+        linkify=("change-update", [A("uuid")]),
+        verbose_name="long_name", 
+        accessor="update__long_name"
+    )
+    category = tables.Column(
+        linkify=("change-update", [A("uuid")]),
+        verbose_name="category", 
+        accessor="update__category"
+    )
+    status = tables.Column(verbose_name="Status", accessor="status")
+    updated_at = tables.DateTimeColumn(verbose_name="Last Edit Date")
+
+    class Meta:
+        model = Change
+        attrs = {
+            "class": "table table-striped",
+            "thead": {"class": "table-primary"},
+            "th": {"style": "min-width: 10em"},
+        }
+        fields = ["title", "long_name", "category", "status", "updated_at"]
+
+
+class GcmdPhenomenaChangeListTable(DraftTableBase):
+    category = tables.Column(
+            linkify=("change-update", [A("uuid")]),
+            verbose_name="category", 
+            accessor="update__category"
+        )
+    topic = tables.Column(
+            linkify=("change-update", [A("uuid")]),
+            verbose_name="topic", 
+            accessor="update__topic"
+        )
+    term = tables.Column(
+            linkify=("change-update", [A("uuid")]),
+            verbose_name="term", 
+            accessor="update__term"
+        )
+    variable_1 = tables.Column(
+            linkify=("change-update", [A("uuid")]),
+            verbose_name="variable_1", 
+            accessor="update__variable_1"
+        )
+    variable_2 = tables.Column(
+            linkify=("change-update", [A("uuid")]),
+            verbose_name="variable_2", 
+            accessor="update__variable_2"
+        )
+    variable_3 = tables.Column(
+            linkify=("change-update", [A("uuid")]),
+            verbose_name="variable_3", 
+            accessor="update__variable_3"
+        )
+    status = tables.Column(verbose_name="Status", accessor="status")
+    updated_at = tables.DateTimeColumn(verbose_name="Last Edit Date")
+
+
+    class Meta:
+        model = Change
+        attrs = {
+            "class": "table table-striped",
+            "thead": {"class": "table-primary"},
+            "th": {"style": "min-width: 10em"},
+        }
+        fields = [
+            "category",
+            "topic",
+            "term",
+            "variable_1",
+            "variable_2",
+            "variable_3",
+            "status",
+            "updated_at"
+        ]

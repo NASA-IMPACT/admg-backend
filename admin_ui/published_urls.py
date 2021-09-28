@@ -11,7 +11,7 @@ list_urls = [
     path(
         f"{MODEL_CONFIG_MAP[item]['url']}/published",
         published_views.GenericListView(item).as_view(),
-        name=f"mi-{MODEL_CONFIG_MAP[item]['display_name']}-list-published"
+        name=f"{MODEL_CONFIG_MAP[item]['display_name']}-list-published"
     )
     for item in MODEL_CONFIG_MAP
 ]
@@ -21,7 +21,7 @@ detail_urls = [
     path(
         f"{MODEL_CONFIG_MAP[item]['url']}/published/<uuid:pk>",
         published_views.GenericDetailView(item).as_view(),
-        name=f"mi-{MODEL_CONFIG_MAP[item]['display_name']}-detail-published"
+        name=f"{MODEL_CONFIG_MAP[item]['display_name']}-detail-published"
     )
     for item in MODEL_CONFIG_MAP
 ]

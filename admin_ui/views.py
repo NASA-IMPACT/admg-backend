@@ -84,7 +84,7 @@ def trigger_deploy(request):
         messages.add_message(
             request, messages.ERROR, f"Failed to trigger deployment: Github workflow not specified in settings."
         )
-        return HttpResponseRedirect(reverse("mi-summary"))
+        return HttpResponseRedirect(reverse("summary"))
 
     response = requests.post(
         url=f"https://api.github.com/repos/{workflow['repo']}/actions/workflows/{workflow['id']}/dispatches",
@@ -108,7 +108,7 @@ def trigger_deploy(request):
             request, messages.ERROR, f"Failed to trigger deployment: {response.text}"
         )
 
-    return HttpResponseRedirect(reverse("mi-summary"))
+    return HttpResponseRedirect(reverse("summary"))
 
 
 @method_decorator(login_required, name="dispatch")
@@ -278,7 +278,7 @@ class DoiFetchView(View):
             messages.INFO,
             f"Fetching DOIs for {campaign.update.get('short_name', uuid)}...",
         )
-        return HttpResponseRedirect(reverse("mi-doi-approval", args=[campaign.uuid]))
+        return HttpResponseRedirect(reverse("doi-approval", args=[campaign.uuid]))
 
 
 @method_decorator(login_required, name="dispatch")
@@ -432,7 +432,7 @@ class DoiApprovalView(SingleObjectMixin, MultipleObjectMixin, FormView):
         return super().form_valid(formset)
 
     def get_success_url(self):
-        return reverse("mi-doi-approval", args=[self.kwargs["pk"]])
+        return reverse("doi-approval", args=[self.kwargs["pk"]])
 
 
 @method_decorator(login_required, name="dispatch")
@@ -458,7 +458,7 @@ class ChangeCreateView(mixins.ChangeModelFormMixin, CreateView):
         }
 
     def get_success_url(self):
-        url = reverse("mi-change-update", args=[self.object.pk])
+        url = reverse("change-update", args=[self.object.pk])
         if self.request.GET.get("back"):
             return f'{url}?back={self.request.GET["back"]}'
         return url
@@ -498,7 +498,7 @@ class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
     )
 
     def get_success_url(self):
-        url = reverse("mi-change-update", args=[self.object.pk])
+        url = reverse("change-update", args=[self.object.pk])
         if self.request.GET.get("back"):
             return f'{url}?back={self.request.GET["back"]}'
         return url
@@ -557,26 +557,26 @@ class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
         """
         content_type = self.get_model_form_content_type().model_class().__name__
         button_mapping = {
-            "Platform": "mi-platform-list",
-            "Instrument": "mi-instrument-list",
-            "PartnerOrg": "mi-organization-list",
-            "GcmdInstrument": "lf-gcmd-list",
-            "GcmdPhenomena": "lf-gcmd-list",
-            "GcmdPlatform": "lf-gcmd-list",
-            "GcmdProject": "lf-gcmd-list",
-            "FocusArea": "lf-science-list",
-            "GeophysicalConcept": "lf-science-list",
-            "MeasurementRegion": "lf-measure-platform-list",
-            "MeasurementStyle": "lf-measure-platform-list",
-            "MeasurementType": "lf-measure-platform-list",
-            "HomeBase": "lf-measure-platform-list",
-            "PlatformType": "lf-measure-platform-list",
-            "GeographicalRegion": "lf-region-season-list",
-            "Season": "lf-region-season-list",
-            "WebsiteType": "lf-website-list",
-            "Repository": "lf-website-list",
+            "Platform": "platform-list",
+            "Instrument": "instrument-list",
+            "PartnerOrg": "organization-list",
+            "GcmdProject": "gcmd_projects-list",
+            "GcmdInstrument": "gcmd_instruments-list",
+            "GcmdPlatform": "gcmd_platforms-list",
+            "GcmdPhenomena": "gcmd_phenomena-list",
+            "FocusArea": "science-list",
+            "GeophysicalConcept": "science-list",
+            "MeasurementRegion": "measure-platform-list",
+            "MeasurementStyle": "measure-platform-list",
+            "MeasurementType": "measure-platform-list",
+            "HomeBase": "measure-platform-list",
+            "PlatformType": "measure-platform-list",
+            "GeographicalRegion": "region-season-list",
+            "Season": "region-season-list",
+            "WebsiteType": "website-list",
+            "Repository": "website-list",
         }
-        return button_mapping.get(content_type, "mi-summary")
+        return button_mapping.get(content_type, "summary")
 
     def post(self, *args, **kwargs):
         """
@@ -706,7 +706,7 @@ class AliasListView(SingleTableMixin, FilterView):
             "display_name": "Alias",
             "model": Alias._meta.model_name,
         }
-
+# make a view for each gcmd
 
 @method_decorator(user_passes_test(lambda user: user.is_admg_admin()), name="dispatch")
 class LimitedFieldGCMDListView(SingleTableMixin, FilterView):
@@ -733,6 +733,74 @@ class LimitedFieldGCMDListView(SingleTableMixin, FilterView):
             "item_types": [m._meta.model_name for m in self.item_types],
         }
 
+
+@method_decorator(user_passes_test(lambda user: user.is_admg_admin()), name="dispatch")
+class GcmdProjectListView(SingleTableMixin, FilterView):
+    model = Change
+    template_name = "api_app/change_list.html"
+    table_class = tables.GcmdProjectChangeListTable
+    filterset_class = filters.ChangeStatusFilter
+
+    def get_queryset(self):
+        return Change.objects.of_type(GcmdProject).filter(action=CREATE).add_updated_at()
+
+    def get_context_data(self, **kwargs):
+        return {
+            **super().get_context_data(**kwargs),
+            "display_name": "GCMD Project",
+            "model": GcmdProject._meta.model_name,
+        }
+
+@method_decorator(user_passes_test(lambda user: user.is_admg_admin()), name="dispatch")
+class GcmdInstrumentListView(SingleTableMixin, FilterView):
+    model = Change
+    template_name = "api_app/change_list.html"
+    table_class = tables.GcmdInstrumentChangeListTable
+    filterset_class = filters.ChangeStatusFilter
+
+    def get_queryset(self):
+        return Change.objects.of_type(GcmdInstrument).filter(action=CREATE).add_updated_at()
+
+    def get_context_data(self, **kwargs):
+        return {
+            **super().get_context_data(**kwargs),
+            "display_name": "GCMD Instrument",
+            "model": GcmdInstrument._meta.model_name,
+        }
+
+@method_decorator(user_passes_test(lambda user: user.is_admg_admin()), name="dispatch")
+class GcmdPlatformListView(SingleTableMixin, FilterView):
+    model = Change
+    template_name = "api_app/change_list.html"
+    table_class = tables.GcmdPlatformChangeListTable
+    filterset_class = filters.ChangeStatusFilter
+
+    def get_queryset(self):
+        return Change.objects.of_type(GcmdPlatform).filter(action=CREATE).add_updated_at()
+
+    def get_context_data(self, **kwargs):
+        return {
+            **super().get_context_data(**kwargs),
+            "display_name": "GCMD Platform",
+            "model": GcmdPlatform._meta.model_name,
+        }
+
+@method_decorator(user_passes_test(lambda user: user.is_admg_admin()), name="dispatch")
+class GcmdPhenomenaListView(SingleTableMixin, FilterView):
+    model = Change
+    template_name = "api_app/change_list.html"
+    table_class = tables.GcmdPhenomenaChangeListTable
+    filterset_class = filters.ChangeStatusFilter
+
+    def get_queryset(self):
+        return Change.objects.of_type(GcmdPhenomena).filter(action=CREATE).add_updated_at()
+
+    def get_context_data(self, **kwargs):
+        return {
+            **super().get_context_data(**kwargs),
+            "display_name": "GCMD Phenomena",
+            "model": GcmdPhenomena._meta.model_name,
+        }
 
 @method_decorator(user_passes_test(lambda user: user.is_admg_admin()), name="dispatch")
 class LimitedFieldScienceListView(SingleTableMixin, FilterView):

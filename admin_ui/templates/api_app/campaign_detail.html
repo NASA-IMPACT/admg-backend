@@ -3,7 +3,7 @@
 
 {% block header %}
   <div class="col">
-    <a href="{% url 'mi-campaign-list' %}">&larr; Back</a>
+    <a href="{% url 'campaign-list' %}">&larr; Back</a>
     <h1>Campaign {% firstof object.update.short_name object.update.uuid %}</h1>
   </div>
 {% endblock header %}
@@ -14,7 +14,7 @@
   </div>
 
   <div class="px-1">
-    <a href="{% url 'mi-change-update' object.uuid %}?back={{ request.path }}" class="btn btn-outline-secondary ml-3">
+    <a href="{% url 'change-update' object.uuid %}?back={{ request.path }}" class="btn btn-outline-secondary ml-3">
       Edit campaign details
     </a>
   </div>
@@ -26,12 +26,12 @@
     <div class="col">
       <ul class="nav nav-tabs" role="tablist">
         <li class="nav-item">
-          <a class="nav-link {% active_link 'mi-campaign-detail' 'active' pk=object.uuid strict=True %}" href="{% url 'mi-campaign-detail' object.uuid %}" role="tab" aria-controls="details" aria-selected="true">
+          <a class="nav-link {% active_link 'campaign-detail' 'active' pk=object.uuid strict=True %}" href="{% url 'campaign-detail' object.uuid %}" role="tab" aria-controls="details" aria-selected="true">
             Details
           </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link {% active_link 'mi-doi-approval' 'active' pk=object.uuid strict=True %}" href="{% url 'mi-doi-approval' object.uuid %}" role="tab" aria-controls="dois" aria-selected="false">
+          <a class="nav-link {% active_link 'doi-approval' 'active' pk=object.uuid strict=True %}" href="{% url 'doi-approval' object.uuid %}" role="tab" aria-controls="dois" aria-selected="false">
             DOIs
           </a>
         </li>
@@ -51,7 +51,7 @@
         </div>
         
         <div class="ml-auto">
-          <a class="btn btn-primary" href="{% url 'mi-change-add' 'deployment' %}?campaign={{ object.uuid }}&back={{ request.path }}">+</a>
+          <a class="btn btn-primary" href="{% url 'change-add' 'deployment' %}?campaign={{ object.uuid }}&back={{ request.path }}">+</a>
         </div>
       </li>
       {% for deployment in deployments %}
@@ -72,7 +72,7 @@
             </button>
             <span id="iops-badge" class="badge badge-primary badge-pill"></span>
           </h5>
-          <a class="add-deployment-child btn btn-primary" href="{% url 'mi-change-add' 'iop' %}?back={{ request.path }}">+</a>
+          <a class="add-deployment-child btn btn-primary" href="{% url 'change-add' 'iop' %}?back={{ request.path }}">+</a>
         </div>
         <div id="iops" class="collapse" aria-labelledby="iops-header" data-parent="#accordion">
           <ul class="list-group">
@@ -93,7 +93,7 @@
             </button>
             <span id="significant-events-badge" class="badge badge-primary badge-pill"></span>
           </h5>
-          <a class="add-deployment-child btn btn-primary" href="{% url 'mi-change-add' 'significantevent' %}?back={{ request.path }}">+</a>
+          <a class="add-deployment-child btn btn-primary" href="{% url 'change-add' 'significantevent' %}?back={{ request.path }}">+</a>
         </div>
 
         <div id="significant-events" class="collapse" aria-labelledby="significant-events-header" data-parent="#accordion">
@@ -116,7 +116,7 @@
             </button>
             <span id="collection-periods-badge" class="badge badge-primary badge-pill"></span>
           </h5>
-          <a class="add-deployment-child btn btn-primary" href="{% url 'mi-change-add' 'collectionperiod' %}?back={{ request.path }}">+</a>
+          <a class="add-deployment-child btn btn-primary" href="{% url 'change-add' 'collectionperiod' %}?back={{ request.path }}">+</a>
         </div>
         <div id="collection-periods" class="collapse show" aria-labelledby="collection-periods-header" data-parent="#accordion">
           <ul class="list-group">

@@ -93,7 +93,7 @@ class AddAnotherChoiceFieldWidget(forms.Select):
 
     def render(self, name, value, *args, **kwargs):
         create_form_url = reverse(
-            "mi-change-add", kwargs={"model": self.model._meta.model_name}
+            "change-add", kwargs={"model": self.model._meta.model_name}
         )
 
         output = [

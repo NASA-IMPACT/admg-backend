@@ -41,7 +41,7 @@
           <span class="navbar-toggler-icon"></span>
         </button>
         
-        <a class="navbar-brand text-white" href="{% url 'mi-summary' %}">
+        <a class="navbar-brand text-white" href="{% url 'summary' %}">
           <img src="{% static 'images/logo.svg' %}" class="mr-3">NASA | CASEI {% if request.user.is_admg_admin %} Admin {% else %} Staff {% endif %}
         </a>
         
@@ -75,7 +75,7 @@
             </li>
             {% if request.user.is_admg_admin %}
             <li class="nav-item mx-1">
-              <form action="{% url 'mi-trigger-deploy' %}">
+              <form action="{% url 'trigger-deploy' %}">
                 <input type="submit" value="Deploy Website" class="nav-link btn btn-light" />
               </form>
             </li>
