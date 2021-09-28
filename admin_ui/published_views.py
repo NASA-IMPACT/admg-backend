@@ -20,6 +20,7 @@ from django.views.generic.edit import (
     FormView,
     FormMixin,
     ProcessFormView,
+    ModelFormMixin,
 )
 
 from django_celery_results.models import TaskResult
@@ -56,7 +57,6 @@ def GenericListView(model_name):
         filterset_class = MODEL_CONFIG_MAP[model_name]["filter"]
 
         def get_context_data(self, **kwargs):
-            print("model name is ", MODEL_CONFIG_MAP[model_name]["model"]._meta.model_name)
             return {
                 **super().get_context_data(**kwargs),
                 "display_name": model_name,
@@ -65,22 +65,53 @@ def GenericListView(model_name):
     return GenericListViewClass
 
 
+def get_form_data(model_name, instance, disable_all=True):
+    form = GenericFormClass(model_name)(instance=instance)
+    if disable_all:
+        for fieldname in form.fields:
+            form.fields[fieldname].disabled = True
+    
+    return form
+
+
+class ModelObjectView(ModelFormMixin, DetailView):
+    fields = "__all__"
+    def get_context_data(self, **kwargs):
+        return {
+            **super().get_context_data(**kwargs),
+            "object": kwargs.get('object'),
+            "request": self.request,
+        }
+
 def GenericDetailView(model_name):
     @method_decorator(login_required, name="dispatch")
-    class GenericDetailViewClass(DetailView):
+    class GenericDetailViewClass(ModelObjectView):
         model = MODEL_CONFIG_MAP[model_name]["model"]
         template_name = 'api_app/published_detail.html'
 
         def get_context_data(self, **kwargs):
-            # disable the form here
-            form = GenericFormClass(model_name)(instance=kwargs.get('object'))
-            for fieldname in form.fields:
-                form.fields[fieldname].disabled = True
-
             return {
                 **super().get_context_data(**kwargs),
-                "model_form": form,
+                "model_form": get_form_data(model_name, kwargs.get('object')),
                 "model_name": model_name,
+                "display_name": MODEL_CONFIG_MAP[model_name]["display_name"],
             }
 
     return GenericDetailViewClass
+
+
+def GenericEditView(model_name):
+    @method_decorator(login_required, name="dispatch")
+    class GenericEditViewClass(ModelObjectView):
+        model = MODEL_CONFIG_MAP[model_name]["model"]
+        template_name = 'api_app/published_edit.html'
+
+        def get_context_data(self, **kwargs):
+            return {
+                **super().get_context_data(**kwargs),
+                "model_form": get_form_data(model_name, kwargs.get('object'), False),
+                "model_name": model_name,
+                "display_name": MODEL_CONFIG_MAP[model_name]["display_name"],
+            }
+
+    return GenericEditViewClass

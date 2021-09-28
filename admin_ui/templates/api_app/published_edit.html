@@ -7,15 +7,13 @@
   <div class="col">
     <h1>{{ model_name }} Details</h1>
   </div>
-  {% with tab_url="mi-"|add:display_name|add:"-list-published" %}
-    <a href="{% spaceless %}
-      {% if "back" in request.GET %} {{ request.GET.back }}
-      {% else %}{% url tab_url %}
-      {% endif %}
-      {% endspaceless %}">
-      &larr; Back
-    </a>
-  {% endwith %}
+  <a href="{% spaceless %}
+    {% if "back" in request.GET %} {{ request.GET.back }}
+    {% else %}{% url back_button %}
+    {% endif %}
+    {% endspaceless %}">
+    &larr; Back
+  </a>
 {% endblock header %}
 
 {% block object_details %}
@@ -23,12 +21,7 @@
 
 {% block actions %}
   <div class="px-1">
-    {% with tab_url="mi-"|add:display_name|add:"-edit-published" %}
-        <a href="{% url tab_url object.uuid %}?back={{ request.path }}" class="btn btn-primary ml-3">
-            Create Edit Draft
-        </a>
-    {% endwith %}
-    <button class="btn btn-secondary" form="model-form" name="_validate">Create Delete Draft</button>
+    <button class="btn btn-primary" form="model-form" formnovalidate>Save</button>
   </div>
 {% endblock actions %}
 
