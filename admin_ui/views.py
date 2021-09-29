@@ -612,6 +612,7 @@ class PlatformListView(SingleTableMixin, FilterView):
             **super().get_context_data(**kwargs),
             "display_name": "Platform",
             "model": Platform._meta.model_name,
+            "url_name": "platform",
         }
 
 
@@ -630,6 +631,7 @@ class InstrumentListView(SingleTableMixin, FilterView):
             **super().get_context_data(**kwargs),
             "display_name": "Instrument",
             "model": Instrument._meta.model_name,
+            "url_name": "instrument",
         }
 
 
@@ -648,6 +650,7 @@ class PartnerOrgListView(SingleTableMixin, FilterView):
             **super().get_context_data(**kwargs),
             "display_name": "Partner Organization",
             "model": PartnerOrg._meta.model_name,
+            "url_name": "partner_org",
         }
 
 
@@ -666,6 +669,7 @@ class WebsiteListView(SingleTableMixin, FilterView):
             **super().get_context_data(**kwargs),
             "display_name": "Website",
             "model": Website._meta.model_name,
+            "url_name": "website",
         }
 
 
@@ -707,33 +711,34 @@ class AliasListView(SingleTableMixin, FilterView):
             **super().get_context_data(**kwargs),
             "display_name": "Alias",
             "model": Alias._meta.model_name,
+            "url_name": "alias",
         }
 # make a view for each gcmd
 
-@method_decorator(user_passes_test(lambda user: user.is_admg_admin()), name="dispatch")
-class LimitedFieldGCMDListView(SingleTableMixin, FilterView):
-    model = Change
-    item_types = [GcmdInstrument, GcmdPhenomena, GcmdPlatform, GcmdProject]
+# @method_decorator(user_passes_test(lambda user: user.is_admg_admin()), name="dispatch")
+# class LimitedFieldGCMDListView(SingleTableMixin, FilterView):
+#     model = Change
+#     item_types = [GcmdInstrument, GcmdPhenomena, GcmdPlatform, GcmdProject]
 
-    template_name = "api_app/change_list.html"
-    table_class = tables.MultiItemListTable
-    filterset_class = filters.MultiItemFilter
+#     template_name = "api_app/change_list.html"
+#     table_class = tables.MultiItemListTable
+#     filterset_class = filters.MultiItemFilter
 
-    def get_queryset(self):
+#     def get_queryset(self):
 
-        return (
-            Change.objects.of_type(*self.item_types)
-            .filter(action=CREATE)
-            .add_updated_at()
-        )
+#         return (
+#             Change.objects.of_type(*self.item_types)
+#             .filter(action=CREATE)
+#             .add_updated_at()
+#         )
 
-    def get_context_data(self, **kwargs):
-        return {
-            **super().get_context_data(**kwargs),
-            "display_name": "GCMD Item",
-            "is_multi_modelview": True,
-            "item_types": [m._meta.model_name for m in self.item_types],
-        }
+#     def get_context_data(self, **kwargs):
+#         return {
+#             **super().get_context_data(**kwargs),
+#             "display_name": "GCMD Item",
+#             "is_multi_modelview": True,
+#             "item_types": [m._meta.model_name for m in self.item_types],
+#         }
 
 
 @method_decorator(user_passes_test(lambda user: user.is_admg_admin()), name="dispatch")
@@ -769,6 +774,7 @@ class GcmdInstrumentListView(SingleTableMixin, FilterView):
             **super().get_context_data(**kwargs),
             "display_name": "GCMD Instrument",
             "model": GcmdInstrument._meta.model_name,
+            "url_name": "gcmd_instrument",
         }
 
 @method_decorator(user_passes_test(lambda user: user.is_admg_admin()), name="dispatch")
@@ -786,6 +792,7 @@ class GcmdPlatformListView(SingleTableMixin, FilterView):
             **super().get_context_data(**kwargs),
             "display_name": "GCMD Platform",
             "model": GcmdPlatform._meta.model_name,
+            "url_name": "gcmd_platform",
         }
 
 @method_decorator(user_passes_test(lambda user: user.is_admg_admin()), name="dispatch")
@@ -913,6 +920,7 @@ class LimitedFieldWebsiteListView(SingleTableMixin, FilterView):
             "display_name": "Website Item",
             "is_multi_modelview": True,
             "item_types": [m._meta.model_name for m in self.item_types],
+            "url_name": "website",
         }
 
 
