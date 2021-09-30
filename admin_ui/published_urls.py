@@ -9,31 +9,31 @@ from .config import MODEL_CONFIG_MAP
 
 list_urls = [
     path(
-        f"{MODEL_CONFIG_MAP[item]['url']}/published",
-        published_views.GenericListView(item).as_view(),
-        name=f"{MODEL_CONFIG_MAP[item]['display_name']}-list-published"
+        f"{MODEL_CONFIG_MAP[model]['plural_snake_case']}/published",
+        published_views.GenericListView(model).as_view(),
+        name=f"{MODEL_CONFIG_MAP[model]['singular_snake_case']}-list-published"
     )
-    for item in MODEL_CONFIG_MAP
+    for model in MODEL_CONFIG_MAP
 ]
 
 
 detail_urls = [
     path(
-        f"{MODEL_CONFIG_MAP[item]['url']}/published/<uuid:pk>",
-        published_views.GenericDetailView(item).as_view(),
-        name=f"{MODEL_CONFIG_MAP[item]['display_name']}-detail-published"
+        f"{MODEL_CONFIG_MAP[model]['plural_snake_case']}/published/<uuid:pk>",
+        published_views.GenericDetailView(model).as_view(),
+        name=f"{MODEL_CONFIG_MAP[model]['singular_snake_case']}-detail-published"
     )
-    for item in MODEL_CONFIG_MAP
+    for model in MODEL_CONFIG_MAP
 ]
 
 
 edit_urls = [
     path(
-        f"{MODEL_CONFIG_MAP[item]['url']}/published/<uuid:pk>/edit",
-        published_views.GenericEditView(item).as_view(),
-        name=f"{MODEL_CONFIG_MAP[item]['display_name']}-edit-published"
+        f"{MODEL_CONFIG_MAP[model]['plural_snake_case']}/published/<uuid:pk>/edit",
+        published_views.GenericEditView(model).as_view(),
+        name=f"{MODEL_CONFIG_MAP[model]['singular_snake_case']}-edit-published"
     )
-    for item in MODEL_CONFIG_MAP
+    for model in MODEL_CONFIG_MAP
 ]
 
 
