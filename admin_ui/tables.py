@@ -8,12 +8,13 @@ from api_app.models import Change, UPDATE, CREATE
 
 
 class DraftLinkColumn(tables.Column):
+
     def __init__(self, *args, **kwargs):
         self.published_viewname = kwargs.pop("published_viewname")
         self.viewname = kwargs.pop("viewname")
         self.url_kwargs = kwargs.pop("url_kwargs")
 
-        return super().__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def get_url(self, *args, **kwargs):
         record = kwargs.get("record")
@@ -31,59 +32,190 @@ class DraftTableBase(tables.Table):
     status = tables.Column(verbose_name="Status", accessor="status")
     updated_at = tables.DateTimeColumn(verbose_name="Last Edit Date")
 
+    final_fields = ("draft_action", "status", "updated_at")
 
-class CampaignChangeListTable(DraftTableBase):
+    class Meta:
+        model = Change
+        attrs = {
+            "class": "table table-striped",
+            "thead": {"class": "table-primary"},
+            "th": {"style": "min-width: 10em"},
+        }
+        fields = ("draft_action", "status", "updated_at")
+        sequence = ("draft_action", "status", "updated_at")
+
+
+class LimitedTableBase(DraftTableBase):
     short_name = DraftLinkColumn(
-        published_viewname="campaign-diff-published",
-        viewname="campaign-detail",
+        published_viewname="change-diff",
+        viewname="change-update",
         url_kwargs={'pk': "uuid"},
         verbose_name="Short Name",
         accessor="update__short_name"
     )
     long_name = tables.Column(verbose_name="Long name", accessor="update__long_name")
+    initial_fields = ('short_name', 'long_name')
+
+    class Meta(DraftTableBase.Meta):
+        fields = ('short_name', 'long_name')
+        sequence = ('short_name', 'long_name')
+
+
+class PlatformTypeChangeListTable(LimitedTableBase):
+
+    parent = tables.Column(verbose_name="Parent", accessor="update__parent")
+
+    class Meta(LimitedTableBase.Meta):
+        all_fields = LimitedTableBase.initial_fields + (
+            'parent',
+            ) + LimitedTableBase.final_fields
+        fields = list(all_fields)
+        sequence = all_fields
+
+
+class MeasurementTypeChangeListTable(LimitedTableBase):
+    parent = tables.Column(verbose_name="Parent", accessor="update__parent")
+    class Meta(LimitedTableBase.Meta):
+        all_fields = LimitedTableBase.initial_fields + (
+            'parent',
+            ) + LimitedTableBase.final_fields
+        fields = all_fields
+        sequence = all_fields
+
+
+class MeasurementStyleChangeListTable(LimitedTableBase):
+    parent = tables.Column(verbose_name="Parent", accessor="update__parent")
+    class Meta(LimitedTableBase.Meta):
+        all_fields = LimitedTableBase.initial_fields + (
+            'parent',
+            ) + LimitedTableBase.final_fields
+        fields = all_fields
+        sequence = all_fields
+
+
+class HomeBaseChangeListTable(LimitedTableBase):
+    location = tables.Column(verbose_name="Location", accessor="update__location")
+    class Meta(LimitedTableBase.Meta):
+        all_fields = LimitedTableBase.initial_fields + (
+            'location',
+            ) + LimitedTableBase.final_fields
+        fields = all_fields
+        sequence = all_fields
+
+
+class FocusAreaChangeListTable(LimitedTableBase):
+    url = tables.Column(verbose_name="Url", accessor="update__url")
+    class Meta(LimitedTableBase.Meta):
+        all_fields = LimitedTableBase.initial_fields + (
+            'url',
+            ) + LimitedTableBase.final_fields
+        fields = all_fields
+        sequence = all_fields
+
+class SeasonChangeListTable(LimitedTableBase):
+    
+    class Meta(LimitedTableBase.Meta):
+        all_fields = LimitedTableBase.initial_fields + LimitedTableBase.final_fields
+        fields = all_fields
+        sequence = all_fields
+
+
+class RepositoryChangeListTable(LimitedTableBase):
+    gcmd_uuid = tables.Column(verbose_name="GCMD UUID", accessor="update__gcmd_uuid")
+    class Meta(LimitedTableBase.Meta):
+        all_fields = LimitedTableBase.initial_fields + (
+            'gcmd_uuid',
+            ) + LimitedTableBase.final_fields
+        fields = all_fields
+        sequence = all_fields
+
+
+class MeasurementRegionChangeListTable(LimitedTableBase):
+    example = tables.Column(verbose_name="Example", accessor="update__example")
+    class Meta(LimitedTableBase.Meta):
+        all_fields = LimitedTableBase.initial_fields + (
+            'example',
+            ) + LimitedTableBase.final_fields
+        fields = all_fields
+        sequence = all_fields
+
+
+class GeographicalRegionChangeListTable(LimitedTableBase):
+    example = tables.Column(verbose_name="Example", accessor="update__example")
+    class Meta(LimitedTableBase.Meta):
+        all_fields = LimitedTableBase.initial_fields + (
+            'example',
+            ) + LimitedTableBase.final_fields
+        fields = all_fields
+        sequence = all_fields
+
+
+class GeophysicalConceptChangeListTable(LimitedTableBase):
+    example = tables.Column(verbose_name="Example", accessor="update__example")
+    class Meta(LimitedTableBase.Meta):
+        all_fields = LimitedTableBase.initial_fields + (
+            'example',
+            ) + LimitedTableBase.final_fields
+        fields = all_fields
+        sequence = all_fields
+
+class PartnerOrgChangeListTable(LimitedTableBase):
+    website = tables.Column(verbose_name="Website", accessor="update__website")
+    class Meta(LimitedTableBase.Meta):
+        all_fields = LimitedTableBase.initial_fields + (
+            'website',
+            ) + LimitedTableBase.final_fields
+        fields = all_fields
+        sequence = all_fields
+
+
+class WebsiteTypeChangeListTable(LimitedTableBase):
+    
+    class Meta(LimitedTableBase.Meta):
+        all_fields = LimitedTableBase.initial_fields + LimitedTableBase.final_fields
+        fields = all_fields
+        sequence = all_fields
+
+
+class CampaignChangeListTable(LimitedTableBase):
+    short_name = DraftLinkColumn(
+        published_viewname="change-diff",
+        viewname="campaign-detail",
+        url_kwargs={'pk': "uuid"},
+        verbose_name="Short Name",
+        accessor="update__short_name"
+    )
     funding_agency = tables.Column(
         verbose_name="Funding Agency", accessor="update__funding_agency"
     )
 
-    class Meta:
-        model = Change
-        attrs = {
-            "class": "table table-striped",
-            "thead": {"class": "table-primary"},
-            "th": {"style": "min-width: 10em"},
-        }
-        fields = ["short_name", "long_name", "funding_agency", "draft_action", "status", "updated_at"]
-        sequence = (
-            "short_name",
-            "long_name",
+    class Meta(LimitedTableBase.Meta):
+        all_fields = LimitedTableBase.initial_fields + (
             "funding_agency",
-            "draft_action",
-            "status",
-            "updated_at"
-        )
+        ) + LimitedTableBase.final_fields
+        fields = all_fields
+        sequence = all_fields
 
-# TODO: add sequences for all of the tables
-class PlatformChangeListTable(DraftTableBase):
-    short_name = tables.Column(
-        linkify=("change-update", [A("uuid")]),
-        verbose_name="Short Name",
-        accessor="update__short_name",
-    )
-    updated_at = tables.DateTimeColumn(verbose_name="Last Edit Date")
-    long_name = tables.Column(verbose_name="Long name", accessor="update__long_name")
-    status = tables.Column(verbose_name="Status", accessor="status")
+
+class PlatformChangeListTable(LimitedTableBase):
     platform_type = tables.Column(
         verbose_name="Platform Type", accessor="platform_type_name"
     )
 
-    class Meta:
-        model = Change
-        attrs = {
-            "class": "table table-striped",
-            "thead": {"class": "table-primary"},
-            "th": {"style": "min-width: 10em"},
-        }
-        fields = ["short_name", "long_name", "platform_type", "status", "updated_at"]
+    class Meta(LimitedTableBase.Meta):
+        all_fields = LimitedTableBase.initial_fields + (
+            'platform_type',
+            ) + LimitedTableBase.final_fields
+        fields = all_fields
+        sequence = all_fields
+
+
+class InstrumentChangeListTable(LimitedTableBase):
+
+    class Meta(LimitedTableBase.Meta):
+        all_fields = LimitedTableBase.initial_fields + LimitedTableBase.final_fields
+        fields = all_fields
+        sequence = all_fields
 
 
 class BasicChangeListTable(DraftTableBase):
@@ -104,18 +236,6 @@ class BasicChangeListTable(DraftTableBase):
             "th": {"style": "min-width: 10em"},
         }
         fields = ["short_name", "long_name", "status", "updated_at"]
-
-
-class MultiItemListTable(BasicChangeListTable):
-    model_name = tables.Column(verbose_name="Item Type", accessor="content_type__model")
-
-    class Meta:
-        attrs = {
-            "class": "table table-striped",
-            "thead": {"class": "table-primary"},
-            "th": {"style": "min-width: 10em"},
-        }
-        fields = ["short_name", "long_name", "model_name", "status", "updated_at"]
 
 
 class ChangeSummaryTable(DraftTableBase):
@@ -194,7 +314,7 @@ class AliasChangeListTable(DraftTableBase):
 class GcmdProjectChangeListTable(DraftTableBase):
     short_name = tables.Column(
         linkify=("change-update", [A("uuid")]),
-        verbose_name="Short Name", 
+        verbose_name="Short Name",
         accessor="update__short_name"
     )
     long_name = tables.Column(verbose_name="Long Name", accessor="update__long_name")

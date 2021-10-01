@@ -1,3 +1,4 @@
+from admin_ui.config import MODEL_CONFIG_MAP
 from data_models.models import PlatformType
 from django.conf import settings
 from django.contrib import admin
@@ -18,10 +19,6 @@ urlpatterns = [
         views.SummaryView.as_view(),
         name="summary"
     ),
-    path("campaigns/drafts",
-        views.CampaignListView.as_view(),
-        name="campaign-list"
-    ),
     path(
         "campaigns/<uuid:pk>",
         views.CampaignDetailView.as_view(),
@@ -38,32 +35,6 @@ urlpatterns = [
         name="doi-approval",
     ),  
     path(
-        "platforms/drafts",
-        views.PlatformListView.as_view(),
-        name="platform-list"
-    ),
-    path(
-        "instruments/drafts",
-        views.InstrumentListView.as_view(),
-        name="instrument-list"
-    ),
-    path(
-        "organizations/drafts",
-        views.PartnerOrgListView.as_view(),
-        name="organization-list",
-    ),
-    path(
-        "websites/drafts",
-        views.WebsiteListView.as_view(),
-        name="website-list",
-    ),
-    
-    path(
-        "aliases",
-        views.AliasListView.as_view(),
-        name="alias-list",
-    ),
-    path(
         "drafts/add/<str:model>",
         views.ChangeCreateView.as_view(),
         name="change-add"
@@ -77,56 +48,58 @@ urlpatterns = [
         "drafts/edit/<uuid:pk>/transition",
         views.ChangeTransition.as_view(),
         name="change-transition",
-    ),
-    path(
-        "gcmd_projects/draft",
-        views.GcmdProjectListView.as_view(),
-        name="gcmd_project-list"
-    ),
-    path(
-        "gcmd_instruments/draft",
-        views.GcmdInstrumentListView.as_view(),
-        name="gcmd_instrument-list"
-    ),
-    path(
-        "gcmd_platforms/draft",
-        views.GcmdPlatformListView.as_view(),
-        name="gcmd_platform-list"
-    ),
-    path(
-        "gcmd_phenomena/draft",
-        views.GcmdPhenomenaListView.as_view(),
-        name="gcmd_phenomena-list"
-    ),
-    
-    path(
-        "limitedfields/science/drafts",
-        views.LimitedFieldScienceListView.as_view(),
-        name="science-list",
-    ),
-    
-    path(
-        "limitedfields/measurementplatform/drafts",
-        views.LimitedFieldMeasurmentPlatformListView.as_view(),
-        name="measure-platform-list",
-    ),
-    
-    path(
-        "limitedfields/regionseason/drafts",
-        views.LimitedFieldRegionSeasonListView.as_view(),
-        name="region-season-list",
-    ),
-    
-    path(
-        "limitedfields/website/drafts",
-        views.LimitedFieldWebsiteListView.as_view(),
-        name="website-list",
-    ),
+    ),   
     path(
         "tbd",
         TemplateView.as_view(template_name="api_app/to_be_developed.html"),
         name="to-be-developed",
     ),
+
 ]
 
-urlpatterns = urlpatterns + published_urls
+from admin_ui.views import generate_base_list_view
+
+# limited has short, long
+
+
+auto_url_keys = [
+    "PlatformType", #parent
+    "MeasurementType", #parent
+    "MeasurementStyle", #parent
+    "HomeBase", #location
+    "FocusArea", #url
+    "Season", # none
+    "Repository", # gcmd_uuid
+    "MeasurementRegion", # example, gcmd_uuid
+    "GeographicalRegion", # example, gcmd_uuid
+    "GeophysicalConcept", # example, gcmd_uuid
+    "PartnerOrg", # website
+    "Alias", # NO INHERITEANCE, short_name, how to do model?
+    "GcmdProject",
+    "GcmdInstrument",
+    "GcmdPlatform",
+    "GcmdPhenomena",
+    # "DOI", # no url?
+    "Campaign",
+    "Platform",
+    "Instrument",
+    # "Deployment", # no url?
+    # "IOP", # no url?
+    # "SignificantEvent", # no url?
+    # "CollectionPeriod", # no url? 
+    "Website", #NO INHERITANCE, title, url, website_type
+    "WebsiteType", # none
+    # "CampaignWebsite",
+]
+
+draft_list_urls = [
+    path(
+        f"{MODEL_CONFIG_MAP[model]['plural_snake_case']}/draft",
+        generate_base_list_view(model),
+        name=f"{MODEL_CONFIG_MAP[model]['singular_snake_case']}-list-draft"
+    )
+    for model in auto_url_keys
+]
+
+
+urlpatterns = urlpatterns + published_urls + draft_list_urls

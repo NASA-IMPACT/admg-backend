@@ -3,7 +3,7 @@
 
 {% block header %}
   <div class="col">
-    <a href="{% url 'campaign-list' %}">&larr; Back</a>
+    <a href="{% url 'campaign-list-draft' %}">&larr; Back</a>
     <h1>Campaign {% firstof object.update.short_name object.update.uuid %}</h1>
   </div>
 {% endblock header %}
@@ -42,7 +42,7 @@
 
 {% block main %}
   <div class="campaign-summary col">
-    <ul class="list-group" id="deployments-list">
+    <ul class="list-group" id="deployments-list-draft">
       <li class="list-group-item d-flex pb-2">
         <h4>Deployments</h4>
 
@@ -135,7 +135,7 @@
 {% block javascript %}
   {{ block.super }}
   <script>
-    $('#deployments-badge').text($('#deployments-list li').length - 1)
+    $('#deployments-badge').text($('#deployments-list-draft li').length - 1)
     $('.deployment').click(function () {
       // Mark as active
       $('.deployment').removeClass('list-group-item-primary');
