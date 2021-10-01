@@ -115,7 +115,7 @@ def GenericDetailView(model_name):
                     disable_all=True
                 ),
                 "model_name": model_name,
-                "display_name": MODEL_CONFIG_MAP[model_name]["display_name"],
+                "display_name": MODEL_CONFIG_MAP[model_name]["singular_snake_case"],
             }
 
     return GenericDetailViewClass
