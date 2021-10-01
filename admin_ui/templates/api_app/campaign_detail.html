@@ -3,7 +3,7 @@
 
 {% block header %}
   <div class="col">
-    <a href="{% url 'campaign-list' %}">&larr; Back</a>
+    <a href="{% url 'campaign-list-draft' %}">&larr; Back</a>
     <h1>Campaign {% firstof object.update.short_name object.update.uuid %}</h1>
   </div>
 {% endblock header %}

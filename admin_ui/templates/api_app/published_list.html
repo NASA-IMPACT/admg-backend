@@ -10,24 +10,11 @@
 </div>
 
 <div class="col-auto">
-  
-  {% if is_multi_modelview %}
-    <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-      Add New Item +
-    </button>
-    <div class="dropdown-menu">
-      {% for item in item_types %}
-      <a class="dropdown-item" href="{% url 'change-add' item %}">{{ item | title }}</a>
-      {% endfor %}
-    </div>
-  
-  {% else %}
-    <a class="btn btn-primary" href="{% url 'change-add' model %}">
-      Add New {{ display_name }} +
-    </a>
-  {% endif %}
-
+  <a class="btn btn-primary" href="{% url 'change-add' model %}">
+    Add New {{ display_name }} +
+  </a>
 </div>
+
 {% endblock header %}
 
 {% block main %}
@@ -39,10 +26,10 @@
         <a 
           class="btn btn-light btn-sm" 
           href="{% spaceless %}
-            {% if model == "campaign" %}{% url 'campaign-list' %}
-            {% elif model == "platform" %}{% url 'platform-list' %}
-            {% elif model == "instrument" %}{% url 'instrument-list' %}
-            {% elif model == "partnerorg" %}{% url 'organization-list' %}
+            {% if model == "campaign" %}{% url 'campaign-list-draft' %}
+            {% elif model == "platform" %}{% url 'platform-list-draft' %}
+            {% elif model == "instrument" %}{% url 'instrument-list-draft' %}
+            {% elif model == "partnerorg" %}{% url 'partner_org-list-draft' %}
             {% else %}{% url 'summary' %}
             {% endif %}
           {% endspaceless %}">
