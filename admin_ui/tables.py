@@ -115,9 +115,6 @@ class InstrumentChangeListTable(DraftTableBase):
     updated_at = tables.DateTimeColumn(verbose_name="Last Edit Date")
     long_name = tables.Column(verbose_name="Long name", accessor="update__long_name")
     status = tables.Column(verbose_name="Status", accessor="status")
-    platform_type = tables.Column(
-        verbose_name="Platform Type", accessor="platform_type_name"
-    )
 
     class Meta:
         model = Change
@@ -126,7 +123,7 @@ class InstrumentChangeListTable(DraftTableBase):
             "thead": {"class": "table-primary"},
             "th": {"style": "min-width: 10em"},
         }
-        fields = ["short_name", "long_name", "platform_type", "status", "updated_at"]
+        fields = ["short_name", "long_name", "status", "updated_at"]
 
 
 
