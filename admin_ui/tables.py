@@ -331,8 +331,8 @@ class GcmdProjectChangeListTable(DraftTableBase):
             "thead": {"class": "table-primary"},
             "th": {"style": "min-width: 10em"},
         }
-        fields = ["title", "long_name", "status", "updated_at", "bucket",]
-        sequence = ("title", "long_name", "status", "updated_at", "bucket",)
+        fields = ["short_name", "long_name", "status", "updated_at", "bucket",]
+        sequence = ("bucket", "short_name", "long_name", "status", "updated_at", )
 
 
 class GcmdInstrumentChangeListTable(DraftTableBase):
@@ -368,12 +368,12 @@ class GcmdInstrumentChangeListTable(DraftTableBase):
             "updated_at",
         ]
         sequence = (
-            "short_name",
-            "long_name",
             "instrument_category",
             "instrument_class",
             "instrument_type",
             "instrument_subtype",
+            "short_name",
+            "long_name",
             "status",
             "updated_at",
         )
@@ -397,8 +397,8 @@ class GcmdPlatformChangeListTable(DraftTableBase):
             "thead": {"class": "table-primary"},
             "th": {"style": "min-width: 10em"},
         }
-        fields = ["title", "long_name", "category", "status", "updated_at"]
-        sequence = ("title", "long_name", "category", "status", "updated_at")
+        fields = ["short_name", "long_name", "category", "status", "updated_at"]
+        sequence = ("category", "short_name", "long_name",  "status", "updated_at")
 
 
 class GcmdPhenomenaChangeListTable(DraftTableBase):
