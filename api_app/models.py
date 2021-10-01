@@ -1,4 +1,4 @@
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 from crum import get_current_user
 from django.apps import apps
@@ -367,6 +367,15 @@ class Change(models.Model):
 
     def __str__(self):
         return f"{self.model_name} >> {self.uuid}"
+    
+    @classmethod
+    def _get_processed_value(cls, value):
+        if isinstance(value, UUID):
+            return str(value)
+        elif isinstance(value, list):
+            return [cls._get_processed_value(val) for val in value]
+        
+        return value
 
     def _check_model_and_uuid(self):
         """
@@ -379,7 +388,10 @@ class Change(models.Model):
             instance = model.objects.get(uuid=self.model_instance_uuid)
             if self.action == UPDATE:
                 serializer = serializer_class(instance)
-                self.previous = {key: serializer.data.get(key) for key in self.update}
+                self.previous = {
+                    key: Change._get_processed_value(serializer.data.get(key))
+                        for key in self.update
+                }
 
     def get_latest_log(self):
         return ApprovalLog.objects.filter(change=self).order_by('date').last()

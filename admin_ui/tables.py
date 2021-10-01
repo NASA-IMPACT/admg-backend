@@ -1,8 +1,30 @@
 from data_models.models import Campaign, Website
 import django_tables2 as tables
 from django_tables2 import A
+from django.urls import reverse
 
-from api_app.models import Change
+
+from api_app.models import Change, UPDATE, CREATE
+
+
+class DraftLinkColumn(tables.Column):
+    def __init__(self, *args, **kwargs):
+        self.published_viewname = kwargs.pop("published_viewname")
+        self.viewname = kwargs.pop("viewname")
+        self.url_kwargs = kwargs.pop("url_kwargs")
+
+        return super().__init__(*args, **kwargs)
+
+    def get_url(self, *args, **kwargs):
+        record = kwargs.get("record")
+        url_kwargs = {}
+        for item in self.url_kwargs:
+            url_kwargs[item] = getattr(record, self.url_kwargs[item])
+
+        if record.action == UPDATE:
+            return reverse(self.published_viewname, kwargs=url_kwargs)
+        return reverse(self.viewname, kwargs=url_kwargs)
+
 
 class DraftTableBase(tables.Table):
     draft_action = tables.Column(verbose_name="Draft Action", accessor="action")
@@ -11,10 +33,12 @@ class DraftTableBase(tables.Table):
 
 
 class CampaignChangeListTable(DraftTableBase):
-    short_name = tables.Column(
-        linkify=("campaign-detail", [A("uuid")]),
+    short_name = DraftLinkColumn(
+        published_viewname="campaign-diff-published",
+        viewname="campaign-detail",
+        url_kwargs={'pk': "uuid"},
         verbose_name="Short Name",
-        accessor="update__short_name",
+        accessor="update__short_name"
     )
     long_name = tables.Column(verbose_name="Long name", accessor="update__long_name")
     funding_agency = tables.Column(

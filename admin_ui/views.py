@@ -122,7 +122,6 @@ class SummaryView(django_tables2.SingleTableView):
     def get_queryset(self):
         return (
             Change.objects.of_type(*self.models)
-            .filter(action=CREATE)
             # Prefetch related ContentType (used when displaying output model type)
             .select_related("content_type")
             .add_updated_at()
@@ -176,7 +175,7 @@ class CampaignListView(SingleTableMixin, FilterView):
     filterset_class = filters.ChangeStatusFilter
 
     def get_queryset(self):
-        return Change.objects.of_type(Campaign).filter(action=CREATE).add_updated_at()
+        return Change.objects.of_type(Campaign).add_updated_at().order_by("-updated_at")
 
     def get_context_data(self, **kwargs):
         return {
@@ -598,13 +597,14 @@ class PlatformListView(SingleTableMixin, FilterView):
     def get_queryset(self):
         return (
             Change.objects.of_type(Platform)
-            .filter(action=CREATE)
+            
             .add_updated_at()
             .annotate_from_relationship(
                 of_type=PlatformType,
                 uuid_from="platform_type",
                 to_attr="platform_type_name",
             )
+            .order_by("-updated_at")
         )
 
     def get_context_data(self, **kwargs):
@@ -624,7 +624,7 @@ class InstrumentListView(SingleTableMixin, FilterView):
     filterset_class = filters.ChangeStatusFilter
 
     def get_queryset(self):
-        return Change.objects.of_type(Instrument).filter(action=CREATE).add_updated_at()
+        return Change.objects.of_type(Instrument).add_updated_at().order_by("-updated_at")
 
     def get_context_data(self, **kwargs):
         return {
@@ -643,7 +643,7 @@ class PartnerOrgListView(SingleTableMixin, FilterView):
     filterset_class = filters.ChangeStatusFilter
 
     def get_queryset(self):
-        return Change.objects.of_type(PartnerOrg).filter(action=CREATE).add_updated_at()
+        return Change.objects.of_type(PartnerOrg).add_updated_at().order_by("-updated_at")
 
     def get_context_data(self, **kwargs):
         return {
@@ -662,7 +662,7 @@ class WebsiteListView(SingleTableMixin, FilterView):
     filterset_class = filters.ChangeStatusFilter
 
     def get_queryset(self):
-        return Change.objects.of_type(Website).filter(action=CREATE).add_updated_at()
+        return Change.objects.of_type(Website).add_updated_at().order_by("-updated_at")
 
     def get_context_data(self, **kwargs):
         return {
@@ -683,8 +683,9 @@ class CampaignWebsiteListView(SingleTableMixin, FilterView):
     def get_queryset(self):
         return (
             Change.objects.of_type(CampaignWebsite)
-            .filter(action=CREATE)
+            
             .add_updated_at()
+            .order_by("-updated_at")
         )
 
     def get_context_data(self, **kwargs):
@@ -704,7 +705,7 @@ class AliasListView(SingleTableMixin, FilterView):
     filterset_class = filters.ChangeStatusFilter
 
     def get_queryset(self):
-        return Change.objects.of_type(Alias).filter(action=CREATE).add_updated_at()
+        return Change.objects.of_type(Alias).add_updated_at().order_by("-updated_at")
 
     def get_context_data(self, **kwargs):
         return {
@@ -728,8 +729,8 @@ class AliasListView(SingleTableMixin, FilterView):
 
 #         return (
 #             Change.objects.of_type(*self.item_types)
-#             .filter(action=CREATE)
-#             .add_updated_at()
+#             
+#             .add_updated_at().order_by("-updated_at")
 #         )
 
 #     def get_context_data(self, **kwargs):
@@ -749,7 +750,7 @@ class GcmdProjectListView(SingleTableMixin, FilterView):
     filterset_class = filters.ChangeStatusFilter
 
     def get_queryset(self):
-        return Change.objects.of_type(GcmdProject).filter(action=CREATE).add_updated_at()
+        return Change.objects.of_type(GcmdProject).add_updated_at().order_by("-updated_at")
 
     def get_context_data(self, **kwargs):
         return {
@@ -767,7 +768,7 @@ class GcmdInstrumentListView(SingleTableMixin, FilterView):
     filterset_class = filters.ChangeStatusFilter
 
     def get_queryset(self):
-        return Change.objects.of_type(GcmdInstrument).filter(action=CREATE).add_updated_at()
+        return Change.objects.of_type(GcmdInstrument).add_updated_at().order_by("-updated_at")
 
     def get_context_data(self, **kwargs):
         return {
@@ -785,7 +786,7 @@ class GcmdPlatformListView(SingleTableMixin, FilterView):
     filterset_class = filters.ChangeStatusFilter
 
     def get_queryset(self):
-        return Change.objects.of_type(GcmdPlatform).filter(action=CREATE).add_updated_at()
+        return Change.objects.of_type(GcmdPlatform).add_updated_at().order_by("-updated_at")
 
     def get_context_data(self, **kwargs):
         return {
@@ -803,7 +804,7 @@ class GcmdPhenomenaListView(SingleTableMixin, FilterView):
     filterset_class = filters.ChangeStatusFilter
 
     def get_queryset(self):
-        return Change.objects.of_type(GcmdPhenomena).filter(action=CREATE).add_updated_at()
+        return Change.objects.of_type(GcmdPhenomena).add_updated_at().order_by("-updated_at")
 
     def get_context_data(self, **kwargs):
         return {
@@ -826,8 +827,9 @@ class LimitedFieldScienceListView(SingleTableMixin, FilterView):
 
         return (
             Change.objects.of_type(*self.item_types)
-            .filter(action=CREATE)
+            
             .add_updated_at()
+            .order_by("-updated_at")
         )
 
     def get_context_data(self, **kwargs):
@@ -858,8 +860,9 @@ class LimitedFieldMeasurmentPlatformListView(SingleTableMixin, FilterView):
 
         return (
             Change.objects.of_type(*self.item_types)
-            .filter(action=CREATE)
+            
             .add_updated_at()
+            .order_by("-updated_at")
         )
 
     def get_context_data(self, **kwargs):
@@ -884,8 +887,9 @@ class LimitedFieldRegionSeasonListView(SingleTableMixin, FilterView):
 
         return (
             Change.objects.of_type(*self.item_types)
-            .filter(action=CREATE)
+            
             .add_updated_at()
+            .order_by("-updated_at")
         )
 
     def get_context_data(self, **kwargs):
@@ -910,8 +914,9 @@ class LimitedFieldWebsiteListView(SingleTableMixin, FilterView):
 
         return (
             Change.objects.of_type(*self.item_types)
-            .filter(action=CREATE)
+            
             .add_updated_at()
+            .order_by("-updated_at")
         )
 
     def get_context_data(self, **kwargs):

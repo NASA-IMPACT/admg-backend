@@ -1,4 +1,5 @@
 from typing import Dict
+from uuid import UUID
 
 from django.conf import settings
 from django.contrib import messages
@@ -22,12 +23,13 @@ from django.views.generic.edit import (
     ProcessFormView,
     ModelFormMixin,
 )
+from requests.api import get
 
 from django_celery_results.models import TaskResult
 import django_tables2
 from django_tables2.views import SingleTableMixin
 from django_filters.views import FilterView
-import requests
+from django.shortcuts import render, redirect
 
 from api_app.models import (
     ApprovalLog,
@@ -43,9 +45,13 @@ from api_app.models import (
     IN_TRASH_CODE,
     AVAILABLE_STATUSES,
 )
+from data_models import serializers
+
+
 
 from .config import MODEL_CONFIG_MAP
 from .published_forms import GenericFormClass
+from .utils import get_diff
 
 
 def GenericListView(model_name):
@@ -66,23 +72,32 @@ def GenericListView(model_name):
     return GenericListViewClass
 
 
-def get_form_data(model_name, instance, disable_all=True):
-    form = GenericFormClass(model_name)(instance=instance)
-    if disable_all:
-        for fieldname in form.fields:
-            form.fields[fieldname].disabled = True
-    
-    return form
-
-
 class ModelObjectView(ModelFormMixin, DetailView):
     fields = "__all__"
+
+    def _get_form(self, form, disable_all=False, **kwargs):
+        form = form(**kwargs)
+        if disable_all:
+            for fieldname in form.fields:
+                form.fields[fieldname].disabled = True
+
+        return form
+
+    def _get_form_model(self, model, disable_all=False, **kwargs):
+        form = GenericFormClass(model=model)
+        return self._get_form(form, disable_all, **kwargs)
+
+    def _get_form_model_name(self, model_name, disable_all=False, **kwargs):
+        form = GenericFormClass(model_name=model_name)
+        return self._get_form(form, disable_all, **kwargs)
+
     def get_context_data(self, **kwargs):
         return {
             **super().get_context_data(**kwargs),
-            "object": kwargs.get('object'),
+            "object": self.get_object(),
             "request": self.request,
         }
+
 
 def GenericDetailView(model_name):
     @method_decorator(login_required, name="dispatch")
@@ -93,7 +108,11 @@ def GenericDetailView(model_name):
         def get_context_data(self, **kwargs):
             return {
                 **super().get_context_data(**kwargs),
-                "model_form": get_form_data(model_name, kwargs.get('object')),
+                "model_form": self._get_form_model_name(
+                    model_name,
+                    instance=kwargs.get('object'),
+                    disable_all=True
+                ),
                 "model_name": model_name,
                 "display_name": MODEL_CONFIG_MAP[model_name]["display_name"],
             }
@@ -107,12 +126,87 @@ def GenericEditView(model_name):
         model = MODEL_CONFIG_MAP[model_name]["model"]
         template_name = 'api_app/published_edit.html'
 
+        def post(self, request, **kwargs):
+            self.object = self.model.objects.get(uuid=kwargs.get('pk'))
+            old_form = self._get_form_model_name(model_name, instance=self.object)
+            new_form = self._get_form_model_name(model_name, data=request.POST, initial=old_form.initial)
+            kwargs = {**kwargs, 'object': self.object}
+            context = self.get_context_data(**kwargs)
+            if new_form.is_valid():
+                if len(new_form.changed_data) > 0:
+                    diff_dict = {}
+                    for changed_key in new_form.changed_data:
+                        processed_value = Change._get_processed_value(new_form[changed_key].value())
+                        diff_dict[changed_key] = processed_value
+
+                    model_to_query = MODEL_CONFIG_MAP[model_name]['model']
+                    content_type = ContentType.objects.get_for_model(model_to_query)
+                    change_object = Change.objects.create(
+                        content_type=content_type,
+                        status=CREATED_CODE,
+                        action=UPDATE,
+                        model_instance_uuid=kwargs.get("pk"),
+                        update=diff_dict
+                    )
+                    change_object.save()
+                    return redirect(reverse(
+                        f"{MODEL_CONFIG_MAP[model_name]['display_name']}-list"
+                    ))
+
+                context["message"] = "Nothing changed"
+                return render(request, self.template_name, context)
+
+            context["model_form"] = new_form
+            return render(request, self.template_name, context)
+
         def get_context_data(self, **kwargs):
             return {
                 **super().get_context_data(**kwargs),
-                "model_form": get_form_data(model_name, kwargs.get('object'), False),
+                "model_form": self._get_form_model_name(model_name, instance=kwargs.get('object')),
                 "model_name": model_name,
                 "display_name": MODEL_CONFIG_MAP[model_name]["display_name"],
             }
 
     return GenericEditViewClass
+
+
+def GenericDiffView(model_name):
+    @method_decorator(login_required, name="dispatch")
+    class GenericDiffViewClass(ModelObjectView):
+        model = Change
+        template_name = 'api_app/published_diff.html'
+
+        def get_context_data(self, **kwargs):
+            change_instance = kwargs.get('object')
+            model_instance = change_instance.content_object
+
+            serializer_class = getattr(serializers, f"{model_name}Serializer")
+            serializer_obj = serializer_class(
+                instance=model_instance,
+                data=change_instance.update,
+                partial=True
+            )
+
+            if serializer_obj.is_valid():
+                editable_form = self._get_form_model(MODEL_CONFIG_MAP[model_name]["model"])
+                editable_form.initial = {
+                    **editable_form.initial,
+                    **{key: serializer_obj.data.get(key) for key in change_instance.update}
+                }
+            else:
+                raise Exception("Exception here")
+
+            return {
+                **super().get_context_data(**kwargs),
+                "editable_update_form": editable_form,
+                "noneditable_published_form": self._get_form_model(
+                    MODEL_CONFIG_MAP[model_name]["model"],
+                    disable_all=True,
+                    instance=model_instance,
+                    auto_id="readonly_%s"
+                ),
+                "model_name": model_name,
+                "display_name": MODEL_CONFIG_MAP[model_name]["display_name"],
+            }
+
+    return GenericDiffViewClass

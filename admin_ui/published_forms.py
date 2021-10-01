@@ -2,18 +2,12 @@ from django.forms import ModelForm
 from .config import MODEL_CONFIG_MAP
 
 
-def GenericFormClass(model_name):
-    class MyFormClass(ModelForm):
-        def get_form(self, form_class=None):
-            form = super().get_form()
-            for field in form.fields:
-                # Set html attributes as needed for all fields
-                form.fields[field].widget.attrs['readonly'] = 'readonly'          
-                form.fields[field].widget.attrs['disabled'] = 'disabled'
+def GenericFormClass(model_name="", model=None):
+    MainModel = model_name and MODEL_CONFIG_MAP[model_name]["model"] or model
 
-            return form
+    class MyFormClass(ModelForm):
         class Meta:
-            model = MODEL_CONFIG_MAP[model_name]["model"]
+            model = MainModel
             fields = '__all__'
-        
+
     return MyFormClass

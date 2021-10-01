@@ -21,12 +21,18 @@
 
 {% block actions %}
   <div class="px-1">
-    <button class="btn btn-primary" form="model-form" formnovalidate>Save</button>
+    <button class="btn btn-primary" form="model-form" name="_validate">Save</button>
   </div>
+
 {% endblock actions %}
 
 {% block main %}
-  {% include "api_app/change_form.html" with class="col-8" %}
+  <main class="{% firstof class 'col' %}">
+      <form id="model-form" method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+          {{ model_form | crispy }}
+      </form>
+  </main>
 
   {# Sidebar #}
   <aside class="col-sm-4">

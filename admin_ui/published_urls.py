@@ -37,4 +37,14 @@ edit_urls = [
 ]
 
 
-published_urls = list_urls + detail_urls + edit_urls
+diff_urls = [
+    path(
+        f"{MODEL_CONFIG_MAP[item]['url']}/published/<uuid:pk>/diff",
+        published_views.GenericDiffView(item).as_view(),
+        name=f"{MODEL_CONFIG_MAP[item]['display_name']}-diff-published"
+    )
+    for item in MODEL_CONFIG_MAP
+]
+
+
+published_urls = list_urls + detail_urls + edit_urls + diff_urls
