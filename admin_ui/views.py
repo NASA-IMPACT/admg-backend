@@ -56,24 +56,11 @@ from data_models.models import (
     PartnerOrg,
     IOP,
     SignificantEvent,
-    GcmdInstrument,
-    GcmdProject,
-    GcmdPhenomena,
-    GcmdPlatform,
-    FocusArea,
-    GeophysicalConcept,
-    MeasurementRegion,
-    MeasurementStyle,
-    MeasurementType,
-    HomeBase,
-    GeographicalRegion,
-    Season,
-    WebsiteType,
+
     Website,
-    Repository,
 )
 from . import tables, forms, mixins, filters
-
+from admin_ui.config import MODEL_CONFIG_MAP
 
 @login_required
 @user_passes_test(lambda user: user.is_admg_admin())
@@ -165,25 +152,6 @@ class SummaryView(django_tables2.SingleTableView):
             "activity_list": ApprovalLog.objects.prefetch_related(
                 "change__content_type", "user"
             ).order_by("-date")[: self.paginate_by / 2],
-        }
-
-
-@method_decorator(login_required, name="dispatch")
-class CampaignListView(SingleTableMixin, FilterView):
-    model = Change
-    template_name = "api_app/change_list.html"
-    table_class = tables.CampaignChangeListTable
-    filterset_class = filters.ChangeStatusFilter
-
-    def get_queryset(self):
-        return Change.objects.of_type(Campaign).filter(action=CREATE).add_updated_at()
-
-    def get_context_data(self, **kwargs):
-        return {
-            **super().get_context_data(**kwargs),
-            "display_name": "Campaign",
-            "model": "campaign",
-            "url_name": "campaign",
         }
 
 
@@ -558,24 +526,24 @@ class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
         """
         content_type = self.get_model_form_content_type().model_class().__name__
         button_mapping = {
-            "Platform": "platform-list",
-            "Instrument": "instrument-list",
-            "PartnerOrg": "organization-list",
-            "GcmdProject": "gcmd_project-list",
-            "GcmdInstrument": "gcmd_instrument-list",
-            "GcmdPlatform": "gcmd_platform-list",
-            "GcmdPhenomena": "gcmd_phenomena-list",
-            "FocusArea": "science-list",
-            "GeophysicalConcept": "science-list",
-            "MeasurementRegion": "measure-platform-list",
-            "MeasurementStyle": "measure-platform-list",
-            "MeasurementType": "measure-platform-list",
-            "HomeBase": "measure-platform-list",
-            "PlatformType": "measure-platform-list",
-            "GeographicalRegion": "region-season-list",
-            "Season": "region-season-list",
-            "WebsiteType": "website-list",
-            "Repository": "website-list",
+            "Platform": "platform-list-draft",
+            "Instrument": "instrument-list-draft",
+            "PartnerOrg": "partner_org-list-draft",
+            "GcmdProject": "gcmd_project-list-draft",
+            "GcmdInstrument": "gcmd_instrument-list-draft",
+            "GcmdPlatform": "gcmd_platform-list-draft",
+            "GcmdPhenomena": "gcmd_phenomena-list-draft",
+            "FocusArea": "focus_area-list-draft",
+            "GeophysicalConcept": "geophysical_concept-list-draft",
+            "MeasurementRegion": "measurement_region-platform-list-draft",
+            "MeasurementStyle": "measurement_style-platform-list-draft",
+            "MeasurementType": "measurement_type-platform-list-draft",
+            "HomeBase": "home_base-platform-list-draft",
+            "PlatformType": "platform_type-platform-list-draft",
+            "GeographicalRegion": "geographical_region-season-list-draft",
+            "Season": "season-season-list-draft",
+            "WebsiteType": "website_type-list-draft",
+            "Repository": "repository-list-draft",
         }
         return button_mapping.get(content_type, "summary")
 
@@ -588,340 +556,42 @@ class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
         return super().post(*args, **kwargs)
 
 
-@method_decorator(login_required, name="dispatch")
-class PlatformListView(SingleTableMixin, FilterView):
-    model = Change
-    template_name = "api_app/change_list.html"
-    table_class = tables.PlatformChangeListTable
-    filterset_class = filters.ChangeStatusFilter
+def generate_base_list_view(model_name):
+    if MODEL_CONFIG_MAP[model_name]['admin_required_to_view']:
+        authorization_level = user_passes_test(lambda user: user.is_admg_admin())
+    else:
+        authorization_level = login_required
+    @method_decorator(authorization_level, name="dispatch")
+    class BaseListView(SingleTableMixin, FilterView):
+        model = Change
+        template_name = "api_app/change_list.html"
+        filterset_class = filters.ChangeStatusFilter
+        table_class = MODEL_CONFIG_MAP[model_name]['change_list_table']
+        linked_model = MODEL_CONFIG_MAP[model_name]['model']
 
-    def get_queryset(self):
-        return (
-            Change.objects.of_type(Platform)
-            .filter(action=CREATE)
-            .add_updated_at()
-            .annotate_from_relationship(
-                of_type=PlatformType,
-                uuid_from="platform_type",
-                to_attr="platform_type_name",
-            )
-        )
+        def get_queryset(self):
+            if self.linked_model == Platform:
+                return (
+                    Change.objects.of_type(Platform)
+                    .filter(action=CREATE)
+                    .add_updated_at()
+                    .annotate_from_relationship(
+                        of_type=PlatformType,
+                        uuid_from="platform_type",
+                        to_attr="platform_type_name",
+                    )
+                )
+            else:
+                return Change.objects.of_type(self.linked_model).filter(action=CREATE).add_updated_at()
 
-    def get_context_data(self, **kwargs):
-        return {
-            **super().get_context_data(**kwargs),
-            "display_name": "Platform",
-            "model": Platform._meta.model_name,
-            "url_name": "platform",
-        }
+        def get_context_data(self, **kwargs):
+            return {
+                **super().get_context_data(**kwargs),
+                "url_name": MODEL_CONFIG_MAP[model_name]['singular_snake_case'],
+                "model": self.linked_model._meta.model_name,
+            }
 
-
-@method_decorator(login_required, name="dispatch")
-class InstrumentListView(SingleTableMixin, FilterView):
-    model = Change
-    template_name = "api_app/change_list.html"
-    table_class = tables.BasicChangeListTable
-    filterset_class = filters.ChangeStatusFilter
-
-    def get_queryset(self):
-        return Change.objects.of_type(Instrument).filter(action=CREATE).add_updated_at()
-
-    def get_context_data(self, **kwargs):
-        return {
-            **super().get_context_data(**kwargs),
-            "display_name": "Instrument",
-            "model": Instrument._meta.model_name,
-            "url_name": "instrument",
-        }
-
-
-@method_decorator(login_required, name="dispatch")
-class PartnerOrgListView(SingleTableMixin, FilterView):
-    model = Change
-    template_name = "api_app/change_list.html"
-    table_class = tables.BasicChangeListTable
-    filterset_class = filters.ChangeStatusFilter
-
-    def get_queryset(self):
-        return Change.objects.of_type(PartnerOrg).filter(action=CREATE).add_updated_at()
-
-    def get_context_data(self, **kwargs):
-        return {
-            **super().get_context_data(**kwargs),
-            "display_name": "Partner Organization",
-            "model": PartnerOrg._meta.model_name,
-            "url_name": "partner_org",
-        }
-
-
-@method_decorator(login_required, name="dispatch")
-class WebsiteListView(SingleTableMixin, FilterView):
-    model = Change
-    template_name = "api_app/change_list.html"
-    table_class = tables.WebsiteChangeListTable
-    filterset_class = filters.ChangeStatusFilter
-
-    def get_queryset(self):
-        return Change.objects.of_type(Website).filter(action=CREATE).add_updated_at()
-
-    def get_context_data(self, **kwargs):
-        return {
-            **super().get_context_data(**kwargs),
-            "display_name": "Website",
-            "model": Website._meta.model_name,
-            "url_name": "website",
-        }
-
-
-@method_decorator(login_required, name="dispatch")
-class CampaignWebsiteListView(SingleTableMixin, FilterView):
-    model = Change
-    template_name = "api_app/change_list.html"
-    table_class = tables.WebsiteChangeListTable
-    filterset_class = filters.ChangeStatusFilter
-
-    def get_queryset(self):
-        return (
-            Change.objects.of_type(CampaignWebsite)
-            .filter(action=CREATE)
-            .add_updated_at()
-        )
-
-    def get_context_data(self, **kwargs):
-        return {
-            **super().get_context_data(**kwargs),
-            "display_name": "Campaign Website",
-            "model": CampaignWebsite._meta.model_name,
-            "url_name": "campaign_website",
-        }
-
-
-@method_decorator(login_required, name="dispatch")
-class AliasListView(SingleTableMixin, FilterView):
-    model = Change
-    template_name = "api_app/change_list.html"
-    table_class = tables.AliasChangeListTable
-    filterset_class = filters.ChangeStatusFilter
-
-    def get_queryset(self):
-        return Change.objects.of_type(Alias).filter(action=CREATE).add_updated_at()
-
-    def get_context_data(self, **kwargs):
-        return {
-            **super().get_context_data(**kwargs),
-            "display_name": "Alias",
-            "model": Alias._meta.model_name,
-            "url_name": "alias",
-        }
-# make a view for each gcmd
-
-# @method_decorator(user_passes_test(lambda user: user.is_admg_admin()), name="dispatch")
-# class LimitedFieldGCMDListView(SingleTableMixin, FilterView):
-#     model = Change
-#     item_types = [GcmdInstrument, GcmdPhenomena, GcmdPlatform, GcmdProject]
-
-#     template_name = "api_app/change_list.html"
-#     table_class = tables.MultiItemListTable
-#     filterset_class = filters.MultiItemFilter
-
-#     def get_queryset(self):
-
-#         return (
-#             Change.objects.of_type(*self.item_types)
-#             .filter(action=CREATE)
-#             .add_updated_at()
-#         )
-
-#     def get_context_data(self, **kwargs):
-#         return {
-#             **super().get_context_data(**kwargs),
-#             "display_name": "GCMD Item",
-#             "is_multi_modelview": True,
-#             "item_types": [m._meta.model_name for m in self.item_types],
-#         }
-
-
-@method_decorator(user_passes_test(lambda user: user.is_admg_admin()), name="dispatch")
-class GcmdProjectListView(SingleTableMixin, FilterView):
-    model = Change
-    template_name = "api_app/change_list.html"
-    table_class = tables.GcmdProjectChangeListTable
-    filterset_class = filters.ChangeStatusFilter
-
-    def get_queryset(self):
-        return Change.objects.of_type(GcmdProject).filter(action=CREATE).add_updated_at()
-
-    def get_context_data(self, **kwargs):
-        return {
-            **super().get_context_data(**kwargs),
-            "display_name": "GCMD Project",
-            "model": GcmdProject._meta.model_name,
-            "url_name": "gcmd_project",
-        }
-
-@method_decorator(user_passes_test(lambda user: user.is_admg_admin()), name="dispatch")
-class GcmdInstrumentListView(SingleTableMixin, FilterView):
-    model = Change
-    template_name = "api_app/change_list.html"
-    table_class = tables.GcmdInstrumentChangeListTable
-    filterset_class = filters.ChangeStatusFilter
-
-    def get_queryset(self):
-        return Change.objects.of_type(GcmdInstrument).filter(action=CREATE).add_updated_at()
-
-    def get_context_data(self, **kwargs):
-        return {
-            **super().get_context_data(**kwargs),
-            "display_name": "GCMD Instrument",
-            "model": GcmdInstrument._meta.model_name,
-            "url_name": "gcmd_instrument",
-        }
-
-@method_decorator(user_passes_test(lambda user: user.is_admg_admin()), name="dispatch")
-class GcmdPlatformListView(SingleTableMixin, FilterView):
-    model = Change
-    template_name = "api_app/change_list.html"
-    table_class = tables.GcmdPlatformChangeListTable
-    filterset_class = filters.ChangeStatusFilter
-
-    def get_queryset(self):
-        return Change.objects.of_type(GcmdPlatform).filter(action=CREATE).add_updated_at()
-
-    def get_context_data(self, **kwargs):
-        return {
-            **super().get_context_data(**kwargs),
-            "display_name": "GCMD Platform",
-            "model": GcmdPlatform._meta.model_name,
-            "url_name": "gcmd_platform",
-        }
-
-@method_decorator(user_passes_test(lambda user: user.is_admg_admin()), name="dispatch")
-class GcmdPhenomenaListView(SingleTableMixin, FilterView):
-    model = Change
-    template_name = "api_app/change_list.html"
-    table_class = tables.GcmdPhenomenaChangeListTable
-    filterset_class = filters.ChangeStatusFilter
-
-    def get_queryset(self):
-        return Change.objects.of_type(GcmdPhenomena).filter(action=CREATE).add_updated_at()
-
-    def get_context_data(self, **kwargs):
-        return {
-            **super().get_context_data(**kwargs),
-            "display_name": "GCMD Phenomena",
-            "model": GcmdPhenomena._meta.model_name,
-            "url_name": "gcmd_phenomena",
-        }
-
-@method_decorator(user_passes_test(lambda user: user.is_admg_admin()), name="dispatch")
-class LimitedFieldScienceListView(SingleTableMixin, FilterView):
-    model = Change
-    item_types = [FocusArea, GeophysicalConcept]
-
-    template_name = "api_app/change_list.html"
-    table_class = tables.MultiItemListTable
-    filterset_class = filters.MultiItemFilter
-
-    def get_queryset(self):
-
-        return (
-            Change.objects.of_type(*self.item_types)
-            .filter(action=CREATE)
-            .add_updated_at()
-        )
-
-    def get_context_data(self, **kwargs):
-        return {
-            **super().get_context_data(**kwargs),
-            "display_name": "Science Concept",
-            "is_multi_modelview": True,
-            "item_types": [m._meta.model_name for m in self.item_types],
-        }
-
-
-@method_decorator(user_passes_test(lambda user: user.is_admg_admin()), name="dispatch")
-class LimitedFieldMeasurmentPlatformListView(SingleTableMixin, FilterView):
-    model = Change
-    item_types = [
-        MeasurementRegion,
-        MeasurementStyle,
-        MeasurementType,
-        HomeBase,
-        PlatformType,
-    ]
-
-    template_name = "api_app/change_list.html"
-    table_class = tables.MultiItemListTable
-    filterset_class = filters.MultiItemFilter
-
-    def get_queryset(self):
-
-        return (
-            Change.objects.of_type(*self.item_types)
-            .filter(action=CREATE)
-            .add_updated_at()
-        )
-
-    def get_context_data(self, **kwargs):
-        return {
-            **super().get_context_data(**kwargs),
-            "display_name": "Measurement & Platform Item",
-            "is_multi_modelview": True,
-            "item_types": [m._meta.model_name for m in self.item_types],
-        }
-
-
-@method_decorator(user_passes_test(lambda user: user.is_admg_admin()), name="dispatch")
-class LimitedFieldRegionSeasonListView(SingleTableMixin, FilterView):
-    model = Change
-    item_types = [GeographicalRegion, Season]
-
-    template_name = "api_app/change_list.html"
-    table_class = tables.MultiItemListTable
-    filterset_class = filters.MultiItemFilter
-
-    def get_queryset(self):
-
-        return (
-            Change.objects.of_type(*self.item_types)
-            .filter(action=CREATE)
-            .add_updated_at()
-        )
-
-    def get_context_data(self, **kwargs):
-        return {
-            **super().get_context_data(**kwargs),
-            "display_name": "Geographical Region & Season Item",
-            "is_multi_modelview": True,
-            "item_types": [m._meta.model_name for m in self.item_types],
-        }
-
-
-@method_decorator(user_passes_test(lambda user: user.is_admg_admin()), name="dispatch")
-class LimitedFieldWebsiteListView(SingleTableMixin, FilterView):
-    model = Change
-    item_types = [WebsiteType, Repository]
-
-    template_name = "api_app/change_list.html"
-    table_class = tables.MultiItemListTable
-    filterset_class = filters.MultiItemFilter
-
-    def get_queryset(self):
-
-        return (
-            Change.objects.of_type(*self.item_types)
-            .filter(action=CREATE)
-            .add_updated_at()
-        )
-
-    def get_context_data(self, **kwargs):
-        return {
-            **super().get_context_data(**kwargs),
-            "display_name": "Website Item",
-            "is_multi_modelview": True,
-            "item_types": [m._meta.model_name for m in self.item_types],
-            "url_name": "website",
-        }
+    return BaseListView.as_view()
 
 
 @method_decorator(login_required, name="dispatch")
