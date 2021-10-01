@@ -7,7 +7,7 @@
     <div class="col">
       <ul class="nav nav-tabs" role="tablist">
         <li class="nav-item">
-          {% with tab_url=url_name|add:"-list" %}
+          {% with tab_url=url_name|add:"-list-draft" %}
             <a class="nav-link {% if 'drafts' in request.path %} active {% endif %}" href="{% url tab_url %}" role="tab" aria-controls="details" aria-selected="true">
               Drafts
             </a>
