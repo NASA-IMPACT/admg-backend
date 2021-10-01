@@ -570,7 +570,6 @@ def generate_base_list_view(model_name):
             if self.linked_model == Platform:
                 return (
                     Change.objects.of_type(Platform)
-                    .filter(action=CREATE)
                     .add_updated_at()
                     .annotate_from_relationship(
                         of_type=PlatformType,
@@ -582,7 +581,6 @@ def generate_base_list_view(model_name):
             else:
                 return (
                     Change.objects.of_type(self.linked_model)
-                    .filter(action=CREATE)
                     .add_updated_at()
                     .order_by("-updated_at")
                 )
