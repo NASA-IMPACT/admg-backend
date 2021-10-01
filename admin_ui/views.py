@@ -590,6 +590,7 @@ def generate_base_list_view(model_name):
                 **super().get_context_data(**kwargs),
                 "url_name": MODEL_CONFIG_MAP[model_name]['singular_snake_case'],
                 "model": self.linked_model._meta.model_name,
+                "display_name": MODEL_CONFIG_MAP[model_name]['display_name'],
             }
 
     return BaseListView.as_view()
