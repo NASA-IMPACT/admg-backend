@@ -9,6 +9,51 @@ class DraftTableBase(tables.Table):
     status = tables.Column(verbose_name="Status", accessor="status")
     updated_at = tables.DateTimeColumn(verbose_name="Last Edit Date")
 
+class LimitedTableBase(DraftTableBase):
+    short_name = tables.Column(
+        linkify=("campaign-detail", [A("uuid")]),
+        verbose_name="Short Name",
+        accessor="update__short_name",
+    )
+    long_name = tables.Column(verbose_name="Long name", accessor="update__long_name")
+
+class PlatformTypeChangeListTable(LimitedTableBase):
+    parent = tables.Column(verbose_name="Parent", accessor="update__parent")
+
+class MeasurementTypeChangeListTable(LimitedTableBase):
+    parent = tables.Column(verbose_name="Parent", accessor="update__parent")
+
+class MeasurementStyleChangeListTable(LimitedTableBase):
+    parent = tables.Column(verbose_name="Parent", accessor="update__parent")
+
+class HomeBaseChangeListTable(LimitedTableBase):
+    location = tables.Column(verbose_name="Location", accessor="update__location")
+
+class FocusAreaChangeListTable(LimitedTableBase):
+    url = tables.Column(verbose_name="Url", accessor="update__url")
+
+class SeasonChangeListTable(LimitedTableBase):
+    pass
+
+class RepositoryChangeListTable(LimitedTableBase):
+    gcmd_uuid = tables.Column(verbose_name="GCMD UUID", accessor="update__gcmd_uuid")
+
+class MeasurementRegionChangeListTable(LimitedTableBase):
+    example = tables.Column(verbose_name="Example", accessor="update__example")
+
+class GeographicalRegionChangeListTable(LimitedTableBase):
+    example = tables.Column(verbose_name="Example", accessor="update__example")
+
+class GeophysicalConceptChangeListTable(LimitedTableBase):
+    example = tables.Column(verbose_name="Example", accessor="update__example")
+
+class PartnerOrgChangeListTable(LimitedTableBase):
+    website = tables.Column(verbose_name="Website", accessor="update__website")
+
+
+class WebsiteTypeChangeListTable(LimitedTableBase):
+    pass
+
 
 class CampaignChangeListTable(DraftTableBase):
     short_name = tables.Column(
@@ -61,6 +106,30 @@ class PlatformChangeListTable(DraftTableBase):
         }
         fields = ["short_name", "long_name", "platform_type", "status", "updated_at"]
 
+class InstrumentChangeListTable(DraftTableBase):
+    short_name = tables.Column(
+        linkify=("change-update", [A("uuid")]),
+        verbose_name="Short Name",
+        accessor="update__short_name",
+    )
+    updated_at = tables.DateTimeColumn(verbose_name="Last Edit Date")
+    long_name = tables.Column(verbose_name="Long name", accessor="update__long_name")
+    status = tables.Column(verbose_name="Status", accessor="status")
+    platform_type = tables.Column(
+        verbose_name="Platform Type", accessor="platform_type_name"
+    )
+
+    class Meta:
+        model = Change
+        attrs = {
+            "class": "table table-striped",
+            "thead": {"class": "table-primary"},
+            "th": {"style": "min-width: 10em"},
+        }
+        fields = ["short_name", "long_name", "platform_type", "status", "updated_at"]
+
+
+
 
 class BasicChangeListTable(DraftTableBase):
     short_name = tables.Column(
@@ -80,18 +149,6 @@ class BasicChangeListTable(DraftTableBase):
             "th": {"style": "min-width: 10em"},
         }
         fields = ["short_name", "long_name", "status", "updated_at"]
-
-
-class MultiItemListTable(BasicChangeListTable):
-    model_name = tables.Column(verbose_name="Item Type", accessor="content_type__model")
-
-    class Meta:
-        attrs = {
-            "class": "table table-striped",
-            "thead": {"class": "table-primary"},
-            "th": {"style": "min-width: 10em"},
-        }
-        fields = ["short_name", "long_name", "model_name", "status", "updated_at"]
 
 
 class ChangeSummaryTable(DraftTableBase):
