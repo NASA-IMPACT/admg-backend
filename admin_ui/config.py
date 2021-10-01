@@ -186,7 +186,7 @@ MODEL_CONFIG_MAP = {
     "GcmdProject": {
         "singular_snake_case": camel_to_snake("GcmdProject"),
         "plural_snake_case": "gcmd_projects",
-        "display_name": "Gcmd Project",
+        "display_name": "GCMD Project",
         "model": GcmdProject,
         "table": PublishedGcmdProjectTable,
         "change_list_table": GcmdProjectChangeListTable,
@@ -196,7 +196,7 @@ MODEL_CONFIG_MAP = {
     "GcmdInstrument": {
         "singular_snake_case": camel_to_snake("GcmdInstrument"),
         "plural_snake_case": "gcmd_instruments",
-        "display_name": "Gcmd Instrument",
+        "display_name": "GCMD Instrument",
         "model": GcmdInstrument,
         "table": PublishedGcmdInstrumentTable,
         "change_list_table": GcmdInstrumentChangeListTable,
@@ -206,7 +206,7 @@ MODEL_CONFIG_MAP = {
     "GcmdPlatform": {
         "singular_snake_case": camel_to_snake("GcmdPlatform"),
         "plural_snake_case": "gcmd_platforms",
-        "display_name": "Gcmd Platform",
+        "display_name": "GCMD Platform",
         "model": GcmdPlatform,
         "table": PublishedGcmdPlatformTable,
         "change_list_table": GcmdPlatformChangeListTable,
@@ -216,7 +216,7 @@ MODEL_CONFIG_MAP = {
     "GcmdPhenomena": {
         "singular_snake_case": camel_to_snake("GcmdPhenomena"),
         "plural_snake_case": "gcmd_phenomena",
-        "display_name": "Gcmd Phenomena",
+        "display_name": "GCMD Phenomena",
         "model": GcmdPhenomena,
         "table": PublishedGcmdPhenomenaTable,
         "change_list_table": GcmdPhenomenaChangeListTable,
