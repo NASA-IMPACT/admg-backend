@@ -13,9 +13,3 @@ class ChangeStatusFilter(django_filters.FilterSet):
     class Meta:
         model = Change
         fields = ["status"]
-
-
-class MultiItemFilter(ChangeStatusFilter):
-    class Meta:
-        model = Change
-        fields = ["status"]
