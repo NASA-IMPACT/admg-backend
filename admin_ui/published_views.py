@@ -180,7 +180,7 @@ class DiffView(ModelObjectView):
         change_instance = kwargs.get('object')
         model_instance = change_instance.content_object
 
-        serializer_class = getattr(serializers, f"{model_instance.model_name}Serializer")
+        serializer_class = getattr(serializers, f"{change_instance.model_name}Serializer")
         serializer_obj = serializer_class(
             instance=model_instance,
             data=change_instance.update,
@@ -188,10 +188,10 @@ class DiffView(ModelObjectView):
         )
 
         if serializer_obj.is_valid():
-            editable_form = self._get_form_model(MODEL_CONFIG_MAP[model_instance.model_name]["model"])
+            editable_form = self._get_form_model(MODEL_CONFIG_MAP[change_instance.model_name]["model"])
             editable_form.initial = {
                 **editable_form.initial,
-                **{key: serializer_obj.data.get(key) for key in change_instance.update}
+                **{key: serializer_obj.validated_data.get(key) for key in change_instance.update}
             }
         else:
             raise Exception("Exception here")
@@ -200,11 +200,11 @@ class DiffView(ModelObjectView):
             **super().get_context_data(**kwargs),
             "editable_update_form": editable_form,
             "noneditable_published_form": self._get_form_model(
-                MODEL_CONFIG_MAP[model_instance.model_name]["model"],
+                MODEL_CONFIG_MAP[change_instance.model_name]["model"],
                 disable_all=True,
                 instance=model_instance,
                 auto_id="readonly_%s"
             ),
-            "model_name": model_instance.model_name,
-            "display_name": MODEL_CONFIG_MAP[model_instance.model_name]["display_name"],
+            "model_name": change_instance.model_name,
+            "display_name": MODEL_CONFIG_MAP[change_instance.model_name]["display_name"],
         }
