@@ -61,6 +61,110 @@ class LimitedTableBase(DraftTableBase):
         sequence = ('short_name', 'long_name')
 
 
+class IOPChangeListTable(DraftTableBase):
+    short_name = DraftLinkColumn(
+        published_viewname="change-diff",
+        viewname="change-update",
+        url_kwargs={'pk': "uuid"},
+        verbose_name="Short Name",
+        accessor="update__short_name"
+    )
+    deployment = tables.Column(verbose_name="Deployment", accessor="update__deployment")
+    start_date = tables.Column(verbose_name="Start Date", accessor="update__start_date")
+    end_date = tables.Column(verbose_name="End Date", accessor="update__end_date")
+
+    class Meta(DraftTableBase.Meta):
+        all_fields = (
+            'short_name',
+            'deployment',
+            'start_date',
+            'end_date',
+            ) + DraftTableBase.final_fields
+        fields = list(all_fields)
+        sequence = all_fields
+
+
+class SignificantEventChangeListTable(DraftTableBase):
+    short_name = DraftLinkColumn(
+        published_viewname="change-diff",
+        viewname="change-update",
+        url_kwargs={'pk': "uuid"},
+        verbose_name="Short Name",
+        accessor="update__short_name"
+    )
+    deployment = tables.Column(verbose_name="Deployment", accessor="update__deployment")
+    start_date = tables.Column(verbose_name="Start Date", accessor="update__start_date")
+    end_date = tables.Column(verbose_name="End Date", accessor="update__end_date")
+
+    class Meta(DraftTableBase.Meta):
+        all_fields = (
+            'short_name',
+            'deployment',
+            'start_date',
+            'end_date',
+            ) + DraftTableBase.final_fields
+        fields = list(all_fields)
+        sequence = all_fields
+
+
+class CollectionPeriodChangeListTable(DraftTableBase):
+    # TODO: have a calculated short_name field?
+    deployment = DraftLinkColumn(
+        published_viewname="change-diff",
+        viewname="change-update",
+        url_kwargs={'pk': "uuid"},
+        verbose_name="Deployment",
+        accessor="update__deployment"
+    )
+    # deployment = tables.Column(verbose_name="Deployment", accessor="update__deployment")
+    platform = tables.Column(verbose_name="Platform", accessor="update__platform")
+    instruments = tables.Column(verbose_name="Instruments", accessor="update__instruments")
+
+    class Meta(DraftTableBase.Meta):
+        all_fields = (
+            'deployment',
+            'platform',
+            'instruments',
+            ) + DraftTableBase.final_fields
+        fields = list(all_fields)
+        sequence = all_fields
+
+
+class DOIChangeListTable(DraftTableBase):
+    concept_id = DraftLinkColumn(
+        published_viewname="change-diff",
+        viewname="change-update",
+        url_kwargs={'pk': "uuid"},
+        verbose_name="Concept ID",
+        accessor="update__concept_id"
+    )
+    long_name = tables.Column(verbose_name="Long Name", accessor="update__long_name")
+
+    class Meta(DraftTableBase.Meta):
+        all_fields = (
+            'concept_id',
+            'long_name',
+            ) + DraftTableBase.final_fields
+        fields = list(all_fields)
+        sequence = all_fields
+
+
+class DeploymentChangeListTable(LimitedTableBase):
+
+    campaign = tables.Column(verbose_name="Campaign", accessor="update__campaign")
+    start_date = tables.Column(verbose_name="Start Date", accessor="update__start_date")
+    end_date = tables.Column(verbose_name="End Date", accessor="update__end_date")
+
+    class Meta(LimitedTableBase.Meta):
+        all_fields = LimitedTableBase.initial_fields + (
+            'campaign',
+            'start_date',
+            'end_date',
+            ) + LimitedTableBase.final_fields
+        fields = list(all_fields)
+        sequence = all_fields
+
+
 class PlatformTypeChangeListTable(LimitedTableBase):
 
     parent = tables.Column(verbose_name="Parent", accessor="update__parent")
