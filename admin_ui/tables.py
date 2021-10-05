@@ -7,7 +7,21 @@ from django.urls import reverse
 from api_app.models import Change, UPDATE, CREATE
 
 
-class DraftLinkColumn(tables.Column):
+class ConditionalValueColumn(tables.Column):
+    def __init__(self, update_accessor=None, **kwargs):
+        super().__init__(**kwargs, empty_values=())
+        self.update_accessor = update_accessor
+
+    def render(self, **kwargs):
+        record = kwargs.get("record")
+        value = kwargs.get("value")
+        if record.action == UPDATE:
+            accessor = A(self.update_accessor)
+            value = accessor.resolve(record)
+        return value or "---"
+
+
+class DraftLinkColumn(ConditionalValueColumn):
 
     def __init__(self, *args, **kwargs):
         self.published_viewname = kwargs.pop("published_viewname")
@@ -16,7 +30,7 @@ class DraftLinkColumn(tables.Column):
 
         super().__init__(*args, **kwargs)
 
-    def get_url(self, *args, **kwargs):
+    def get_url(self, **kwargs):
         record = kwargs.get("record")
         url_kwargs = {}
         for item in self.url_kwargs:
@@ -51,9 +65,15 @@ class LimitedTableBase(DraftTableBase):
         viewname="change-update",
         url_kwargs={'pk': "uuid"},
         verbose_name="Short Name",
-        accessor="update__short_name"
+        accessor="update__short_name",
+        update_accessor="content_object.short_name"
     )
-    long_name = tables.Column(verbose_name="Long name", accessor="update__long_name")
+    long_name = ConditionalValueColumn(
+        verbose_name="Long name",
+        accessor="update__long_name",
+        update_accessor="content_object.long_name"
+    )
+
     initial_fields = ('short_name', 'long_name')
 
     class Meta(DraftTableBase.Meta):
@@ -67,7 +87,8 @@ class IOPChangeListTable(DraftTableBase):
         viewname="change-update",
         url_kwargs={'pk': "uuid"},
         verbose_name="Short Name",
-        accessor="update__short_name"
+        accessor="update__short_name",
+        update_accessor="content_object.short_name"
     )
     deployment = tables.Column(verbose_name="Deployment", accessor="update__deployment")
     start_date = tables.Column(verbose_name="Start Date", accessor="update__start_date")
@@ -90,7 +111,8 @@ class SignificantEventChangeListTable(DraftTableBase):
         viewname="change-update",
         url_kwargs={'pk': "uuid"},
         verbose_name="Short Name",
-        accessor="update__short_name"
+        accessor="update__short_name",
+        update_accessor="content_object.short_name"
     )
     deployment = tables.Column(verbose_name="Deployment", accessor="update__deployment")
     start_date = tables.Column(verbose_name="Start Date", accessor="update__start_date")
@@ -114,7 +136,8 @@ class CollectionPeriodChangeListTable(DraftTableBase):
         viewname="change-update",
         url_kwargs={'pk': "uuid"},
         verbose_name="Deployment",
-        accessor="update__deployment"
+        accessor="update__deployment",
+        update_accessor="content_object.short_name"
     )
     # deployment = tables.Column(verbose_name="Deployment", accessor="update__deployment")
     platform = tables.Column(verbose_name="Platform", accessor="update__platform")
@@ -136,7 +159,8 @@ class DOIChangeListTable(DraftTableBase):
         viewname="change-update",
         url_kwargs={'pk': "uuid"},
         verbose_name="Concept ID",
-        accessor="update__concept_id"
+        accessor="update__concept_id",
+        update_accessor="content_object.concept_id"
     )
     long_name = tables.Column(verbose_name="Long Name", accessor="update__long_name")
 
@@ -287,10 +311,13 @@ class CampaignChangeListTable(LimitedTableBase):
         viewname="campaign-detail",
         url_kwargs={'pk': "uuid"},
         verbose_name="Short Name",
-        accessor="update__short_name"
+        accessor="update__short_name",
+        update_accessor="content_object.short_name"
     )
-    funding_agency = tables.Column(
-        verbose_name="Funding Agency", accessor="update__funding_agency"
+    funding_agency = ConditionalValueColumn(
+        verbose_name="Funding Agency",
+        accessor="update__funding_agency",
+        update_accessor="content_object.funding_agency"
     )
 
     class Meta(LimitedTableBase.Meta):
