@@ -79,14 +79,14 @@ auto_url_keys = [
     "GcmdInstrument",
     "GcmdPlatform",
     "GcmdPhenomena",
-    # "DOI", # no url?
+    "DOI",
     "Campaign",
     "Platform",
     "Instrument",
-    # "Deployment", # no url?
-    # "IOP", # no url?
-    # "SignificantEvent", # no url?
-    # "CollectionPeriod", # no url? 
+    "Deployment",
+    "IOP",
+    "SignificantEvent",
+    "CollectionPeriod", 
     "Website", #NO INHERITANCE, title, url, website_type
     "WebsiteType", # none
     # "CampaignWebsite",
