@@ -332,7 +332,7 @@ class GcmdProjectChangeListTable(DraftTableBase):
             "th": {"style": "min-width: 10em"},
         }
         fields = ["short_name", "long_name", "status", "updated_at", "bucket",]
-        sequence = ("bucket", "short_name", "long_name", "status", "updated_at", )
+        sequence = ("short_name", "long_name", "bucket", "status", "updated_at", )
 
 
 class GcmdInstrumentChangeListTable(DraftTableBase):
@@ -368,12 +368,12 @@ class GcmdInstrumentChangeListTable(DraftTableBase):
             "updated_at",
         ]
         sequence = (
-            "instrument_category",
-            "instrument_class",
-            "instrument_type",
-            "instrument_subtype",
             "short_name",
             "long_name",
+            "instrument_subtype",
+            "instrument_type",
+            "instrument_class",
+            "instrument_category",
             "status",
             "updated_at",
         )
@@ -398,7 +398,7 @@ class GcmdPlatformChangeListTable(DraftTableBase):
             "th": {"style": "min-width: 10em"},
         }
         fields = ["short_name", "long_name", "category", "status", "updated_at"]
-        sequence = ("category", "short_name", "long_name",  "status", "updated_at")
+        sequence = ("short_name", "long_name",  "category", "status", "updated_at")
 
 
 class GcmdPhenomenaChangeListTable(DraftTableBase):
@@ -433,12 +433,12 @@ class GcmdPhenomenaChangeListTable(DraftTableBase):
             "updated_at"
         ]
         sequence = (
-            "category",
-            "topic",
-            "term",
-            "variable_1",
-            "variable_2",
             "variable_3",
+            "variable_2",
+            "variable_1",
+            "term",
+            "topic",
+            "category",
             "status",
             "updated_at"
         )
