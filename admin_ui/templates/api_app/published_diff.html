@@ -23,6 +23,14 @@
 
 {% block main %}
 <main class="{% firstof class 'col' %}">
+  <div class="row">
+    <div class="col-lg-6 col-sm-4">
+      New Side
+    </div>
+    <div class="col-lg-6 col-sm-4">
+      Original
+    </div>
+  </div>
   {% for field1, field2 in editable_update_form|zip:noneditable_published_form %}
     <div class="row">
       <div class="col-lg-6 col-sm-4">

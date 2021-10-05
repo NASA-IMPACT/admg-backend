@@ -51,7 +51,7 @@ from data_models import serializers
 
 from .config import MODEL_CONFIG_MAP
 from .published_forms import GenericFormClass
-from .utils import get_diff
+from .utils import compare_values
 
 
 def GenericListView(model_name):
@@ -129,8 +129,12 @@ def GenericEditView(model_name):
 
         def post(self, request, **kwargs):
             self.object = self.model.objects.get(uuid=kwargs.get('pk'))
+
+            # getting form with instance and data gives a lot of changed fields
+            # however, getting a form with initial and data only gives the required changed fields
             old_form = self._get_form_model_name(model_name, instance=self.object)
             new_form = self._get_form_model_name(model_name, data=request.POST, initial=old_form.initial)
+
             kwargs = {**kwargs, 'object': self.object}
             context = self.get_context_data(**kwargs)
             if new_form.is_valid():
@@ -187,24 +191,33 @@ class DiffView(ModelObjectView):
             partial=True
         )
 
+        noneditable_published_form = self._get_form_model(
+            MODEL_CONFIG_MAP[change_instance.model_name]["model"],
+            disable_all=True,
+            instance=model_instance,
+            auto_id="readonly_%s"
+        )
+
         if serializer_obj.is_valid():
             editable_form = self._get_form_model(MODEL_CONFIG_MAP[change_instance.model_name]["model"])
             editable_form.initial = {
-                **editable_form.initial,
+                **noneditable_published_form.initial,
                 **{key: serializer_obj.validated_data.get(key) for key in change_instance.update}
             }
+            for item in change_instance.update:
+                if not compare_values(
+                    noneditable_published_form[item].value(),
+                    editable_form[item].value()
+                ):
+                    editable_form.add_classes(editable_form.fields[item], "changed-item")
+
         else:
             raise Exception("Exception here")
 
         return {
             **super().get_context_data(**kwargs),
             "editable_update_form": editable_form,
-            "noneditable_published_form": self._get_form_model(
-                MODEL_CONFIG_MAP[change_instance.model_name]["model"],
-                disable_all=True,
-                instance=model_instance,
-                auto_id="readonly_%s"
-            ),
+            "noneditable_published_form": noneditable_published_form,
             "model_name": change_instance.model_name,
             "display_name": MODEL_CONFIG_MAP[change_instance.model_name]["display_name"],
         }
