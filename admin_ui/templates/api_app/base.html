@@ -19,6 +19,51 @@
           <a class="nav-link {% active_link 'campaign-list-published || campaign-list-draft' 'active' %}" href="{% url 'campaign-list-draft' %}">Campaigns</a>
         </li>
 
+
+        <li class="nav-item list-group-item dropdown-tab">
+
+          <span class="nav-link d-flex cursor-pointer {% if 'limitedfields' in request.path %}active{% else %}collapsed{% endif %}" data-toggle="collapse" data-target="#campaign-items-submenu">
+            Campaign Items
+            <svg class="minus ml-auto my-auto" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-dash" viewBox="0 0 16 16"> <path d="M4 8a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7A.5.5 0 0 1 4 8z" /> </svg>
+            <svg class="plus ml-auto my-auto" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus" viewBox="0 0 16 16"> <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/> </svg>
+          </span>
+
+          <ul id="campaign-items-submenu" class="list-group list-group-flush collapse mt-2 {% active_link 'science-list-draft' 'show' %}">
+
+            <ul>
+              <li class="nav-item list-group-item">
+                <a class="nav-link {% active_link 'deployment-list-published || deployment-list-draft' 'active' %}" href="{% url 'deployment-list-draft' %}">Deployments</a>
+              </li>
+            </ul>
+    
+            <ul>
+              <li class="nav-item list-group-item">
+                <a class="nav-link {% active_link 'iop-list-published || iop-list-draft' 'active' %}" href="{% url 'iop-list-draft' %}">IOPs</a>
+              </li>
+            </ul>
+            
+            <ul>
+              <li class="nav-item list-group-item">
+                <a class="nav-link {% active_link 'significant_event-list-published || significant_event-list-draft' 'active' %}" href="{% url 'significant_event-list-draft' %}">Significant Events</a>
+              </li>
+            </ul>
+
+            <ul>
+              <li class="nav-item list-group-item">
+                <a class="nav-link {% active_link 'collection_period-list-published || collection_period-list-draft' 'active' %}" href="{% url 'collection_period-list-draft' %}">CDPIs</a>
+              </li>
+            </ul>
+
+            <ul>
+              <li class="nav-item list-group-item">
+                <a class="nav-link {% active_link 'doi-list-published || doi-list-draft' 'active' %}" href="{% url 'doi-list-draft' %}">DOIs</a>
+              </li>
+            </ul>
+
+          </ul>
+        </li>
+
+
         <li class="nav-item list-group-item">
           <a class="nav-link {% active_link 'platform-list-published || platform-list-draft' 'active' %}" href="{% url 'platform-list-draft' %}">Platforms</a>
         </li>
