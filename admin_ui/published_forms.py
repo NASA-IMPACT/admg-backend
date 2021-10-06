@@ -21,12 +21,16 @@ def GenericFormClass(model_name="", model=None):
             value.widget.attrs['class'] = " ".join(css_classes)
 
         def is_valid(self) -> bool:
-            unique_fields =  ["short_name", "order_priority", "gcmd_uuid", "url", "concept_id"]
+            unique_fields = ["short_name", "order_priority", "gcmd_uuid", "url", "concept_id"]
             unique_error_message = "with this {} already exists."
             # unique_together = [("campaign", "website"), ("campaign", "order_priority")]
 
-            # TODO: check if it has other errors and don't just return True
             is_valid = super().is_valid()
+            # if the form is valid, we don't need to perform custom validation
+            if is_valid:
+                return is_valid
+
+            # check here to see if the validation is just about the unique field
             errors = dict(self.errors)
             for field in errors:
                 error_message = unique_error_message.format(self[field].label)
@@ -37,7 +41,7 @@ def GenericFormClass(model_name="", model=None):
                 ):
                     self.errors.pop(field)
 
-            return True
+            return len(self.errors) == 0
 
         class Meta:
             model = MainModel
