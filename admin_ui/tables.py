@@ -15,16 +15,18 @@ class ConditionalValueColumn(tables.Column):
     def render(self, **kwargs):
         record = kwargs.get("record")
         value = kwargs.get("value")
+
         if record.action == UPDATE:
             accessor = A(self.update_accessor)
             value = accessor.resolve(record)
+
         return value or "---"
 
 
 class DraftLinkColumn(ConditionalValueColumn):
 
     def __init__(self, *args, **kwargs):
-        self.published_viewname = kwargs.pop("published_viewname")
+        self.update_viewname = kwargs.pop("update_viewname")
         self.viewname = kwargs.pop("viewname")
         self.url_kwargs = kwargs.pop("url_kwargs")
 
@@ -37,7 +39,8 @@ class DraftLinkColumn(ConditionalValueColumn):
             url_kwargs[item] = getattr(record, self.url_kwargs[item])
 
         if record.action == UPDATE:
-            return reverse(self.published_viewname, kwargs=url_kwargs)
+            return reverse(self.update_viewname, kwargs=url_kwargs)
+
         return reverse(self.viewname, kwargs=url_kwargs)
 
 
@@ -61,7 +64,7 @@ class DraftTableBase(tables.Table):
 
 class LimitedTableBase(DraftTableBase):
     short_name = DraftLinkColumn(
-        published_viewname="change-diff",
+        update_viewname="change-diff",
         viewname="change-update",
         url_kwargs={'pk': "uuid"},
         verbose_name="Short Name",
@@ -83,7 +86,7 @@ class LimitedTableBase(DraftTableBase):
 
 class IOPChangeListTable(DraftTableBase):
     short_name = DraftLinkColumn(
-        published_viewname="change-diff",
+        update_viewname="change-diff",
         viewname="change-update",
         url_kwargs={'pk': "uuid"},
         verbose_name="Short Name",
@@ -107,7 +110,7 @@ class IOPChangeListTable(DraftTableBase):
 
 class SignificantEventChangeListTable(DraftTableBase):
     short_name = DraftLinkColumn(
-        published_viewname="change-diff",
+        update_viewname="change-diff",
         viewname="change-update",
         url_kwargs={'pk': "uuid"},
         verbose_name="Short Name",
@@ -132,7 +135,7 @@ class SignificantEventChangeListTable(DraftTableBase):
 class CollectionPeriodChangeListTable(DraftTableBase):
     # TODO: have a calculated short_name field?
     deployment = DraftLinkColumn(
-        published_viewname="change-diff",
+        update_viewname="change-diff",
         viewname="change-update",
         url_kwargs={'pk': "uuid"},
         verbose_name="Deployment",
@@ -155,7 +158,7 @@ class CollectionPeriodChangeListTable(DraftTableBase):
 
 class DOIChangeListTable(DraftTableBase):
     concept_id = DraftLinkColumn(
-        published_viewname="change-diff",
+        update_viewname="change-diff",
         viewname="change-update",
         url_kwargs={'pk': "uuid"},
         verbose_name="Concept ID",
@@ -307,7 +310,7 @@ class WebsiteTypeChangeListTable(LimitedTableBase):
 
 class CampaignChangeListTable(LimitedTableBase):
     short_name = DraftLinkColumn(
-        published_viewname="change-diff",
+        update_viewname="change-diff",
         viewname="campaign-detail",
         url_kwargs={'pk': "uuid"},
         verbose_name="Short Name",
@@ -349,26 +352,28 @@ class InstrumentChangeListTable(LimitedTableBase):
         sequence = all_fields
 
 
-class BasicChangeListTable(DraftTableBase):
-    short_name = tables.Column(
-        linkify=("change-update", [A("uuid")]),
-        verbose_name="Short Name",
-        accessor="update__short_name",
-    )
-    long_name = tables.Column(verbose_name="Long name", accessor="update__long_name")
-    status = tables.Column(verbose_name="Status", accessor="status")
-    updated_at = tables.DateTimeColumn(verbose_name="Last Edit Date")
+# TODO: What is this and is it even used anywhere??
+# class BasicChangeListTable(DraftTableBase):
+#     short_name = tables.Column(
+#         linkify=("change-update", [A("uuid")]),
+#         verbose_name="Short Name",
+#         accessor="update__short_name",
+#     )
+#     long_name = tables.Column(verbose_name="Long name", accessor="update__long_name")
+#     status = tables.Column(verbose_name="Status", accessor="status")
+#     updated_at = tables.DateTimeColumn(verbose_name="Last Edit Date")
 
-    class Meta:
-        model = Change
-        attrs = {
-            "class": "table table-striped",
-            "thead": {"class": "table-primary"},
-            "th": {"style": "min-width: 10em"},
-        }
-        fields = ["short_name", "long_name", "status", "updated_at"]
+#     class Meta:
+#         model = Change
+#         attrs = {
+#             "class": "table table-striped",
+#             "thead": {"class": "table-primary"},
+#             "th": {"style": "min-width: 10em"},
+#         }
+#         fields = ["short_name", "long_name", "status", "updated_at"]
 
 
+# TODO: does this actually need to link to the campaign detail page?
 class ChangeSummaryTable(DraftTableBase):
     name = tables.LinkColumn(
         viewname="campaign-detail",
@@ -389,10 +394,13 @@ class ChangeSummaryTable(DraftTableBase):
 
 
 class WebsiteChangeListTable(DraftTableBase):
-    title = tables.Column(
-        linkify=("change-update", [A("uuid")]),
-        verbose_name="Title", 
-        accessor="update__title"
+    title = DraftLinkColumn(
+        update_viewname="change-diff",
+        viewname="change-update",
+        url_kwargs={'pk': "uuid"},
+        verbose_name="Title",
+        accessor="update__title",
+        update_accessor="content_object.title"
     )
     url = tables.Column(verbose_name="URL", accessor="update__url")
     status = tables.Column(verbose_name="Status", accessor="status")
@@ -423,10 +431,13 @@ class CampaignWebsiteChangeListTable(DraftTableBase):
 
 
 class AliasChangeListTable(DraftTableBase):
-    short_name = tables.Column(
-        linkify=("change-update", [A("uuid")]),
-        verbose_name="Short Name", 
-        accessor="update__short_name"
+    short_name = DraftLinkColumn(
+        update_viewname="change-diff",
+        viewname="change-update",
+        url_kwargs={'pk': "uuid"},
+        verbose_name="Short Name",
+        accessor="update__short_name",
+        update_accessor="content_object.short_name"
     )
     # TODO replace model_type which short_name of related object
     model_type = tables.Column(verbose_name="Item Type", accessor="update__model_name")
@@ -445,10 +456,13 @@ class AliasChangeListTable(DraftTableBase):
 
 
 class GcmdProjectChangeListTable(DraftTableBase):
-    short_name = tables.Column(
-        linkify=("change-update", [A("uuid")]),
+    short_name = DraftLinkColumn(
+        update_viewname="change-diff",
+        viewname="change-update",
+        url_kwargs={'pk': "uuid"},
         verbose_name="Short Name",
-        accessor="update__short_name"
+        accessor="update__short_name",
+        update_accessor="content_object.short_name"
     )
     long_name = tables.Column(verbose_name="Long Name", accessor="update__long_name")
     bucket = tables.Column(verbose_name="Bucket", accessor="update__bucket")
@@ -467,17 +481,19 @@ class GcmdProjectChangeListTable(DraftTableBase):
 
 
 class GcmdInstrumentChangeListTable(DraftTableBase):
-    short_name = tables.Column(
-        linkify=("change-update", [A("uuid")]),
-        verbose_name="short_name",
+    short_name = DraftLinkColumn(
+        update_viewname="change-diff",
+        viewname="change-update",
+        url_kwargs={'pk': "uuid"},
+        verbose_name="Short Name",
         accessor="update__short_name",
+        update_accessor="content_object.short_name"
     )
-    long_name = tables.Column(verbose_name="long_name", accessor="update__long_name")
-    instrument_category = tables.Column(verbose_name="instrument_category", accessor="update__instrument_category")
-    instrument_class = tables.Column(verbose_name="instrument_class", accessor="update__instrument_class")
-    instrument_type = tables.Column(verbose_name="instrument_type", accessor="update__instrument_type")
-    instrument_subtype = tables.Column(verbose_name="instrument_subtype", accessor="update__instrument_subtype")
-    short_name = tables.Column(verbose_name="Short Name",  accessor="update__short_name")
+    long_name = tables.Column(verbose_name="Long Name", accessor="update__long_name")
+    instrument_category = tables.Column(verbose_name="Instrument Category", accessor="update__instrument_category")
+    instrument_class = tables.Column(verbose_name="Instrument Class", accessor="update__instrument_class")
+    instrument_type = tables.Column(verbose_name="Instrument Type", accessor="update__instrument_type")
+    instrument_subtype = tables.Column(verbose_name="Instrument Subtype", accessor="update__instrument_subtype")
     status = tables.Column(verbose_name="Status", accessor="status")
     updated_at = tables.DateTimeColumn(verbose_name="Last Edit Date")
 
@@ -511,13 +527,16 @@ class GcmdInstrumentChangeListTable(DraftTableBase):
 
 
 class GcmdPlatformChangeListTable(DraftTableBase):
-    short_name = tables.Column(
-        linkify=("change-update", [A("uuid")]),
-        verbose_name="short_name", 
-        accessor="update__short_name"
+    short_name = DraftLinkColumn(
+        update_viewname="change-diff",
+        viewname="change-update",
+        url_kwargs={'pk': "uuid"},
+        verbose_name="Short Name",
+        accessor="update__short_name",
+        update_accessor="content_object.short_name"
     )
-    long_name = tables.Column(verbose_name="long_name", accessor="update__long_name")
-    category = tables.Column(verbose_name="category", accessor="update__category")
+    long_name = tables.Column(verbose_name="Long Name", accessor="update__long_name")
+    category = tables.Column(verbose_name="Category", accessor="update__category")
     status = tables.Column(verbose_name="Status", accessor="status")
     updated_at = tables.DateTimeColumn(verbose_name="Last Edit Date")
 
@@ -533,16 +552,19 @@ class GcmdPlatformChangeListTable(DraftTableBase):
 
 
 class GcmdPhenomenaChangeListTable(DraftTableBase):
-    category = tables.Column(
-            linkify=("change-update", [A("uuid")]),
-            verbose_name="category", 
-            accessor="update__category"
-        )
-    topic = tables.Column(verbose_name="topic", accessor="update__topic")
-    term = tables.Column(verbose_name="term", accessor="update__term")
-    variable_1 = tables.Column(verbose_name="variable_1", accessor="update__variable_1")
-    variable_2 = tables.Column(verbose_name="variable_2", accessor="update__variable_2")
-    variable_3 = tables.Column(verbose_name="variable_3", accessor="update__variable_3")
+    variable_3 = DraftLinkColumn(
+        update_viewname="change-diff",
+        viewname="change-update",
+        url_kwargs={'pk': "uuid"},
+        verbose_name="Variable 3",
+        accessor="update__variable_3",
+        update_accessor="content_object.variable_3"
+    )
+    variable_2 = tables.Column(verbose_name="Variable 2", accessor="update__variable_2")
+    variable_1 = tables.Column(verbose_name="Variable 1", accessor="update__variable_1")
+    term = tables.Column(verbose_name="Term", accessor="update__term")
+    topic = tables.Column(verbose_name="Topic", accessor="update__topic")
+    category = tables.Column(verbose_name="Category", accessor="update__category")
     status = tables.Column(verbose_name="Status", accessor="status")
     updated_at = tables.DateTimeColumn(verbose_name="Last Edit Date")
 
