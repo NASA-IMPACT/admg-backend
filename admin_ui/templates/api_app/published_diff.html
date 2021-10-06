@@ -15,7 +15,7 @@
 
 {% block actions %}
   <div class="px-1">
-    <button class="btn btn-primary" form="model-form" name="_validate">Save</button>
+    <button name="_validate" class="btn btn-primary" form="model-form">Save</button>
     {% include "snippets/approval_dropdown.html" %}
   </div>
 
@@ -23,23 +23,26 @@
 
 {% block main %}
 <main class="{% firstof class 'col' %}">
-  <div class="row">
-    <div class="col-lg-6 col-sm-4">
-      New Side
-    </div>
-    <div class="col-lg-6 col-sm-4">
-      Original
-    </div>
-  </div>
-  {% for field1, field2 in editable_update_form|zip:noneditable_published_form %}
+  <form id="model-form" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
     <div class="row">
       <div class="col-lg-6 col-sm-4">
-        {{ field1 | as_crispy_field }}
+        New Side
       </div>
       <div class="col-lg-6 col-sm-4">
-        {{ field2 | as_crispy_field }}
+        Original
       </div>
     </div>
-  {% endfor %}
+    {% for field1, field2 in editable_update_form|zip:noneditable_published_form %}
+      <div class="row">
+        <div class="col-lg-6 col-sm-4">
+          {{ field1 | as_crispy_field }}
+        </div>
+        <div class="col-lg-6 col-sm-4">
+          {{ field2 | as_crispy_field }}
+        </div>
+      </div>
+    {% endfor %}
+  </form>
 </main>
 {% endblock main%}

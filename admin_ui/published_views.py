@@ -128,20 +128,25 @@ def GenericEditView(model_name):
         template_name = 'api_app/published_edit.html'
 
         def post(self, request, **kwargs):
-            self.object = self.model.objects.get(uuid=kwargs.get('pk'))
+            model_instance = self.model.objects.get(uuid=kwargs.get('pk'))
+
+            # do this here because the super().get_context_data looks for a self.object
+            self.object = model_instance
 
             # getting form with instance and data gives a lot of changed fields
             # however, getting a form with initial and data only gives the required changed fields
-            old_form = self._get_form_model_name(model_name, instance=self.object)
+            old_form = self._get_form_model_name(model_name, instance=model_instance)
             new_form = self._get_form_model_name(model_name, data=request.POST, initial=old_form.initial)
 
-            kwargs = {**kwargs, 'object': self.object}
+            kwargs = {**kwargs, 'object': model_instance}
             context = self.get_context_data(**kwargs)
             if new_form.is_valid():
                 if len(new_form.changed_data) > 0:
                     diff_dict = {}
                     for changed_key in new_form.changed_data:
-                        processed_value = Change._get_processed_value(new_form[changed_key].value())
+                        processed_value = Change._get_processed_value(
+                            new_form[changed_key].value()
+                        )
                         diff_dict[changed_key] = processed_value
 
                     model_to_query = MODEL_CONFIG_MAP[model_name]['model']
@@ -180,8 +185,15 @@ class DiffView(ModelObjectView):
     model = Change
     template_name = 'api_app/published_diff.html'
 
-    def get_context_data(self, **kwargs):
-        change_instance = kwargs.get('object')
+    def _compare_forms(self, updated_form, original_form, keys_to_compare):
+        for key in keys_to_compare:
+            if not compare_values(
+                original_form[key].value(),
+                updated_form[key].value()
+            ):
+                updated_form.add_classes(updated_form.fields[key], "changed-item")
+
+    def initialize_forms(self, change_instance):
         model_instance = change_instance.content_object
 
         serializer_class = getattr(serializers, f"{change_instance.model_name}Serializer")
@@ -204,15 +216,49 @@ class DiffView(ModelObjectView):
                 **noneditable_published_form.initial,
                 **{key: serializer_obj.validated_data.get(key) for key in change_instance.update}
             }
-            for item in change_instance.update:
-                if not compare_values(
-                    noneditable_published_form[item].value(),
-                    editable_form[item].value()
-                ):
-                    editable_form.add_classes(editable_form.fields[item], "changed-item")
-
+            self._compare_forms(editable_form, noneditable_published_form, change_instance.update)
         else:
             raise Exception("Exception here")
+
+        return editable_form, noneditable_published_form
+
+    def post(self, request, **kwargs):
+        change_instance = self.model.objects.get(uuid=kwargs.get('pk'))
+        _, noneditable_published_form = self.initialize_forms(change_instance)
+
+        updated_form = self._get_form_model(
+            MODEL_CONFIG_MAP[change_instance.model_name]["model"],
+            data=request.POST,
+            initial=noneditable_published_form.initial
+        )
+
+        isvalid = updated_form.is_valid()
+
+        # the super get_context_data wants an object
+        self.object = change_instance
+        context = {
+            **super().get_context_data(**kwargs),
+            "editable_update_form": updated_form,
+            "noneditable_published_form": noneditable_published_form,
+            "model_name": change_instance.model_name,
+            "display_name": MODEL_CONFIG_MAP[change_instance.model_name]["display_name"],
+        }
+        if isvalid:
+            diff_dict = {**change_instance.update}
+            for changed_key in updated_form.changed_data:
+                processed_value = Change._get_processed_value(updated_form[changed_key].value())
+                diff_dict[changed_key] = processed_value
+
+            self._compare_forms(updated_form, noneditable_published_form, updated_form.changed_data)
+
+            change_instance.update = diff_dict
+            change_instance.save()
+
+        return render(request, self.template_name, context)
+
+    def get_context_data(self, **kwargs):
+        change_instance = kwargs.get("object")
+        editable_form, noneditable_published_form = self.initialize_forms(change_instance)
 
         return {
             **super().get_context_data(**kwargs),
