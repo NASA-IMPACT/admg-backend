@@ -5,6 +5,7 @@ from django.urls import reverse
 
 
 from api_app.models import Change, UPDATE, CREATE
+from data_models.models import Platform, Deployment, Campaign, Instrument
 
 
 class ConditionalValueColumn(tables.Column):
@@ -26,6 +27,57 @@ class ConditionalValueColumn(tables.Column):
 class DraftLinkColumn(ConditionalValueColumn):
 
     def __init__(self, *args, **kwargs):
+        self.update_viewname = kwargs.pop("update_viewname")
+        self.viewname = kwargs.pop("viewname")
+        self.url_kwargs = kwargs.pop("url_kwargs")
+
+        super().__init__(*args, **kwargs)
+
+    def get_url(self, **kwargs):
+        record = kwargs.get("record")
+        url_kwargs = {}
+        for item in self.url_kwargs:
+            url_kwargs[item] = getattr(record, self.url_kwargs[item])
+
+        if record.action == UPDATE:
+            return reverse(self.update_viewname, kwargs=url_kwargs)
+
+        return reverse(self.viewname, kwargs=url_kwargs)
+
+class ShortNamefromUUIDColumn(tables.Column):
+    def __init__(self, model=None, **kwargs):
+        super().__init__(**kwargs, empty_values=())
+        self.model = model
+
+    def get_short_name(self, uuid):
+        
+        if not self.model:
+            return uuid
+        
+        try:
+            model_object = self.model.objects.get(uuid=uuid)
+            return model_object.short_name
+        except self.model.DoesNotExist:
+            pass
+        
+        try:
+            change_object = Change.objects.get(uuid=uuid)
+            return change_object.update.get('short_name', uuid)
+        except Change.DoesNotExist:
+            # this really should never happen
+            return uuid        
+
+    def render(self, **kwargs):
+        uuid = kwargs.get("value")
+        value = kwargs.get('value')
+        if isinstance(value, list):
+            return ", ".join([self.get_short_name(uuid) for uuid in value])
+        else:
+            return self.get_short_name(uuid)
+
+class ShortNamefromUUIDLinkColumn(ShortNamefromUUIDColumn):
+
+    def __init__(self, update_accessor=None, *args, **kwargs):
         self.update_viewname = kwargs.pop("update_viewname")
         self.viewname = kwargs.pop("viewname")
         self.url_kwargs = kwargs.pop("url_kwargs")
@@ -134,17 +186,18 @@ class SignificantEventChangeListTable(DraftTableBase):
 
 class CollectionPeriodChangeListTable(DraftTableBase):
     # TODO: have a calculated short_name field?
-    deployment = DraftLinkColumn(
+    deployment = ShortNamefromUUIDLinkColumn(
         update_viewname="change-diff",
         viewname="change-update",
         url_kwargs={'pk': "uuid"},
+        model = Deployment,
         verbose_name="Deployment",
         accessor="update__deployment",
         update_accessor="content_object.short_name"
     )
     # deployment = tables.Column(verbose_name="Deployment", accessor="update__deployment")
-    platform = tables.Column(verbose_name="Platform", accessor="update__platform")
-    instruments = tables.Column(verbose_name="Instruments", accessor="update__instruments")
+    platform = ShortNamefromUUIDColumn(verbose_name="Platform", model=Platform, accessor="update__platform")
+    instruments = ShortNamefromUUIDColumn(verbose_name="Instruments", model=Instrument, accessor="update__instruments")
 
     class Meta(DraftTableBase.Meta):
         all_fields = (
