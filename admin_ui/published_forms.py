@@ -3,7 +3,12 @@ from .config import MODEL_CONFIG_MAP
 
 
 def GenericFormClass(model_name="", model=None):
-    MainModel = model_name and MODEL_CONFIG_MAP[model_name]["model"] or model
+    if model_name:
+        MainModel = MODEL_CONFIG_MAP[model_name]["model"]
+    elif model:
+        MainModel = model
+    else:
+        raise ValueError('GenericFormClass requires a model_name string or a model object.')
 
     class MyFormClass(ModelForm):
 
