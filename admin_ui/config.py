@@ -296,7 +296,7 @@ MODEL_CONFIG_MAP = {
     "CollectionPeriod": {
         "singular_snake_case": camel_to_snake("CollectionPeriod"),
         "plural_snake_case": "collection_periods",
-        "display_name": "Collection Period",
+        "display_name": "C-D-P-I",
         "model": CollectionPeriod,
         "table": PublishedCollectionPeriodTable,
         "change_list_table": CollectionPeriodChangeListTable,
