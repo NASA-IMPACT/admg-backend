@@ -48,10 +48,10 @@ from api_app.models import (
 from data_models import serializers
 
 
-
 from .config import MODEL_CONFIG_MAP
 from .published_forms import GenericFormClass
 from .utils import compare_values
+from .forms import TransitionForm
 
 
 def GenericListView(model_name):
@@ -263,6 +263,7 @@ class DiffView(ModelObjectView):
         return {
             **super().get_context_data(**kwargs),
             "editable_update_form": editable_form,
+            "transition_form": TransitionForm(change=change_instance, user=self.request.user),
             "noneditable_published_form": noneditable_published_form,
             "model_name": change_instance.model_name,
             "display_name": MODEL_CONFIG_MAP[change_instance.model_name]["display_name"],
