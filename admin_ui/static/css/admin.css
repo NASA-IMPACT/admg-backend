@@ -68,3 +68,7 @@ dt {
 .changed-item {
   background-color: rgba(170, 170, 0, 0.5);
 }
+
+.changed-item:disabled {
+  background-color: rgba(170, 170, 0, 0.5);
+}

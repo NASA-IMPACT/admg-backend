@@ -76,6 +76,13 @@ def GenericListView(model_name):
 class ModelObjectView(ModelFormMixin, DetailView):
     fields = "__all__"
 
+    @staticmethod
+    def is_published_or_trashed(change_instance):
+        return (
+            change_instance.status == PUBLISHED_CODE or
+            change_instance.status == IN_TRASH_CODE
+        )
+
     def _get_form(self, form, disable_all=False, **kwargs):
         form = form(**kwargs)
         if disable_all:
@@ -193,6 +200,23 @@ class DiffView(ModelObjectView):
             ):
                 updated_form.add_classes(updated_form.fields[key], "changed-item")
 
+    def _get_context_from_data(
+        self,
+        change_instance,
+        editable_form,
+        noneditable_published_form,
+        **kwargs
+    ):
+        return {
+            **super().get_context_data(**kwargs),
+            "editable_update_form": editable_form,
+            "noneditable_published_form": noneditable_published_form,
+            "model_name": change_instance.model_name,
+            "display_name": MODEL_CONFIG_MAP[change_instance.model_name]["display_name"],
+            "transition_form": TransitionForm(change=change_instance, user=self.request.user),
+            "disable_save": self.is_published_or_trashed(change_instance)
+        }
+
     def initialize_forms(self, change_instance):
         model_instance = change_instance.content_object
 
@@ -200,10 +224,10 @@ class DiffView(ModelObjectView):
         serializer_obj = serializer_class(
             instance=model_instance,
             data=change_instance.update,
-            partial=True
+            partial=True,
         )
 
-        noneditable_published_form = self._get_form_model(
+        old_data_form = self._get_form_model(
             MODEL_CONFIG_MAP[change_instance.model_name]["model"],
             disable_all=True,
             instance=model_instance,
@@ -211,16 +235,27 @@ class DiffView(ModelObjectView):
         )
 
         if serializer_obj.is_valid():
-            editable_form = self._get_form_model(MODEL_CONFIG_MAP[change_instance.model_name]["model"])
+            editable_form = self._get_form_model(
+                MODEL_CONFIG_MAP[change_instance.model_name]["model"],
+                disable_all=self.is_published_or_trashed(change_instance)
+            )
             editable_form.initial = {
-                **noneditable_published_form.initial,
+                **old_data_form.initial,
                 **{key: serializer_obj.validated_data.get(key) for key in change_instance.update}
             }
-            self._compare_forms(editable_form, noneditable_published_form, change_instance.update)
+
+            if self.is_published_or_trashed(change_instance):
+                for key, val in change_instance.previous.items():
+                    old_data_form.initial[key] = val
+
+                self._compare_forms(editable_form, old_data_form, change_instance.previous)
+            else:
+                self._compare_forms(editable_form, old_data_form, change_instance.update)
         else:
             raise Exception("Exception here")
 
-        return editable_form, noneditable_published_form
+
+        return editable_form, old_data_form
 
     def post(self, request, **kwargs):
         change_instance = self.model.objects.get(uuid=kwargs.get('pk'))
@@ -232,18 +267,7 @@ class DiffView(ModelObjectView):
             initial=noneditable_published_form.initial
         )
 
-        isvalid = updated_form.is_valid()
-
-        # the super get_context_data wants an object
-        self.object = change_instance
-        context = {
-            **super().get_context_data(**kwargs),
-            "editable_update_form": updated_form,
-            "noneditable_published_form": noneditable_published_form,
-            "model_name": change_instance.model_name,
-            "display_name": MODEL_CONFIG_MAP[change_instance.model_name]["display_name"],
-        }
-        if isvalid:
+        if updated_form.is_valid():
             diff_dict = {**change_instance.update}
             for changed_key in updated_form.changed_data:
                 processed_value = Change._get_processed_value(updated_form[changed_key].value())
@@ -254,17 +278,18 @@ class DiffView(ModelObjectView):
             change_instance.update = diff_dict
             change_instance.save()
 
+        # the super get_context_data wants an object
+        self.object = change_instance
+        context = self._get_context_from_data(
+            change_instance, updated_form, noneditable_published_form, **kwargs
+        )
+
         return render(request, self.template_name, context)
 
     def get_context_data(self, **kwargs):
         change_instance = kwargs.get("object")
         editable_form, noneditable_published_form = self.initialize_forms(change_instance)
 
-        return {
-            **super().get_context_data(**kwargs),
-            "editable_update_form": editable_form,
-            "transition_form": TransitionForm(change=change_instance, user=self.request.user),
-            "noneditable_published_form": noneditable_published_form,
-            "model_name": change_instance.model_name,
-            "display_name": MODEL_CONFIG_MAP[change_instance.model_name]["display_name"],
-        }
+        return self._get_context_from_data(
+            change_instance, editable_form, noneditable_published_form, **kwargs
+        )
