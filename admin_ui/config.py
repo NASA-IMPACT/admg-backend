@@ -148,5 +148,5 @@ for model_name in MODEL_CONFIG_MAP.keys():
     MODEL_CONFIG_MAP[model_name]['singular_snake_case'] = camel_to_snake(model_name)
     MODEL_CONFIG_MAP[model_name]['filter'] = GenericPublishedListFilter(model_name)
     MODEL_CONFIG_MAP[model_name]['model'] = getattr(models, model_name)
-    MODEL_CONFIG_MAP[model_name]['table'] = getattr(published_tables, f'Published{model_name}Table'),
+    MODEL_CONFIG_MAP[model_name]['table'] = getattr(published_tables, f'Published{model_name}Table')
     MODEL_CONFIG_MAP[model_name]['change_list_table'] = getattr(tables, f'{model_name}ChangeListTable')
