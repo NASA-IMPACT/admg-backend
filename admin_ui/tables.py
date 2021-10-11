@@ -6,20 +6,48 @@ from django.urls import reverse
 
 from api_app.models import Change, UPDATE, CREATE
 from data_models.models import Platform, Deployment, Campaign, Instrument
-
+from uuid import UUID
 
 class ConditionalValueColumn(tables.Column):
     def __init__(self, update_accessor=None, **kwargs):
         super().__init__(**kwargs, empty_values=())
         self.update_accessor = update_accessor
 
-    def render(self, **kwargs):
+
+    def get_backup_value(self, **kwargs):
+        """Update drafts won't always contain the metadata that
+        is needed to be displayed in the table columns. Takes the value
+        originally in the row, and if the row is for an UPDATE draft,
+        and the value is missing will check the published item to see
+        if a value exists.
+
+        Returns:
+            value (str): A value which will be displayed in the table 
+        """
+
         record = kwargs.get("record")
         value = kwargs.get("value")
 
         if record.action == UPDATE:
-            accessor = A(self.update_accessor)
-            value = accessor.resolve(record)
+            if not value:
+                if not self.update_accessor: # TODO: remove
+                    raise(ValueError)
+                accessor = A(self.update_accessor)
+                value = accessor.resolve(record)
+
+        return value      
+
+    def render(self, **kwargs):
+        """Update drafts won't always contain the metadata that
+        is needed to be displayed in the table columns. This function
+        preferentially displays the draft metadata, and alternately shows
+        metadata from the published item if the update draft is empty.
+
+        Returns:
+            value (str): A value which will be displayed in the table 
+        """
+
+        value = self.get_backup_value(**kwargs)
 
         return value or "---"
 
@@ -44,13 +72,42 @@ class DraftLinkColumn(ConditionalValueColumn):
 
         return reverse(self.viewname, kwargs=url_kwargs)
 
-class ShortNamefromUUIDColumn(tables.Column):
+
+class ShortNamefromUUIDColumn(ConditionalValueColumn):
     def __init__(self, model=None, **kwargs):
-        super().__init__(**kwargs, empty_values=())
+        super().__init__(**kwargs)
         self.model = model
+        self.update_accessor = "content_object.deployment"
+
+    @staticmethod
+    def is_uuid(candidate_uuid):
+        """Takes a candidate uuid as a string and returns a boolean
+        indicating whether it is a valid UUID.
+
+        Args:
+            canndidate_uuid (str): String that might be a UUID
+
+        Returns:
+            bool: True if UUID, False if not
+        """
+
+        if not isinstance(candidate_uuid, str):
+            return False
+
+        try:
+            UUID(candidate_uuid, version=4)
+            return True
+        except ValueError:
+            # If it's a value error, then the string 
+            # is not a valid hex code for a UUID.
+            return False
+
 
     def get_short_name(self, uuid):
         
+        if not self.is_uuid(uuid):
+            return uuid
+
         if not self.model:
             return uuid
         
@@ -68,32 +125,19 @@ class ShortNamefromUUIDColumn(tables.Column):
             return uuid        
 
     def render(self, **kwargs):
-        uuid = kwargs.get("value")
-        value = kwargs.get('value')
+        value = self.get_backup_value(**kwargs)
+        # return value
+        # value = kwargs.get('value')
         if isinstance(value, list):
             return ", ".join([self.get_short_name(uuid) for uuid in value])
         else:
-            return self.get_short_name(uuid)
+            return self.get_short_name(value)
 
-class ShortNamefromUUIDLinkColumn(ShortNamefromUUIDColumn):
 
-    def __init__(self, update_accessor=None, *args, **kwargs):
-        self.update_viewname = kwargs.pop("update_viewname")
-        self.viewname = kwargs.pop("viewname")
-        self.url_kwargs = kwargs.pop("url_kwargs")
-
-        super().__init__(*args, **kwargs)
-
-    def get_url(self, **kwargs):
-        record = kwargs.get("record")
-        url_kwargs = {}
-        for item in self.url_kwargs:
-            url_kwargs[item] = getattr(record, self.url_kwargs[item])
-
-        if record.action == UPDATE:
-            return reverse(self.update_viewname, kwargs=url_kwargs)
-
-        return reverse(self.viewname, kwargs=url_kwargs)
+class ShortNamefromUUIDLinkColumn(ShortNamefromUUIDColumn, DraftLinkColumn):
+    def __init__(self, model=None, **kwargs):
+        DraftLinkColumn.__init__(self, **kwargs)
+        self.model = model
 
 
 class DraftTableBase(tables.Table):
@@ -193,7 +237,7 @@ class CollectionPeriodChangeListTable(DraftTableBase):
         model = Deployment,
         verbose_name="Deployment",
         accessor="update__deployment",
-        update_accessor="content_object.short_name"
+        update_accessor="content_object.deployment"
     )
     # deployment = tables.Column(verbose_name="Deployment", accessor="update__deployment")
     platform = ShortNamefromUUIDColumn(verbose_name="Platform", model=Platform, accessor="update__platform")
