@@ -624,37 +624,27 @@ class WebsiteChangeListTable(DraftTableBase):
     url = ConditionalValueColumn(
         verbose_name="URL", accessor="update__url", update_accessor="content_object.url"
     )
-    status = ConditionalValueColumn(verbose_name="Status", accessor="status")
-    updated_at = ConditionalValueColumn(
-        verbose_name="Updated At",
-        accessor="updated",
-        update_accessor="content_object.updated_at",
-    )
     website_type = ConditionalValueColumn(
         verbose_name="Website Type",
         accessor="website_type_name",
         update_accessor="content_object.type_name",
     )
 
-    class Meta:
-        model = Change
-        attrs = {
-            "class": "table table-striped",
-            "thead": {"class": "table-primary"},
-            "th": {"style": "min-width: 10em"},
-        }
-        fields = ["title", "url", "website_type", "status", "updated_at"]
-        sequence = ("title", "url", "website_type", "status", "updated_at")
+    class Meta(DraftTableBase.Meta):
+        all_fields = (
+            "title",
+            "url",
+            "website_type",
+        ) + DraftTableBase.final_fields
+        fields = list(all_fields)
+        sequence = all_fields
 
 
 class CampaignWebsiteChangeListTable(DraftTableBase):
-    class Meta:
-        model = Change
-        attrs = {
-            "class": "table table-striped",
-            "thead": {"class": "table-primary"},
-            "th": {"style": "min-width: 10em"},
-        }
+    class Meta(DraftTableBase.Meta):
+        all_fields = DraftTableBase.final_fields
+        fields = list(all_fields)
+        sequence = all_fields
 
 
 class AliasChangeListTable(DraftTableBase):
@@ -672,22 +662,14 @@ class AliasChangeListTable(DraftTableBase):
         accessor="update__model_name",
         update_accessor="content_object.model_name",
     )
-    status = ConditionalValueColumn(verbose_name="Status", accessor="status")
-    updated_at = ConditionalValueColumn(
-        verbose_name="Updated At",
-        accessor="updated",
-        update_accessor="content_object.updated_at",
-    )
 
-    class Meta:
-        model = Change
-        attrs = {
-            "class": "table table-striped",
-            "thead": {"class": "table-primary"},
-            "th": {"style": "min-width: 10em"},
-        }
-        fields = ["short_name", "model_type", "status", "updated_at"]
-        sequence = ("short_name", "model_type", "status", "updated_at")
+    class Meta(DraftTableBase.Meta):
+        all_fields = (
+            "short_name",
+            "model_type",
+        ) + DraftTableBase.final_fields
+        fields = list(all_fields)
+        sequence = all_fields
 
 
 class GcmdProjectChangeListTable(DraftTableBase):
@@ -709,34 +691,15 @@ class GcmdProjectChangeListTable(DraftTableBase):
         accessor="update__bucket",
         update_accessor="content_object.bucket",
     )
-    status = ConditionalValueColumn(verbose_name="Status", accessor="status")
-    updated_at = ConditionalValueColumn(
-        verbose_name="Updated At",
-        accessor="updated",
-        update_accessor="content_object.updated_at",
-    )
 
-    class Meta:
-        model = Change
-        attrs = {
-            "class": "table table-striped",
-            "thead": {"class": "table-primary"},
-            "th": {"style": "min-width: 10em"},
-        }
-        fields = [
-            "short_name",
-            "long_name",
-            "status",
-            "updated_at",
-            "bucket",
-        ]
-        sequence = (
+    class Meta(DraftTableBase.Meta):
+        all_fields = (
             "short_name",
             "long_name",
             "bucket",
-            "status",
-            "updated_at",
-        )
+        ) + DraftTableBase.final_fields
+        fields = list(all_fields)
+        sequence = all_fields
 
 
 class GcmdInstrumentChangeListTable(DraftTableBase):
@@ -773,40 +736,18 @@ class GcmdInstrumentChangeListTable(DraftTableBase):
         accessor="update__instrument_subtype",
         update_accessor="content_object.instrument_subtype",
     )
-    status = ConditionalValueColumn(verbose_name="Status", accessor="status")
-    updated_at = ConditionalValueColumn(
-        verbose_name="Updated At",
-        accessor="updated",
-        update_accessor="content_object.updated_at",
-    )
 
-    class Meta:
-        model = Change
-        attrs = {
-            "class": "table table-striped",
-            "thead": {"class": "table-primary"},
-            "th": {"style": "min-width: 10em"},
-        }
-        fields = [
+    class Meta(DraftTableBase.Meta):
+        all_fields = (
             "short_name",
             "long_name",
             "instrument_category",
             "instrument_class",
             "instrument_type",
             "instrument_subtype",
-            "status",
-            "updated_at",
-        ]
-        sequence = (
-            "short_name",
-            "long_name",
-            "instrument_subtype",
-            "instrument_type",
-            "instrument_class",
-            "instrument_category",
-            "status",
-            "updated_at",
-        )
+        ) + DraftTableBase.final_fields
+        fields = list(all_fields)
+        sequence = all_fields
 
 
 class GcmdPlatformChangeListTable(DraftTableBase):
@@ -828,22 +769,15 @@ class GcmdPlatformChangeListTable(DraftTableBase):
         accessor="update__category",
         update_accessor="content_object.category",
     )
-    status = ConditionalValueColumn(verbose_name="Status", accessor="status")
-    updated_at = ConditionalValueColumn(
-        verbose_name="Updated At",
-        accessor="updated",
-        update_accessor="content_object.updated_at",
-    )
 
-    class Meta:
-        model = Change
-        attrs = {
-            "class": "table table-striped",
-            "thead": {"class": "table-primary"},
-            "th": {"style": "min-width: 10em"},
-        }
-        fields = ["short_name", "long_name", "category", "status", "updated_at"]
-        sequence = ("short_name", "long_name", "category", "status", "updated_at")
+    class Meta(DraftTableBase.Meta):
+        all_fields = (
+            "short_name",
+            "long_name",
+            "category",
+        ) + DraftTableBase.final_fields
+        fields = list(all_fields)
+        sequence = all_fields
 
 
 class GcmdPhenomenaChangeListTable(DraftTableBase):
@@ -880,37 +814,15 @@ class GcmdPhenomenaChangeListTable(DraftTableBase):
         accessor="update__category",
         update_accessor="content_object.category",
     )
-    status = ConditionalValueColumn(verbose_name="Status", accessor="status")
-    updated_at = ConditionalValueColumn(
-        verbose_name="Updated At",
-        accessor="updated",
-        update_accessor="content_object.updated_at",
-    )
 
-    class Meta:
-        model = Change
-        attrs = {
-            "class": "table table-striped",
-            "thead": {"class": "table-primary"},
-            "th": {"style": "min-width: 10em"},
-        }
-        fields = [
-            "category",
-            "topic",
-            "term",
-            "variable_1",
-            "variable_2",
-            "variable_3",
-            "status",
-            "updated_at",
-        ]
-        sequence = (
+    class Meta(DraftTableBase.Meta):
+        all_fields = (
             "variable_3",
             "variable_2",
             "variable_1",
             "term",
             "topic",
             "category",
-            "status",
-            "updated_at",
-        )
+        ) + DraftTableBase.final_fields
+        fields = list(all_fields)
+        sequence = all_fields
