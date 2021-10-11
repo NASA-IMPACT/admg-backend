@@ -189,7 +189,7 @@ class IOPChangeListTable(DraftTableBase):
         accessor="update__short_name",
         update_accessor="content_object.short_name"
     )
-    deployment = tables.Column(verbose_name="Deployment", accessor="update__deployment")
+    deployment = ShortNamefromUUIDColumn(verbose_name="Deployment", model=Platform, accessor="update__deployment")
     start_date = tables.Column(verbose_name="Start Date", accessor="update__start_date")
     end_date = tables.Column(verbose_name="End Date", accessor="update__end_date")
 
@@ -213,9 +213,9 @@ class SignificantEventChangeListTable(DraftTableBase):
         accessor="update__short_name",
         update_accessor="content_object.short_name"
     )
-    deployment = tables.Column(verbose_name="Deployment", accessor="update__deployment")
-    start_date = tables.Column(verbose_name="Start Date", accessor="update__start_date")
-    end_date = tables.Column(verbose_name="End Date", accessor="update__end_date")
+    deployment = ShortNamefromUUIDColumn(verbose_name="Deployment", model=Platform, accessor="update__deployment")
+    start_date = ShortNamefromUUIDColumn(verbose_name="Start Date", model=Platform, accessor="update__start_date")
+    end_date = ShortNamefromUUIDColumn(verbose_name="End Date", model=Platform, accessor="update__end_date")
 
     class Meta(DraftTableBase.Meta):
         all_fields = (
@@ -263,11 +263,17 @@ class DOIChangeListTable(DraftTableBase):
         update_accessor="content_object.concept_id"
     )
     long_name = tables.Column(verbose_name="Long Name", accessor="update__long_name")
+    campaigns = ShortNamefromUUIDColumn(verbose_name="Campaigns", model=Platform, accessor="update__campaigns")
+    platforms = ShortNamefromUUIDColumn(verbose_name="Platforms", model=Platform, accessor="update__platforms")
+    instruments = ShortNamefromUUIDColumn(verbose_name="Instruments", model=Instrument, accessor="update__instruments")
 
     class Meta(DraftTableBase.Meta):
         all_fields = (
             'concept_id',
             'long_name',
+            'campaigns',
+            'platforms',
+            'instruments'
             ) + DraftTableBase.final_fields
         fields = list(all_fields)
         sequence = all_fields
@@ -275,7 +281,7 @@ class DOIChangeListTable(DraftTableBase):
 
 class DeploymentChangeListTable(LimitedTableBase):
 
-    campaign = tables.Column(verbose_name="Campaign", accessor="update__campaign")
+    campaign = ShortNamefromUUIDColumn(verbose_name="Campaign", model=Platform, accessor="update__campaign")
     start_date = tables.Column(verbose_name="Start Date", accessor="update__start_date")
     end_date = tables.Column(verbose_name="End Date", accessor="update__end_date")
 
