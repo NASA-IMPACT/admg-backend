@@ -30,8 +30,6 @@ class ConditionalValueColumn(tables.Column):
 
         if record.action == UPDATE:
             if not value:
-                if not self.update_accessor:  # TODO: remove
-                    raise (ValueError)
                 accessor = A(self.update_accessor)
                 value = accessor.resolve(record)
 
@@ -76,7 +74,6 @@ class ShortNamefromUUIDColumn(ConditionalValueColumn):
     def __init__(self, model=None, **kwargs):
         super().__init__(**kwargs)
         self.model = model
-        self.update_accessor = "content_object.deployment"
 
     @staticmethod
     def is_uuid(candidate_uuid):
@@ -96,7 +93,7 @@ class ShortNamefromUUIDColumn(ConditionalValueColumn):
         try:
             UUID(candidate_uuid, version=4)
             return True
-        except ValueError:
+        except ValueError("error"):
             # If it's a value error, then the string
             # is not a valid hex code for a UUID.
             return False
@@ -190,8 +187,16 @@ class IOPChangeListTable(DraftTableBase):
     deployment = ShortNamefromUUIDColumn(
         verbose_name="Deployment", model=Platform, accessor="update__deployment"
     )
-    start_date = tables.Column(verbose_name="Start Date", accessor="update__start_date")
-    end_date = tables.Column(verbose_name="End Date", accessor="update__end_date")
+    start_date = ConditionalValueColumn(
+        verbose_name="Start Date",
+        accessor="update__start_date",
+        update_accessor="content_object.start_date",
+    )
+    end_date = ConditionalValueColumn(
+        verbose_name="End Date",
+        accessor="update__end_date",
+        update_accessor="content_object.end_date",
+    )
 
     class Meta(DraftTableBase.Meta):
         all_fields = (
@@ -245,7 +250,7 @@ class CollectionPeriodChangeListTable(DraftTableBase):
         accessor="update__deployment",
         update_accessor="content_object.deployment",
     )
-    # deployment = tables.Column(verbose_name="Deployment", accessor="update__deployment")
+
     platform = ShortNamefromUUIDColumn(
         verbose_name="Platform", model=Platform, accessor="update__platform"
     )
@@ -272,7 +277,11 @@ class DOIChangeListTable(DraftTableBase):
         accessor="update__concept_id",
         update_accessor="content_object.concept_id",
     )
-    long_name = tables.Column(verbose_name="Long Name", accessor="update__long_name")
+    long_name = ConditionalValueColumn(
+        verbose_name="Long Name",
+        accessor="update__long_name",
+        update_accessor="content_object.long_name",
+    )
     campaigns = ShortNamefromUUIDColumn(
         verbose_name="Campaigns", model=Platform, accessor="update__campaigns"
     )
@@ -298,10 +307,18 @@ class DOIChangeListTable(DraftTableBase):
 class DeploymentChangeListTable(LimitedTableBase):
 
     campaign = ShortNamefromUUIDColumn(
-        verbose_name="Campaign", model=Platform, accessor="update__campaign"
+        verbose_name="Campaign", model=Campaign, accessor="update__campaign"
     )
-    start_date = tables.Column(verbose_name="Start Date", accessor="update__start_date")
-    end_date = tables.Column(verbose_name="End Date", accessor="update__end_date")
+    start_date = ConditionalValueColumn(
+        verbose_name="Start Date",
+        accessor="update__start_date",
+        update_accessor="content_object.start_date",
+    )
+    end_date = ConditionalValueColumn(
+        verbose_name="End Date",
+        accessor="update__end_date",
+        update_accessor="content_object.end_date",
+    )
 
     class Meta(LimitedTableBase.Meta):
         all_fields = (
@@ -319,7 +336,11 @@ class DeploymentChangeListTable(LimitedTableBase):
 
 class PlatformTypeChangeListTable(LimitedTableBase):
 
-    parent = tables.Column(verbose_name="Parent", accessor="update__parent")
+    parent = ConditionalValueColumn(
+        verbose_name="Parent",
+        accessor="update__parent",
+        update_accessor="content_object.parent",
+    )
 
     class Meta(LimitedTableBase.Meta):
         all_fields = (
@@ -332,7 +353,11 @@ class PlatformTypeChangeListTable(LimitedTableBase):
 
 
 class MeasurementTypeChangeListTable(LimitedTableBase):
-    parent = tables.Column(verbose_name="Parent", accessor="update__parent")
+    parent = ConditionalValueColumn(
+        verbose_name="Parent",
+        accessor="update__parent",
+        update_accessor="content_object.parent",
+    )
 
     class Meta(LimitedTableBase.Meta):
         all_fields = (
@@ -345,7 +370,11 @@ class MeasurementTypeChangeListTable(LimitedTableBase):
 
 
 class MeasurementStyleChangeListTable(LimitedTableBase):
-    parent = tables.Column(verbose_name="Parent", accessor="update__parent")
+    parent = ConditionalValueColumn(
+        verbose_name="Parent",
+        accessor="update__parent",
+        update_accessor="content_object.parent",
+    )
 
     class Meta(LimitedTableBase.Meta):
         all_fields = (
@@ -358,7 +387,11 @@ class MeasurementStyleChangeListTable(LimitedTableBase):
 
 
 class HomeBaseChangeListTable(LimitedTableBase):
-    location = tables.Column(verbose_name="Location", accessor="update__location")
+    location = ConditionalValueColumn(
+        verbose_name="Location",
+        accessor="update__location",
+        update_accessor="content_object.location",
+    )
 
     class Meta(LimitedTableBase.Meta):
         all_fields = (
@@ -371,7 +404,9 @@ class HomeBaseChangeListTable(LimitedTableBase):
 
 
 class FocusAreaChangeListTable(LimitedTableBase):
-    url = tables.Column(verbose_name="Url", accessor="update__url")
+    url = ConditionalValueColumn(
+        verbose_name="Url", accessor="update__url", update_accessor="content_object.url"
+    )
 
     class Meta(LimitedTableBase.Meta):
         all_fields = (
@@ -389,7 +424,11 @@ class SeasonChangeListTable(LimitedTableBase):
 
 
 class RepositoryChangeListTable(LimitedTableBase):
-    gcmd_uuid = tables.Column(verbose_name="GCMD UUID", accessor="update__gcmd_uuid")
+    gcmd_uuid = ConditionalValueColumn(
+        verbose_name="GCMD UUID",
+        accessor="update__gcmd_uuid",
+        update_accessor="content_object.gcmd_uuid",
+    )
 
     class Meta(LimitedTableBase.Meta):
         all_fields = (
@@ -402,7 +441,11 @@ class RepositoryChangeListTable(LimitedTableBase):
 
 
 class MeasurementRegionChangeListTable(LimitedTableBase):
-    example = tables.Column(verbose_name="Example", accessor="update__example")
+    example = ConditionalValueColumn(
+        verbose_name="Example",
+        accessor="update__example",
+        update_accessor="content_object.example",
+    )
 
     class Meta(LimitedTableBase.Meta):
         all_fields = (
@@ -415,7 +458,11 @@ class MeasurementRegionChangeListTable(LimitedTableBase):
 
 
 class GeographicalRegionChangeListTable(LimitedTableBase):
-    example = tables.Column(verbose_name="Example", accessor="update__example")
+    example = ConditionalValueColumn(
+        verbose_name="Example",
+        accessor="update__example",
+        update_accessor="content_object.example",
+    )
 
     class Meta(LimitedTableBase.Meta):
         all_fields = (
@@ -428,7 +475,11 @@ class GeographicalRegionChangeListTable(LimitedTableBase):
 
 
 class GeophysicalConceptChangeListTable(LimitedTableBase):
-    example = tables.Column(verbose_name="Example", accessor="update__example")
+    example = ConditionalValueColumn(
+        verbose_name="Example",
+        accessor="update__example",
+        update_accessor="content_object.example",
+    )
 
     class Meta(LimitedTableBase.Meta):
         all_fields = (
@@ -441,7 +492,11 @@ class GeophysicalConceptChangeListTable(LimitedTableBase):
 
 
 class PartnerOrgChangeListTable(LimitedTableBase):
-    website = tables.Column(verbose_name="Website", accessor="update__website")
+    website = ConditionalValueColumn(
+        verbose_name="Website",
+        accessor="update__website",
+        update_accessor="content_object.website",
+    )
 
     class Meta(LimitedTableBase.Meta):
         all_fields = (
@@ -486,8 +541,10 @@ class CampaignChangeListTable(LimitedTableBase):
 
 
 class PlatformChangeListTable(LimitedTableBase):
-    platform_type = tables.Column(
-        verbose_name="Platform Type", accessor="platform_type_name"
+    platform_type = ConditionalValueColumn(
+        verbose_name="Platform Type",
+        accessor="platform_type_name",
+        update_accessor="content_object._type_name",
     )
 
     class Meta(LimitedTableBase.Meta):
@@ -505,27 +562,6 @@ class InstrumentChangeListTable(LimitedTableBase):
         all_fields = LimitedTableBase.initial_fields + LimitedTableBase.final_fields
         fields = all_fields
         sequence = all_fields
-
-
-# TODO: What is this and is it even used anywhere??
-# class BasicChangeListTable(DraftTableBase):
-#     short_name = tables.Column(
-#         linkify=("change-update", [A("uuid")]),
-#         verbose_name="Short Name",
-#         accessor="update__short_name",
-#     )
-#     long_name = tables.Column(verbose_name="Long name", accessor="update__long_name")
-#     status = tables.Column(verbose_name="Status", accessor="status")
-#     updated_at = tables.DateTimeColumn(verbose_name="Last Edit Date")
-
-#     class Meta:
-#         model = Change
-#         attrs = {
-#             "class": "table table-striped",
-#             "thead": {"class": "table-primary"},
-#             "th": {"style": "min-width: 10em"},
-#         }
-#         fields = ["short_name", "long_name", "status", "updated_at"]
 
 
 # TODO: does this actually need to link to the campaign detail page?
@@ -557,11 +593,19 @@ class WebsiteChangeListTable(DraftTableBase):
         accessor="update__title",
         update_accessor="content_object.title",
     )
-    url = tables.Column(verbose_name="URL", accessor="update__url")
-    status = tables.Column(verbose_name="Status", accessor="status")
-    updated_at = tables.DateTimeColumn(verbose_name="Last Edit Date")
-    website_type = tables.Column(
-        verbose_name="Website Type", accessor="website_type_name"
+    url = ConditionalValueColumn(
+        verbose_name="URL", accessor="update__url", update_accessor="content_object.url"
+    )
+    status = ConditionalValueColumn(verbose_name="Status", accessor="status")
+    updated_at = ConditionalValueColumn(
+        verbose_name="Updated At",
+        accessor="updated",
+        update_accessor="content_object.updated_at",
+    )
+    website_type = ConditionalValueColumn(
+        verbose_name="Website Type",
+        accessor="website_type_name",
+        update_accessor="content_object.type_name",
     )
 
     class Meta:
@@ -595,9 +639,17 @@ class AliasChangeListTable(DraftTableBase):
         update_accessor="content_object.short_name",
     )
     # TODO replace model_type which short_name of related object
-    model_type = tables.Column(verbose_name="Item Type", accessor="update__model_name")
-    status = tables.Column(verbose_name="Status", accessor="status")
-    updated_at = tables.DateTimeColumn(verbose_name="Last Edit Date")
+    model_type = ConditionalValueColumn(
+        verbose_name="Item Type",
+        accessor="update__model_name",
+        update_accessor="content_object.model_name",
+    )
+    status = ConditionalValueColumn(verbose_name="Status", accessor="status")
+    updated_at = ConditionalValueColumn(
+        verbose_name="Updated At",
+        accessor="updated",
+        update_accessor="content_object.updated_at",
+    )
 
     class Meta:
         model = Change
@@ -619,10 +671,22 @@ class GcmdProjectChangeListTable(DraftTableBase):
         accessor="update__short_name",
         update_accessor="content_object.short_name",
     )
-    long_name = tables.Column(verbose_name="Long Name", accessor="update__long_name")
-    bucket = tables.Column(verbose_name="Bucket", accessor="update__bucket")
-    status = tables.Column(verbose_name="Status", accessor="status")
-    updated_at = tables.DateTimeColumn(verbose_name="Last Edit Date")
+    long_name = ConditionalValueColumn(
+        verbose_name="Long Name",
+        accessor="update__long_name",
+        update_accessor="content_object.long_name",
+    )
+    bucket = ConditionalValueColumn(
+        verbose_name="Bucket",
+        accessor="update__bucket",
+        update_accessor="content_object.bucket",
+    )
+    status = ConditionalValueColumn(verbose_name="Status", accessor="status")
+    updated_at = ConditionalValueColumn(
+        verbose_name="Updated At",
+        accessor="updated",
+        update_accessor="content_object.updated_at",
+    )
 
     class Meta:
         model = Change
@@ -656,21 +720,37 @@ class GcmdInstrumentChangeListTable(DraftTableBase):
         accessor="update__short_name",
         update_accessor="content_object.short_name",
     )
-    long_name = tables.Column(verbose_name="Long Name", accessor="update__long_name")
-    instrument_category = tables.Column(
-        verbose_name="Instrument Category", accessor="update__instrument_category"
+    long_name = ConditionalValueColumn(
+        verbose_name="Long Name",
+        accessor="update__long_name",
+        update_accessor="content_object.long_name",
     )
-    instrument_class = tables.Column(
-        verbose_name="Instrument Class", accessor="update__instrument_class"
+    instrument_category = ConditionalValueColumn(
+        verbose_name="Instrument Category",
+        accessor="update__instrument_category",
+        update_accessor="content_object.instrument_category",
     )
-    instrument_type = tables.Column(
-        verbose_name="Instrument Type", accessor="update__instrument_type"
+    instrument_class = ConditionalValueColumn(
+        verbose_name="Instrument Class",
+        accessor="update__instrument_class",
+        update_accessor="content_object.instrument_class",
     )
-    instrument_subtype = tables.Column(
-        verbose_name="Instrument Subtype", accessor="update__instrument_subtype"
+    instrument_type = ConditionalValueColumn(
+        verbose_name="Instrument Type",
+        accessor="update__instrument_type",
+        update_accessor="content_object.instrument_type",
     )
-    status = tables.Column(verbose_name="Status", accessor="status")
-    updated_at = tables.DateTimeColumn(verbose_name="Last Edit Date")
+    instrument_subtype = ConditionalValueColumn(
+        verbose_name="Instrument Subtype",
+        accessor="update__instrument_subtype",
+        update_accessor="content_object.instrument_subtype",
+    )
+    status = ConditionalValueColumn(verbose_name="Status", accessor="status")
+    updated_at = ConditionalValueColumn(
+        verbose_name="Updated At",
+        accessor="updated",
+        update_accessor="content_object.updated_at",
+    )
 
     class Meta:
         model = Change
@@ -710,10 +790,22 @@ class GcmdPlatformChangeListTable(DraftTableBase):
         accessor="update__short_name",
         update_accessor="content_object.short_name",
     )
-    long_name = tables.Column(verbose_name="Long Name", accessor="update__long_name")
-    category = tables.Column(verbose_name="Category", accessor="update__category")
-    status = tables.Column(verbose_name="Status", accessor="status")
-    updated_at = tables.DateTimeColumn(verbose_name="Last Edit Date")
+    long_name = ConditionalValueColumn(
+        verbose_name="Long Name",
+        accessor="update__long_name",
+        update_accessor="content_object.long_name",
+    )
+    category = ConditionalValueColumn(
+        verbose_name="Category",
+        accessor="update__category",
+        update_accessor="content_object.category",
+    )
+    status = ConditionalValueColumn(verbose_name="Status", accessor="status")
+    updated_at = ConditionalValueColumn(
+        verbose_name="Updated At",
+        accessor="updated",
+        update_accessor="content_object.updated_at",
+    )
 
     class Meta:
         model = Change
@@ -735,13 +827,37 @@ class GcmdPhenomenaChangeListTable(DraftTableBase):
         accessor="update__variable_3",
         update_accessor="content_object.variable_3",
     )
-    variable_2 = tables.Column(verbose_name="Variable 2", accessor="update__variable_2")
-    variable_1 = tables.Column(verbose_name="Variable 1", accessor="update__variable_1")
-    term = tables.Column(verbose_name="Term", accessor="update__term")
-    topic = tables.Column(verbose_name="Topic", accessor="update__topic")
-    category = tables.Column(verbose_name="Category", accessor="update__category")
-    status = tables.Column(verbose_name="Status", accessor="status")
-    updated_at = tables.DateTimeColumn(verbose_name="Last Edit Date")
+    variable_2 = ConditionalValueColumn(
+        verbose_name="Variable 2",
+        accessor="update__variable_2",
+        update_accessor="content_object.variable_2",
+    )
+    variable_1 = ConditionalValueColumn(
+        verbose_name="Variable 1",
+        accessor="update__variable_1",
+        update_accessor="content_object.variable_1",
+    )
+    term = ConditionalValueColumn(
+        verbose_name="Term",
+        accessor="update__term",
+        update_accessor="content_object.term",
+    )
+    topic = ConditionalValueColumn(
+        verbose_name="Topic",
+        accessor="update__topic",
+        update_accessor="content_object.topic",
+    )
+    category = ConditionalValueColumn(
+        verbose_name="Category",
+        accessor="update__category",
+        update_accessor="content_object.category",
+    )
+    status = ConditionalValueColumn(verbose_name="Status", accessor="status")
+    updated_at = ConditionalValueColumn(
+        verbose_name="Updated At",
+        accessor="updated",
+        update_accessor="content_object.updated_at",
+    )
 
     class Meta:
         model = Change
