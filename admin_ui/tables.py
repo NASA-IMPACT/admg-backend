@@ -28,10 +28,8 @@ class ConditionalValueColumn(tables.Column):
         record = kwargs.get("record")
         value = kwargs.get("value")
 
-        if record.action == UPDATE:
+        if record.action != CREATE:
             if not value:
-                if not self.update_accessor:  # TODO: remove
-                    raise (ValueError)
                 accessor = A(self.update_accessor)
                 value = accessor.resolve(record)
 
@@ -76,7 +74,6 @@ class ShortNamefromUUIDColumn(ConditionalValueColumn):
     def __init__(self, model=None, **kwargs):
         super().__init__(**kwargs)
         self.model = model
-        self.update_accessor = "content_object.deployment"
 
     @staticmethod
     def is_uuid(candidate_uuid):
@@ -96,7 +93,7 @@ class ShortNamefromUUIDColumn(ConditionalValueColumn):
         try:
             UUID(candidate_uuid, version=4)
             return True
-        except ValueError:
+        except ValueError("error"):
             # If it's a value error, then the string
             # is not a valid hex code for a UUID.
             return False
@@ -188,7 +185,10 @@ class IOPChangeListTable(DraftTableBase):
         update_accessor="content_object.short_name",
     )
     deployment = ShortNamefromUUIDColumn(
-        verbose_name="Deployment", model=Platform, accessor="update__deployment"
+        verbose_name="Deployment",
+        model=Platform,
+        accessor="update__deployment",
+        update_accessor="content_object.deployment",
     )
     start_date = tables.Column(verbose_name="Start Date", accessor="update__start_date")
     end_date = tables.Column(verbose_name="End Date", accessor="update__end_date")
@@ -214,14 +214,13 @@ class SignificantEventChangeListTable(DraftTableBase):
         update_accessor="content_object.short_name",
     )
     deployment = ShortNamefromUUIDColumn(
-        verbose_name="Deployment", model=Platform, accessor="update__deployment"
+        verbose_name="Deployment",
+        model=Platform,
+        accessor="update__deployment",
+        update_accessor="content_object.deployment",
     )
-    start_date = ShortNamefromUUIDColumn(
-        verbose_name="Start Date", model=Platform, accessor="update__start_date"
-    )
-    end_date = ShortNamefromUUIDColumn(
-        verbose_name="End Date", model=Platform, accessor="update__end_date"
-    )
+    start_date = tables.Column(verbose_name="Start Date", accessor="update__start_date")
+    end_date = tables.Column(verbose_name="End Date", accessor="update__end_date")
 
     class Meta(DraftTableBase.Meta):
         all_fields = (
@@ -247,10 +246,16 @@ class CollectionPeriodChangeListTable(DraftTableBase):
     )
     # deployment = tables.Column(verbose_name="Deployment", accessor="update__deployment")
     platform = ShortNamefromUUIDColumn(
-        verbose_name="Platform", model=Platform, accessor="update__platform"
+        verbose_name="Platform",
+        model=Platform,
+        accessor="update__platform",
+        update_accessor="content_object.platform",
     )
     instruments = ShortNamefromUUIDColumn(
-        verbose_name="Instruments", model=Instrument, accessor="update__instruments"
+        verbose_name="Instruments",
+        model=Instrument,
+        accessor="update__instruments",
+        update_accessor="content_object.instruments",
     )
 
     class Meta(DraftTableBase.Meta):
@@ -274,13 +279,22 @@ class DOIChangeListTable(DraftTableBase):
     )
     long_name = tables.Column(verbose_name="Long Name", accessor="update__long_name")
     campaigns = ShortNamefromUUIDColumn(
-        verbose_name="Campaigns", model=Platform, accessor="update__campaigns"
+        verbose_name="Campaigns",
+        model=Platform,
+        accessor="update__campaigns",
+        update_accessor="content_object.campaigns",
     )
     platforms = ShortNamefromUUIDColumn(
-        verbose_name="Platforms", model=Platform, accessor="update__platforms"
+        verbose_name="Platforms",
+        model=Platform,
+        accessor="update__platforms",
+        update_accessor="content_object.platforms",
     )
     instruments = ShortNamefromUUIDColumn(
-        verbose_name="Instruments", model=Instrument, accessor="update__instruments"
+        verbose_name="Instruments",
+        model=Instrument,
+        accessor="update__instruments",
+        update_accessor="content_object.instruments",
     )
 
     class Meta(DraftTableBase.Meta):
@@ -298,7 +312,10 @@ class DOIChangeListTable(DraftTableBase):
 class DeploymentChangeListTable(LimitedTableBase):
 
     campaign = ShortNamefromUUIDColumn(
-        verbose_name="Campaign", model=Platform, accessor="update__campaign"
+        verbose_name="Campaign",
+        model=Campaign,
+        accessor="update__campaign",
+        update_accessor="content_object.campaign",
     )
     start_date = tables.Column(verbose_name="Start Date", accessor="update__start_date")
     end_date = tables.Column(verbose_name="End Date", accessor="update__end_date")
