@@ -227,8 +227,16 @@ class SignificantEventChangeListTable(DraftTableBase):
         accessor="update__deployment",
         update_accessor="content_object.deployment",
     )
-    start_date = tables.Column(verbose_name="Start Date", accessor="update__start_date")
-    end_date = tables.Column(verbose_name="End Date", accessor="update__end_date")
+    start_date = ConditionalValueColumn(
+        verbose_name="Start Date",
+        accessor="update__start_date",
+        update_accessor="content_object.start_date",
+    )
+    end_date = ConditionalValueColumn(
+        verbose_name="End Date",
+        accessor="update__end_date",
+        update_accessor="content_object.end_date",
+    )
 
     class Meta(DraftTableBase.Meta):
         all_fields = (
