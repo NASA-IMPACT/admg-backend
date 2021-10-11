@@ -3,6 +3,7 @@ from data_models import models
 
 from . import published_tables
 from . import tables
+from . import filters
 
 from .published_filters import GenericPublishedListFilter
 
@@ -176,6 +177,7 @@ MODEL_CONFIG_MAP = {
         "display_name": "Deployment",
         "plural_snake_case": "deployments",
         "admin_required_to_view": False,
+        "filter": filters.DeploymentFilter,
     },
     "IOP": {
         **MODEL_CONFIG_MAP["IOP"],
