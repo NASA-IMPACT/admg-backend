@@ -153,6 +153,7 @@ MODEL_CONFIG_MAP = {
         "display_name": "DOI",
         "plural_snake_case": "dois",
         "admin_required_to_view": False,
+        "filter": filters.DoiFilter,
     },
     "Campaign": {
         **MODEL_CONFIG_MAP["Campaign"],
@@ -184,18 +185,21 @@ MODEL_CONFIG_MAP = {
         "display_name": "IOP",
         "plural_snake_case": "iops",
         "admin_required_to_view": False,
+        "filter": filters.second_level_campaign_filter(MODEL_CONFIG_MAP["IOP"]["model"]),
     },
     "SignificantEvent": {
         **MODEL_CONFIG_MAP["SignificantEvent"],
         "display_name": "Significant Event",
         "plural_snake_case": "significant_events",
         "admin_required_to_view": False,
+        "filter": filters.second_level_campaign_filter(MODEL_CONFIG_MAP["SignificantEvent"]["model"]),
     },
     "CollectionPeriod": {
         **MODEL_CONFIG_MAP["CollectionPeriod"],
         "display_name": "C-D-P-I",
         "plural_snake_case": "collection_periods",
         "admin_required_to_view": False,
+        "filter": filters.second_level_campaign_filter(MODEL_CONFIG_MAP["CollectionPeriod"]["model"]),
     },
     "Website": {
         **MODEL_CONFIG_MAP["Website"],
