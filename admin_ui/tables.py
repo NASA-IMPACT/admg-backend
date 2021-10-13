@@ -576,8 +576,8 @@ class CampaignChangeListTable(LimitedTableBase):
 class PlatformChangeListTable(LimitedTableBase):
     platform_type = ConditionalValueColumn(
         verbose_name="Platform Type",
-        accessor="platform_type_name",
-        update_accessor="content_object._type_name",
+        accessor="platform_type",
+        update_accessor="content_object.platform_type",
     )
 
     class Meta(LimitedTableBase.Meta):
