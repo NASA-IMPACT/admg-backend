@@ -33,6 +33,13 @@ class ConditionalValueColumn(tables.Column):
                 accessor = A(self.update_accessor)
                 value = accessor.resolve(record)
 
+                if value.__class__.__name__ == "ManyRelatedManager":
+                    many_values = [
+                        str(uuid)
+                        for uuid in list(value.all().values_list("uuid", flat=True))
+                    ]
+                    return many_values
+
         return value
 
     def render(self, **kwargs):
@@ -121,8 +128,6 @@ class ShortNamefromUUIDColumn(ConditionalValueColumn):
 
     def render(self, **kwargs):
         value = self.get_backup_value(**kwargs)
-        # return value
-        # value = kwargs.get('value')
         if isinstance(value, list):
             return ", ".join([self.get_short_name(uuid) for uuid in value])
         else:

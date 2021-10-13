@@ -37,7 +37,7 @@ def compare_values(old_item, new_item):
         old_item = str(old_item).strip()
         new_item = str(new_item).strip()
     else:
-        old_item = " ".join(old_item.strip().split())
-        new_item = " ".join(new_item.strip().split())
+        old_item = " ".join(str(old_item).strip().split())
+        new_item = " ".join(str(new_item).strip().split())
 
     return old_item == new_item

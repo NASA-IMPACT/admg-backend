@@ -389,8 +389,10 @@ class Change(models.Model):
             if self.action == UPDATE:
                 serializer = serializer_class(instance)
                 self.previous = {
-                    key: Change._get_processed_value(serializer.data.get(key))
-                        for key in self.update
+                    # might fail, if so revert back to:
+                    # key: Change._get_processed_value(serializer.data.get(key))
+                    key: Change._get_processed_value(getattr(instance, key))
+                    for key in self.update
                 }
 
     def get_latest_log(self):
