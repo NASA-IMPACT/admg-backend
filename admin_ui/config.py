@@ -44,7 +44,7 @@ for model_name in model_names:
     MODEL_CONFIG_MAP[model_name]["filter"] = GenericPublishedListFilter(model_name)
     MODEL_CONFIG_MAP[model_name]["model"] = getattr(models, model_name)
     MODEL_CONFIG_MAP[model_name]["table"] = getattr(
-        published_tables, f"Published{model_name}Table"
+        published_tables, f"{model_name}PublishedTable"
     )
     MODEL_CONFIG_MAP[model_name]["change_list_table"] = getattr(
         tables, f"{model_name}ChangeListTable"
