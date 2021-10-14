@@ -1,16 +1,19 @@
 from api_app.urls import camel_to_snake
 from data_models import models
 
-from . import published_tables
 from . import tables
 
 from .published_filters import GenericPublishedListFilter
+from .published_tables import build_published_table
+
 
 MODEL_CONFIG_MAP = {
     model_name: {
         "filter": GenericPublishedListFilter(model_name),
         "model": getattr(models, model_name),
-        "table": getattr(published_tables, f"Published{model_name}Table"),
+        "table": build_published_table(
+            model_name, overrides.get("table_link_field", "short_name")
+        ),
         "change_list_table": getattr(tables, f"{model_name}ChangeListTable"),
         "display_name": getattr(models, model_name)._meta.verbose_name.title(),
         "singular_snake_case": camel_to_snake(model_name),
@@ -48,9 +51,11 @@ MODEL_CONFIG_MAP = {
         },
         "GcmdPhenomena": {
             "display_name": "GCMD Phenomena",
+            "table_link_field": "category",
         },
         "DOI": {
             "admin_required_to_view": False,
+            "table_link_field": "concept_id",
         },
         "Campaign": {
             "admin_required_to_view": False,
@@ -73,13 +78,16 @@ MODEL_CONFIG_MAP = {
         "CollectionPeriod": {
             "display_name": "C-D-P-I",
             "admin_required_to_view": False,
+            "table_link_field": "uuid",
         },
         "Website": {
             "admin_required_to_view": False,
+            "table_link_field": "uuid",
         },
         "WebsiteType": {},
         "CampaignWebsite": {
             "display_name": "Campaign Website Linkage",
+            "table_link_field": "website",
         },
     }.items()
 }
