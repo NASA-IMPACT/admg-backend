@@ -1,0 +1,25 @@
+<ul class="list-inline">
+    {% if object.model_name == 'Campaign' %}
+    <li class="list-inline-item m-2">
+        <a class="btn btn-outline-secondary" href="{% url 'change-add' 'deployment' %}?campaign={{ object.uuid }}">
+            Add new Deployment
+        </a>
+    </li>
+    {% elif object.model_name == 'Deployment' %}
+    <li class="list-inline-item m-2">
+        <a class="btn btn-outline-secondary" href="{% url 'change-add' 'iop' %}?deployment={{ object.uuid }}">
+            Add new IOP
+        </a>
+    </li>
+    <li class="list-inline-item m-2">
+        <a class="btn btn-outline-secondary" href="{% url 'change-add' 'significantevent' %}?deployment={{ object.uuid }}">
+            Add new Significant Event
+        </a>
+    </li>
+    <li class="list-inline-item m-2">
+        <a class="btn btn-outline-secondary" href="{% url 'change-add' 'collectionperiod' %}?deployment={{ object.uuid }}">
+            Add new C-D-P-I
+        </a>
+    </li>
+    {% endif %}
+</ul>
