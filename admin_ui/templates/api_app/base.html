@@ -30,35 +30,25 @@
 
           <ul id="campaign-items-submenu" class="list-group list-group-flush collapse mt-2 {% active_link 'science-list-draft' 'show' %}">
 
-            <ul>
-              <li class="nav-item list-group-item">
-                <a class="nav-link {% active_link 'deployment-list-published || deployment-list-draft' 'active' %}" href="{% url 'deployment-list-draft' %}">Deployments</a>
-              </li>
-            </ul>
-    
-            <ul>
-              <li class="nav-item list-group-item">
-                <a class="nav-link {% active_link 'iop-list-published || iop-list-draft' 'active' %}" href="{% url 'iop-list-draft' %}">IOPs</a>
-              </li>
-            </ul>
-            
-            <ul>
-              <li class="nav-item list-group-item">
-                <a class="nav-link {% active_link 'significant_event-list-published || significant_event-list-draft' 'active' %}" href="{% url 'significant_event-list-draft' %}">Significant Events</a>
-              </li>
-            </ul>
+            <li class="nav-item list-group-item">
+              <a class="nav-link {% active_link 'deployment-list-published || deployment-list-draft' 'active' %}" href="{% url 'deployment-list-draft' %}">Deployments</a>
+            </li>
+  
+            <li class="nav-item list-group-item">
+              <a class="nav-link {% active_link 'iop-list-published || iop-list-draft' 'active' %}" href="{% url 'iop-list-draft' %}">IOPs</a>
+            </li>
+          
+            <li class="nav-item list-group-item">
+              <a class="nav-link {% active_link 'significant_event-list-published || significant_event-list-draft' 'active' %}" href="{% url 'significant_event-list-draft' %}">Significant Events</a>
+            </li>
 
-            <ul>
-              <li class="nav-item list-group-item">
-                <a class="nav-link {% active_link 'collection_period-list-published || collection_period-list-draft' 'active' %}" href="{% url 'collection_period-list-draft' %}">CDPIs</a>
-              </li>
-            </ul>
+            <li class="nav-item list-group-item">
+              <a class="nav-link {% active_link 'collection_period-list-published || collection_period-list-draft' 'active' %}" href="{% url 'collection_period-list-draft' %}">CDPIs</a>
+            </li>
 
-            <ul>
-              <li class="nav-item list-group-item">
-                <a class="nav-link {% active_link 'doi-list-published || doi-list-draft' 'active' %}" href="{% url 'doi-list-draft' %}">DOIs</a>
-              </li>
-            </ul>
+            <li class="nav-item list-group-item">
+              <a class="nav-link {% active_link 'doi-list-published || doi-list-draft' 'active' %}" href="{% url 'doi-list-draft' %}">DOIs</a>
+            </li>
 
           </ul>
         </li>
@@ -93,41 +83,31 @@
                 <svg class="plus ml-auto my-auto" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus" viewBox="0 0 16 16"> <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/> </svg>
               </span>
               <ul id="gcmd-fields-submenu" class="list-group list-group-flush collapse mt-2 {% active_link 'science-list-draft' 'show' %}">
-                <ul>
-                  <li class="list-group-item">
-                    <a href="{% url 'gcmd_project-list-draft' %}" class="mx-0 {% active_link 'gcmd_project-list-draft' %}">
-                      GCMD Projects
-                    </a>
-                  </li>
-                </ul>
-                <ul>
-                  <li class="list-group-item">
-                    <a href="{% url 'gcmd_instrument-list-draft' %}" class="mx-0 {% active_link 'gcmd_instrument-list-draft' %}">
-                      GCMD Instruments
-                    </a>
-                  </li>
-                </ul>
-                <ul>
-                  <li class="list-group-item">
-                    <a href="{% url 'gcmd_platform-list-draft' %}" class="mx-0 {% active_link 'gcmd_platform-list-draft' %}">
-                      GCMD Platforms
-                    </a>
-                  </li>
-                </ul>
-                <ul>
-                  <li class="list-group-item">
-                    <a href="{% url 'gcmd_phenomena-list-draft' %}" class="mx-0 {% active_link 'gcmd_phenomena-list-draft' %}">
-                      GCMD Earth Science Keywords
-                    </a>
-                  </li>
-                </ul>
-                <ul>
-                  <li class="list-group-item">
-                    <a href="{% url 'repository-list-draft' %}" class="mx-0 {% active_link 'repository-list-draft' %}">
-                      Repositories
-                    </a>
-                  </li>
-                </ul>
+                <li class="list-group-item">
+                  <a href="{% url 'gcmd_project-list-draft' %}" class="mx-0 {% active_link 'gcmd_project-list-draft' %}">
+                    GCMD Projects
+                  </a>
+                </li>
+                <li class="list-group-item">
+                  <a href="{% url 'gcmd_instrument-list-draft' %}" class="mx-0 {% active_link 'gcmd_instrument-list-draft' %}">
+                    GCMD Instruments
+                  </a>
+                </li>
+                <li class="list-group-item">
+                  <a href="{% url 'gcmd_platform-list-draft' %}" class="mx-0 {% active_link 'gcmd_platform-list-draft' %}">
+                    GCMD Platforms
+                  </a>
+                </li>
+                <li class="list-group-item">
+                  <a href="{% url 'gcmd_phenomena-list-draft' %}" class="mx-0 {% active_link 'gcmd_phenomena-list-draft' %}">
+                    GCMD Earth Science Keywords
+                  </a>
+                </li>
+                <li class="list-group-item">
+                  <a href="{% url 'repository-list-draft' %}" class="mx-0 {% active_link 'repository-list-draft' %}">
+                    Repositories
+                  </a>
+                </li>
               </ul>
             </li>
 
@@ -138,41 +118,31 @@
                 <svg class="plus ml-auto my-auto" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus" viewBox="0 0 16 16"> <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/> </svg>
               </span>
               <ul id="measurement-fields-submenu" class="list-group list-group-flush collapse mt-2 {% active_link 'science-list-draft' 'show' %}">
-                <ul>
-                  <li class="list-group-item">
-                    <a href="{% url 'measurement_region-list-draft' %}" class="mx-0 {% active_link 'measurement_region-list-draft' %}">
-                      Vertical Measurement Regions
-                    </a>
-                  </li>
-                </ul>
-                <ul>
-                  <li class="list-group-item">
-                    <a href="{% url 'measurement_type-list-draft' %}" class="mx-0 {% active_link 'measurement_type-list-draft' %}">
-                      Measurement Types
-                    </a>
-                  </li>
-                </ul>
-                <ul>
-                  <li class="list-group-item">
-                    <a href="{% url 'measurement_style-list-draft' %}" class="mx-0 {% active_link 'measurement_style-list-draft' %}">
-                      Measurement Styles
-                    </a>
-                  </li>
-                </ul>
-                <ul>
-                  <li class="list-group-item">
-                    <a href="{% url 'home_base-list-draft' %}" class="mx-0 {% active_link 'home_base-list-draft' %}">
-                      Platform Home Bases
-                    </a>
-                  </li>
-                </ul>
-                <ul>
-                  <li class="list-group-item">
-                    <a href="{% url 'platform_type-list-draft' %}" class="mx-0 {% active_link 'platform_type-list-draft' %}">
-                      Platform Types
-                    </a>
-                  </li>
-                </ul>
+                <li class="list-group-item">
+                  <a href="{% url 'measurement_region-list-draft' %}" class="mx-0 {% active_link 'measurement_region-list-draft' %}">
+                    Vertical Measurement Regions
+                  </a>
+                </li>
+                <li class="list-group-item">
+                  <a href="{% url 'measurement_type-list-draft' %}" class="mx-0 {% active_link 'measurement_type-list-draft' %}">
+                    Measurement Types
+                  </a>
+                </li>
+                <li class="list-group-item">
+                  <a href="{% url 'measurement_style-list-draft' %}" class="mx-0 {% active_link 'measurement_style-list-draft' %}">
+                    Measurement Styles
+                  </a>
+                </li>
+                <li class="list-group-item">
+                  <a href="{% url 'home_base-list-draft' %}" class="mx-0 {% active_link 'home_base-list-draft' %}">
+                    Platform Home Bases
+                  </a>
+                </li>
+                <li class="list-group-item">
+                  <a href="{% url 'platform_type-list-draft' %}" class="mx-0 {% active_link 'platform_type-list-draft' %}">
+                    Platform Types
+                  </a>
+                </li>
               </ul>
             </li>
 
@@ -183,34 +153,26 @@
                 <svg class="plus ml-auto my-auto" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus" viewBox="0 0 16 16"> <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/> </svg>
               </span>
               <ul id="science_concepts-fields-submenu" class="list-group list-group-flush collapse mt-2 {% active_link 'science-list-draft' 'show' %}">
-                <ul>
-                  <li class="list-group-item">
-                    <a href="{% url 'focus_area-list-draft' %}" class="mx-0 {% active_link 'focus_area-list-draft' %}">
-                      Focus Areas
-                    </a>
-                  </li>
-                </ul>
-                <ul>
-                  <li class="list-group-item">
-                    <a href="{% url 'geophysical_concept-list-draft' %}" class="mx-0 {% active_link 'geophysical_concept-list-draft' %}">
-                      Geophysical Concepts
-                    </a>
-                  </li>
-                </ul>
-                <ul>
-                  <li class="list-group-item">
-                    <a href="{% url 'geographical_region-list-draft' %}" class="mx-0 {% active_link 'geographical_region-list-draft' %}">
-                      Geographical Regions
-                    </a>
-                  </li>
-                </ul>
-                <ul>
-                  <li class="list-group-item">
-                    <a href="{% url 'season-list-draft' %}" class="mx-0 {% active_link 'season-list-draft' %}">
-                      Seasons
-                    </a>
-                  </li>
-                </ul>
+                <li class="list-group-item">
+                  <a href="{% url 'focus_area-list-draft' %}" class="mx-0 {% active_link 'focus_area-list-draft' %}">
+                    Focus Areas
+                  </a>
+                </li>
+                <li class="list-group-item">
+                  <a href="{% url 'geophysical_concept-list-draft' %}" class="mx-0 {% active_link 'geophysical_concept-list-draft' %}">
+                    Geophysical Concepts
+                  </a>
+                </li>
+                <li class="list-group-item">
+                  <a href="{% url 'geographical_region-list-draft' %}" class="mx-0 {% active_link 'geographical_region-list-draft' %}">
+                    Geographical Regions
+                  </a>
+                </li>
+                <li class="list-group-item">
+                  <a href="{% url 'season-list-draft' %}" class="mx-0 {% active_link 'season-list-draft' %}">
+                    Seasons
+                  </a>
+                </li>
               </ul>
             </li>
 
@@ -221,13 +183,11 @@
                 <svg class="plus ml-auto my-auto" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus" viewBox="0 0 16 16"> <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/> </svg>
               </span>
               <ul id="website_items-fields-submenu" class="list-group list-group-flush collapse mt-2 {% active_link 'science-list-draft' 'show' %}">
-                <ul>
-                  <li class="list-group-item">
-                    <a href="{% url 'website_type-list-draft' %}" class="mx-0 {% active_link 'website_type-list-draft' %}">
-                      Website Types
-                    </a>
-                  </li>
-                </ul>
+                <li class="list-group-item">
+                  <a href="{% url 'website_type-list-draft' %}" class="mx-0 {% active_link 'website_type-list-draft' %}">
+                    Website Types
+                  </a>
+                </li>
               </ul>
             </li>
           </ul>
