@@ -488,7 +488,7 @@ class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
             "breadcrumbs": obj.get_breadcrumbs().select_related("content_type"),
             "descendents": Change.objects.filter(
                 **{f"update__{obj.content_type.model}": str(obj.uuid)}
-            ),
+            ).select_related("content_type"),
         }
 
     def get_model_form_content_type(self) -> ContentType:
