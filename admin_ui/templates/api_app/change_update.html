@@ -34,10 +34,10 @@
 {% endblock actions %}
 
 {% block main %}
-  {% include "api_app/change_form.html" with class="col-8" %}
+  {% include "api_app/change_form.html" with class="col-lg-8" %}
 
   {# Sidebar #}
-  <aside class="col-sm-4">
+  <aside class="col col-lg-4">
     {% if object.logo_url %}
     <h3>Logo</h3>
     <a href="{% url 'change-update' object.update.logo %}">
@@ -52,8 +52,17 @@
 
     <hr />
     
+    <h3>Related Models</h3>
+
+    <strong>TODO:</strong> Query descendent models.
+    <strong>TODO:</strong> Add convenience buttons for adding descent models.
+
+    <hr />
+
     <h3>Related Fields</h3>
     {% include 'snippets/related_fields.html' with related_fields=related_fields%}
+
+    <hr />
 
     <details class="small">
       <summary>Debug Data</summary>
