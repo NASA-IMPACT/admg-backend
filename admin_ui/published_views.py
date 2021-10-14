@@ -1,49 +1,20 @@
-from typing import Dict
-from uuid import UUID
-
-from django.conf import settings
-from django.contrib import messages
-from django.contrib.contenttypes import models
 from django.contrib.contenttypes.models import ContentType
-from django.contrib.auth.decorators import login_required, user_passes_test
-from django.db.models import aggregates
-from django.http import HttpResponseRedirect, Http404
+from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
-from django.utils.safestring import mark_safe
 from django.urls import reverse
-from django.views import View
 from django.views.generic import DetailView
-from django.views.generic.detail import SingleObjectMixin
-from django.views.generic.list import ListView, MultipleObjectMixin
-from django.views.generic.edit import (
-    CreateView,
-    UpdateView,
-    FormView,
-    FormMixin,
-    ProcessFormView,
-    ModelFormMixin,
-)
-from requests.api import get
+from django.views.generic.edit import ModelFormMixin
 
-from django_celery_results.models import TaskResult
-import django_tables2
 from django_tables2.views import SingleTableMixin
 from django_filters.views import FilterView
 from django.shortcuts import render, redirect
 
 from api_app.models import (
-    ApprovalLog,
     Change,
-    CREATE,
     UPDATE,
     CREATED_CODE,
-    IN_REVIEW_CODE,
-    IN_PROGRESS_CODE,
-    AWAITING_REVIEW_CODE,
-    IN_ADMIN_REVIEW_CODE,
     PUBLISHED_CODE,
     IN_TRASH_CODE,
-    AVAILABLE_STATUSES,
 )
 from data_models import serializers
 
