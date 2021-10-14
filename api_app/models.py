@@ -398,6 +398,53 @@ class Change(models.Model):
     def get_latest_log(self):
         return ApprovalLog.objects.filter(change=self).order_by('date').last()
 
+    def get_breadcrumbs(self):
+        """
+        Get record and all ancestry records. This record will be returned first,
+        then its parent, then its parent's parent, and so on.
+        """
+        return Change.objects.raw(
+            """
+            WITH RECURSIVE parent AS (
+                SELECT
+                    c.uuid,
+                    c.update,
+                    ct.model
+                FROM
+                    api_app_change c,
+                    django_content_type ct
+                WHERE
+                    c.content_type_id = ct.id
+                    AND c.uuid = %s
+                UNION ALL
+                SELECT
+                    c.uuid,
+                    c.update,
+                    ct.model
+                FROM
+                    api_app_change c,
+                    django_content_type ct,
+                    parent p
+                WHERE
+                    c.content_type_id = ct.id
+                    -- The only time we want campaign relationships is when
+                    -- looking up the parent of a deployment
+                    AND CASE WHEN p.model = 'deployment' THEN
+                        p.update ->> 'campaign' = c.uuid::text
+                    ELSE
+                        p.update ->> 'deployment' = c.uuid::text
+                    END
+            )
+            SELECT
+                model,
+                h.update ->> 'short_name' short_name,
+                h.uuid
+            FROM
+                parent h
+            """,
+            [self.uuid],
+        )
+
     def save(self, *args, post_save=False, **kwargs):
         # do not check for validity of model_name and uuid if it has been approved or rejected.
         # Check is done for the first time only
