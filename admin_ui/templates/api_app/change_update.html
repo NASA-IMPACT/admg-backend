@@ -52,9 +52,26 @@
 
     <hr />
     
-    <h3>Related Models</h3>
+    <h3>Descendent Models</h3>
 
-    <strong>TODO:</strong> Query descendent models.
+    {% regroup descendents by model_name as grouped_descendents %}
+    <ul>
+      {% for model_type in grouped_descendents %}
+      <li>{{ model_type.grouper }}</li>
+      <ul>
+          {% for instance in model_type.list %}
+          <li>
+            <a href="{% url 'change-update' instance.uuid %}">
+              {{ instance.update.short_name }}
+            </a>
+          </li>
+          {% endfor %}
+        </ul>
+      {% empty %}
+        <em>No descendant drafts found.</em>
+      {% endfor %}
+    </ul>
+
     <strong>TODO:</strong> Add convenience buttons for adding descent models.
 
     <hr />
