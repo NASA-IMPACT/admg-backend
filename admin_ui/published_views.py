@@ -36,6 +36,7 @@ from api_app.models import (
     Change,
     CREATE,
     UPDATE,
+    DELETE,
     CREATED_CODE,
     IN_REVIEW_CODE,
     IN_PROGRESS_CODE,
@@ -293,3 +294,24 @@ class DiffView(ModelObjectView):
         return self._get_context_from_data(
             change_instance, editable_form, noneditable_published_form, **kwargs
         )
+
+
+def GenericDeleteView(model_name):
+    @method_decorator(login_required, name="dispatch")
+    class GenericDeletelViewClass(View):
+        def dispatch(self, *args, **kwargs):
+            model_to_query = MODEL_CONFIG_MAP[model_name]['model']
+            content_type = ContentType.objects.get_for_model(model_to_query)
+            change_object = Change.objects.create(
+                content_type=content_type,
+                status=CREATED_CODE,
+                action=DELETE,
+                model_instance_uuid=kwargs.get("pk"),
+                update={}
+            )
+            change_object.save()
+            return redirect(reverse(
+                f"{MODEL_CONFIG_MAP[model_name]['singular_snake_case']}-list-draft"
+            ))
+
+    return GenericDeletelViewClass

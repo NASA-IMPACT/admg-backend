@@ -45,5 +45,20 @@ diff_url = [
     )
 ]
 
+delete_urls = [
+    path(
+        f"{MODEL_CONFIG_MAP[model]['plural_snake_case']}/published/<uuid:pk>/delete",
+        published_views.GenericDeleteView(model).as_view(),
+        name=f"{MODEL_CONFIG_MAP[model]['singular_snake_case']}-delete-published"
+    )
+    for model in MODEL_CONFIG_MAP
+]
 
-published_urls = list_urls + detail_urls + edit_urls + diff_url
+
+published_urls = (
+    list_urls +
+    detail_urls +
+    edit_urls +
+    diff_url +
+    delete_urls
+)

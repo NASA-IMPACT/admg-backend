@@ -506,6 +506,12 @@ class Change(models.Model):
             response = {"success": False, "message": "UUID for the model was not found"}
         else:
             model_instance = self._get_model_instance()
+            self.update = {
+                key: Change._get_processed_value(getattr(model_instance, key))
+                for key in model_instance.__dict__
+                if not key.startswith("_")
+            }
+            self.save(post_save=True)
             model_instance.delete()
 
             response = {"uuid": self.model_instance_uuid, "status": PUBLISHED_CODE}
