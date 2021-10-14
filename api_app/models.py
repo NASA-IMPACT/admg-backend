@@ -411,6 +411,7 @@ class Change(models.Model):
         # Using this "uuid__in" trick allows us to return a standard queryset
         # rather than a RawQueryset. This means we can use all of the other
         # queryset helpers like ".select_related()".
+        # BUG: Order not maintained: http://localhost:8000/drafts/edit/9ff909ea-5b51-497f-b2dc-61476188a068?back=/campaigns/0065eecf-32c0-4b7a-9c2d-4bbbc8fedb62
         return Change.objects.filter(
             uuid__in=expressions.RawSQL(
                 """
