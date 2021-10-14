@@ -6,7 +6,6 @@ from . import tables
 from .published_filters import GenericPublishedListFilter
 from .published_tables import build_published_table
 
-
 MODEL_CONFIG_MAP = {
     model_name: {
         "filter": GenericPublishedListFilter(model_name),
