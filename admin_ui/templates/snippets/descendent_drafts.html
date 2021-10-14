@@ -1,7 +1,7 @@
 {% regroup drafts by model_name as grouped_descendents %}
 <ul class="list-unstyled">
   {% for model_type in grouped_descendents %}
-  <li>{{ model_type.grouper }}</li>
+  <li class="font-weight-bold">{{ model_type.grouper }}</li>
   <ul>
       {% for instance in model_type.list %}
       <li>
