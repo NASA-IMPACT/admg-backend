@@ -7,7 +7,7 @@
 {% endblock %}
 {% block content %}
 <div id="sidebar" class="row align-items-start">
-  <div class="col-sm-2">
+  <div class="col-sm-4 col-lg-2">
     <nav class="card">
       <ul class="nav flex-column list-group">
 
@@ -30,35 +30,25 @@
 
           <ul id="campaign-items-submenu" class="list-group list-group-flush collapse mt-2 {% active_link 'science-list-draft' 'show' %}">
 
-            <ul>
               <li class="nav-item list-group-item">
                 <a class="nav-link {% active_link 'deployment-list-published || deployment-list-draft' 'active' %}" href="{% url 'deployment-list-draft' %}">Deployments</a>
               </li>
-            </ul>
     
-            <ul>
               <li class="nav-item list-group-item">
                 <a class="nav-link {% active_link 'iop-list-published || iop-list-draft' 'active' %}" href="{% url 'iop-list-draft' %}">IOPs</a>
               </li>
-            </ul>
             
-            <ul>
               <li class="nav-item list-group-item">
                 <a class="nav-link {% active_link 'significant_event-list-published || significant_event-list-draft' 'active' %}" href="{% url 'significant_event-list-draft' %}">Significant Events</a>
               </li>
-            </ul>
 
-            <ul>
               <li class="nav-item list-group-item">
                 <a class="nav-link {% active_link 'collection_period-list-published || collection_period-list-draft' 'active' %}" href="{% url 'collection_period-list-draft' %}">CDPIs</a>
               </li>
-            </ul>
 
-            <ul>
               <li class="nav-item list-group-item">
                 <a class="nav-link {% active_link 'doi-list-published || doi-list-draft' 'active' %}" href="{% url 'doi-list-draft' %}">DOIs</a>
               </li>
-            </ul>
 
           </ul>
         </li>
@@ -236,7 +226,7 @@
       </ul>
     </nav>
   </div>
-  <div class="col-sm-10">
+  <div class="col-sm-8 col-lg-10">
     {% block page %}
     <p>page info</p>
     {% endblock page %}
