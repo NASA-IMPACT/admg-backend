@@ -5,6 +5,8 @@
 
 {% block header %}
   <div class="col">
+    {% include 'snippets/breadcrumbs.html' with breadcrumbs=breadcrumbs%}
+
     <a href="{% spaceless %}
         {% if "back" in request.GET %} {{ request.GET.back }}
         {% else %}{% url back_button %}
