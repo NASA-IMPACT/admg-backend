@@ -12,19 +12,6 @@ def GenericFormClass(model_name="", model=None):
 
     class MyFormClass(ModelForm):
 
-        @staticmethod
-        def add_classes(value, arg):
-            '''
-            Add provided classes to form field
-            :param value: form field
-            :param arg: string of classes seperated by ' '
-            :return: edited field
-            '''
-            css_classes = value.widget.attrs.get('class', '')
-            css_classes = css_classes.split(' ') if css_classes else []
-            css_classes = list(set(css_classes).union(set(arg.split(' '))))
-            value.widget.attrs['class'] = " ".join(css_classes)
-
         def is_valid(self) -> bool:
             unique_fields = ["short_name", "order_priority", "gcmd_uuid", "url", "concept_id"]
             unique_error_message = "with this {} already exists."
