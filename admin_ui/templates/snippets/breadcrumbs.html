@@ -4,7 +4,7 @@
         {% if change.model == 'campaign' %}
         <li class="breadcrumb-item">
             <a href="{% url 'campaign-detail' change.uuid %}">
-                dashboard
+                Dashboard
             </a>
         </li>
         {% endif %}
@@ -13,7 +13,7 @@
         class="breadcrumb-item {% if change.uuid == object.uuid %}active{% endif %}"
         {% if change.uuid == object.uuid %}aria-current="page"{% endif %}
         >
-        {% with label=change.model %}
+        {% with label=change.model.title %}
             {% if change.uuid == object.uuid %}
                 {{ label }}
             {% else %}
