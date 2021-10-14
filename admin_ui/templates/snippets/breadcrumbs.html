@@ -1,7 +1,7 @@
 <nav aria-label="breadcrumb">
     <ol class="breadcrumb">
-    {% for change in breadcrumbs reversed %}
-        {% if change.model == 'campaign' %}
+    {% for change in breadcrumbs %}
+        {% if change.model_name == 'Campaign' %}
         <li class="breadcrumb-item">
             <a href="{% url 'campaign-detail' change.uuid %}">
                 Dashboard
@@ -13,7 +13,7 @@
         class="breadcrumb-item {% if change.uuid == object.uuid %}active{% endif %}"
         {% if change.uuid == object.uuid %}aria-current="page"{% endif %}
         >
-        {% with label=change.model.title %}
+        {% with label=change.model_name %}
             {% if change.uuid == object.uuid %}
                 {{ label }}
             {% else %}
