@@ -150,7 +150,7 @@ class DraftTableBase(tables.Table):
     class Meta:
         model = Change
         attrs = {
-            "class": "table table-striped",
+            "class": "table table-striped table-responsive",
             "thead": {"class": "table-primary"},
             "th": {"style": "min-width: 10em"},
         }
@@ -613,7 +613,7 @@ class ChangeSummaryTable(DraftTableBase):
 
     class Meta:
         model = Change
-        attrs = {"class": "table table-striped", "thead": {"class": "table-primary"}}
+        attrs = {"class": "table table-striped table-responsive", "thead": {"class": "table-primary"}}
         fields = ["name", "content_type__model", "updated_at", "status"]
 
 
