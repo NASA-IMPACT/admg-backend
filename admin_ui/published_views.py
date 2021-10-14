@@ -91,12 +91,8 @@ class ModelObjectView(ModelFormMixin, DetailView):
 
         return form
 
-    def _get_form_model(self, model, disable_all=False, **kwargs):
-        form = GenericFormClass(model=model)
-        return self._get_form(form, disable_all, **kwargs)
-
-    def _get_form_model_name(self, model_name, disable_all=False, **kwargs):
-        form = GenericFormClass(model_name=model_name)
+    def _get_form_model(self, model_name, disable_all=False, **kwargs):
+        form = GenericFormClass(model_name)
         return self._get_form(form, disable_all, **kwargs)
 
     def get_context_data(self, **kwargs):
@@ -116,7 +112,7 @@ def GenericDetailView(model_name):
         def get_context_data(self, **kwargs):
             return {
                 **super().get_context_data(**kwargs),
-                "model_form": self._get_form_model_name(
+                "model_form": self._get_form_model(
                     model_name, instance=kwargs.get("object"), disable_all=True
                 ),
                 "model_name": model_name,
@@ -140,8 +136,8 @@ def GenericEditView(model_name):
 
             # getting form with instance and data gives a lot of changed fields
             # however, getting a form with initial and data only gives the required changed fields
-            old_form = self._get_form_model_name(model_name, instance=model_instance)
-            new_form = self._get_form_model_name(
+            old_form = self._get_form_model(model_name, instance=model_instance)
+            new_form = self._get_form_model(
                 model_name, data=request.POST, initial=old_form.initial
             )
 
@@ -181,7 +177,7 @@ def GenericEditView(model_name):
         def get_context_data(self, **kwargs):
             return {
                 **super().get_context_data(**kwargs),
-                "model_form": self._get_form_model_name(
+                "model_form": self._get_form_model(
                     model_name, instance=kwargs.get("object")
                 ),
                 "model_name": model_name,
@@ -234,7 +230,7 @@ class DiffView(ModelObjectView):
         )
 
         old_data_form = self._get_form_model(
-            MODEL_CONFIG_MAP[change_instance.model_name]["model"],
+            change_instance.model_name,
             disable_all=True,
             instance=model_instance,
             auto_id="readonly_%s",
@@ -242,7 +238,7 @@ class DiffView(ModelObjectView):
 
         if serializer_obj.is_valid():
             editable_form = self._get_form_model(
-                MODEL_CONFIG_MAP[change_instance.model_name]["model"],
+                change_instance.model_name,
                 disable_all=self.is_published_or_trashed(change_instance),
             )
             editable_form.initial = {
@@ -274,7 +270,7 @@ class DiffView(ModelObjectView):
         _, noneditable_published_form = self.initialize_forms(change_instance)
 
         updated_form = self._get_form_model(
-            MODEL_CONFIG_MAP[change_instance.model_name]["model"],
+            change_instance.model_name,
             data=request.POST,
             initial=noneditable_published_form.initial,
         )
