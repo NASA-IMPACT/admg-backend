@@ -408,51 +408,56 @@ class Change(models.Model):
         """
         Get record and all ancestry records.
         """
+        uuids = [
+            str(c.uuid)
+            for c in Change.objects.raw(
+                """
+                WITH RECURSIVE parent AS (
+                    SELECT
+                        c.uuid,
+                        c.update,
+                        ct.model
+                    FROM
+                        api_app_change c,
+                        django_content_type ct
+                    WHERE
+                        c.content_type_id = ct.id
+                        AND c.uuid = %s
+                    UNION ALL
+                    SELECT
+                        c.uuid,
+                        c.update,
+                        ct.model
+                    FROM
+                        api_app_change c,
+                        django_content_type ct,
+                        parent p
+                    WHERE
+                        c.content_type_id = ct.id
+                        -- The only time we want campaign relationships is when
+                        -- looking up the parent of a deployment
+                        AND CASE WHEN p.model ~* 'deployment|doi' THEN
+                            p.update ->> 'campaign' = c.uuid::text
+                        ELSE
+                            p.update ->> 'deployment' = c.uuid::text
+                        END
+                )
+                SELECT
+                    uuid
+                FROM
+                    parent
+                """,
+                [self.uuid]
+            )
+        ]
         # Using this "uuid__in" trick allows us to return a standard queryset
         # rather than a RawQueryset. This means we can use all of the other
-        # queryset helpers like ".select_related()".
-        # BUG: Order not maintained: http://localhost:8000/drafts/edit/9ff909ea-5b51-497f-b2dc-61476188a068?back=/campaigns/0065eecf-32c0-4b7a-9c2d-4bbbc8fedb62
-        return Change.objects.filter(
-            uuid__in=expressions.RawSQL(
-                """
-            WITH RECURSIVE parent AS (
-                SELECT
-                    c.uuid,
-                    c.update,
-                    ct.model
-                FROM
-                    api_app_change c,
-                    django_content_type ct
-                WHERE
-                    c.content_type_id = ct.id
-                    AND c.uuid = %s
-                UNION ALL
-                SELECT
-                    c.uuid,
-                    c.update,
-                    ct.model
-                FROM
-                    api_app_change c,
-                    django_content_type ct,
-                    parent p
-                WHERE
-                    c.content_type_id = ct.id
-                    -- The only time we want campaign relationships is when
-                    -- looking up the parent of a deployment
-                    AND CASE WHEN p.model ~* 'deployment|doi' THEN
-                        p.update ->> 'campaign' = c.uuid::text
-                    ELSE
-                        p.update ->> 'deployment' = c.uuid::text
-                    END
-            )
-            SELECT
-                uuid
-            FROM
-                parent
-            """,
-                [self.uuid],
-            )
-        )
+        # queryset helpers like ".select_related()". However, this can return records
+        # out of order so we also need to reinforce the order by adding a "place"
+        # attribute on each record.
+        return Change.objects.filter(uuid__in=uuids).annotate(
+            place=expressions.RawSQL("select array_position(%s, uuid::text)", [uuids])
+        ).order_by('-place')
 
     def save(self, *args, post_save=False, **kwargs):
         # do not check for validity of model_name and uuid if it has been approved or rejected.
