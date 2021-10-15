@@ -66,7 +66,7 @@ class FoldingNavNode(template.Node):
         self.model_names = model_names
 
     def render(self, context):
-        t = get_template("snippets/sidebar/collapsable_navgroup.html")
+        t = get_template("snippets/navmenu/collapsable_navgroup.html")
         return t.render(
             {
                 **context.flatten(),
