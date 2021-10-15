@@ -614,7 +614,7 @@ class ChangeSummaryTable(DraftTableBase):
     class Meta:
         model = Change
         attrs = {
-            "class": "table table-striped table-responsive",
+            "class": "table table-striped",
             "thead": {"class": "table-primary"},
         }
         fields = ["name", "content_type__model", "updated_at", "status"]
