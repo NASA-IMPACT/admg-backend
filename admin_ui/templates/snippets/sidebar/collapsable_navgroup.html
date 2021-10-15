@@ -1,0 +1,9 @@
+{% load active_link_tags %}
+
+<span class="nav-link text-truncate cursor-pointer dropdown-toggle {% active_link active_views 'active' 'collapsed' %}" data-toggle="collapse" data-target="#{{ identifier }}">
+  {{ title }}
+</span>
+
+<div id="{{ identifier }}" class="collapse mt-2 {% active_link active_views 'show' %}">
+  {{ children }}
+</div>
