@@ -22,15 +22,6 @@ dt {
 }
 
 /* Views */
-#sidebar {
-  .nav-link.collapsed .minus {
-    display: none;
-  }
-  .nav-link:not(.collapsed) .plus {
-    display: none;
-  }
-}
-
 .campaign-summary {
   li.list-group-item {
     padding-bottom: 0;
