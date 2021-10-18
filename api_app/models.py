@@ -13,6 +13,7 @@ from rest_framework.response import Response
 
 from admg_webapp.users.models import ADMIN, User
 from data_models import serializers
+from data_models.models import CollectionPeriod
 
 
 CREATE = "Create"
@@ -363,11 +364,14 @@ class Change(models.Model):
     def model_name(self):
         # TODO: Verify that this works with API
         cls = self.content_type.model_class()
-        return cls.__name__ if cls else "UNKNOWN"
+        if cls:
+            return "CDPI" if cls == CollectionPeriod else cls.__name__
+        else:
+            return "UNKNOWN"
 
     def __str__(self):
         return f"{self.model_name} >> {self.uuid}"
-    
+
     @classmethod
     def _get_processed_value(cls, value):
         if isinstance(value, UUID):
