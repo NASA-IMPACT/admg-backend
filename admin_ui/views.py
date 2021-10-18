@@ -463,32 +463,6 @@ class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
         )
     )
 
-    def get_form(self, form_class=None):
-        # if form_class is None:
-        #     form_class = self.get_form_class()
-        # return form_class(**self.get_form_kwargs())
-        super_form = super().get_form()
-        content_type = self.get_model_form_content_type().model_class().__name__
-        kwargs = self.get_form_kwargs()
-        print(f"kwargs: {kwargs}")
-        print(f"Content Type: {content_type}")
-
-        if form_class is None:
-            form_class = self.get_form_class()
-
-        super_form = super().get_form(form_class)
-        print(f"Super Form: {super_form}")
-
-        update_form = form_class(**kwargs)
-        print(f"instance properties: {dir(kwargs['instance'])}")
-        print(f"instance type: {type(kwargs['instance'].content_object)}")
-        print(f"Deployment atts: {dir(kwargs['instance'].content_object.campaign)}")
-        print(f"\n\nkwargs instance: {kwargs['instance'].content_object}")
-        print(f"Form Class: {type(update_form)}")
-        print(f"Form Class Dir: {dir(update_form)}")
-        print(f"Form Class Fields: {update_form.fields}")
-        return update_form
-
     def get_success_url(self):
         url = reverse("change-update", args=[self.object.pk])
         if self.request.GET.get("back"):
@@ -497,8 +471,17 @@ class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
 
     def get_context_data(self, **kwargs):
         obj = self.get_object()
+        context = super().get_context_data(**kwargs)
+        model_form = context["model_form"]
+        instance_class = context["model_form"].instance.__class__
+
+        if instance_class == Deployment:
+            model_form.fields["campaign"].disabled = True
+        elif instance_class in [IOP, SignificantEvent, CollectionPeriod]:
+            model_form.fields["deployment"].disabled = True
+
         return {
-            **super().get_context_data(**kwargs),
+            **context,
             "transition_form": forms.TransitionForm(change=obj, user=self.request.user),
             "campaign_subitems": [
                 "Deployment",
