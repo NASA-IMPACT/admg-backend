@@ -4,8 +4,8 @@ from django.template.loader import get_template
 
 
 register = template.Library()
-draft_view = lambda view: f"{view}-list-draft"
-published_view = lambda view: f"{view}-list-published"
+build_draft_view = lambda view: f"{view}-list-draft"
+build_published_view = lambda view: f"{view}-list-published"
 
 
 def is_quoted(text: str):
@@ -17,8 +17,8 @@ def nav_link(context, title, view):
     return {
         **context.flatten(),
         "title": title,
-        "view": draft_view(view),
-        "links": " || ".join(f(view) for f in [draft_view, published_view]),
+        "view": build_draft_view(view),
+        "links": " || ".join(f(view) for f in [build_draft_view, build_published_view]),
     }
 
 
@@ -38,13 +38,13 @@ def collapsable_menu(parser, token):
     """
     try:
         # split_contents() knows not to split quoted strings.
-        tag, title, *views = token.split_contents()
+        tag, title, *model_names = token.split_contents()
     except ValueError:
         raise template.TemplateSyntaxError(
             "%r tag requires exactly two arguments" % token.contents.split()[0]
         )
 
-    if not all(is_quoted(text) for text in [title, *views]):
+    if not all(is_quoted(text) for text in [title, *model_names]):
         raise template.TemplateSyntaxError(
             "%r tag's arguments should be in quotes" % tag
         )
@@ -53,16 +53,17 @@ def collapsable_menu(parser, token):
     parser.delete_first_token()
     return FoldingNavNode(
         nodelist,
+        # Trim quotes
         title=title[1:-1],
-        views=views,
+        model_names=[model_name[1:-1] for model_name in model_names],
     )
 
 
 class FoldingNavNode(template.Node):
-    def __init__(self, nodelist, *, title: str, views: List[str]):
+    def __init__(self, nodelist, *, title: str, model_names: List[str]):
         self.nodelist = nodelist
         self.title = title
-        self.views = views
+        self.model_names = model_names
 
     def render(self, context):
         t = get_template("snippets/sidebar/collapsable_navgroup.html")
@@ -72,7 +73,9 @@ class FoldingNavNode(template.Node):
                 "title": self.title,
                 "identifier": self.title.lower().replace(" ", "-"),
                 "active_views": " || ".join(
-                    f(view[1:-1]) for view in self.views for f in [draft_view, published_view]
+                    func(model_name)
+                    for model_name in self.model_names
+                    for func in [build_draft_view, build_published_view]
                 ),
                 "children": self.nodelist.render(context),
             }
