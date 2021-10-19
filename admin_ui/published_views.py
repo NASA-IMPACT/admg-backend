@@ -45,17 +45,19 @@ class ModelObjectView(ModelFormMixin, DetailView):
             or change_instance.status == IN_TRASH_CODE
         )
 
-    def _get_form(self, form, disable_all=False, **kwargs):
-        form = form(**kwargs)
+    def _initialize_form(self, form_class, disable_all=False, **kwargs):
+        form_instance = form_class(**kwargs)
+
+        # prevent fields from being edited
         if disable_all:
-            for fieldname in form.fields:
-                form.fields[fieldname].disabled = True
+            for fieldname in form_instance.fields:
+                form_instance.fields[fieldname].disabled = True
 
-        return form
+        return form_instance
 
-    def _get_form_model(self, model_name, disable_all=False, **kwargs):
-        form = GenericFormClass(model_name)
-        return self._get_form(form, disable_all, **kwargs)
+    def _get_form_from_model_name(self, model_name, disable_all=False, **kwargs):
+        form_class = GenericFormClass(model_name)
+        return self._initialize_form(form_class, disable_all, **kwargs)
 
     def get_context_data(self, **kwargs):
         return {
@@ -74,7 +76,7 @@ def GenericDetailView(model_name):
         def get_context_data(self, **kwargs):
             return {
                 **super().get_context_data(**kwargs),
-                "model_form": self._get_form_model(
+                "model_form": self._get_form_from_model_name(
                     model_name, instance=kwargs.get("object"), disable_all=True
                 ),
                 "model_name": model_name,
@@ -98,8 +100,10 @@ def GenericEditView(model_name):
 
             # getting form with instance and data gives a lot of changed fields
             # however, getting a form with initial and data only gives the required changed fields
-            old_form = self._get_form_model(model_name, instance=model_instance)
-            new_form = self._get_form_model(
+            old_form = self._get_form_from_model_name(
+                model_name, instance=model_instance
+            )
+            new_form = self._get_form_from_model_name(
                 model_name, data=request.POST, initial=old_form.initial
             )
 
@@ -139,7 +143,7 @@ def GenericEditView(model_name):
         def get_context_data(self, **kwargs):
             return {
                 **super().get_context_data(**kwargs),
-                "model_form": self._get_form_model(
+                "model_form": self._get_form_from_model_name(
                     model_name, instance=kwargs.get("object")
                 ),
                 "model_name": model_name,
@@ -190,7 +194,7 @@ class DiffView(ModelObjectView):
             partial=True,
         )
 
-        old_data_form = self._get_form_model(
+        old_data_form = self._get_form_from_model_name(
             change_instance.model_name,
             disable_all=True,
             instance=model_instance,
@@ -198,7 +202,7 @@ class DiffView(ModelObjectView):
         )
 
         if serializer_obj.is_valid():
-            editable_form = self._get_form_model(
+            editable_form = self._get_form_from_model_name(
                 change_instance.model_name,
                 disable_all=self.is_published_or_trashed(change_instance),
             )
@@ -230,7 +234,7 @@ class DiffView(ModelObjectView):
         change_instance = self.model.objects.get(uuid=kwargs.get("pk"))
         _, noneditable_published_form = self.initialize_forms(change_instance)
 
-        updated_form = self._get_form_model(
+        updated_form = self._get_form_from_model_name(
             change_instance.model_name,
             data=request.POST,
             initial=noneditable_published_form.initial,
