@@ -57,7 +57,8 @@ class BaseModel(models.Model):
 
 
 def get_file_path(instance, path):
-    return f"{instance.uuid}{os.path.splitext(path)[1]}"
+    _, ext = os.path.splitext(urllib.parse.urlparse(path).path)
+    return f"{instance.uuid}.{ext}"
 
 
 class Image(BaseModel):
