@@ -485,14 +485,8 @@ class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
             ],
             "related_fields": self.get_related_fields(),
             "back_button": self.get_back_button_url(),
-            "breadcrumbs": obj.get_breadcrumbs().select_related("content_type"),
-            "descendents": Change.objects.filter(
-                **{f"update__{obj.content_type.model}": str(obj.uuid)},
-                # Hack: Some draft IOPs, SigEvents, and CollectionPeriods will have a 'update.campaign'
-                # property, despite the fact that the actual models do not store that detail. We want to
-                # ignore those records as they misrepresent the heirarchy of the data.
-                **({"content_type__model": "deployment"} if obj.model_name == 'Campaign' else {})
-            ).select_related("content_type"),
+            "ancestors": obj.get_ancestors().select_related("content_type"),
+            "descendents": obj.get_descendents().select_related("content_type"),
         }
 
     def get_model_form_content_type(self) -> ContentType:

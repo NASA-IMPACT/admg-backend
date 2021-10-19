@@ -404,7 +404,7 @@ class Change(models.Model):
     def get_latest_log(self):
         return ApprovalLog.objects.filter(change=self).order_by("date").last()
 
-    def get_breadcrumbs(self):
+    def get_ancestors(self):
         """
         Get record and all ancestry records.
         """
@@ -447,7 +447,7 @@ class Change(models.Model):
                 FROM
                     parent
                 """,
-                [self.uuid]
+                [self.uuid],
             )
         ]
         # Using this "uuid__in" trick allows us to return a standard queryset
@@ -455,9 +455,28 @@ class Change(models.Model):
         # queryset helpers like ".select_related()". However, this can return records
         # out of order so we also need to reinforce the order by adding a "place"
         # attribute on each record.
-        return Change.objects.filter(uuid__in=uuids).annotate(
-            place=expressions.RawSQL("select array_position(%s, uuid::text)", [uuids])
-        ).order_by('-place')
+        return (
+            Change.objects.filter(uuid__in=uuids)
+            .annotate(
+                place=expressions.RawSQL(
+                    "select array_position(%s, uuid::text)", [uuids]
+                )
+            )
+            .order_by("-place")
+        )
+
+    def get_descendents(self):
+        return self.__class__.objects.filter(
+            **{f"update__{self.content_type.model}": str(self.uuid)},
+            # Hack: Some draft IOPs, SigEvents, and CollectionPeriods will have a 'update.campaign'
+            # property, despite the fact that the actual models do not store that detail. We want to
+            # ignore those records as they misrepresent the heirarchy of the data.
+            **(
+                {"content_type__model": "deployment"}
+                if self.model_name == "Campaign"
+                else {}
+            ),
+        )
 
     def save(self, *args, post_save=False, **kwargs):
         # do not check for validity of model_name and uuid if it has been approved or rejected.

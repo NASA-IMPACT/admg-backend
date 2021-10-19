@@ -75,7 +75,7 @@ MODEL_CONFIG_MAP = {
             "admin_required_to_view": False,
         },
         "CollectionPeriod": {
-            "display_name": "C-D-P-I",
+            "display_name": "CDPI",
             "admin_required_to_view": False,
             "table_link_field": "uuid",
         },
