@@ -1,28 +1,19 @@
-from django.contrib.contenttypes.models import ContentType
+from api_app.models import CREATED_CODE, IN_TRASH_CODE, PUBLISHED_CODE, UPDATE, Change
+from data_models import serializers
 from django.contrib.auth.decorators import login_required
-from django.utils.decorators import method_decorator
+from django.contrib.contenttypes.models import ContentType
+from django.shortcuts import redirect, render
 from django.urls import reverse
+from django.utils.decorators import method_decorator
 from django.views.generic import DetailView
 from django.views.generic.edit import ModelFormMixin
-
-from django_tables2.views import SingleTableMixin
 from django_filters.views import FilterView
-from django.shortcuts import render, redirect
-
-from api_app.models import (
-    Change,
-    UPDATE,
-    CREATED_CODE,
-    PUBLISHED_CODE,
-    IN_TRASH_CODE,
-)
-from data_models import serializers
-
+from django_tables2.views import SingleTableMixin
 
 from .config import MODEL_CONFIG_MAP
+from .forms import TransitionForm
 from .published_forms import GenericFormClass
 from .utils import compare_values
-from .forms import TransitionForm
 
 
 def GenericListView(model_name):
