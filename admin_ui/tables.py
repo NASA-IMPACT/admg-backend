@@ -100,7 +100,7 @@ class ShortNamefromUUIDColumn(ConditionalValueColumn):
         try:
             UUID(candidate_uuid, version=4)
             return True
-        except ValueError("error"):
+        except ValueError:
             # If it's a value error, then the string
             # is not a valid hex code for a UUID.
             return False
@@ -150,7 +150,7 @@ class DraftTableBase(tables.Table):
     class Meta:
         model = Change
         attrs = {
-            "class": "table table-striped",
+            "class": "table table-striped table-responsive",
             "thead": {"class": "table-primary"},
             "th": {"style": "min-width: 10em"},
         }
@@ -613,7 +613,10 @@ class ChangeSummaryTable(DraftTableBase):
 
     class Meta:
         model = Change
-        attrs = {"class": "table table-striped", "thead": {"class": "table-primary"}}
+        attrs = {
+            "class": "table table-striped",
+            "thead": {"class": "table-primary"},
+        }
         fields = ["name", "content_type__model", "updated_at", "status"]
 
 
