@@ -163,13 +163,12 @@ class DiffView(ModelObjectView):
     model = Change
     template_name = "api_app/published_diff.html"
 
-    def _compare_forms(self, updated_form, original_form, keys_to_compare):
-        for key in keys_to_compare:
+    def _compare_forms(self, updated_form, original_form, field_names_to_compare):
+        for field_name in field_names_to_compare:
             if not compare_values(
-                original_form[key].value(), updated_form[key].value()
+                original_form[field_name].value(), updated_form[field_name].value()
             ):
-                attrs = updated_form.fields[key].widget.attrs
-                attrs["class"] = f"{attrs.get('class', '')} changed-item".strip()
+                updated_form.add_class(field_name, "changed-item")
 
     def _get_context_from_data(
         self, change_instance, editable_form, noneditable_published_form, **kwargs

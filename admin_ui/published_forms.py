@@ -4,6 +4,17 @@ from .config import MODEL_CONFIG_MAP
 
 def GenericFormClass(model_name):
     class MyFormClass(ModelForm):
+        def add_class(self, field_name, class_name):
+            """Adds a html class attribute to a particular field_name in the form
+
+            Args:
+                field_name (str): form field (such as textbox or radio, etc)
+                class_name (str): class name that is to be added
+            """
+
+            attrs = self.fields[field_name].widget.attrs
+            attrs["class"] = f"{attrs.get('class', '')} {class_name}".strip()
+
         def is_valid(self) -> bool:
             unique_fields = [
                 "short_name",
