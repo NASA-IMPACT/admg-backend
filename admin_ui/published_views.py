@@ -160,7 +160,9 @@ class DiffView(ModelObjectView):
     model = Change
     template_name = "api_app/published_diff.html"
 
-    def _compare_forms(self, updated_form, original_form, field_names_to_compare):
+    def _compare_forms_and_format(
+        self, updated_form, original_form, field_names_to_compare
+    ):
         for field_name in field_names_to_compare:
             if not compare_values(
                 original_form[field_name].value(), updated_form[field_name].value()
@@ -222,11 +224,11 @@ class DiffView(ModelObjectView):
                 for key, val in change_instance.previous.items():
                     old_data_form.initial[key] = val
 
-                self._compare_forms(
+                self._compare_forms_and_format(
                     editable_form, old_data_form, change_instance.previous
                 )
             else:
-                self._compare_forms(
+                self._compare_forms_and_format(
                     editable_form, old_data_form, change_instance.update
                 )
         else:
@@ -250,7 +252,7 @@ class DiffView(ModelObjectView):
                 **self._create_diff_dict(updated_form),
             }
 
-            self._compare_forms(
+            self._compare_forms_and_format(
                 updated_form, noneditable_published_form, updated_form.changed_data
             )
 
