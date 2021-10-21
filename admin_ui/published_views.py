@@ -66,6 +66,14 @@ class ModelObjectView(ModelFormMixin, DetailView):
             "request": self.request,
         }
 
+    def _create_diff_dict(self, form):
+        diff_dict = {}
+        for changed_key in form.changed_data:
+            processed_value = Change._get_processed_value(form[changed_key].value())
+            diff_dict[changed_key] = processed_value
+
+        return diff_dict
+
 
 def GenericDetailView(model_name):
     @method_decorator(login_required, name="dispatch")
@@ -111,13 +119,7 @@ def GenericEditView(model_name):
             context = self.get_context_data(**kwargs)
             if new_form.is_valid():
                 if len(new_form.changed_data) > 0:
-                    diff_dict = {}
-                    for changed_key in new_form.changed_data:
-                        processed_value = Change._get_processed_value(
-                            new_form[changed_key].value()
-                        )
-                        diff_dict[changed_key] = processed_value
-
+                    diff_dict = self._create_diff_dict(new_form)
                     model_to_query = MODEL_CONFIG_MAP[model_name]["model"]
                     content_type = ContentType.objects.get_for_model(model_to_query)
                     change_object = Change.objects.create(
@@ -243,12 +245,10 @@ class DiffView(ModelObjectView):
         )
 
         if updated_form.is_valid():
-            diff_dict = {**change_instance.update}
-            for changed_key in updated_form.changed_data:
-                processed_value = Change._get_processed_value(
-                    updated_form[changed_key].value()
-                )
-                diff_dict[changed_key] = processed_value
+            diff_dict = {
+                **change_instance.update,
+                **self._create_diff_dict(updated_form),
+            }
 
             self._compare_forms(
                 updated_form, noneditable_published_form, updated_form.changed_data
