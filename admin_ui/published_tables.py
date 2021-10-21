@@ -1,7 +1,6 @@
 import django_tables2 as tables
-from django_tables2 import A
-
 from api_app.urls import camel_to_snake
+from django_tables2 import A
 
 
 def build_published_table(model_name, link_field):

@@ -1,4 +1,5 @@
 from django.forms import ModelForm
+
 from .config import MODEL_CONFIG_MAP
 
 

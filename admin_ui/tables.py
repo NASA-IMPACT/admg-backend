@@ -1,12 +1,10 @@
-from data_models.models import Campaign, Website
-import django_tables2 as tables
-from django_tables2 import A
-from django.urls import reverse
-
-
-from api_app.models import Change, UPDATE, CREATE
-from data_models.models import Platform, Deployment, Campaign, Instrument
 from uuid import UUID
+
+import django_tables2 as tables
+from api_app.models import CREATE, UPDATE, Change
+from data_models.models import Campaign, Deployment, Instrument, Platform, Website
+from django.urls import reverse
+from django_tables2 import A
 
 
 class ConditionalValueColumn(tables.Column):
