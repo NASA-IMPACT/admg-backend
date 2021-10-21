@@ -15,7 +15,7 @@
       <li class="nav-item">
         {% with tab_url=url_name|add:"-list-published" %}
           <a class="nav-link {% if 'published' in request.path %} active {% endif %}" href="{% url tab_url %}" role="tab" aria-controls="details" aria-selected="true">
-            Published Data
+            Published Content
           </a>
         {% endwith %}
       </li>
