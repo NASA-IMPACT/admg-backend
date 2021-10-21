@@ -4,7 +4,7 @@ from .config import MODEL_CONFIG_MAP
 
 def GenericFormClass(model_name):
     class MyFormClass(ModelForm):
-        def add_class(self, field_name, class_name):
+        def add_html_class(self, field_name, class_name):
             """Adds a html class attribute to a particular field_name in the form
 
             Args:

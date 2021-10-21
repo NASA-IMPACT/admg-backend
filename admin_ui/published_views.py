@@ -165,7 +165,7 @@ class DiffView(ModelObjectView):
             if not compare_values(
                 original_form[field_name].value(), updated_form[field_name].value()
             ):
-                updated_form.add_class(field_name, "changed-item")
+                updated_form.add_html_class(field_name, "changed-item")
 
     def _get_context_from_data(
         self, change_instance, editable_form, noneditable_published_form, **kwargs
