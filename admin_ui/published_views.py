@@ -80,7 +80,7 @@ def GenericDetailView(model_name):
                     model_name, instance=kwargs.get("object"), disable_all=True
                 ),
                 "model_name": model_name,
-                "display_name": MODEL_CONFIG_MAP[model_name]["singular_snake_case"],
+                "display_name": MODEL_CONFIG_MAP[model_name]["display_name"],
             }
 
     return GenericDetailViewClass
@@ -214,6 +214,8 @@ class DiffView(ModelObjectView):
                 },
             }
 
+            # if published or trashed then the old data doesn't need to be from the database, it
+            # needs to be from the previous field of the change_object
             if self.is_published_or_trashed(change_instance):
                 for key, val in change_instance.previous.items():
                     old_data_form.initial[key] = val
