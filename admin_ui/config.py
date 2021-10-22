@@ -86,9 +86,7 @@ CUSTOM_MODEL_VALUES = {
 # defaults are assigned to each model in this comprehension, and then overwritten by the above dictionary
 MODEL_CONFIG_MAP = {
     model_name: {
-        "filter": overrides[model_name].get("filter_class", GenericPublishedListFilter)(
-            model_name
-        ),
+        "filter": overrides.get("filter_class", GenericPublishedListFilter)(model_name),
         "model": getattr(models, model_name),
         "table": build_published_table(
             model_name, overrides.get("table_link_field", "short_name")
