@@ -107,10 +107,7 @@ class ShortNamefromUUIDColumn(ConditionalValueColumn):
 
     def get_short_name(self, potential_uuid):
 
-        if not self.is_uuid(potential_uuid):
-            return potential_uuid
-
-        if not self.model:
+        if not self.is_uuid(potential_uuid) or not self.model:
             return potential_uuid
 
         try:
