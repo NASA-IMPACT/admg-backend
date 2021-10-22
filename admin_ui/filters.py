@@ -12,7 +12,7 @@ def _get_campaigns(short_name_segment):
     published campaigns with a matching value. Not case sensitive.
 
     Args:
-        short_name_segment (str): short_name or piece of a short_name.`
+        short_name_segment (str): short_name or piece of a short_name.
 
     Returns:
         all_campaign_uuids: uuids for the matching campaigns
