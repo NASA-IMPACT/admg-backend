@@ -127,7 +127,7 @@ class ShortNamefromUUIDColumn(ConditionalValueColumn):
         value = self.get_backup_value(**kwargs)
         if isinstance(value, list):
             return ", ".join(
-                [self.get_short_name(potential_uuid) for potential_uuid in value]
+                self.get_short_name(potential_uuid) for potential_uuid in value
             )
         else:
             return self.get_short_name(value)
