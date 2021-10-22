@@ -7,26 +7,26 @@ from django.db.models.query_utils import Q
 # TODO: Look at .values with Cast function
 
 
-def _get_campaigns(name_segment):
-    """Takes a short/long_name or piece of a short/long_name and finds all draft and
-    published campaigns with a matching value. Not case sensitive.
+def _get_campaigns(search_string):
+    """Takes a search_string  and finds all draft and published campaigns with a matching
+    value in their short or long_name. Not case sensitive.
 
     Args:
-        name_segment (str): short/long_name or piece of a short/long_name.
+        search_string (str): short/long_name or piece of a short/long_name.
 
     Returns:
         all_campaign_uuids: uuids for the matching campaigns
     """
 
     campaign_model_uuids = Campaign.objects.filter(
-        Q(short_name__icontains=name_segment) | Q(long_name__icontains=name_segment)
+        Q(short_name__icontains=search_string) | Q(long_name__icontains=search_string)
     ).values_list("uuid")
 
     campaign_draft_uuids = (
         Change.objects.of_type(Campaign)
         .filter(
-            Q(update__short_name__icontains=name_segment)
-            | Q(update__long_name__icontains=name_segment)
+            Q(update__short_name__icontains=search_string)
+            | Q(update__long_name__icontains=search_string)
         )
         .values_list("uuid")
     )
@@ -65,12 +65,9 @@ class DeploymentFilter(ChangeStatusFilter):
         method="filter_campaign_name",
     )
 
-    def filter_campaign_name(self, queryset, name, value):
-        # limit search to 3 len or greater
-        if not value or len(value) < 3:
-            return queryset
+    def filter_campaign_name(self, queryset, field_name, search_string):
 
-        campaigns = _get_campaigns(value)
+        campaigns = _get_campaigns(search_string)
         deployments = _get_deployments(campaigns)
         return queryset.filter(
             Q(model_instance_uuid__in=deployments)
@@ -90,12 +87,9 @@ def second_level_campaign_filter(model_name):
             method="filter_campaign_name",
         )
 
-        def filter_campaign_name(self, queryset, name, value):
-            # limit search to 3 len or greater
-            if not value or len(value) < 3:
-                return queryset
+        def filter_campaign_name(self, queryset, field_name, search_string):
 
-            campaigns = _get_campaigns(value)
+            campaigns = _get_campaigns(search_string)
             deployments = _get_deployments(campaigns)
             deployments_change_objects = Change.objects.of_type(Deployment).filter(
                 Q(model_instance_uuid__in=deployments)
@@ -132,12 +126,9 @@ class DoiFilter(django_filters.FilterSet):
     # def filter_concept_id(self, queryset, name, value):
     #     pass
 
-    def filter_campaign_name(self, queryset, name, value):
-        # limit search to 3 len or greater
-        if not value or len(value) < 3:
-            return queryset
+    def filter_campaign_name(self, queryset, field_name, search_string):
 
-        campaigns = _get_campaigns(value)
+        campaigns = _get_campaigns(search_string)
         model_instances = DOI.objects.filter(campaigns__in=campaigns).values_list(
             "uuid"
         )
