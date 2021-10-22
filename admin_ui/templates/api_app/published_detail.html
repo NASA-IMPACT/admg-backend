@@ -1,0 +1,49 @@
+{% extends "api_app/base_read.html" %}
+{% load static %}
+{% load crispy_forms_tags %}
+{% load humanize %}
+
+{% block header %}
+  <div class="col">
+    <h1>{{ model_name }} Details</h1>
+  </div>
+  {% with tab_url=display_name|add:"-list-published" %}
+    <a href="{% spaceless %}
+      {% if "back" in request.GET %} {{ request.GET.back }}
+      {% else %}{% url tab_url %}
+      {% endif %}
+      {% endspaceless %}">
+      &larr; Back
+    </a>
+  {% endwith %}
+{% endblock header %}
+
+{% block object_details %}
+{% endblock object_details %}
+
+{% block actions %}
+  <div class="px-1">
+    {% with tab_url=display_name|add:"-edit-published" %}
+        <a href="{% url tab_url object.uuid %}?back={{ request.path }}" class="btn btn-primary ml-3">
+            Create Edit Draft
+        </a>
+    {% endwith %}
+    <button class="btn btn-secondary" form="model-form" name="_validate">Create Delete Draft</button>
+  </div>
+{% endblock actions %}
+
+{% block main %}
+  {% include "api_app/change_form.html" with class="col-8" %}
+
+  {# Sidebar #}
+  <aside class="col-sm-4">
+    {% if object.logo_url %}
+    <h3>Logo</h3>
+    <a href="{% url 'change-update' object.update.logo %}">
+      <img class="img-thumbnail" src="{% get_media_prefix %}/{{ object.logo_url }}" />
+    </a>
+
+    <hr />
+    {% endif %}
+  </aside>
+{% endblock main%}
