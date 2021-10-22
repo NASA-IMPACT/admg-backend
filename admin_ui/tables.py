@@ -26,17 +26,16 @@ class ConditionalValueColumn(tables.Column):
         record = kwargs.get("record")
         value = kwargs.get("value")
 
-        if record.action != CREATE:
-            if not value:
-                accessor = A(self.update_accessor)
-                value = accessor.resolve(record)
+        if record.action != CREATE and not value:
+            accessor = A(self.update_accessor)
+            value = accessor.resolve(record)
 
-                if value.__class__.__name__ == "ManyRelatedManager":
-                    many_values = [
-                        str(uuid)
-                        for uuid in list(value.all().values_list("uuid", flat=True))
-                    ]
-                    return many_values
+            if value.__class__.__name__ == "ManyRelatedManager":
+                many_values = [
+                    str(uuid)
+                    for uuid in list(value.all().values_list("uuid", flat=True))
+                ]
+                return many_values
 
         return value
 
