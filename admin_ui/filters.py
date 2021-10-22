@@ -7,24 +7,27 @@ from django.db.models.query_utils import Q
 # TODO: Look at .values with Cast function
 
 
-def _get_campaigns(short_name_segment):
-    """Takes a short_name or piece of a short_name and finds all draft and
+def _get_campaigns(name_segment):
+    """Takes a short/long_name or piece of a short/long_name and finds all draft and
     published campaigns with a matching value. Not case sensitive.
 
     Args:
-        short_name_segment (str): short_name or piece of a short_name.
+        name_segment (str): short/long_name or piece of a short/long_name.
 
     Returns:
         all_campaign_uuids: uuids for the matching campaigns
     """
 
     campaign_model_uuids = Campaign.objects.filter(
-        short_name__icontains=short_name_segment
+        Q(short_name__icontains=name_segment) | Q(long_name__icontains=name_segment)
     ).values_list("uuid")
 
     campaign_draft_uuids = (
         Change.objects.of_type(Campaign)
-        .filter(update__short_name__icontains=short_name_segment)
+        .filter(
+            Q(update__short_name__icontains=name_segment)
+            | Q(update__long_name__icontains=name_segment)
+        )
         .values_list("uuid")
     )
 
