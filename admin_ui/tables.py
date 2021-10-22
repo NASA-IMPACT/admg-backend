@@ -105,31 +105,33 @@ class ShortNamefromUUIDColumn(ConditionalValueColumn):
             # is not a valid hex code for a UUID.
             return False
 
-    def get_short_name(self, uuid):
+    def get_short_name(self, potential_uuid):
 
-        if not self.is_uuid(uuid):
-            return uuid
+        if not self.is_uuid(potential_uuid):
+            return potential_uuid
 
         if not self.model:
-            return uuid
+            return potential_uuid
 
         try:
-            model_object = self.model.objects.get(uuid=uuid)
+            model_object = self.model.objects.get(uuid=potential_uuid)
             return model_object.short_name
         except self.model.DoesNotExist:
             pass
 
         try:
-            change_object = Change.objects.get(uuid=uuid)
-            return change_object.update.get("short_name", uuid)
+            change_object = Change.objects.get(uuid=potential_uuid)
+            return change_object.update.get("short_name", potential_uuid)
         except Change.DoesNotExist:
             # this really should never happen
-            return uuid
+            return potential_uuid
 
     def render(self, **kwargs):
         value = self.get_backup_value(**kwargs)
         if isinstance(value, list):
-            return ", ".join([self.get_short_name(uuid) for uuid in value])
+            return ", ".join(
+                [self.get_short_name(potential_uuid) for potential_uuid in value]
+            )
         else:
             return self.get_short_name(value)
 
