@@ -64,9 +64,10 @@ class DraftLinkColumn(ConditionalValueColumn):
 
     def get_url(self, **kwargs):
         record = kwargs.get("record")
-        url_kwargs = {}
-        for item in self.url_kwargs:
-            url_kwargs[item] = getattr(record, self.url_kwargs[item])
+
+        url_kwargs = {
+            item: getattr(record, self.url_kwargs[item]) for item in self.url_kwargs
+        }
 
         if record.action == UPDATE:
             return reverse(self.update_viewname, kwargs=url_kwargs)
