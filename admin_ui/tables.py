@@ -70,9 +70,11 @@ class DraftLinkColumn(ConditionalValueColumn):
         }
 
         if record.action == UPDATE:
-            return reverse(self.update_viewname, kwargs=url_kwargs)
+            view_name = self.update_viewname
+        else:
+            view_name = self.viewname
 
-        return reverse(self.viewname, kwargs=url_kwargs)
+        return reverse(view_name, kwargs=url_kwargs)
 
 
 class ShortNamefromUUIDColumn(ConditionalValueColumn):
