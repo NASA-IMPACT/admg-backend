@@ -1,3 +1,6 @@
+import django_tables2 as tables
+from api_app.models import CREATE, UPDATE
+from api_app.urls import camel_to_snake
 from data_models.models import (
     DOI,
     IOP,
@@ -5,6 +8,7 @@ from data_models.models import (
     Campaign,
     CampaignWebsite,
     CollectionPeriod,
+    Deployment,
     FocusArea,
     GcmdInstrument,
     GcmdPhenomena,
@@ -13,33 +17,21 @@ from data_models.models import (
     GeographicalRegion,
     GeophysicalConcept,
     HomeBase,
+    Instrument,
     MeasurementRegion,
     MeasurementStyle,
     MeasurementType,
     PartnerOrg,
+    Platform,
     Repository,
     Season,
     SignificantEvent,
     Website,
-    WebsiteType
+    WebsiteType,
 )
-import django_tables2 as tables
 from django_tables2 import A
-from django.urls import reverse
 
-from api_app.urls import camel_to_snake
-from api_app.models import (
-    Change,
-    UPDATE,
-    CREATE
-)
-from data_models.models import Platform, Deployment, Campaign, Instrument
-from uuid import UUID
-
-from .tables import (
-    ShortNamefromUUIDColumn,
-    ShortNamefromUUIDLinkColumn
-)
+from .tables import ShortNamefromUUIDColumn, ShortNamefromUUIDLinkColumn
 
 
 class LimitedTableBase(tables.Table):
@@ -48,7 +40,7 @@ class LimitedTableBase(tables.Table):
         accessor="long_name",
     )
 
-    initial_fields = ("short_name" , "long_name")
+    initial_fields = ("short_name", "long_name")
 
     class Meta:
         attrs = {
@@ -77,6 +69,7 @@ class IOPPublishedTable(tables.Table):
         verbose_name="End Date",
         accessor="end_date",
     )
+
     class Meta(LimitedTableBase.Meta):
         model = IOP
         all_fields = (
@@ -105,6 +98,7 @@ class SignificantEventPublishedTable(LimitedTableBase):
         verbose_name="End Date",
         accessor="end_date",
     )
+
     class Meta(LimitedTableBase.Meta):
         model = SignificantEvent
         all_fields = (
@@ -204,9 +198,10 @@ class DeploymentPublishedTable(LimitedTableBase):
     )
 
     class Meta(LimitedTableBase.Meta):
-        all_fields = (
-            LimitedTableBase.initial_fields
-            + ("campaign", "start_date", "end_date",)
+        all_fields = LimitedTableBase.initial_fields + (
+            "campaign",
+            "start_date",
+            "end_date",
         )
         fields = list(all_fields)
         sequence = all_fields
@@ -223,10 +218,7 @@ class PlatformTypePublishedTable(LimitedTableBase):
     )
 
     class Meta(LimitedTableBase.Meta):
-        all_fields = (
-            LimitedTableBase.initial_fields
-            + ("parent",)
-        )
+        all_fields = LimitedTableBase.initial_fields + ("parent",)
         fields = list(all_fields)
         sequence = all_fields
         model = Platform
@@ -242,10 +234,7 @@ class MeasurementTypePublishedTable(LimitedTableBase):
     )
 
     class Meta(LimitedTableBase.Meta):
-        all_fields = (
-            LimitedTableBase.initial_fields
-            + ("parent",)
-        )
+        all_fields = LimitedTableBase.initial_fields + ("parent",)
         fields = list(all_fields)
         sequence = all_fields
         model = MeasurementType
@@ -261,10 +250,7 @@ class MeasurementStylePublishedTable(LimitedTableBase):
     )
 
     class Meta(LimitedTableBase.Meta):
-        all_fields = (
-            LimitedTableBase.initial_fields
-            + ("parent",)
-        )
+        all_fields = LimitedTableBase.initial_fields + ("parent",)
         fields = list(all_fields)
         sequence = all_fields
         model = MeasurementStyle
@@ -274,16 +260,10 @@ class HomeBasePublishedTable(LimitedTableBase):
     short_name = tables.Column(
         linkify=(f"{camel_to_snake('HomeBase')}-detail-published", [A("uuid")]),
     )
-    location = tables.Column(
-        verbose_name="Location",
-        accessor="location"
-    )
+    location = tables.Column(verbose_name="Location", accessor="location")
 
     class Meta(LimitedTableBase.Meta):
-        all_fields = (
-            LimitedTableBase.initial_fields
-            + ("location",)
-        )
+        all_fields = LimitedTableBase.initial_fields + ("location",)
         fields = all_fields
         sequence = all_fields
         model = HomeBase
@@ -296,9 +276,7 @@ class FocusAreaPublishedTable(LimitedTableBase):
     url = tables.Column(verbose_name="Url", accessor="url")
 
     class Meta(LimitedTableBase.Meta):
-        all_fields = (
-            LimitedTableBase.initial_fields + ("url",)
-        )
+        all_fields = LimitedTableBase.initial_fields + ("url",)
         fields = all_fields
         sequence = all_fields
         model = FocusArea
@@ -308,6 +286,7 @@ class SeasonPublishedTable(LimitedTableBase):
     short_name = tables.Column(
         linkify=(f"{camel_to_snake('Season')}-detail-published", [A("uuid")]),
     )
+
     class Meta(LimitedTableBase.Meta):
         all_fields = LimitedTableBase.initial_fields
         fields = all_fields
@@ -319,16 +298,10 @@ class RepositoryPublishedTable(LimitedTableBase):
     short_name = tables.Column(
         linkify=(f"{camel_to_snake('Repository')}-detail-published", [A("uuid")]),
     )
-    gcmd_uuid = tables.Column(
-        verbose_name="GCMD UUID",
-        accessor="gcmd_uuid"
-    )
+    gcmd_uuid = tables.Column(verbose_name="GCMD UUID", accessor="gcmd_uuid")
 
     class Meta(LimitedTableBase.Meta):
-        all_fields = (
-            LimitedTableBase.initial_fields
-            + ("gcmd_uuid",)
-        )
+        all_fields = LimitedTableBase.initial_fields + ("gcmd_uuid",)
         fields = all_fields
         sequence = all_fields
         model = Repository
@@ -336,18 +309,15 @@ class RepositoryPublishedTable(LimitedTableBase):
 
 class MeasurementRegionPublishedTable(LimitedTableBase):
     short_name = tables.Column(
-        linkify=(f"{camel_to_snake('MeasurementRegion')}-detail-published", [A("uuid")]),
+        linkify=(
+            f"{camel_to_snake('MeasurementRegion')}-detail-published",
+            [A("uuid")],
+        ),
     )
-    example = tables.Column(
-        verbose_name="Example",
-        accessor="example"
-    )
+    example = tables.Column(verbose_name="Example", accessor="example")
 
     class Meta(LimitedTableBase.Meta):
-        all_fields = (
-            LimitedTableBase.initial_fields
-            + ("example",)
-        )
+        all_fields = LimitedTableBase.initial_fields + ("example",)
         fields = all_fields
         sequence = all_fields
         model = MeasurementRegion
@@ -355,18 +325,15 @@ class MeasurementRegionPublishedTable(LimitedTableBase):
 
 class GeographicalRegionPublishedTable(LimitedTableBase):
     short_name = tables.Column(
-        linkify=(f"{camel_to_snake('GeographicalRegion')}-detail-published", [A("uuid")]),
+        linkify=(
+            f"{camel_to_snake('GeographicalRegion')}-detail-published",
+            [A("uuid")],
+        ),
     )
-    example = tables.Column(
-        verbose_name="Example",
-        accessor="example"
-    )
+    example = tables.Column(verbose_name="Example", accessor="example")
 
     class Meta(LimitedTableBase.Meta):
-        all_fields = (
-            LimitedTableBase.initial_fields
-            + ("example",)
-        )
+        all_fields = LimitedTableBase.initial_fields + ("example",)
         fields = all_fields
         sequence = all_fields
         model = GeographicalRegion
@@ -374,19 +341,15 @@ class GeographicalRegionPublishedTable(LimitedTableBase):
 
 class GeophysicalConceptPublishedTable(LimitedTableBase):
     short_name = tables.Column(
-        linkify=(f"{camel_to_snake('GeophysicalConcept')}-detail-published", [A("uuid")]),
+        linkify=(
+            f"{camel_to_snake('GeophysicalConcept')}-detail-published",
+            [A("uuid")],
+        ),
     )
-    example = tables.Column(
-        verbose_name="Example",
-        accessor="example"
-    )
+    example = tables.Column(verbose_name="Example", accessor="example")
 
     class Meta(LimitedTableBase.Meta):
-        all_fields = (
-            LimitedTableBase.initial_fields
-            + ("example",)
-           
-        )
+        all_fields = LimitedTableBase.initial_fields + ("example",)
         fields = all_fields
         sequence = all_fields
         model = GeophysicalConcept
@@ -396,17 +359,10 @@ class PartnerOrgPublishedTable(LimitedTableBase):
     short_name = tables.Column(
         linkify=(f"{camel_to_snake('PartnerOrg')}-detail-published", [A("uuid")]),
     )
-    website = tables.Column(
-        verbose_name="Website",
-        accessor="website"
-    )
+    website = tables.Column(verbose_name="Website", accessor="website")
 
     class Meta(LimitedTableBase.Meta):
-        all_fields = (
-            LimitedTableBase.initial_fields
-            + ("website",)
-           
-        )
+        all_fields = LimitedTableBase.initial_fields + ("website",)
         fields = all_fields
         sequence = all_fields
         model = PartnerOrg
@@ -416,6 +372,7 @@ class WebsiteTypePublishedTable(LimitedTableBase):
     short_name = tables.Column(
         linkify=(f"{camel_to_snake('WebsiteType')}-detail-published", [A("uuid")]),
     )
+
     class Meta(LimitedTableBase.Meta):
         all_fields = LimitedTableBase.initial_fields
         fields = all_fields
@@ -428,16 +385,11 @@ class CampaignPublishedTable(LimitedTableBase):
         linkify=(f"{camel_to_snake('Campaign')}-detail-published", [A("uuid")]),
     )
     funding_agency = tables.Column(
-        verbose_name="Funding Agency",
-        accessor="funding_agency"
+        verbose_name="Funding Agency", accessor="funding_agency"
     )
 
     class Meta(LimitedTableBase.Meta):
-        all_fields = (
-            LimitedTableBase.initial_fields
-            + ("funding_agency",)
-           
-        )
+        all_fields = LimitedTableBase.initial_fields + ("funding_agency",)
         fields = all_fields
         sequence = all_fields
         model = Campaign
@@ -448,16 +400,11 @@ class PlatformPublishedTable(LimitedTableBase):
         linkify=(f"{camel_to_snake('Platform')}-detail-published", [A("uuid")]),
     )
     platform_type = tables.Column(
-        verbose_name="Platform Type",
-        accessor="platform_type_name"
+        verbose_name="Platform Type", accessor="platform_type_name"
     )
 
     class Meta(LimitedTableBase.Meta):
-        all_fields = (
-            LimitedTableBase.initial_fields
-            + ("platform_type",)
-           
-        )
+        all_fields = LimitedTableBase.initial_fields + ("platform_type",)
         fields = all_fields
         sequence = all_fields
         model = Platform
@@ -467,6 +414,7 @@ class InstrumentPublishedTable(LimitedTableBase):
     short_name = tables.Column(
         linkify=(f"{camel_to_snake('Instrument')}-detail-published", [A("uuid")]),
     )
+
     class Meta(LimitedTableBase.Meta):
         all_fields = LimitedTableBase.initial_fields
         fields = all_fields
@@ -480,8 +428,7 @@ class WebsitePublishedTable(LimitedTableBase):
     )
     url = tables.Column(verbose_name="URL", accessor="url")
     website_type = tables.Column(
-        verbose_name="Website Type",
-        accessor="website_type_name"
+        verbose_name="Website Type", accessor="website_type_name"
     )
 
     class Meta(LimitedTableBase.Meta):
@@ -499,6 +446,7 @@ class CampaignWebsitePublishedTable(LimitedTableBase):
     short_name = tables.Column(
         linkify=(f"{camel_to_snake('CampaignWebsite')}-detail-published", [A("uuid")]),
     )
+
     class Meta(LimitedTableBase.Meta):
         all_fields = LimitedTableBase.initial_fields
         fields = list(all_fields)
@@ -511,10 +459,7 @@ class AliasPublishedTable(LimitedTableBase):
         linkify=(f"{camel_to_snake('Alias')}-detail-published", [A("uuid")]),
     )
     # TODO replace model_type which short_name of related object
-    model_type = tables.Column(
-        verbose_name="Item Type",
-        accessor="model_name"
-    )
+    model_type = tables.Column(verbose_name="Item Type", accessor="model_name")
 
     class Meta(LimitedTableBase.Meta):
         all_fields = (
@@ -530,10 +475,7 @@ class GcmdProjectPublishedTable(LimitedTableBase):
     short_name = tables.Column(
         linkify=(f"{camel_to_snake('GcmdProject')}-detail-published", [A("uuid")]),
     )
-    bucket = tables.Column(
-        verbose_name="Bucket",
-        accessor="bucket"
-    )
+    bucket = tables.Column(verbose_name="Bucket", accessor="bucket")
 
     class Meta(LimitedTableBase.Meta):
         all_fields = (
@@ -551,20 +493,16 @@ class GcmdInstrumentPublishedTable(LimitedTableBase):
         linkify=(f"{camel_to_snake('GcmdInstrument')}-detail-published", [A("uuid")]),
     )
     instrument_category = tables.Column(
-        verbose_name="Instrument Category",
-        accessor="instrument_category"
+        verbose_name="Instrument Category", accessor="instrument_category"
     )
     instrument_class = tables.Column(
-        verbose_name="Instrument Class",
-        accessor="instrument_class"
+        verbose_name="Instrument Class", accessor="instrument_class"
     )
     instrument_type = tables.Column(
-        verbose_name="Instrument Type",
-        accessor="instrument_type"
+        verbose_name="Instrument Type", accessor="instrument_type"
     )
     instrument_subtype = tables.Column(
-        verbose_name="Instrument Subtype",
-        accessor="instrument_subtype"
+        verbose_name="Instrument Subtype", accessor="instrument_subtype"
     )
 
     class Meta(LimitedTableBase.Meta):
@@ -585,10 +523,7 @@ class GcmdPlatformPublishedTable(LimitedTableBase):
     short_name = short_name = tables.Column(
         linkify=(f"{camel_to_snake('GcmdPlatform')}-detail-published", [A("uuid")]),
     )
-    category = tables.Column(
-        verbose_name="Category",
-        accessor="category"
-    )
+    category = tables.Column(verbose_name="Category", accessor="category")
 
     class Meta(LimitedTableBase.Meta):
         all_fields = (
@@ -602,29 +537,14 @@ class GcmdPlatformPublishedTable(LimitedTableBase):
 
 
 class GcmdPhenomenaPublishedTable(tables.Table):
-    variable_3  = tables.Column(
+    variable_3 = tables.Column(
         linkify=(f"{camel_to_snake('GcmdPhenomena')}-detail-published", [A("uuid")]),
     )
-    variable_2 = tables.Column(
-        verbose_name="Variable 2",
-        accessor="variable_2"
-    )
-    variable_1 = tables.Column(
-        verbose_name="Variable 1",
-        accessor="variable_1"
-    )
-    term = tables.Column(
-        verbose_name="Term",
-        accessor="term"
-    )
-    topic = tables.Column(
-        verbose_name="Topic",
-        accessor="topic"
-    )
-    category = tables.Column(
-        verbose_name="Category",
-        accessor="category"
-    )
+    variable_2 = tables.Column(verbose_name="Variable 2", accessor="variable_2")
+    variable_1 = tables.Column(verbose_name="Variable 1", accessor="variable_1")
+    term = tables.Column(verbose_name="Term", accessor="term")
+    topic = tables.Column(verbose_name="Topic", accessor="topic")
+    category = tables.Column(verbose_name="Category", accessor="category")
 
     class Meta(LimitedTableBase.Meta):
         all_fields = (

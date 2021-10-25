@@ -1,6 +1,4 @@
 import django_filters
-
-from api_app.models import Change
 from data_models import models
 
 
