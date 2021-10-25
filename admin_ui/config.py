@@ -42,12 +42,10 @@ CUSTOM_MODEL_VALUES = {
     },
     "GcmdPhenomena": {
         "display_name": "GCMD Phenomena",
-        "table_link_field": "category",
     },
     "DOI": {
         "admin_required_to_view": False,
         "filter": filters.DoiFilter,
-        "table_link_field": "concept_id",
     },
     "Campaign": {
         "admin_required_to_view": False,
@@ -74,16 +72,13 @@ CUSTOM_MODEL_VALUES = {
         "display_name": "C-D-P-I",
         "admin_required_to_view": False,
         "filter_generator": filters.second_level_campaign_filter,
-        "table_link_field": "uuid",
     },
     "Website": {
         "admin_required_to_view": False,
-        "table_link_field": "uuid",
     },
     "WebsiteType": {},
     "CampaignWebsite": {
         "display_name": "Campaign Website Linkage",
-        "table_link_field": "website",
     },
 }
 
