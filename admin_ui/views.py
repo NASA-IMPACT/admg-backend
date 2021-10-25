@@ -462,7 +462,7 @@ class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
         Change.objects.select_related("content_type")
         .prefetch_approvals()
         .annotate_from_relationship(
-            of_type=Image, to_attr="logo_url", uuid_from="logo", identifier="image"
+            of_type=Image, to_attr="logo_path", uuid_from="logo", identifier="image"
         )
     )
 
