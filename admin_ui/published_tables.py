@@ -144,12 +144,16 @@ class CollectionPeriodPublishedTable(tables.Table):
         sequence = fields
 
 
-class DOIPublishedTable(LimitedTableBase):
+class DOIPublishedTable(tables.Table):
     concept_id = DraftLinkColumn(
         viewname=f"{camel_to_snake('DOI')}-detail-published",
         url_kwargs={"pk": "uuid"},
-        verbose_name="Short Name",
-        accessor="short_name",
+        verbose_name="Concept ID",
+        accessor="concept_id",
+    )
+    long_name = tables.Column(
+        verbose_name="Long name",
+        accessor="long_name",
     )
     campaigns = ShortNamefromUUIDColumn(
         verbose_name="Campaigns",

@@ -36,7 +36,7 @@ def _get_campaigns(search_string):
     return all_campaign_uuids
 
 
-def _get_deployments(campaign_uuids):
+def get_deployments(campaign_uuids):
     deployments = Deployment.objects.filter(campaign__in=campaign_uuids).values_list(
         "uuid"
     )
@@ -49,9 +49,8 @@ class ChangeStatusFilter(django_filters.FilterSet):
         label="Short Name", field_name="update__short_name", lookup_expr="icontains"
     )
 
-    # TODO: filter should show update drafts for those short names that it links to
-    # def filter_short_name(self, queryset, name, value):
-    #     pass
+    def filter_short_name(self, queryset, field_name, search_string):
+        pass
 
     class Meta:
         model = Change
@@ -68,7 +67,7 @@ class DeploymentFilter(ChangeStatusFilter):
     def filter_campaign_name(self, queryset, field_name, search_string):
 
         campaigns = _get_campaigns(search_string)
-        deployments = _get_deployments(campaigns)
+        deployments = get_deployments(campaigns)
         return queryset.filter(
             Q(model_instance_uuid__in=deployments)
             | Q(update__campaign__in=(str(val[0]) for val in campaigns))
@@ -90,7 +89,7 @@ def second_level_campaign_filter(model_name):
         def filter_campaign_name(self, queryset, field_name, search_string):
 
             campaigns = _get_campaigns(search_string)
-            deployments = _get_deployments(campaigns)
+            deployments = get_deployments(campaigns)
             deployments_change_objects = Change.objects.of_type(Deployment).filter(
                 Q(model_instance_uuid__in=deployments)
                 | Q(update__campaign__in=(str(val[0]) for val in campaigns))
