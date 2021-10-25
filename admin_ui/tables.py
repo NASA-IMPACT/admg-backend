@@ -1,12 +1,10 @@
-from data_models.models import Campaign, Website
-import django_tables2 as tables
-from django_tables2 import A
-from django.urls import reverse
-
-
-from api_app.models import Change, UPDATE, CREATE
-from data_models.models import Platform, Deployment, Campaign, Instrument
 from uuid import UUID
+
+import django_tables2 as tables
+from api_app.models import CREATE, UPDATE, Change
+from data_models.models import Campaign, Deployment, Instrument, Platform, Website
+from django.urls import reverse
+from django_tables2 import A
 
 
 class ConditionalValueColumn(tables.Column):
@@ -28,17 +26,16 @@ class ConditionalValueColumn(tables.Column):
         record = kwargs.get("record")
         value = kwargs.get("value")
 
-        if record.action != CREATE:
-            if not value:
-                accessor = A(self.update_accessor)
-                value = accessor.resolve(record)
+        if record.action != CREATE and not value:
+            accessor = A(self.update_accessor)
+            value = accessor.resolve(record)
 
-                if value.__class__.__name__ == "ManyRelatedManager":
-                    many_values = [
-                        str(uuid)
-                        for uuid in list(value.all().values_list("uuid", flat=True))
-                    ]
-                    return many_values
+            if value.__class__.__name__ == "ManyRelatedManager":
+                many_values = [
+                    str(uuid)
+                    for uuid in list(value.all().values_list("uuid", flat=True))
+                ]
+                return many_values
 
         return value
 
@@ -67,14 +64,17 @@ class DraftLinkColumn(ConditionalValueColumn):
 
     def get_url(self, **kwargs):
         record = kwargs.get("record")
-        url_kwargs = {}
-        for item in self.url_kwargs:
-            url_kwargs[item] = getattr(record, self.url_kwargs[item])
+
+        url_kwargs = {
+            item: getattr(record, self.url_kwargs[item]) for item in self.url_kwargs
+        }
 
         if record.action == UPDATE:
-            return reverse(self.update_viewname, kwargs=url_kwargs)
+            view_name = self.update_viewname
+        else:
+            view_name = self.viewname
 
-        return reverse(self.viewname, kwargs=url_kwargs)
+        return reverse(view_name, kwargs=url_kwargs)
 
 
 class ShortNamefromUUIDColumn(ConditionalValueColumn):
@@ -100,36 +100,35 @@ class ShortNamefromUUIDColumn(ConditionalValueColumn):
         try:
             UUID(candidate_uuid, version=4)
             return True
-        except ValueError("error"):
+        except ValueError:
             # If it's a value error, then the string
             # is not a valid hex code for a UUID.
             return False
 
-    def get_short_name(self, uuid):
+    def get_short_name(self, potential_uuid):
 
-        if not self.is_uuid(uuid):
-            return uuid
-
-        if not self.model:
-            return uuid
+        if not self.is_uuid(potential_uuid) or not self.model:
+            return potential_uuid
 
         try:
-            model_object = self.model.objects.get(uuid=uuid)
+            model_object = self.model.objects.get(uuid=potential_uuid)
             return model_object.short_name
         except self.model.DoesNotExist:
             pass
 
         try:
-            change_object = Change.objects.get(uuid=uuid)
-            return change_object.update.get("short_name", uuid)
+            change_object = Change.objects.get(uuid=potential_uuid)
+            return change_object.update.get("short_name", potential_uuid)
         except Change.DoesNotExist:
             # this really should never happen
-            return uuid
+            return potential_uuid
 
     def render(self, **kwargs):
         value = self.get_backup_value(**kwargs)
         if isinstance(value, list):
-            return ", ".join([self.get_short_name(uuid) for uuid in value])
+            return ", ".join(
+                self.get_short_name(potential_uuid) for potential_uuid in value
+            )
         else:
             return self.get_short_name(value)
 
@@ -150,7 +149,7 @@ class DraftTableBase(tables.Table):
     class Meta:
         model = Change
         attrs = {
-            "class": "table table-striped",
+            "class": "table table-striped table-responsive",
             "thead": {"class": "table-primary"},
             "th": {"style": "min-width: 10em"},
         }
@@ -576,8 +575,8 @@ class CampaignChangeListTable(LimitedTableBase):
 class PlatformChangeListTable(LimitedTableBase):
     platform_type = ConditionalValueColumn(
         verbose_name="Platform Type",
-        accessor="platform_type_name",
-        update_accessor="content_object._type_name",
+        accessor="platform_type",
+        update_accessor="content_object.platform_type",
     )
 
     class Meta(LimitedTableBase.Meta):
@@ -613,7 +612,10 @@ class ChangeSummaryTable(DraftTableBase):
 
     class Meta:
         model = Change
-        attrs = {"class": "table table-striped", "thead": {"class": "table-primary"}}
+        attrs = {
+            "class": "table table-striped",
+            "thead": {"class": "table-primary"},
+        }
         fields = ["name", "content_type__model", "updated_at", "status"]
 
 

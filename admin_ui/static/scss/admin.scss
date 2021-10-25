@@ -22,15 +22,6 @@ dt {
 }
 
 /* Views */
-#sidebar {
-  .nav-link.collapsed .minus {
-    display: none;
-  }
-  .nav-link:not(.collapsed) .plus {
-    display: none;
-  }
-}
-
 .campaign-summary {
   li.list-group-item {
     padding-bottom: 0;
@@ -60,4 +51,12 @@ dt {
   td {
     min-width: 12em;
   }
+}
+
+.changed-item {
+  background-color: rgba(170, 170, 0, 0.5);
+}
+
+.changed-item:disabled {
+  background-color: rgba(170, 170, 0, 0.5);
 }

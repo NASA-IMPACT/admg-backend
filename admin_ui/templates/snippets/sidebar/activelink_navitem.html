@@ -1,0 +1,5 @@
+{% load active_link_tags %}
+
+<a class="nav-link text-truncate {% active_link links 'active' %}" href="{% url view %}">
+  {{ title }}
+</a>
