@@ -64,11 +64,11 @@
         </div>
         <div class="modal-body">
           The action you are going to perform will create a delete draft for the object.
-          Only after the admin approves it will it be deleted.
+          Only after admin approval will it be deleted.
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-          {% with tab_url=display_name|add:"-delete-published" %}
+          {% with tab_url=url_name|add:"-delete-published" %}
             <a href="{% url tab_url object.uuid %}?back={{ request.path }}" class="btn btn-danger">
                 Create Delete Draft
             </a>
