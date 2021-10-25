@@ -12,6 +12,15 @@ class ConditionalValueColumn(tables.Column):
         super().__init__(**kwargs, empty_values=())
         self.update_accessor = update_accessor
 
+    def _get_processed_value(self, value):
+        if value.__class__.__name__ == "ManyRelatedManager":
+            many_values = [
+                str(uuid)
+                for uuid in list(value.all().values_list("uuid", flat=True))
+            ]
+            return many_values
+        return value
+
     def get_backup_value(self, **kwargs):
         """Update drafts won't always contain the metadata that
         is needed to be displayed in the table columns. Takes the value
@@ -24,18 +33,16 @@ class ConditionalValueColumn(tables.Column):
         """
 
         record = kwargs.get("record")
-        value = kwargs.get("value")
+        value = self._get_processed_value(kwargs.get("value"))
 
-        if record.action != CREATE and not value:
+        # This is being called from published tables as well. Which doesn't come with a record with action attribute
+        if (
+            not value and
+            self.update_accessor and
+            getattr(record , "action", None) != CREATE
+        ):
             accessor = A(self.update_accessor)
-            value = accessor.resolve(record)
-
-            if value.__class__.__name__ == "ManyRelatedManager":
-                many_values = [
-                    str(uuid)
-                    for uuid in list(value.all().values_list("uuid", flat=True))
-                ]
-                return many_values
+            value = self._get_processed_value(accessor.resolve(record))
 
         return value
 
@@ -56,7 +63,7 @@ class ConditionalValueColumn(tables.Column):
 
 class DraftLinkColumn(ConditionalValueColumn):
     def __init__(self, *args, **kwargs):
-        self.update_viewname = kwargs.pop("update_viewname")
+        self.update_viewname = kwargs.pop("update_viewname", None)
         self.viewname = kwargs.pop("viewname")
         self.url_kwargs = kwargs.pop("url_kwargs")
 
@@ -69,7 +76,8 @@ class DraftLinkColumn(ConditionalValueColumn):
             item: getattr(record, self.url_kwargs[item]) for item in self.url_kwargs
         }
 
-        if record.action == UPDATE:
+        # records from published item do not have action
+        if getattr(record, "action", None) == UPDATE:
             view_name = self.update_viewname
         else:
             view_name = self.viewname
