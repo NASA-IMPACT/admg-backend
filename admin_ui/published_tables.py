@@ -1,3 +1,6 @@
+import django_tables2 as tables
+from api_app.models import CREATE, UPDATE
+from api_app.urls import camel_to_snake
 from data_models.models import (
     DOI,
     IOP,
@@ -5,6 +8,7 @@ from data_models.models import (
     Campaign,
     CampaignWebsite,
     CollectionPeriod,
+    Deployment,
     FocusArea,
     GcmdInstrument,
     GcmdPhenomena,
@@ -13,33 +17,25 @@ from data_models.models import (
     GeographicalRegion,
     GeophysicalConcept,
     HomeBase,
+    Instrument,
     MeasurementRegion,
     MeasurementStyle,
     MeasurementType,
     PartnerOrg,
+    Platform,
     Repository,
     Season,
     SignificantEvent,
     Website,
-    WebsiteType
+    WebsiteType,
 )
-import django_tables2 as tables
-from django_tables2 import A
 from django.urls import reverse
-
-from api_app.urls import camel_to_snake
-from api_app.models import (
-    Change,
-    UPDATE,
-    CREATE
-)
-from data_models.models import Platform, Deployment, Campaign, Instrument
-from uuid import UUID
+from django_tables2 import A
 
 from .tables import (
+    DraftLinkColumn,
     ShortNamefromUUIDColumn,
     ShortNamefromUUIDLinkColumn,
-    DraftLinkColumn
 )
 
 
@@ -49,7 +45,7 @@ class LimitedTableBase(tables.Table):
         accessor="long_name",
     )
 
-    initial_fields = ("short_name" , "long_name")
+    initial_fields = ("short_name", "long_name")
 
     class Meta:
         attrs = {
@@ -79,6 +75,7 @@ class IOPPublishedTable(tables.Table):
         verbose_name="End Date",
         accessor="end_date",
     )
+
     class Meta(LimitedTableBase.Meta):
         fields = ["short_name", "deployment", "start_date", "end_date"]
         sequence = fields
@@ -105,6 +102,7 @@ class SignificantEventPublishedTable(tables.Table):
         verbose_name="End Date",
         accessor="end_date",
     )
+
     class Meta(LimitedTableBase.Meta):
         model = SignificantEvent
         fields = (
@@ -204,9 +202,10 @@ class DeploymentPublishedTable(LimitedTableBase):
     )
 
     class Meta(LimitedTableBase.Meta):
-        fields = (
-            LimitedTableBase.initial_fields
-            + ("campaign", "start_date", "end_date",)
+        fields = LimitedTableBase.initial_fields + (
+            "campaign",
+            "start_date",
+            "end_date",
         )
         sequence = fields
         model = Deployment
@@ -225,10 +224,7 @@ class PlatformTypePublishedTable(LimitedTableBase):
     )
 
     class Meta(LimitedTableBase.Meta):
-        fields = (
-            LimitedTableBase.initial_fields
-            + ("parent",)
-        )
+        fields = LimitedTableBase.initial_fields + ("parent",)
         sequence = fields
         model = Platform
 
@@ -246,10 +242,7 @@ class MeasurementTypePublishedTable(LimitedTableBase):
     )
 
     class Meta(LimitedTableBase.Meta):
-        fields = (
-            LimitedTableBase.initial_fields
-            + ("parent",)
-        )
+        fields = LimitedTableBase.initial_fields + ("parent",)
         sequence = fields
         model = MeasurementType
 
@@ -267,10 +260,7 @@ class MeasurementStylePublishedTable(LimitedTableBase):
     )
 
     class Meta(LimitedTableBase.Meta):
-        fields = (
-            LimitedTableBase.initial_fields
-            + ("parent",)
-        )
+        fields = LimitedTableBase.initial_fields + ("parent",)
         sequence = fields
         model = MeasurementStyle
 
@@ -282,16 +272,10 @@ class HomeBasePublishedTable(LimitedTableBase):
         verbose_name="Short Name",
         accessor="short_name",
     )
-    location = tables.Column(
-        verbose_name="Location",
-        accessor="location"
-    )
+    location = tables.Column(verbose_name="Location", accessor="location")
 
     class Meta(LimitedTableBase.Meta):
-        fields = (
-            LimitedTableBase.initial_fields
-            + ("location",)
-        )
+        fields = LimitedTableBase.initial_fields + ("location",)
         fields = fields
         sequence = fields
         model = HomeBase
@@ -307,9 +291,7 @@ class FocusAreaPublishedTable(LimitedTableBase):
     url = tables.Column(verbose_name="Url", accessor="url")
 
     class Meta(LimitedTableBase.Meta):
-        fields = (
-            LimitedTableBase.initial_fields + ("url",)
-        )
+        fields = LimitedTableBase.initial_fields + ("url",)
         fields = fields
         sequence = fields
         model = FocusArea
@@ -322,6 +304,7 @@ class SeasonPublishedTable(LimitedTableBase):
         verbose_name="Short Name",
         accessor="short_name",
     )
+
     class Meta(LimitedTableBase.Meta):
         fields = LimitedTableBase.initial_fields
         fields = fields
@@ -336,16 +319,10 @@ class RepositoryPublishedTable(LimitedTableBase):
         verbose_name="Short Name",
         accessor="short_name",
     )
-    gcmd_uuid = tables.Column(
-        verbose_name="GCMD UUID",
-        accessor="gcmd_uuid"
-    )
+    gcmd_uuid = tables.Column(verbose_name="GCMD UUID", accessor="gcmd_uuid")
 
     class Meta(LimitedTableBase.Meta):
-        fields = (
-            LimitedTableBase.initial_fields
-            + ("gcmd_uuid",)
-        )
+        fields = LimitedTableBase.initial_fields + ("gcmd_uuid",)
         fields = fields
         sequence = fields
         model = Repository
@@ -358,16 +335,10 @@ class MeasurementRegionPublishedTable(LimitedTableBase):
         verbose_name="Short Name",
         accessor="short_name",
     )
-    example = tables.Column(
-        verbose_name="Example",
-        accessor="example"
-    )
+    example = tables.Column(verbose_name="Example", accessor="example")
 
     class Meta(LimitedTableBase.Meta):
-        fields = (
-            LimitedTableBase.initial_fields
-            + ("example",)
-        )
+        fields = LimitedTableBase.initial_fields + ("example",)
         fields = fields
         sequence = fields
         model = MeasurementRegion
@@ -380,16 +351,10 @@ class GeographicalRegionPublishedTable(LimitedTableBase):
         verbose_name="Short Name",
         accessor="short_name",
     )
-    example = tables.Column(
-        verbose_name="Example",
-        accessor="example"
-    )
+    example = tables.Column(verbose_name="Example", accessor="example")
 
     class Meta(LimitedTableBase.Meta):
-        fields = (
-            LimitedTableBase.initial_fields
-            + ("example",)
-        )
+        fields = LimitedTableBase.initial_fields + ("example",)
         fields = fields
         sequence = fields
         model = GeographicalRegion
@@ -402,17 +367,10 @@ class GeophysicalConceptPublishedTable(LimitedTableBase):
         verbose_name="Short Name",
         accessor="short_name",
     )
-    example = tables.Column(
-        verbose_name="Example",
-        accessor="example"
-    )
+    example = tables.Column(verbose_name="Example", accessor="example")
 
     class Meta(LimitedTableBase.Meta):
-        fields = (
-            LimitedTableBase.initial_fields
-            + ("example",)
-           
-        )
+        fields = LimitedTableBase.initial_fields + ("example",)
         fields = fields
         sequence = fields
         model = GeophysicalConcept
@@ -425,17 +383,10 @@ class PartnerOrgPublishedTable(LimitedTableBase):
         verbose_name="Short Name",
         accessor="short_name",
     )
-    website = tables.Column(
-        verbose_name="Website",
-        accessor="website"
-    )
+    website = tables.Column(verbose_name="Website", accessor="website")
 
     class Meta(LimitedTableBase.Meta):
-        fields = (
-            LimitedTableBase.initial_fields
-            + ("website",)
-           
-        )
+        fields = LimitedTableBase.initial_fields + ("website",)
         fields = fields
         sequence = fields
         model = PartnerOrg
@@ -448,6 +399,7 @@ class WebsiteTypePublishedTable(LimitedTableBase):
         verbose_name="Short Name",
         accessor="short_name",
     )
+
     class Meta(LimitedTableBase.Meta):
         fields = LimitedTableBase.initial_fields
         fields = fields
@@ -463,16 +415,11 @@ class CampaignPublishedTable(LimitedTableBase):
         accessor="short_name",
     )
     funding_agency = tables.Column(
-        verbose_name="Funding Agency",
-        accessor="funding_agency"
+        verbose_name="Funding Agency", accessor="funding_agency"
     )
 
     class Meta(LimitedTableBase.Meta):
-        fields = (
-            LimitedTableBase.initial_fields
-            + ("funding_agency",)
-           
-        )
+        fields = LimitedTableBase.initial_fields + ("funding_agency",)
         fields = fields
         sequence = fields
         model = Campaign
@@ -486,16 +433,11 @@ class PlatformPublishedTable(LimitedTableBase):
         accessor="short_name",
     )
     platform_type = tables.Column(
-        verbose_name="Platform Type",
-        accessor="platform_type_name"
+        verbose_name="Platform Type", accessor="platform_type_name"
     )
 
     class Meta(LimitedTableBase.Meta):
-        fields = (
-            LimitedTableBase.initial_fields
-            + ("platform_type",)
-           
-        )
+        fields = LimitedTableBase.initial_fields + ("platform_type",)
         fields = fields
         sequence = fields
         model = Platform
@@ -508,6 +450,7 @@ class InstrumentPublishedTable(LimitedTableBase):
         verbose_name="Short Name",
         accessor="short_name",
     )
+
     class Meta(LimitedTableBase.Meta):
         fields = LimitedTableBase.initial_fields
         fields = fields
@@ -524,8 +467,7 @@ class WebsitePublishedTable(LimitedTableBase):
     )
     url = tables.Column(verbose_name="URL", accessor="url")
     website_type = tables.Column(
-        verbose_name="Website Type",
-        accessor="website_type_name"
+        verbose_name="Website Type", accessor="website_type_name"
     )
 
     class Meta(LimitedTableBase.Meta):
@@ -545,6 +487,7 @@ class CampaignWebsitePublishedTable(LimitedTableBase):
         verbose_name="Short Name",
         accessor="short_name",
     )
+
     class Meta(LimitedTableBase.Meta):
         fields = LimitedTableBase.initial_fields
         sequence = fields
@@ -559,10 +502,7 @@ class AliasPublishedTable(LimitedTableBase):
         accessor="short_name",
     )
     # TODO replace model_type which short_name of related object
-    model_type = tables.Column(
-        verbose_name="Item Type",
-        accessor="model_name"
-    )
+    model_type = tables.Column(verbose_name="Item Type", accessor="model_name")
 
     class Meta(LimitedTableBase.Meta):
         fields = (
@@ -580,10 +520,7 @@ class GcmdProjectPublishedTable(LimitedTableBase):
         verbose_name="Short Name",
         accessor="short_name",
     )
-    bucket = tables.Column(
-        verbose_name="Bucket",
-        accessor="bucket"
-    )
+    bucket = tables.Column(verbose_name="Bucket", accessor="bucket")
 
     class Meta(LimitedTableBase.Meta):
         fields = (
@@ -597,26 +534,22 @@ class GcmdProjectPublishedTable(LimitedTableBase):
 
 class GcmdInstrumentPublishedTable(LimitedTableBase):
     short_name = DraftLinkColumn(
-        viewname= f"{camel_to_snake('GcmdInstrument')}-detail-published",
+        viewname=f"{camel_to_snake('GcmdInstrument')}-detail-published",
         url_kwargs={"pk": "uuid"},
         verbose_name="Short Name",
         accessor="short_name",
     )
     instrument_category = tables.Column(
-        verbose_name="Instrument Category",
-        accessor="instrument_category"
+        verbose_name="Instrument Category", accessor="instrument_category"
     )
     instrument_class = tables.Column(
-        verbose_name="Instrument Class",
-        accessor="instrument_class"
+        verbose_name="Instrument Class", accessor="instrument_class"
     )
     instrument_type = tables.Column(
-        verbose_name="Instrument Type",
-        accessor="instrument_type"
+        verbose_name="Instrument Type", accessor="instrument_type"
     )
     instrument_subtype = tables.Column(
-        verbose_name="Instrument Subtype",
-        accessor="instrument_subtype"
+        verbose_name="Instrument Subtype", accessor="instrument_subtype"
     )
 
     class Meta(LimitedTableBase.Meta):
@@ -639,10 +572,7 @@ class GcmdPlatformPublishedTable(LimitedTableBase):
         verbose_name="Short Name",
         accessor="short_name",
     )
-    category = tables.Column(
-        verbose_name="Category",
-        accessor="category"
-    )
+    category = tables.Column(verbose_name="Category", accessor="category")
 
     class Meta(LimitedTableBase.Meta):
         fields = (
@@ -655,32 +585,17 @@ class GcmdPlatformPublishedTable(LimitedTableBase):
 
 
 class GcmdPhenomenaPublishedTable(tables.Table):
-    variable_3  = DraftLinkColumn(
+    variable_3 = DraftLinkColumn(
         viewname=f"{camel_to_snake('GcmdPhenomena')}-detail-published",
         url_kwargs={"pk": "uuid"},
         verbose_name="Short Name",
         accessor="short_name",
     )
-    variable_2 = tables.Column(
-        verbose_name="Variable 2",
-        accessor="variable_2"
-    )
-    variable_1 = tables.Column(
-        verbose_name="Variable 1",
-        accessor="variable_1"
-    )
-    term = tables.Column(
-        verbose_name="Term",
-        accessor="term"
-    )
-    topic = tables.Column(
-        verbose_name="Topic",
-        accessor="topic"
-    )
-    category = tables.Column(
-        verbose_name="Category",
-        accessor="category"
-    )
+    variable_2 = tables.Column(verbose_name="Variable 2", accessor="variable_2")
+    variable_1 = tables.Column(verbose_name="Variable 1", accessor="variable_1")
+    term = tables.Column(verbose_name="Term", accessor="term")
+    topic = tables.Column(verbose_name="Topic", accessor="topic")
+    category = tables.Column(verbose_name="Category", accessor="category")
 
     class Meta(LimitedTableBase.Meta):
         fields = (
