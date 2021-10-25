@@ -1,7 +1,6 @@
 import django_filters
-
-from api_app.models import Change
 from data_models import models
+
 
 def GenericPublishedListFilter(model_name):
     class GenericFilterClass(django_filters.FilterSet):

@@ -12,9 +12,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - the following fields have been removed from public get requests, however can still be posted to by authenticated users with an appropriatly scoped token
   - `notes_internal` on all endpoints
   - `campaign.description_long`
-  - `instrument.lead_investigator`
-  - `instrument.technical_contact`
-  - `platform.stationary`
   - `collection_period.platform_identifier`
   - `collection_period.home_base`
 
