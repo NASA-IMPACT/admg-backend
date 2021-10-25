@@ -89,6 +89,7 @@ def GenericDetailView(model_name):
                 ),
                 "model_name": model_name,
                 "display_name": MODEL_CONFIG_MAP[model_name]["display_name"],
+                "url_name": MODEL_CONFIG_MAP[model_name]["singular_snake_case"],
             }
 
     return GenericDetailViewClass
@@ -150,6 +151,7 @@ def GenericEditView(model_name):
                 ),
                 "model_name": model_name,
                 "display_name": MODEL_CONFIG_MAP[model_name]["display_name"],
+                "url_name": MODEL_CONFIG_MAP[model_name]["singular_snake_case"],
             }
 
     return GenericEditViewClass
