@@ -57,7 +57,7 @@ class BaseModel(models.Model):
 
 
 def get_file_path(instance, path):
-    _, ext = os.path.splitext(urllib.parse.urlparse(path).path)
+    ext = os.path.splitext(urllib.parse.urlparse(path).path)[1]
     return f"{instance.uuid}.{ext}"
 
 
