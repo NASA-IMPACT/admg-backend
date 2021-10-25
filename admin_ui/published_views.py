@@ -12,6 +12,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils.decorators import method_decorator
+from django.views import View
 from django.views.generic import DetailView
 from django.views.generic.edit import ModelFormMixin
 from django_filters.views import FilterView
