@@ -566,7 +566,7 @@ def generate_base_list_view(model_name):
     class BaseListView(SingleTableMixin, FilterView):
         model = Change
         template_name = "api_app/change_list.html"
-        filterset_class = filters.ChangeStatusFilter
+        filterset_class = MODEL_CONFIG_MAP[model_name]["filter"]
         table_class = MODEL_CONFIG_MAP[model_name]["change_list_table"]
         linked_model = MODEL_CONFIG_MAP[model_name]["model"]
 

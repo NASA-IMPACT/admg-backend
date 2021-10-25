@@ -2,6 +2,7 @@ from api_app.urls import camel_to_snake
 from data_models import models
 
 from . import tables
+from . import filters
 
 from .published_filters import GenericPublishedListFilter
 from .published_tables import build_published_table
@@ -9,6 +10,10 @@ from .published_tables import build_published_table
 
 # any custom values for each model are added to this dictionary
 # all models must be defined at a minimum with an empty dictionary
+
+# to set the filter, you can either do it directly with the `filter` keyword, or
+# you can set a `filter_generator` which takes in a `model_name` in the comprehension
+
 CUSTOM_MODEL_VALUES = {
     "PlatformType": {},
     "MeasurementType": {},
@@ -41,6 +46,7 @@ CUSTOM_MODEL_VALUES = {
     },
     "DOI": {
         "admin_required_to_view": False,
+        "filter": filters.DoiFilter,
         "table_link_field": "concept_id",
     },
     "Campaign": {
@@ -54,16 +60,20 @@ CUSTOM_MODEL_VALUES = {
     },
     "Deployment": {
         "admin_required_to_view": False,
+        "filter": filters.DeploymentFilter,
     },
     "IOP": {
         "admin_required_to_view": False,
+        "filter_generator": filters.second_level_campaign_filter,
     },
     "SignificantEvent": {
         "admin_required_to_view": False,
+        "filter_generator": filters.second_level_campaign_filter,
     },
     "CollectionPeriod": {
         "display_name": "C-D-P-I",
         "admin_required_to_view": False,
+        "filter_generator": filters.second_level_campaign_filter,
         "table_link_field": "uuid",
     },
     "Website": {
@@ -80,7 +90,9 @@ CUSTOM_MODEL_VALUES = {
 # defaults are assigned to each model in this comprehension, and then overwritten by the above dictionary
 MODEL_CONFIG_MAP = {
     model_name: {
-        "filter": GenericPublishedListFilter(model_name),
+        "filter": overrides.get("filter_generator", GenericPublishedListFilter)(
+            model_name
+        ),
         "model": getattr(models, model_name),
         "table": build_published_table(
             model_name, overrides.get("table_link_field", "short_name")
