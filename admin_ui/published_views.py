@@ -1,10 +1,18 @@
-from api_app.models import CREATED_CODE, IN_TRASH_CODE, PUBLISHED_CODE, UPDATE, Change
+from api_app.models import (
+    CREATED_CODE,
+    DELETE,
+    IN_TRASH_CODE,
+    PUBLISHED_CODE,
+    UPDATE,
+    Change,
+)
 from data_models import serializers
 from django.contrib.auth.decorators import login_required
 from django.contrib.contenttypes.models import ContentType
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils.decorators import method_decorator
+from django.views import View
 from django.views.generic import DetailView
 from django.views.generic.edit import ModelFormMixin
 from django_filters.views import FilterView
@@ -278,3 +286,26 @@ class DiffView(ModelObjectView):
         return self._get_context_from_data(
             change_instance, editable_form, noneditable_published_form, **kwargs
         )
+
+
+def GenericDeleteView(model_name):
+    @method_decorator(login_required, name="dispatch")
+    class GenericDeletelViewClass(View):
+        def dispatch(self, *args, **kwargs):
+            model_to_query = MODEL_CONFIG_MAP[model_name]["model"]
+            content_type = ContentType.objects.get_for_model(model_to_query)
+            change_object = Change.objects.create(
+                content_type=content_type,
+                status=CREATED_CODE,
+                action=DELETE,
+                model_instance_uuid=kwargs.get("pk"),
+                update={},
+            )
+            change_object.save()
+            return redirect(
+                reverse(
+                    f"{MODEL_CONFIG_MAP[model_name]['singular_snake_case']}-list-draft"
+                )
+            )
+
+    return GenericDeletelViewClass
