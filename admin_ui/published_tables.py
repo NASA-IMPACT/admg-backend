@@ -629,7 +629,7 @@ class GcmdPhenomenaPublishedTable(tables.Table):
     variable_3  = DraftLinkColumn(
         viewname=f"{camel_to_snake('GcmdPhenomena')}-detail-published",
         url_kwargs={"pk": "uuid"},
-        verbose_name="Short Name",
+        verbose_name="Variable 3",
         accessor="short_name",
     )
     variable_2 = tables.Column(verbose_name="Variable 2", accessor="variable_2")
