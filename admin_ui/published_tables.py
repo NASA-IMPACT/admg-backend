@@ -463,7 +463,8 @@ class PlatformPublishedTable(LimitedTableBase):
         accessor="short_name",
     )
     platform_type = tables.Column(
-        verbose_name="Platform Type", accessor="platform_type_name"
+        verbose_name="Platform Type",
+        accessor="platform_type"
     )
 
     class Meta(LimitedTableBase.Meta):
