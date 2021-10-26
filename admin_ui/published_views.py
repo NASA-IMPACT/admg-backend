@@ -30,7 +30,7 @@ def GenericListView(model_name):
         model = MODEL_CONFIG_MAP[model_name]["model"]
         template_name = "api_app/published_list.html"
         table_class = MODEL_CONFIG_MAP[model_name]["published_table"]
-        filterset_class = MODEL_CONFIG_MAP[model_name]["filter"]
+        filterset_class = MODEL_CONFIG_MAP[model_name]["published_filter"]
 
         def get_context_data(self, **kwargs):
             return {

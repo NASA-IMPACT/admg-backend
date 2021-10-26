@@ -2,9 +2,8 @@ from api_app.urls import camel_to_snake
 from data_models import models
 
 from . import tables
-from . import filters
+from . import filters, published_filters
 
-from .published_filters import GenericPublishedListFilter
 from admin_ui import published_tables
 
 
@@ -45,7 +44,8 @@ CUSTOM_MODEL_VALUES = {
     },
     "DOI": {
         "admin_required_to_view": False,
-        "filter": filters.DoiFilter,
+        "draft_filter": filters.DoiFilter,
+        "published_filter": published_filters.DoiFilter,
     },
     "Campaign": {
         "admin_required_to_view": False,
@@ -58,20 +58,24 @@ CUSTOM_MODEL_VALUES = {
     },
     "Deployment": {
         "admin_required_to_view": False,
-        "filter": filters.DeploymentFilter,
+        "draft_filter": filters.DeploymentFilter,
+        "published_filter": published_filters.DeploymentFilter,
     },
     "IOP": {
         "admin_required_to_view": False,
         "filter_generator": filters.second_level_campaign_filter,
+        "published_filter_generator": published_filters.second_level_campaign_filter,
     },
     "SignificantEvent": {
         "admin_required_to_view": False,
         "filter_generator": filters.second_level_campaign_filter,
+        "published_filter_generator": published_filters.second_level_campaign_filter,
     },
     "CollectionPeriod": {
         "display_name": "C-D-P-I",
         "admin_required_to_view": False,
-        "filter_generator": filters.second_level_campaign_filter,
+        "draft_filter": filters.CollectionPeriodFilter,
+        "published_filter": published_filters.CollectionPeriodFilter,
     },
     "Website": {
         "admin_required_to_view": False,
@@ -85,7 +89,10 @@ CUSTOM_MODEL_VALUES = {
 # defaults are assigned to each model in this comprehension, and then overwritten by the above dictionary
 MODEL_CONFIG_MAP = {
     model_name: {
-        "filter": overrides.get("filter_generator", GenericPublishedListFilter)(
+        "draft_filter": overrides.get("filter_generator", filters.GenericDraftFilter)(
+            model_name
+        ),
+        "published_filter": overrides.get("published_filter_generator", published_filters.GenericPublishedListFilter)(
             model_name
         ),
         "model": getattr(models, model_name),
