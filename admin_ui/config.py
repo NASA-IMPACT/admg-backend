@@ -2,10 +2,9 @@ from api_app.urls import camel_to_snake
 from data_models import models
 
 from . import tables
-from . import filters
+from . import filters, published_filters
 
-from .published_filters import GenericPublishedListFilter
-from .published_tables import build_published_table
+from admin_ui import published_tables
 
 
 # any custom values for each model are added to this dictionary
@@ -42,12 +41,11 @@ CUSTOM_MODEL_VALUES = {
     },
     "GcmdPhenomena": {
         "display_name": "GCMD Phenomena",
-        "table_link_field": "category",
     },
     "DOI": {
         "admin_required_to_view": False,
-        "filter": filters.DoiFilter,
-        "table_link_field": "concept_id",
+        "draft_filter": filters.DoiFilter,
+        "published_filter": published_filters.DoiFilter,
     },
     "Campaign": {
         "admin_required_to_view": False,
@@ -60,43 +58,45 @@ CUSTOM_MODEL_VALUES = {
     },
     "Deployment": {
         "admin_required_to_view": False,
-        "filter": filters.DeploymentFilter,
+        "draft_filter": filters.DeploymentFilter,
+        "published_filter": published_filters.DeploymentFilter,
     },
     "IOP": {
         "admin_required_to_view": False,
         "filter_generator": filters.second_level_campaign_filter,
+        "published_filter_generator": published_filters.second_level_campaign_filter,
     },
     "SignificantEvent": {
         "admin_required_to_view": False,
         "filter_generator": filters.second_level_campaign_filter,
+        "published_filter_generator": published_filters.second_level_campaign_filter,
     },
     "CollectionPeriod": {
         "display_name": "C-D-P-I",
         "admin_required_to_view": False,
-        "filter_generator": filters.second_level_campaign_filter,
-        "table_link_field": "uuid",
+        "draft_filter": filters.CollectionPeriodFilter,
+        "published_filter": published_filters.CollectionPeriodFilter,
     },
     "Website": {
         "admin_required_to_view": False,
-        "table_link_field": "uuid",
     },
     "WebsiteType": {},
     "CampaignWebsite": {
         "display_name": "Campaign Website Linkage",
-        "table_link_field": "website",
     },
 }
 
 # defaults are assigned to each model in this comprehension, and then overwritten by the above dictionary
 MODEL_CONFIG_MAP = {
     model_name: {
-        "filter": overrides.get("filter_generator", GenericPublishedListFilter)(
+        "draft_filter": overrides.get("filter_generator", filters.GenericDraftFilter)(
+            model_name
+        ),
+        "published_filter": overrides.get("published_filter_generator", published_filters.GenericPublishedListFilter)(
             model_name
         ),
         "model": getattr(models, model_name),
-        "table": build_published_table(
-            model_name, overrides.get("table_link_field", "short_name")
-        ),
+        "published_table": getattr(published_tables, f"{model_name}PublishedTable"),
         "change_list_table": getattr(tables, f"{model_name}ChangeListTable"),
         "display_name": getattr(models, model_name)._meta.verbose_name.title(),
         "singular_snake_case": camel_to_snake(model_name),
