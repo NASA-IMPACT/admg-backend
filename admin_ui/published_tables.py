@@ -90,7 +90,7 @@ class SignificantEventPublishedTable(tables.Table):
     )
     deployment = ShortNamefromUUIDColumn(
         verbose_name="Deployment",
-        model=Platform,
+        model=Deployment,
         accessor="deployment",
     )
     start_date = tables.Column(
