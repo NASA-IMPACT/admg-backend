@@ -85,6 +85,7 @@ THIRD_PARTY_APPS = [
     "corsheaders",
     "crispy_forms",
     "django_celery_results",
+    "django_celery_beat",
     "django_sass",
     "django_tables2",
     "drf_yasg",
