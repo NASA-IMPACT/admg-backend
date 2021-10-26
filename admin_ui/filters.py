@@ -1,72 +1,52 @@
 import django_filters
 from api_app.models import Change
 from data_models import models
-from data_models.models import DOI, Campaign, Deployment
+from data_models.models import DOI, CollectionPeriod
 from django.db.models.query_utils import Q
 
-# TODO: Look at .values with Cast function
+from .filter_utils import (
+    CampaignFilter,
+
+    default_filter_configs,
+    get_draft_campaigns,
+    get_deployments,
+    filter_draft_and_published,
+    second_level_campaing_name_filter,
+)
 
 
-def _get_campaigns(search_string):
-    """Takes a search_string  and finds all draft and published campaigns with a matching
-    value in their short or long_name. Not case sensitive.
+# TODO:
+# 1. Look at .values with Cast function
+#   -> This is for queries like these: Q(update__campaigns__contains=(str(val[0]) for val in campaigns)
+# 2. Merge the filters.py and published_filters.py into as single file.
 
-    Args:
-        search_string (str): short/long_name or piece of a short/long_name.
 
-    Returns:
-        all_campaign_uuids: uuids for the matching campaigns
-    """
-
-    campaign_model_uuids = Campaign.objects.filter(
-        Q(short_name__icontains=search_string) | Q(long_name__icontains=search_string)
-    ).values_list("uuid")
-
-    campaign_draft_uuids = (
-        Change.objects.of_type(Campaign)
-        .filter(
-            Q(update__short_name__icontains=search_string)
-            | Q(update__long_name__icontains=search_string)
+def GenericDraftFilter(model_name, filter_configs=default_filter_configs):
+    class GenericFilterClass(django_filters.FilterSet):
+        class Meta:
+            model = Change
+            fields = ["status", ]
+    
+    for config in filter_configs:
+        GenericFilterClass.base_filters[config["field_name"]] = django_filters.CharFilter(
+            label=config["label"],
+            field_name=f"update__{config['field_name']}",
+            method=filter_draft_and_published(model_name)# this is not required for published items
         )
-        .values_list("uuid")
-    )
 
-    all_campaign_uuids = campaign_model_uuids.union(campaign_draft_uuids)
-
-    return all_campaign_uuids
+    return GenericFilterClass
 
 
-def get_deployments(campaign_uuids):
-    deployments = Deployment.objects.filter(campaign__in=campaign_uuids).values_list(
-        "uuid"
-    )
-
-    return deployments
-
-
-class ChangeStatusFilter(django_filters.FilterSet):
+class DeploymentFilter(CampaignFilter):
     short_name = django_filters.CharFilter(
-        label="Short Name", field_name="update__short_name", lookup_expr="icontains"
-    )
-
-    def filter_short_name(self, queryset, field_name, search_string):
-        pass
-
-    class Meta:
-        model = Change
-        fields = ["status"]
-
-
-class DeploymentFilter(ChangeStatusFilter):
-    campaign_name = django_filters.CharFilter(
-        label="Campaign Name",
-        field_name="update__campaign",
-        method="filter_campaign_name",
+        label="Short Name",
+        field_name="update__short_name",
+        method=filter_draft_and_published("Deployment")
     )
 
     def filter_campaign_name(self, queryset, field_name, search_string):
 
-        campaigns = _get_campaigns(search_string)
+        campaigns = get_draft_campaigns(search_string)
         deployments = get_deployments(campaigns)
         return queryset.filter(
             Q(model_instance_uuid__in=deployments)
@@ -79,61 +59,60 @@ class DeploymentFilter(ChangeStatusFilter):
 
 
 def second_level_campaign_filter(model_name):
-    class FilterForDeploymentToCampaign(ChangeStatusFilter):
-        campaign_name = django_filters.CharFilter(
-            label="Campaign Name",
-            field_name="update__campaign",
-            method="filter_campaign_name",
+    class FilterForDeploymentToCampaign(CampaignFilter):
+        short_name = django_filters.CharFilter(
+            label="Short Name",
+            field_name="update__short_name",
+            method=filter_draft_and_published(model_name)
         )
-
         def filter_campaign_name(self, queryset, field_name, search_string):
-
-            campaigns = _get_campaigns(search_string)
-            deployments = get_deployments(campaigns)
-            deployments_change_objects = Change.objects.of_type(Deployment).filter(
-                Q(model_instance_uuid__in=deployments)
-                | Q(update__campaign__in=(str(val[0]) for val in campaigns))
-            )
 
             # find instances that use deployment in the actual database instance
             model = getattr(models, model_name)
-            model_instances = model.objects.filter(deployment__in=deployments)
-
-            unioned_deployments = deployments.union(
-                deployments_change_objects.values_list("uuid")
+            return second_level_campaing_name_filter(
+                queryset,
+                search_string,
+                model
             )
-            return queryset.filter(
-                Q(model_instance_uuid__in=model_instances)
-                | Q(update__deployment__in=(str(val[0]) for val in unioned_deployments))
-            )
+        
+        class Meta:
+            model = Change
+            fields = ["status"]
 
     return FilterForDeploymentToCampaign
 
 
-class DoiFilter(django_filters.FilterSet):
+class DoiFilter(CampaignFilter):
     concept_id = django_filters.CharFilter(
-        label="Concept ID", field_name="update__concept_id", lookup_expr="icontains"
+        label="Concept ID",
+        field_name="update__concept_id",
+        lookup_expr=filter_draft_and_published("DOI")
     )
-
-    campaign_name = django_filters.CharFilter(
-        label="Campaign Name",
-        field_name="update__campaign",
-        method="filter_campaign_name",
-    )
-
-    # TODO: filter should show update drafts for those short names that it links to
-    # def filter_concept_id(self, queryset, name, value):
-    #     pass
 
     def filter_campaign_name(self, queryset, field_name, search_string):
 
-        campaigns = _get_campaigns(search_string)
+        campaigns = get_draft_campaigns(search_string)
         model_instances = DOI.objects.filter(campaigns__in=campaigns).values_list(
             "uuid"
         )
         return queryset.filter(
             Q(model_instance_uuid__in=model_instances)
             | Q(update__campaigns__contains=(str(val[0]) for val in campaigns))
+        )
+
+    class Meta:
+        model = Change
+        fields = ["status"]
+
+
+class CollectionPeriodFilter(CampaignFilter):
+
+    def filter_campaign_name(self, queryset, field_name, search_string):
+
+        return second_level_campaing_name_filter(
+            queryset,
+            search_string,
+            CollectionPeriod
         )
 
     class Meta:
