@@ -598,11 +598,13 @@ class InstrumentChangeListTable(LimitedTableBase):
 
 # TODO: does this actually need to link to the campaign detail page?
 class ChangeSummaryTable(DraftTableBase):
-    name = tables.LinkColumn(
-        viewname="campaign-detail",
-        args=[A("uuid")],
-        verbose_name="Name",
+    short_name = DraftLinkColumn(
+        update_viewname="change-diff",
+        viewname="change-update",
+        url_kwargs={"pk": "uuid"},
+        verbose_name="Short Name",
         accessor="update__short_name",
+        update_accessor="content_object.short_name",
     )
     content_type__model = tables.Column(
         verbose_name="Model Type", accessor="model_name", order_by="content_type__model"
@@ -616,7 +618,7 @@ class ChangeSummaryTable(DraftTableBase):
             "class": "table table-striped",
             "thead": {"class": "table-primary"},
         }
-        fields = ["name", "content_type__model", "updated_at", "status"]
+        fields = ["short_name", "content_type__model", "updated_at", "status"]
 
 
 class WebsiteChangeListTable(DraftTableBase):
