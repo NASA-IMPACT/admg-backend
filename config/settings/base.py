@@ -99,6 +99,7 @@ LOCAL_APPS = [
     "data_models.apps.DataModelsConfig",
     "api_app",
     "cmr",
+    "kms",
     # Your stuff: custom apps go here
 ]
 
