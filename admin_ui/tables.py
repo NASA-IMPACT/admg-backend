@@ -312,7 +312,7 @@ class DOIChangeListTable(DraftTableBase):
     )
     campaigns = ShortNamefromUUIDColumn(
         verbose_name="Campaigns",
-        model=Platform,
+        model=Campaign,
         accessor="update__campaigns",
         update_accessor="content_object.campaigns",
     )

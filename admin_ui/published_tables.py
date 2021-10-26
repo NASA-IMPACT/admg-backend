@@ -157,7 +157,7 @@ class DOIPublishedTable(tables.Table):
     )
     campaigns = ShortNamefromUUIDColumn(
         verbose_name="Campaigns",
-        model=Platform,
+        model=Campaign,
         accessor="campaigns",
     )
     platforms = ShortNamefromUUIDColumn(
