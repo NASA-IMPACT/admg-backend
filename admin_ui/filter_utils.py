@@ -114,8 +114,8 @@ def filter_draft_and_published(model_name):
     return filter_field_name
 
 
-def second_level_campaing_name_filter(queryset, search_string, model):
-    """Returns campaings for those models which link to campaign like model -> deployment -> campaign
+def second_level_campaign_name_filter(queryset, search_string, model):
+    """Returns campaigns for those models which link to campaign like model -> deployment -> campaign
 
     Args:
         queryset (Django QuerySet): original queryset
