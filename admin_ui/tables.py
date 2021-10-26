@@ -198,7 +198,7 @@ class IOPChangeListTable(DraftTableBase):
     )
     deployment = ShortNamefromUUIDColumn(
         verbose_name="Deployment",
-        model=Platform,
+        model=Deployment,
         accessor="update__deployment",
         update_accessor="content_object.deployment",
     )
