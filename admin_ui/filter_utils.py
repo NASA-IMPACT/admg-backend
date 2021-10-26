@@ -6,12 +6,7 @@ from data_models.models import Campaign, Deployment
 from django.db.models.query_utils import Q
 
 
-default_filter_configs = [
-    {
-        "field_name": "short_name",
-        "label": "Short Name" 
-    }
-]
+default_filter_configs = [{"field_name": "short_name", "label": "Short Name"}]
 
 
 class CampaignFilter(django_filters.FilterSet):
@@ -21,7 +16,6 @@ class CampaignFilter(django_filters.FilterSet):
         field_name="",
         method="filter_campaign_name",
     )
-
 
 
 def get_published_campaigns(search_string):
@@ -53,9 +47,7 @@ def get_draft_campaigns(search_string):
         all_campaign_uuids: uuids for the matching campaigns
     """
 
-    campaign_model_uuids = Campaign.objects.filter(
-        Q(short_name__icontains=search_string) | Q(long_name__icontains=search_string)
-    ).values_list("uuid")
+    campaign_model_uuids = get_published_campaigns(search_string)
 
     campaign_draft_uuids = (
         Change.objects.of_type(Campaign)
@@ -81,39 +73,38 @@ def get_deployments(campaign_uuids):
 
 def filter_draft_and_published(model_name):
     """Filtering the drafts work a bit differently as they need to look at their
-        own values (inside update) and also look for models (for update/delete drafts)
-        that they point to, in order to find the items in the draft table
+    own values (inside update) and also look for models (for update/delete drafts)
+    that they point to, in order to find the items in the draft table
 
-        This function should be used in the "method" parameter in the django_filters field
-        
-        Args:
-            model_name (str): the model which the draft belongs to
-        
-        Returns:
-            filter_field_name (function): The function required by the "method" parameter
+    This function should be used in the "method" parameter in the django_filters field
+
+    Args:
+        model_name (str): the model which the draft belongs to
+
+    Returns:
+        filter_field_name (function): The function required by the "method" parameter
     """
+
     def filter_field_name(queryset, field_name, search_string):
-        """ method function for fields
+        """method function for fields
         Args:
             queryset (django QuerySet): initial queryset obtained
             field_name (str): the field name this filter is being applied to
             search_string (str): the string that needs to be searched for
-        
+
         Returns:
             queryset (django QuerySet):
 
         """
 
-        field_name_in_draft_query = {
-            f"{field_name}__icontains": search_string  
-        }
+        field_name_in_draft_query = {f"{field_name}__icontains": search_string}
 
         # remove the "update__" part for the field_name
         model_field_name = field_name.replace("update__", "")
         Model = getattr(models, model_name)
-        matching_model_instances = Model.objects.filter(**{
-            f"{model_field_name}__icontains": search_string
-        }).values_list("uuid")
+        matching_model_instances = Model.objects.filter(
+            **{f"{model_field_name}__icontains": search_string}
+        ).values_list("uuid")
 
         return queryset.filter(
             Q(**field_name_in_draft_query)
@@ -130,11 +121,11 @@ def second_level_campaing_name_filter(queryset, search_string, model):
         queryset (Django QuerySet): original queryset
         search_str (str): string to search for
         model (Django Model instance): the model that is being queried
-    
+
     Returns:
         queryset (Django QuerySet): queryset after the filters have been applied
     """
-    
+
     campaigns = get_draft_campaigns(search_string)
     deployments = get_deployments(campaigns)
     deployments_change_objects = Change.objects.of_type(Deployment).filter(
@@ -150,4 +141,3 @@ def second_level_campaing_name_filter(queryset, search_string, model):
         Q(model_instance_uuid__in=model_instances)
         | Q(update__deployment__in=(str(val[0]) for val in unioned_deployments))
     )
-
