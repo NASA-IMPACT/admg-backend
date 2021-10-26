@@ -15,8 +15,7 @@ class ConditionalValueColumn(tables.Column):
     def _get_processed_value(self, value):
         if value.__class__.__name__ == "ManyRelatedManager":
             many_values = [
-                str(uuid)
-                for uuid in list(value.all().values_list("uuid", flat=True))
+                str(uuid) for uuid in list(value.all().values_list("uuid", flat=True))
             ]
             return many_values
         return value
@@ -37,9 +36,9 @@ class ConditionalValueColumn(tables.Column):
 
         # This is being called from published tables as well. Which doesn't come with a record with action attribute
         if (
-            not value and
-            self.update_accessor and
-            getattr(record , "action", None) != CREATE
+            not value
+            and self.update_accessor
+            and getattr(record, "action", None) != CREATE
         ):
             accessor = A(self.update_accessor)
             value = self._get_processed_value(accessor.resolve(record))
@@ -583,7 +582,7 @@ class CampaignChangeListTable(LimitedTableBase):
 class PlatformChangeListTable(LimitedTableBase):
     platform_type = ConditionalValueColumn(
         verbose_name="Platform Type",
-        accessor="platform_type",
+        accessor="platform_type_name",
         update_accessor="content_object.platform_type",
     )
 
