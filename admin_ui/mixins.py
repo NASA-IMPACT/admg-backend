@@ -198,7 +198,7 @@ class ChangeModelFormMixin(ModelFormMixin):
         if not form.is_valid() or (validate_model_form and not model_form.is_valid()):
             return self.form_invalid(form=form, model_form=model_form)
 
-        form.instance.update = self.get_update_value(model_form)
+        form.instance.update = self.get_update_values(model_form)
         return self.form_valid(form, model_form)
 
     def form_valid(self, form, model_form):
