@@ -392,7 +392,10 @@ class Change(models.Model):
             instance = model.objects.get(uuid=self.model_instance_uuid)
             if self.action == UPDATE:
                 serializer = serializer_class(instance)
-                self.previous = {key: serializer.data.get(key) for key in self.update}
+                self.previous = {
+                    key: Change._get_processed_value(serializer.data.get(key))
+                    for key in self.update
+                }
 
     def get_latest_log(self):
         return ApprovalLog.objects.filter(change=self).order_by("date").last()
