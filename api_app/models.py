@@ -391,11 +391,8 @@ class Change(models.Model):
             serializer_class = getattr(serializers, f"{self.model_name}Serializer")
             instance = model.objects.get(uuid=self.model_instance_uuid)
             if self.action == UPDATE:
-                # fetch the previous version of update and change it to previous
-                try:
-                    self.previous = Change.objects.get(uuid=self.uuid).update
-                except Change.DoesNotExist:
-                    self.previous = {}
+                serializer = serializer_class(instance)
+                self.previous = {key: serializer.data.get(key) for key in self.update}
 
     def get_latest_log(self):
         return ApprovalLog.objects.filter(change=self).order_by("date").last()
