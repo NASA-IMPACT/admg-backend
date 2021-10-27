@@ -156,29 +156,26 @@ class ChangeModelFormMixin(ModelFormMixin):
         else:
             return []
 
-    def get_update_value(self, model_form):
-        # Populate Change's form with values from destination model's form.
-        # We're not saving the cleaned_data because we want the raw text, not
-        # the processed values (e.g. we don't want Polygon objects for bounding
-        # boxes, rather we want the raw polygon text). This may or may not be
-        # the best way to achieve this.
-        update = {
-            name: field.widget.value_from_datadict(
-                model_form.data, model_form.files, model_form.add_prefix(name)
-            )
-            for name, field in model_form.fields.items()
-        }
-
-        # Save any uploaded files to disk, then overwrite their values with their name
+    def get_update_values(self, model_form):
+        update = {}
         for name, field in model_form.fields.items():
-            if not isinstance(field, FileField):
-                continue
-            model_field = getattr(model_form.instance, name)
-            if not model_field._file:
-                continue
-            model_field.save(model_field.url, model_form.cleaned_data[name])
-            update[name] = model_field.name
-        
+            if isinstance(field, FileField):
+                # Save any uploaded files to disk, then overwrite their values with their name
+                model_field = getattr(model_form.instance, name)
+                if not model_field._file:
+                    continue
+                model_field.save(model_field.url, model_form.cleaned_data[name])
+                update[name] = model_field.name
+            
+            else:
+                # Populate Change's form with values from destination model's form.
+                # We're not saving the cleaned_data because we want the raw text, not
+                # the processed values (e.g. we don't want Polygon objects for bounding
+                # boxes, rather we want the raw polygon text). This may or may not be
+                # the best way to achieve this.
+                update[name] = field.widget.value_from_datadict(
+                    model_form.data, model_form.files, model_form.add_prefix(name)
+                )
         return update
 
     def post(self, request, *args, **kwargs):
