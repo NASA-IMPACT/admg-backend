@@ -4,6 +4,12 @@
 {% load humanize %}
 {% load template_extras %}
 
+{% block extrahead %}
+{{ block.super }}
+{{ editable_update_form.media }}
+{{ noneditable_published_form.media }}
+{% endblock %}
+
 {% block header %}
   <div class="col">
     <h1>{{ model_name }} Diff View</h1>
