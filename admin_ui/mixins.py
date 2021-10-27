@@ -65,13 +65,8 @@ class ChangeModelFormMixin(ModelFormMixin):
     @property
     def destination_model_form(self):
         """ Helper to return a form for the destination of the Draft object """
-        model_type = None
-        # published items use model
-        # check if it already has a model defined.
-        if self.model:
-            model_type = self.model
-        else:
-            model_type = self.get_model_form_content_type().model_class()
+        # published items use self.model
+        model_type = self.model or self.get_model_form_content_type().model_class()
         modelform = modelform_factory(
             model_type,
             exclude=[],
