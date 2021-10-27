@@ -12,7 +12,12 @@
 
 {% block actions %}
   <div class="px-1">
-    <button name="_validate" class="btn btn-primary" form="model-form" disabled={{ disable_save }}>Save</button>
+    {% if disable_save %}
+    <button name="_validate" class="btn btn-primary" form="model-form" disabled>Save</button>
+    {% else %}
+    <button name="_validate" class="btn btn-primary" form="model-form">Save</button>
+    {% endif %}
+    
     {% include "snippets/approval_dropdown.html" %}
   </div>
 
