@@ -76,9 +76,9 @@ class ModelObjectView(ChangeModelFormMixin, DetailView):
         }
 
     def _create_diff_dict(self, form):
-        updated_value = self.get_update_value(form)
+        updated_values = self.get_update_values(form)
         return {
-            changed_key: updated_value[changed_key]
+            changed_key: updated_values[changed_key]
             for changed_key in form.changed_data
         }
 
