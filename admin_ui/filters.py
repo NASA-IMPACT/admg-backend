@@ -6,12 +6,11 @@ from django.db.models.query_utils import Q
 
 from .filter_utils import (
     CampaignFilter,
-
     default_filter_configs,
     get_draft_campaigns,
     get_deployments,
     filter_draft_and_published,
-    second_level_campaing_name_filter,
+    second_level_campaign_name_filter,
 )
 
 
@@ -25,13 +24,19 @@ def GenericDraftFilter(model_name, filter_configs=default_filter_configs):
     class GenericFilterClass(django_filters.FilterSet):
         class Meta:
             model = Change
-            fields = ["status", ]
-    
+            fields = [
+                "status",
+            ]
+
     for config in filter_configs:
-        GenericFilterClass.base_filters[config["field_name"]] = django_filters.CharFilter(
+        GenericFilterClass.base_filters[
+            config["field_name"]
+        ] = django_filters.CharFilter(
             label=config["label"],
             field_name=f"update__{config['field_name']}",
-            method=filter_draft_and_published(model_name)# this is not required for published items
+            method=filter_draft_and_published(
+                model_name
+            ),  # this is not required for published items
         )
 
     return GenericFilterClass
@@ -41,7 +46,7 @@ class DeploymentFilter(CampaignFilter):
     short_name = django_filters.CharFilter(
         label="Short Name",
         field_name="update__short_name",
-        method=filter_draft_and_published("Deployment")
+        method=filter_draft_and_published("Deployment"),
     )
 
     def filter_campaign_name(self, queryset, field_name, search_string):
@@ -63,18 +68,15 @@ def second_level_campaign_filter(model_name):
         short_name = django_filters.CharFilter(
             label="Short Name",
             field_name="update__short_name",
-            method=filter_draft_and_published(model_name)
+            method=filter_draft_and_published(model_name),
         )
+
         def filter_campaign_name(self, queryset, field_name, search_string):
 
             # find instances that use deployment in the actual database instance
             model = getattr(models, model_name)
-            return second_level_campaing_name_filter(
-                queryset,
-                search_string,
-                model
-            )
-        
+            return second_level_campaign_name_filter(queryset, search_string, model)
+
         class Meta:
             model = Change
             fields = ["status"]
@@ -86,7 +88,7 @@ class DoiFilter(CampaignFilter):
     concept_id = django_filters.CharFilter(
         label="Concept ID",
         field_name="update__concept_id",
-        lookup_expr=filter_draft_and_published("DOI")
+        lookup_expr=filter_draft_and_published("DOI"),
     )
 
     def filter_campaign_name(self, queryset, field_name, search_string):
@@ -106,13 +108,10 @@ class DoiFilter(CampaignFilter):
 
 
 class CollectionPeriodFilter(CampaignFilter):
-
     def filter_campaign_name(self, queryset, field_name, search_string):
 
-        return second_level_campaing_name_filter(
-            queryset,
-            search_string,
-            CollectionPeriod
+        return second_level_campaign_name_filter(
+            queryset, search_string, CollectionPeriod
         )
 
     class Meta:
