@@ -25,7 +25,6 @@ class ModelToBeChangedFilter(admin.SimpleListFilter):
 
     def queryset(self, request, queryset):
         content_type_id = self.value()
-        print(content_type_id)
         return (
             queryset.filter(content_type_id=content_type_id)
             if content_type_id
