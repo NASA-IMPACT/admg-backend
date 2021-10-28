@@ -37,10 +37,14 @@
 
   {# Sidebar #}
   <aside class="col col-lg-4">
-    {% if object.logo_path %}
+    {% if object.update.logo %}
     <h3>Logo</h3>
     <a href="{% url 'change-update' object.update.logo %}">
+      {% if object.logo_path %}
       <img class="img-thumbnail" src="{{ object.logo_path | get_full_url }}" />
+      {% else %}
+      <span class="font-italic">(logo missing image)</span>
+      {% endif %}
     </a>
 
     <hr />
