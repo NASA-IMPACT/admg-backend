@@ -1,19 +1,18 @@
 import json
 import logging
 
+from data_models.models import Image
+from data_models.serializers import get_geojson_from_bb
 from django import forms
 from django.conf import settings
 from django.contrib.gis import gdal
 from django.contrib.gis.forms import widgets
-from django.contrib.gis.gdal import SpatialReference, CoordTransform
+from django.contrib.gis.gdal import CoordTransform, SpatialReference
 from django.contrib.gis.gdal.error import GDALException
 from django.contrib.gis.geos import GEOSException, GEOSGeometry
 from django.urls import reverse
 from django.utils import translation
 from django.utils.safestring import mark_safe
-
-from data_models.serializers import get_geojson_from_bb
-from data_models.models import Image
 
 logger = logging.getLogger(__name__)
 
@@ -52,7 +51,7 @@ class BoundingBoxWidget(widgets.OpenLayersWidget):
         return context
 
     def to_geojson(self, value):
-        """ Create a geometry object from string """
+        """Create a geometry object from string"""
         try:
             geom = GEOSGeometry(self.get_json_representation(value))
             if geom.srid != self.map_srid:
