@@ -462,7 +462,7 @@ class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
         Change.objects.select_related("content_type")
         .prefetch_approvals()
         .annotate_from_relationship(
-            of_type=Image, to_attr="logo_url", uuid_from="logo", identifier="image"
+            of_type=Image, to_attr="logo_path", uuid_from="logo", identifier="image"
         )
     )
 
@@ -473,10 +473,10 @@ class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
         return url
 
     def get_context_data(self, **kwargs):
-        obj = self.get_object()
+        context = super().get_context_data(**kwargs)
         return {
-            **super().get_context_data(**kwargs),
-            "transition_form": forms.TransitionForm(change=obj, user=self.request.user),
+            **context,
+            "transition_form": forms.TransitionForm(change=context['object'], user=self.request.user),
             "campaign_subitems": [
                 "Deployment",
                 "IOP",
