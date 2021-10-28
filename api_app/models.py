@@ -393,7 +393,7 @@ class Change(models.Model):
             if self.action == UPDATE:
                 serializer = serializer_class(instance)
                 self.previous = {
-                    key: Change._get_processed_value(getattr(instance, key))
+                    key: Change._get_processed_value(serializer.data.get(key))
                     for key in self.update
                 }
 

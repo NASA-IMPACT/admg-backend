@@ -1,10 +1,14 @@
 from django.forms import ModelForm
 
 from .config import MODEL_CONFIG_MAP
+from .mixins import formfield_callback
 
 
 def GenericFormClass(model_name):
+
     class MyFormClass(ModelForm):
+        formfield_callback = formfield_callback
+
         def add_html_class(self, field_name, class_name):
             """Adds a html class attribute to a particular field_name in the form
 

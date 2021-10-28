@@ -22,6 +22,7 @@ from .config import MODEL_CONFIG_MAP
 from .forms import TransitionForm
 from .published_forms import GenericFormClass
 from .utils import compare_values
+from .mixins import ChangeModelFormMixin
 
 
 def GenericListView(model_name):
@@ -43,7 +44,7 @@ def GenericListView(model_name):
     return GenericListViewClass
 
 
-class ModelObjectView(ModelFormMixin, DetailView):
+class ModelObjectView(ChangeModelFormMixin, DetailView):
     fields = "__all__"
 
     @staticmethod
@@ -75,12 +76,11 @@ class ModelObjectView(ModelFormMixin, DetailView):
         }
 
     def _create_diff_dict(self, form):
-        diff_dict = {}
-        for changed_key in form.changed_data:
-            processed_value = Change._get_processed_value(form[changed_key].value())
-            diff_dict[changed_key] = processed_value
-
-        return diff_dict
+        updated_values = self.get_update_values(form)
+        return {
+            changed_key: updated_values[changed_key]
+            for changed_key in form.changed_data
+        }
 
 
 def GenericDetailView(model_name):
@@ -121,7 +121,10 @@ def GenericEditView(model_name):
                 model_name, instance=model_instance
             )
             new_form = self._get_form_from_model_name(
-                model_name, data=request.POST, initial=old_form.initial
+                model_name,
+                data=request.POST,
+                initial=old_form.initial,
+                files=request.FILES
             )
 
             kwargs = {**kwargs, "object": model_instance}
@@ -254,6 +257,7 @@ class DiffView(ModelObjectView):
             change_instance.model_name,
             data=request.POST,
             initial=noneditable_published_form.initial,
+            files=request.FILES
         )
 
         if updated_form.is_valid():
