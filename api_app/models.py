@@ -370,6 +370,12 @@ class Change(models.Model):
         else:
             return "UNKNOWN"
 
+        # cls = self.content_type.model_class()
+        # if cls:
+        #     return "CDPI" if cls == CollectionPeriod else cls.__name__
+        # else:
+        #     return "UNKNOWN"
+
     def __str__(self):
         return f"{self.model_name} >> {self.uuid}"
 
