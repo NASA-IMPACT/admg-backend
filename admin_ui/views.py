@@ -471,14 +471,13 @@ class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
 
     def get_context_data(self, **kwargs):
         obj = self.get_object()
+
         context = super().get_context_data(**kwargs)
         model_form = context["model_form"]
-        instance_class = context["model_form"].instance.__class__
+        instance_class = context["model_form"].instance.__class__.__name__
 
-        if instance_class == Deployment:
-            model_form.fields["campaign"].disabled = True
-        elif instance_class in [IOP, SignificantEvent, CollectionPeriod]:
-            model_form.fields["deployment"].disabled = True
+        for field in MODEL_CONFIG_MAP[instance_class]["change_view_readonly_fields"]:
+            model_form.fields[field].disabled = True
 
         return {
             **context,

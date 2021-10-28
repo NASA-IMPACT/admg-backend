@@ -176,24 +176,28 @@ MODEL_CONFIG_MAP = {
         "display_name": "Deployment",
         "plural_snake_case": "deployments",
         "admin_required_to_view": False,
+        "change_view_readonly_fields": ["campaign"]
     },
     "IOP": {
         **MODEL_CONFIG_MAP["IOP"],
         "display_name": "IOP",
         "plural_snake_case": "iops",
         "admin_required_to_view": False,
+        "change_view_readonly_fields": ["deployment"]
     },
     "SignificantEvent": {
         **MODEL_CONFIG_MAP["SignificantEvent"],
         "display_name": "Significant Event",
         "plural_snake_case": "significant_events",
         "admin_required_to_view": False,
+        "change_view_readonly_fields": ["deployment"]
     },
     "CollectionPeriod": {
         **MODEL_CONFIG_MAP["CollectionPeriod"],
         "display_name": "C-D-P-I",
         "plural_snake_case": "collection_periods",
         "admin_required_to_view": False,
+        "change_view_readonly_fields": ["deployment"]
     },
     "Website": {
         **MODEL_CONFIG_MAP["Website"],
