@@ -18,12 +18,14 @@
 
 {% block actions %}
   <div class="px-1">
-    {% if disable_save %}
-    <button name="_validate" class="btn btn-primary" form="model-form" disabled>Save</button>
-    {% else %}
-    <button name="_validate" class="btn btn-primary" form="model-form">Save</button>
-    {% endif %}
-    
+    <button 
+        name="_validate" 
+        class="btn btn-primary" 
+        form="model-form" 
+        {% if disable_save %}disabled{% endif %}
+    >
+        Save
+    </button>
     {% include "snippets/approval_dropdown.html" %}
   </div>
 
