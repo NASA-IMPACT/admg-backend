@@ -65,8 +65,7 @@ class ChangeModelFormMixin(ModelFormMixin):
     @property
     def destination_model_form(self):
         """ Helper to return a form for the destination of the Draft object """
-        # published items use self.model
-        model_type = self.model or self.get_model_form_content_type().model_class()
+        model_type = self.get_model_type()
         modelform = modelform_factory(
             model_type,
             exclude=[],
@@ -76,6 +75,18 @@ class ChangeModelFormMixin(ModelFormMixin):
         )  # modelform generates a form class
         modelform.field_order = self.get_ordering(model_type)
         return modelform
+
+    def get_model_type(self):
+        # published items use self.model
+        # However, we prioritize the self.get_model_form_content_type() function first
+        try:
+            model_type = self.get_model_form_content_type().model_class()
+        except NotImplementedError:
+            if not self.model:
+                raise NotImplementedError("Subclass must implement this property")
+            model_type = self.model
+        
+        return model_type
 
     def get_model_form_content_type(self) -> ContentType:
         raise NotImplementedError("Subclass must implement this property")
