@@ -61,6 +61,13 @@ dt {
   background-color: rgba(170, 170, 0, 0.5);
 }
 
-.changed-item:disabled {
+.changed-item :disabled {
+  background-color: rgba(170, 170, 0, 0.5);
+}
+
+.changed-item + span span.select2-container--default,
+.changed-item + span span.select2-container--disabled,
+.changed-item + span span.select2-selection--single,
+.changed-item + span span.select2-selection--multiple {
   background-color: rgba(170, 170, 0, 0.5);
 }

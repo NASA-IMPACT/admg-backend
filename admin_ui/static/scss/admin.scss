@@ -53,10 +53,21 @@ dt {
   }
 }
 
-.changed-item {
-  background-color: rgba(170, 170, 0, 0.5);
-}
+$changed-item-color: rgba(170, 170, 0, 0.5);
 
-.changed-item:disabled {
-  background-color: rgba(170, 170, 0, 0.5);
+.changed-item {
+  background-color: $changed-item-color;
+
+  & :disabled {
+    background-color: $changed-item-color;
+  }
+
+  & + span {
+    span.select2-container--default,
+    span.select2-container--disabled,
+    span.select2-selection--single,
+    span.select2-selection--multiple{
+      background-color: $changed-item-color;
+    }
+  }
 }
