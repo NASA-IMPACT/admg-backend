@@ -52,14 +52,14 @@ from django.views.generic.edit import (
     ProcessFormView,
     UpdateView,
 )
-from django.views.generic.list import ListView, MultipleObjectMixin
+from django.views.generic.list import MultipleObjectMixin
 from django_celery_results.models import TaskResult
 from django_filters.views import FilterView
 from django_tables2.views import SingleTableMixin
 
 from admin_ui.config import MODEL_CONFIG_MAP
 
-from . import filters, forms, mixins, tables
+from . import forms, mixins, tables
 
 
 @login_required
@@ -485,6 +485,8 @@ class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
             ],
             "related_fields": self.get_related_fields(),
             "back_button": self.get_back_button_url(),
+            "ancestors": obj.get_ancestors().select_related("content_type"),
+            "descendents": obj.get_descendents().select_related("content_type"),
         }
 
     def get_model_form_content_type(self) -> ContentType:

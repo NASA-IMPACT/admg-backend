@@ -6,6 +6,8 @@
 
 {% block header %}
   <div class="col">
+    {% include 'snippets/breadcrumbs.html' with ancestors=ancestors %}
+
     <a href="{% spaceless %}
         {% if "back" in request.GET %} {{ request.GET.back }}
         {% else %}{% url back_button %}
@@ -52,6 +54,13 @@
 
     <h3>Activity</h3>
     {% include 'snippets/related_approval_logs.html' with approval_logs=object.approvallog_set.all show_notes=True%}
+
+    <hr />
+    
+    <h3>Dependent Drafts</h3>
+    
+    {% include 'snippets/dependent_drafts.html' with descendents=descendents %}
+    {% include 'snippets/add_related.html' with object=object %}
 
     <hr />
 
