@@ -485,8 +485,8 @@ class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
             ],
             "related_fields": self.get_related_fields(),
             "back_button": self.get_back_button_url(),
-            "ancestors": obj.get_ancestors().select_related("content_type"),
-            "descendents": obj.get_descendents().select_related("content_type"),
+            "ancestors": context['object'].get_ancestors().select_related("content_type"),
+            "descendents": context['object'].get_descendents().select_related("content_type"),
         }
 
     def get_model_form_content_type(self) -> ContentType:
