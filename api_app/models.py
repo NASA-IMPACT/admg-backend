@@ -13,8 +13,6 @@ from rest_framework.response import Response
 
 from admg_webapp.users.models import ADMIN, User
 from data_models import serializers
-from data_models.models import CollectionPeriod
-from admin_ui.config import MODEL_CONFIG_MAP
 
 
 CREATE = "Create"
@@ -364,17 +362,8 @@ class Change(models.Model):
     @property
     def model_name(self):
         # TODO: Verify that this works with API
-        class_name = self.content_type.model_class().__name__
-        if class_name:
-            return MODEL_CONFIG_MAP[class_name]["display_name"]
-        else:
-            return "UNKNOWN"
-
-        # cls = self.content_type.model_class()
-        # if cls:
-        #     return "CDPI" if cls == CollectionPeriod else cls.__name__
-        # else:
-        #     return "UNKNOWN"
+        cls = self.content_type.model_class()
+        return cls.__name__ if cls else "UNKNOWN"
 
     def __str__(self):
         return f"{self.model_name} >> {self.uuid}"
