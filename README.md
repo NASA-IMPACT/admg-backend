@@ -174,5 +174,13 @@ install `rabbitmq` (probs using `brew` if you’re on a Mac)
 
 Starting the service
 1. start rabbitmq with `rabbitmq-server` 
-2. start the celery worker with
-`celery -A config.celery_app worker -l INFO`
+2. start the celery worker: 
+    ```
+    celery -A config.celery_app worker --beat --scheduler django -l DEBUG
+    ```
+
+_Note: If running locally (ie not in Docker), you may need to overwrite the `CELERY_BROKER_URL` setting:
+
+```
+CELERY_BROKER_URL=amqp://guest:guest@localhost:5672 celery -A config.celery_app worker --beat --scheduler django -l DEBUG
+```
