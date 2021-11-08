@@ -471,10 +471,10 @@ class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
 
     def get_context_data(self, **kwargs):
         obj = self.get_object()
+        instance_class = obj.model_name
 
         context = super().get_context_data(**kwargs)
         model_form = context["model_form"]
-        instance_class = context["model_form"].instance.__class__.__name__
 
         for field in MODEL_CONFIG_MAP[instance_class]["change_view_readonly_fields"]:
             model_form.fields[field].disabled = True
