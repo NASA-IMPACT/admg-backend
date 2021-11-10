@@ -3,7 +3,6 @@ from django.contrib.gis.forms.fields import PolygonField
 from django.forms import (
     MultipleChoiceField,
     ModelChoiceField,
-    ModelMultipleChoiceField,
     DateField,
     DateInput,
 )
@@ -31,8 +30,11 @@ def ChangeWithIdentifier(*fields):
 
     class DynamicIdentifierChange(models.Change):
         def __str__(self):
-            return " | ".join(
-                str(get_attr(self.__dict__, field) or "") for field in fields
+            return (
+                " | ".join(
+                    str(get_attr(self.__dict__, field) or "") for field in fields
+                )
+                or f"missing identifier ({self.__dict__.get('uuid', '')})"
             )
 
         class Meta:
@@ -48,7 +50,7 @@ class ChangeChoiceMixin:
 
     @classmethod
     def get_queryset_for_model(cls, dest_model):
-        """ Helper to get QS of valid choices """
+        """Helper to get QS of valid choices"""
         if dest_model == data_models.CollectionPeriod:
             return cls.get_queryset_for_collection_period()
 
@@ -56,7 +58,7 @@ class ChangeChoiceMixin:
 
         # Field to use for textual description of field
         identifier_field = {
-            "image": "image",
+            "image": "title",
             "website": "title",
         }.get(dest_model_name, "short_name")
 
@@ -81,7 +83,7 @@ class ChangeChoiceMixin:
 
     @staticmethod
     def get_queryset_for_collection_period():
-        """ Helper to get QS of valid choices """
+        """Helper to get QS of valid choices"""
         return (
             ChangeWithIdentifier(
                 "campaign",

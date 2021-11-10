@@ -1,0 +1,17 @@
+{% regroup descendents by model_name as grouped_descendents %}
+<ul class="list-unstyled">
+  {% for model_type in grouped_descendents %}
+  <li class="font-weight-bold">{{ model_type.grouper }}</li>
+  <ul>
+      {% for instance in model_type.list %}
+      <li>
+        <a href="{% url 'change-update' instance.uuid %}">
+          {% firstof instance.update.short_name instance.uuid %}
+        </a>
+      </li>
+      {% endfor %}
+    </ul>
+  {% empty %}
+    <em>No dependent drafts found.</em>
+  {% endfor %}
+</ul>

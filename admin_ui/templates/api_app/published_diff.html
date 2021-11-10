@@ -4,18 +4,28 @@
 {% load humanize %}
 {% load template_extras %}
 
+{% block extrahead %}
+{{ block.super }}
+{{ editable_update_form.media }}
+{{ noneditable_published_form.media }}
+{% endblock %}
+
 {% block header %}
   <div class="col">
     <h1>{{ model_name }} Diff View</h1>
   </div>
 {% endblock header %}
 
-{% block object_details %}
-{% endblock object_details %}
-
 {% block actions %}
   <div class="px-1">
-    <button name="_validate" class="btn btn-primary" form="model-form">Save</button>
+    <button 
+        name="_validate" 
+        class="btn btn-primary" 
+        form="model-form" 
+        {% if disable_save %}disabled{% endif %}
+    >
+        Save
+    </button>
     {% include "snippets/approval_dropdown.html" %}
   </div>
 
@@ -27,10 +37,10 @@
     {% csrf_token %}
     <div class="row">
       <div class="col-lg-6 col-sm-4">
-        New Side
+        New Version
       </div>
       <div class="col-lg-6 col-sm-4">
-        Original
+        Old Version
       </div>
     </div>
     {% for field1, field2 in editable_update_form|zip:noneditable_published_form %}
