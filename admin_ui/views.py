@@ -1,66 +1,66 @@
 from typing import Dict
 
-from django.conf import settings
-from django.contrib import messages
-from django.contrib.contenttypes.models import ContentType
-from django.contrib.auth.decorators import login_required, user_passes_test
-from django.db.models import aggregates
-from django.http import HttpResponseRedirect, Http404
-from django.utils.decorators import method_decorator
-from django.utils.safestring import mark_safe
-from django.urls import reverse
-from django.views import View
-from django.views.generic import DetailView
-from django.views.generic.detail import SingleObjectMixin
-from django.views.generic.list import ListView, MultipleObjectMixin
-from django.views.generic.edit import (
-    CreateView,
-    UpdateView,
-    FormView,
-    FormMixin,
-    ProcessFormView,
-)
-
-from django_celery_results.models import TaskResult
 import django_tables2
-from django_tables2.views import SingleTableMixin
-from django_filters.views import FilterView
 import requests
-
 from api_app.models import (
+    AVAILABLE_STATUSES,
+    AWAITING_REVIEW_CODE,
+    CREATE,
+    CREATED_CODE,
+    IN_ADMIN_REVIEW_CODE,
+    IN_PROGRESS_CODE,
+    IN_REVIEW_CODE,
+    IN_TRASH_CODE,
+    PUBLISHED_CODE,
+    UPDATE,
     ApprovalLog,
     Change,
-    CREATE,
-    UPDATE,
-    CREATED_CODE,
-    IN_REVIEW_CODE,
-    IN_PROGRESS_CODE,
-    AWAITING_REVIEW_CODE,
-    IN_ADMIN_REVIEW_CODE,
-    PUBLISHED_CODE,
-    IN_TRASH_CODE,
-    AVAILABLE_STATUSES,
 )
 from cmr import tasks
 from data_models.models import (
+    DOI,
+    IOP,
     Alias,
     Campaign,
     CampaignWebsite,
     CollectionPeriod,
     Deployment,
-    DOI,
     Image,
     Instrument,
+    PartnerOrg,
     Platform,
     PlatformType,
-    PartnerOrg,
-    IOP,
     SignificantEvent,
-
     Website,
 )
-from . import tables, forms, mixins, filters
+from django.conf import settings
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.contenttypes.models import ContentType
+from django.db.models import aggregates
+from django.http import Http404, HttpResponseRedirect
+from django.urls import reverse
+from django.utils.decorators import method_decorator
+from django.utils.safestring import mark_safe
+from django.views import View
+from django.views.generic import DetailView
+from django.views.generic.detail import SingleObjectMixin
+from django.views.generic.edit import (
+    CreateView,
+    FormMixin,
+    FormView,
+    ProcessFormView,
+    UpdateView,
+)
+from django.views.generic.list import MultipleObjectMixin
+from django_celery_results.models import TaskResult
+from django_filters.views import FilterView
+from django_tables2.views import SingleTableMixin
+
 from admin_ui.config import MODEL_CONFIG_MAP
+
+from . import forms, mixins, tables
+
 
 @login_required
 @user_passes_test(lambda user: user.is_admg_admin())
@@ -69,7 +69,9 @@ def trigger_deploy(request):
         workflow = settings.GITHUB_WORKFLOW
     except AttributeError:
         messages.add_message(
-            request, messages.ERROR, f"Failed to trigger deployment: Github workflow not specified in settings."
+            request,
+            messages.ERROR,
+            f"Failed to trigger deployment: Github workflow not specified in settings.",
         )
         return HttpResponseRedirect(reverse("summary"))
 
@@ -152,6 +154,7 @@ class SummaryView(django_tables2.SingleTableView):
                 "change__content_type", "user"
             ).order_by("-date")[: self.paginate_by / 2],
         }
+
 
 class CampaignDetailView(DetailView):
     model = Change
@@ -459,7 +462,7 @@ class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
         Change.objects.select_related("content_type")
         .prefetch_approvals()
         .annotate_from_relationship(
-            of_type=Image, to_attr="logo_url", uuid_from="logo", identifier="image"
+            of_type=Image, to_attr="logo_path", uuid_from="logo", identifier="image"
         )
     )
 
@@ -470,10 +473,10 @@ class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
         return url
 
     def get_context_data(self, **kwargs):
-        obj = self.get_object()
+        context = super().get_context_data(**kwargs)
         return {
-            **super().get_context_data(**kwargs),
-            "transition_form": forms.TransitionForm(change=obj, user=self.request.user),
+            **context,
+            "transition_form": forms.TransitionForm(change=context['object'], user=self.request.user),
             "campaign_subitems": [
                 "Deployment",
                 "IOP",
@@ -482,6 +485,8 @@ class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
             ],
             "related_fields": self.get_related_fields(),
             "back_button": self.get_back_button_url(),
+            "ancestors": context['object'].get_ancestors().select_related("content_type"),
+            "descendents": context['object'].get_descendents().select_related("content_type"),
         }
 
     def get_model_form_content_type(self) -> ContentType:
@@ -554,43 +559,41 @@ class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
 
 
 def generate_base_list_view(model_name):
-    if MODEL_CONFIG_MAP[model_name]['admin_required_to_view']:
+    if MODEL_CONFIG_MAP[model_name]["admin_required_to_view"]:
         authorization_level = user_passes_test(lambda user: user.is_admg_admin())
     else:
         authorization_level = login_required
+
     @method_decorator(authorization_level, name="dispatch")
     class BaseListView(SingleTableMixin, FilterView):
         model = Change
         template_name = "api_app/change_list.html"
-        filterset_class = filters.ChangeStatusFilter
-        table_class = MODEL_CONFIG_MAP[model_name]['change_list_table']
-        linked_model = MODEL_CONFIG_MAP[model_name]['model']
+        filterset_class = MODEL_CONFIG_MAP[model_name]["draft_filter"]
+        table_class = MODEL_CONFIG_MAP[model_name]["change_list_table"]
+        linked_model = MODEL_CONFIG_MAP[model_name]["model"]
 
         def get_queryset(self):
+            queryset = (
+                Change.objects.of_type(self.linked_model)
+                .add_updated_at()
+                .order_by("-updated_at")
+            )
+
             if self.linked_model == Platform:
-                return (
-                    Change.objects.of_type(Platform)
-                    .add_updated_at()
-                    .annotate_from_relationship(
-                        of_type=PlatformType,
-                        uuid_from="platform_type",
-                        to_attr="platform_type_name",
-                    )
-                    .order_by("-updated_at")
+                return queryset.annotate_from_relationship(
+                    of_type=PlatformType,
+                    uuid_from="platform_type",
+                    to_attr="platform_type_name",
                 )
             else:
-                return (
-                    Change.objects.of_type(self.linked_model)
-                    .add_updated_at()
-                    .order_by("-updated_at")
-                )
+                return queryset
 
         def get_context_data(self, **kwargs):
             return {
                 **super().get_context_data(**kwargs),
-                "url_name": MODEL_CONFIG_MAP[model_name]['singular_snake_case'],
+                "url_name": MODEL_CONFIG_MAP[model_name]["singular_snake_case"],
                 "model": self.linked_model._meta.model_name,
-                "display_name": MODEL_CONFIG_MAP[model_name]['display_name'],
+                "display_name": MODEL_CONFIG_MAP[model_name]["display_name"],
             }
 
     return BaseListView.as_view()

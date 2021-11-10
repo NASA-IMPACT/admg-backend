@@ -3,6 +3,12 @@
 {% load humanize %}
 {% load template_extras %}
 
+{% block extrahead %}
+{{ block.super }}
+{{ form.media.css }}
+{{ model_form.media.css }}
+{% endblock %}
+
 {% block object_details %}
   <div class="col">
     <dl class="row object-details mb-1">

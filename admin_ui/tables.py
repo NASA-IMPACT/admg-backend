@@ -1,18 +1,24 @@
-from data_models.models import Campaign, Website
-import django_tables2 as tables
-from django_tables2 import A
-from django.urls import reverse
-
-
-from api_app.models import Change, UPDATE, CREATE
-from data_models.models import Platform, Deployment, Campaign, Instrument
 from uuid import UUID
+
+import django_tables2 as tables
+from api_app.models import CREATE, UPDATE, Change
+from data_models.models import Campaign, Deployment, Instrument, Platform, Website
+from django.urls import reverse
+from django_tables2 import A
 
 
 class ConditionalValueColumn(tables.Column):
     def __init__(self, update_accessor=None, **kwargs):
         super().__init__(**kwargs, empty_values=())
         self.update_accessor = update_accessor
+
+    def _get_processed_value(self, value):
+        if value.__class__.__name__ == "ManyRelatedManager":
+            many_values = [
+                str(uuid) for uuid in list(value.all().values_list("uuid", flat=True))
+            ]
+            return many_values
+        return value
 
     def get_backup_value(self, **kwargs):
         """Update drafts won't always contain the metadata that
@@ -26,19 +32,16 @@ class ConditionalValueColumn(tables.Column):
         """
 
         record = kwargs.get("record")
-        value = kwargs.get("value")
+        value = self._get_processed_value(kwargs.get("value"))
 
-        if record.action != CREATE:
-            if not value:
-                accessor = A(self.update_accessor)
-                value = accessor.resolve(record)
-
-                if value.__class__.__name__ == "ManyRelatedManager":
-                    many_values = [
-                        str(uuid)
-                        for uuid in list(value.all().values_list("uuid", flat=True))
-                    ]
-                    return many_values
+        # This is being called from published tables as well. Which doesn't come with a record with action attribute
+        if (
+            not value
+            and self.update_accessor
+            and getattr(record, "action", None) != CREATE
+        ):
+            accessor = A(self.update_accessor)
+            value = self._get_processed_value(accessor.resolve(record))
 
         return value
 
@@ -59,7 +62,7 @@ class ConditionalValueColumn(tables.Column):
 
 class DraftLinkColumn(ConditionalValueColumn):
     def __init__(self, *args, **kwargs):
-        self.update_viewname = kwargs.pop("update_viewname")
+        self.update_viewname = kwargs.pop("update_viewname", None)
         self.viewname = kwargs.pop("viewname")
         self.url_kwargs = kwargs.pop("url_kwargs")
 
@@ -67,14 +70,18 @@ class DraftLinkColumn(ConditionalValueColumn):
 
     def get_url(self, **kwargs):
         record = kwargs.get("record")
-        url_kwargs = {}
-        for item in self.url_kwargs:
-            url_kwargs[item] = getattr(record, self.url_kwargs[item])
 
-        if record.action == UPDATE:
-            return reverse(self.update_viewname, kwargs=url_kwargs)
+        url_kwargs = {
+            item: getattr(record, self.url_kwargs[item]) for item in self.url_kwargs
+        }
 
-        return reverse(self.viewname, kwargs=url_kwargs)
+        # records from published item do not have action
+        if getattr(record, "action", None) == UPDATE:
+            view_name = self.update_viewname
+        else:
+            view_name = self.viewname
+
+        return reverse(view_name, kwargs=url_kwargs)
 
 
 class ShortNamefromUUIDColumn(ConditionalValueColumn):
@@ -100,36 +107,35 @@ class ShortNamefromUUIDColumn(ConditionalValueColumn):
         try:
             UUID(candidate_uuid, version=4)
             return True
-        except ValueError("error"):
+        except ValueError:
             # If it's a value error, then the string
             # is not a valid hex code for a UUID.
             return False
 
-    def get_short_name(self, uuid):
+    def get_short_name(self, potential_uuid):
 
-        if not self.is_uuid(uuid):
-            return uuid
-
-        if not self.model:
-            return uuid
+        if not self.is_uuid(potential_uuid) or not self.model:
+            return potential_uuid
 
         try:
-            model_object = self.model.objects.get(uuid=uuid)
+            model_object = self.model.objects.get(uuid=potential_uuid)
             return model_object.short_name
         except self.model.DoesNotExist:
             pass
 
         try:
-            change_object = Change.objects.get(uuid=uuid)
-            return change_object.update.get("short_name", uuid)
+            change_object = Change.objects.get(uuid=potential_uuid)
+            return change_object.update.get("short_name", potential_uuid)
         except Change.DoesNotExist:
             # this really should never happen
-            return uuid
+            return potential_uuid
 
     def render(self, **kwargs):
         value = self.get_backup_value(**kwargs)
         if isinstance(value, list):
-            return ", ".join([self.get_short_name(uuid) for uuid in value])
+            return ", ".join(
+                self.get_short_name(potential_uuid) for potential_uuid in value
+            )
         else:
             return self.get_short_name(value)
 
@@ -150,7 +156,7 @@ class DraftTableBase(tables.Table):
     class Meta:
         model = Change
         attrs = {
-            "class": "table table-striped",
+            "class": "table table-striped table-responsive",
             "thead": {"class": "table-primary"},
             "th": {"style": "min-width: 10em"},
         }
@@ -191,7 +197,7 @@ class IOPChangeListTable(DraftTableBase):
     )
     deployment = ShortNamefromUUIDColumn(
         verbose_name="Deployment",
-        model=Platform,
+        model=Deployment,
         accessor="update__deployment",
         update_accessor="content_object.deployment",
     )
@@ -228,7 +234,7 @@ class SignificantEventChangeListTable(DraftTableBase):
     )
     deployment = ShortNamefromUUIDColumn(
         verbose_name="Deployment",
-        model=Platform,
+        model=Deployment,
         accessor="update__deployment",
         update_accessor="content_object.deployment",
     )
@@ -305,7 +311,7 @@ class DOIChangeListTable(DraftTableBase):
     )
     campaigns = ShortNamefromUUIDColumn(
         verbose_name="Campaigns",
-        model=Platform,
+        model=Campaign,
         accessor="update__campaigns",
         update_accessor="content_object.campaigns",
     )
@@ -577,7 +583,7 @@ class PlatformChangeListTable(LimitedTableBase):
     platform_type = ConditionalValueColumn(
         verbose_name="Platform Type",
         accessor="platform_type_name",
-        update_accessor="content_object._type_name",
+        update_accessor="content_object.platform_type",
     )
 
     class Meta(LimitedTableBase.Meta):
@@ -599,11 +605,13 @@ class InstrumentChangeListTable(LimitedTableBase):
 
 # TODO: does this actually need to link to the campaign detail page?
 class ChangeSummaryTable(DraftTableBase):
-    name = tables.LinkColumn(
-        viewname="campaign-detail",
-        args=[A("uuid")],
-        verbose_name="Name",
+    short_name = DraftLinkColumn(
+        update_viewname="change-diff",
+        viewname="change-update",
+        url_kwargs={"pk": "uuid"},
+        verbose_name="Short Name",
         accessor="update__short_name",
+        update_accessor="content_object.short_name",
     )
     content_type__model = tables.Column(
         verbose_name="Model Type", accessor="model_name", order_by="content_type__model"
@@ -613,8 +621,11 @@ class ChangeSummaryTable(DraftTableBase):
 
     class Meta:
         model = Change
-        attrs = {"class": "table table-striped", "thead": {"class": "table-primary"}}
-        fields = ["name", "content_type__model", "updated_at", "status"]
+        attrs = {
+            "class": "table table-striped",
+            "thead": {"class": "table-primary"},
+        }
+        fields = ["short_name", "content_type__model", "updated_at", "status"]
 
 
 class WebsiteChangeListTable(DraftTableBase):
