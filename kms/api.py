@@ -1,8 +1,6 @@
 import logging
-from typing import Any, Dict, Generator, List
+from typing import Any, Dict, List
 import requests
-
-from . import models
 
 logger = logging.getLogger(__name__)
 
@@ -47,6 +45,7 @@ def list_concepts(scheme: str) -> List[Dict[str, any]]:
     # 3. Read with CSV DictReader
     # 4. Return dictionary objects
     return []
+
 
 def lookup_concept(uuid: str):
     return kms_lookup(f"/concept/{uuid}")
