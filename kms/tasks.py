@@ -35,7 +35,7 @@ def trigger_gcmd_syncs():
     Triggers tasks to sync each GCMD concept of interest. Tasks are scheduled
     in a staggered fashion to reduce load on systems.
     """
-    offset = 60 * 5  # Use an offset to avoid overwhelming KMS API
+    offset = 5  # Use an offset to avoid overwhelming KMS API
     for i, concept in enumerate(concept_to_model_map):
         delay = i * offset
         logger.info(f"Scheduling task to sync {concept} in {delay} seconds")
