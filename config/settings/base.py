@@ -85,7 +85,6 @@ THIRD_PARTY_APPS = [
     "corsheaders",
     "crispy_forms",
     "django_celery_results",
-    "django_celery_beat",
     "django_sass",
     "django_tables2",
     "drf_yasg",
@@ -105,7 +104,15 @@ LOCAL_APPS = [
 ]
 
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
-INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
+INSTALLED_APPS = (
+    DJANGO_APPS
+    + THIRD_PARTY_APPS
+    + LOCAL_APPS
+    + [
+        # Must be loaded after local apps to avoid errors regarding importing models
+        "django_celery_beat",
+    ]
+)
 
 # MIGRATIONS
 # ------------------------------------------------------------------------------
