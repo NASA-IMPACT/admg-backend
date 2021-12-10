@@ -1,90 +1,44 @@
+from data_models.models import PlatformType
 from django.conf import settings
 from django.contrib import admin
 from django.urls import path
-from django.views.generic.base import TemplateView, RedirectView
+from django.views.generic.base import RedirectView, TemplateView
+
+from admin_ui.config import MODEL_CONFIG_MAP
 
 from . import views
+from .published_urls import published_urls
 
 urlpatterns = [
     path(settings.ADMIN_URL, admin.site.urls),
     # Actions
-    path("actions/deploy-admin", views.trigger_deploy, name="mi-trigger-deploy"),
-    path("", views.SummaryView.as_view(), name="mi-summary"),
-    path("campaigns", views.CampaignListView.as_view(), name="mi-campaign-list"),
+    path("actions/deploy-admin", views.trigger_deploy, name="trigger-deploy"),
+    path("", views.SummaryView.as_view(), name="summary"),
     path(
         "campaigns/<uuid:pk>",
         views.CampaignDetailView.as_view(),
-        name="mi-campaign-detail",
+        name="campaign-detail",
     ),
     path(
         "campaigns/<uuid:pk>/doi-fetch",
         views.DoiFetchView.as_view(),
-        name="mi-doi-fetch",
+        name="doi-fetch",
     ),
     path(
         "campaigns/<uuid:pk>/doi-approval",
         views.DoiApprovalView.as_view(),
-        name="mi-doi-approval",
+        name="doi-approval",
     ),
-    path("platforms", views.PlatformListView.as_view(), name="mi-platform-list"),
-    path("instruments", views.InstrumentListView.as_view(), name="mi-instrument-list"),
-    path(
-        "organizations",
-        views.PartnerOrgListView.as_view(),
-        name="mi-organization-list",
-    ),
-    path(
-        "websites",
-        views.WebsiteListView.as_view(),
-        name="website-list",
-    ),
-    path(
-        "aliases",
-        views.AliasListView.as_view(),
-        name="alias-list",
-    ),
-    path(
-        "drafts/add/<str:model>", views.ChangeCreateView.as_view(), name="mi-change-add"
-    ),
+    path("drafts/add/<str:model>", views.ChangeCreateView.as_view(), name="change-add"),
     path(
         "drafts/edit/<uuid:pk>",
         views.ChangeUpdateView.as_view(),
-        name="mi-change-update",
+        name="change-update",
     ),
     path(
         "drafts/edit/<uuid:pk>/transition",
         views.ChangeTransition.as_view(),
-        name="mi-change-transition",
-    ),
-    path(
-        "limitedfields",
-        RedirectView.as_view(pattern_name="lf-gcmd-list"),
-        name="lf-base",
-    ),
-    path(
-        "limitedfields/gcmd",
-        views.LimitedFieldGCMDListView.as_view(),
-        name="lf-gcmd-list",
-    ),
-    path(
-        "limitedfields/science",
-        views.LimitedFieldScienceListView.as_view(),
-        name="lf-science-list",
-    ),
-    path(
-        "limitedfields/measurementplatform",
-        views.LimitedFieldMeasurmentPlatformListView.as_view(),
-        name="lf-measure-platform-list",
-    ),
-    path(
-        "limitedfields/regionseason",
-        views.LimitedFieldRegionSeasonListView.as_view(),
-        name="lf-region-season-list",
-    ),
-    path(
-        "limitedfields/website",
-        views.LimitedFieldWebsiteListView.as_view(),
-        name="lf-website-list",
+        name="change-transition",
     ),
     path(
         "tbd",
@@ -92,3 +46,50 @@ urlpatterns = [
         name="to-be-developed",
     ),
 ]
+
+from admin_ui.views import generate_base_list_view
+
+# limited has short, long
+
+
+auto_url_keys = [
+    "PlatformType",
+    "MeasurementType",
+    "MeasurementStyle",
+    "HomeBase",
+    "FocusArea",
+    "Season",
+    "Repository",
+    "MeasurementRegion",
+    "GeographicalRegion",
+    "GeophysicalConcept",
+    "PartnerOrg",
+    "Alias",
+    "GcmdProject",
+    "GcmdInstrument",
+    "GcmdPlatform",
+    "GcmdPhenomena",
+    "DOI",
+    "Campaign",
+    "Platform",
+    "Instrument",
+    "Deployment",
+    "IOP",
+    "SignificantEvent",
+    "CollectionPeriod",
+    "Website",
+    "WebsiteType",
+    # "CampaignWebsite",
+]
+
+draft_list_urls = [
+    path(
+        f"{MODEL_CONFIG_MAP[model]['plural_snake_case']}/draft",
+        generate_base_list_view(model),
+        name=f"{MODEL_CONFIG_MAP[model]['singular_snake_case']}-list-draft",
+    )
+    for model in auto_url_keys
+]
+
+
+urlpatterns = urlpatterns + published_urls + draft_list_urls

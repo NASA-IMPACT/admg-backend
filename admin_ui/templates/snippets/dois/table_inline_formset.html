@@ -75,7 +75,7 @@
                             {% include 'bootstrap4/field.html' with tag="td" form_show_labels=False %}
                         {% endfor %}
                         <td>
-                            <a href="{% url 'mi-change-update' form.initial.uuid %}?back={{ request.path }}">
+                            <a href="{% url 'change-update' form.initial.uuid %}?back={{ request.path }}">
                                 <i class="bi bi-box-arrow-up-right"></i>
                                 {{ form.initial.status }}
                             </a>

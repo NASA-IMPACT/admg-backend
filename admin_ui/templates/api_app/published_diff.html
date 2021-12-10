@@ -1,0 +1,58 @@
+{% extends "api_app/base_read.html" %}
+{% load static %}
+{% load crispy_forms_tags %}
+{% load humanize %}
+{% load template_extras %}
+
+{% block extrahead %}
+{{ block.super }}
+{{ editable_update_form.media }}
+{{ noneditable_published_form.media }}
+{% endblock %}
+
+{% block header %}
+  <div class="col">
+    <h1>{{ model_name }} Diff View</h1>
+  </div>
+{% endblock header %}
+
+{% block actions %}
+  <div class="px-1">
+    <button 
+        name="_validate" 
+        class="btn btn-primary" 
+        form="model-form" 
+        {% if disable_save %}disabled{% endif %}
+    >
+        Save
+    </button>
+    {% include "snippets/approval_dropdown.html" %}
+  </div>
+
+{% endblock actions %}
+
+{% block main %}
+<main class="{% firstof class 'col' %}">
+  <form id="model-form" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="row">
+      <div class="col-lg-6 col-sm-4">
+        New Version
+      </div>
+      <div class="col-lg-6 col-sm-4">
+        Old Version
+      </div>
+    </div>
+    {% for field1, field2 in editable_update_form|zip:noneditable_published_form %}
+      <div class="row">
+        <div class="col-lg-6 col-sm-4">
+          {{ field1 | as_crispy_field }}
+        </div>
+        <div class="col-lg-6 col-sm-4">
+          {{ field2 | as_crispy_field }}
+        </div>
+      </div>
+    {% endfor %}
+  </form>
+</main>
+{% endblock main%}
