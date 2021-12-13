@@ -179,8 +179,8 @@ Starting the service
     celery -A config.celery_app worker --beat --scheduler django -l DEBUG
     ```
 
-_Note: If running locally (ie not in Docker), you may need to overwrite the `CELERY_BROKER_URL` setting:
+    _Note: If running locally (ie not in Docker), you may need to overwrite the `CELERY_BROKER_URL` setting:_
 
-```
-CELERY_BROKER_URL=amqp://guest:guest@localhost:5672 celery -A config.celery_app worker --beat --scheduler django -l DEBUG
-```
+    ```
+    CELERY_BROKER_URL=amqp://guest:guest@localhost:5672 celery -A config.celery_app worker --beat --scheduler django -l DEBUG
+    ```
