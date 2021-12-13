@@ -26,7 +26,8 @@ def get_content_type(model: Models) -> ContentType:
     return ContentType.objects.get(app_label="data_models", model=model.__name__.lower())
 
 
-def process_gcmd_record(record: dict, model: Models) -> dict:
+def convert_gcmd_record(record: dict, model: Models) -> dict:
+    """Convert GCMD API record to match the format from the output of model_to_dict for each type of model."""
     record["gcmd_uuid"] = record.pop("UUID")
     if model == models.GcmdProject:
         pass # GcmdProject doesn't have any attributes we need to convert
@@ -83,13 +84,13 @@ def create_change(concept: dict, model: Models, action: Actions, model_uuid: Opt
     else:
         if action is CREATE:
             change_object = Change(content_type=get_content_type(model),update=concept,action=action)
-            logger.debug(f"Row and change record didn't exist, creating new 'CREATE' change record '{change_object}'")
+            logger.info(f"Row and change record didn't exist, creating new 'CREATE' change record '{change_object}'")
         elif action is UPDATE:
             change_object = Change(content_type=get_content_type(model),update=concept,model_instance_uuid=model_uuid,action=action)
-            logger.debug(f"Row '{model_uuid}' found with mismatching contents and change record not found, creating new 'UPDATE' change record '{change_object}'")
+            logger.info(f"Row '{model_uuid}' found with mismatching contents and change record not found, creating new 'UPDATE' change record '{change_object}'")
         elif action is DELETE:
             change_object = Change(content_type=get_content_type(model),update={},model_instance_uuid=model_uuid,action=action)
-            logger.debug(f"Row '{model_uuid}' found that isn't in GCMD API, creating 'DELETE' change record '{change_object}'")
+            logger.info(f"Row '{model_uuid}' found that isn't in GCMD API, creating 'DELETE' change record '{change_object}'")
         change_object.save()
 
 
@@ -117,7 +118,7 @@ def sync_gcmd(concept_scheme: str) -> str:
     for concept in concepts:
         if not is_valid_record(concept, model):
             continue
-        concept = process_gcmd_record(concept, model)
+        concept = convert_gcmd_record(concept, model)
 
         try:
             row = model.objects.get(gcmd_uuid=concept["gcmd_uuid"])
