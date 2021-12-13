@@ -104,21 +104,21 @@ python manage.py sass admin_ui/static/scss admin_ui/static/css --watch
 
     Set up the env (only need to do once)
 
-    > `python3 -m venv .venv`
+    `python3 -m venv .venv`
 
     To activate the env (do this every time you start the project)
 
-    > `source .venv/bin/activate`
+    `source .venv/bin/activate`
 
 3.  Install requirements
 
     1. general requirements
 
-       > `pip install -r requirements/base.txt`
+       `pip install -r requirements/base.txt`
 
     2. local requirements
 
-       > `pip install -r local.txt`
+       `pip install -r local.txt`
 
 4.  Start postgres
 
@@ -129,7 +129,7 @@ python manage.py sass admin_ui/static/scss admin_ui/static/css --watch
 
 6.  Create a database
 
-    > `createdb admg_prod`
+    `createdb admg_prod`
 
 7.  Load a dump of the database
 
@@ -137,14 +137,14 @@ python manage.py sass admin_ui/static/scss admin_ui/static/css --watch
 
     For example:
 
-    > `cat ./production_dump-2020.01.28.sql | psql admg_prod`
+    `cat ./production_dump-2020.01.28.sql | psql admg_prod`
 
 (change the filename to match your local db data)
 
 ## Start service
 
 1. Activate your environment
-   > `source .venv/bin/activate`
+   `source .venv/bin/activate`
 
 ### Understanding `python manage.py`
 
@@ -162,7 +162,7 @@ python manage.py sass admin_ui/static/scss admin_ui/static/css --watch
 
 1. Create the migrations
 
-   > `python manage.py migrate`
+   `python manage.py migrate`
 
 2. (varies depending on how the data model develops)
    You first have to delete all the problematic tables
@@ -174,11 +174,11 @@ python manage.py sass admin_ui/static/scss admin_ui/static/css --watch
    ```
 3. Create yourself a user
 
-   > `python manage.py creatersuperuser`
+   `python manage.py creatersuperuser`
 
 4. Run the server
 
-   > `python manage.py runserver_plus`
+   `python manage.py runserver_plus`
 
 5. Open the webiste
    http://localhost:8000/
@@ -187,7 +187,7 @@ python manage.py sass admin_ui/static/scss admin_ui/static/css --watch
 
 interactive way to interact with the database and the database models.
 
-> `python manage.py shell_plus`
+`python manage.py shell_plus`
 
 ### Running the infrastructure for DOI fetching
 
@@ -201,12 +201,12 @@ Install `rabbitmq` (probably using `brew` if you’re on a Mac)
 
 1. start rabbitmq:
 
-   > `rabbitmq-server`
+   `rabbitmq-server`
 
 2. start the celery worker:
 
-   > `celery -A config.celery_app worker --beat --scheduler django -l DEBUG`
+   `celery -A config.celery_app worker --beat --scheduler django -l DEBUG`
 
    _Note: If running locally (ie not in Docker), you may need to overwrite the `CELERY_BROKER_URL` setting:_
 
-   > `CELERY_BROKER_URL=amqp://guest:guest@localhost:5672 celery -A config.celery_app worker --beat --scheduler django -l DEBUG`
+   `CELERY_BROKER_URL=amqp://guest:guest@localhost:5672 celery -A config.celery_app worker --beat --scheduler django -l DEBUG`
