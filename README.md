@@ -1,4 +1,5 @@
 # Contents of this readme
+
 1. `admg_webapp` backend documentation
 2. `admin_ui` frontend setup
 
@@ -96,91 +97,116 @@ python manage.py sass admin_ui/static/scss admin_ui/static/css --watch
 # `admin_ui` frontend setup
 
 ## Installation
-1. Install prerequisite technologies (for example, with `brew` on a mac): postgres, postgis
 
-2. Create a virtual environment
+1.  Install prerequisite technologies (for example, with `brew` on a mac): postgres, postgis
 
-Set up the env (only need to do once)
-> `python3 -m venv .venv`
+2.  Create a virtual environment
 
-To activate the env (do this every time you start the project)
-> `source .venv/bin/activate`
+    Set up the env (only need to do once)
 
-3. Install requirements
+    > `python3 -m venv .venv`
 
-Part 1 - general requirements
-> `pip install -r requirements/base.txt`
+    To activate the env (do this every time you start the project)
 
-Part 2 - local requirements
-> `pip install -r local.txt`
+    > `source .venv/bin/activate`
 
-4. Start postgres
+3.  Install requirements
 
-`brew info posgresql` should give a path that you can use to start it (It will probably look something like `pg_ctl -D /usr/local/var/postgres start`)
+    1. general requirements
 
-5. Check that postgres is working
-If `psql -l` gives you a list of tables then all is well.
+       > `pip install -r requirements/base.txt`
 
-6. Create a database
-> `createdb admg_prod`
+    2. local requirements
 
-7. Load a dump of the database
-- download the latest zip file of example data (get this from one of the database maintainers)
-For example:
-> `cat ./production_dump-2020.01.28.sql | psql admg_prod` 
+       > `pip install -r local.txt`
+
+4.  Start postgres
+
+    `brew info posgresql` should give a path that you can use to start it (It will probably look something like `pg_ctl -D /usr/local/var/postgres start`)
+
+5.  Check that postgres is working
+    If `psql -l` gives you a list of tables then all is well.
+
+6.  Create a database
+
+    > `createdb admg_prod`
+
+7.  Load a dump of the database
+
+    download the latest zip file of example data (get this from one of the database maintainers)
+
+    For example:
+
+    > `cat ./production_dump-2020.01.28.sql | psql admg_prod`
 
 (change the filename to match your local db data)
 
 ## Start service
 
 1. Activate your environment
-> `source .venv/bin/activate`
+   > `source .venv/bin/activate`
 
 ### Understanding `python manage.py`
+
 `python manage.py <command>`
 
 - `manage.py` is your entry point into the django app. It has several commands, including:
-    - `test` `migrate` `makemigrations` `runserver_plus` `shell_plus`
-    - django extensions — third party modules
+  - `test`
+  - `migrate`
+  - `makemigrations`
+  - `runserver_plus`
+  - `shell_plus`
+  - django extensions — third party modules
 
 ### Set up your database
+
 1. Create the migrations
-> `python manage.py migrate`
+
+   > `python manage.py migrate`
 
 2. (varies depending on how the data model develops)
-You first have to delete all the problematic tables `psql admg_prod -c "delete from data_models_doi";`) also `data_models_instrument_dois`; `data_models_platform_dois`; `data_models_collectionperiod_dois`;
-
+   You first have to delete all the problematic tables
+   ```
+   psql admg_prod -c "delete from data_models_doi"
+   psql admg_prod -c "delete from data_models_instrument_dois"
+   psql admg_prod -c "delete from data_models_platform_dois"
+   psql admg_prod -c "delete from data_models_collectionperiod_dois"
+   ```
 3. Create yourself a user
 
-> `python manage.py creatersuperuser`
+   > `python manage.py creatersuperuser`
 
 4. Run the server
 
-`python manage.py runserver_plus`
+   > `python manage.py runserver_plus`
 
-5. Open the webiste 
-http://localhost:8000/
+5. Open the webiste
+   http://localhost:8000/
 
 ### Optional additional tool
+
 interactive way to interact with the database and the database models.
 
 > `python manage.py shell_plus`
 
 ### Running the infrastructure for DOI fetching
+
 DOI fetching uses rabbitmq and celery.
 
-Installation
-install `rabbitmq` (probs using `brew` if you’re on a Mac)
+#### Installation
 
-Starting the service
-1. start rabbitmq with `rabbitmq-server` 
-2. start the celery worker: 
-    ```
-    celery -A config.celery_app worker --beat --scheduler django -l DEBUG
-    ```
+Install `rabbitmq` (probably using `brew` if you’re on a Mac)
 
-    _Note: If running locally (ie not in Docker), you may need to overwrite the `CELERY_BROKER_URL` setting:_
+#### Starting the service
 
-    ```
-    CELERY_BROKER_URL=amqp://guest:guest@localhost:5672 celery -A config.celery_app worker --beat --scheduler django -l DEBUG
-    ```
+1. start rabbitmq:
+
+   > `rabbitmq-server`
+
+2. start the celery worker:
+
+   > `celery -A config.celery_app worker --beat --scheduler django -l DEBUG`
+
+   _Note: If running locally (ie not in Docker), you may need to overwrite the `CELERY_BROKER_URL` setting:_
+
+   > `CELERY_BROKER_URL=amqp://guest:guest@localhost:5672 celery -A config.celery_app worker --beat --scheduler django -l DEBUG`
