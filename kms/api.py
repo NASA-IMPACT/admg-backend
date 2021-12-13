@@ -1,6 +1,7 @@
 import logging
 from typing import Any, Dict, List
 import requests
+import csv
 
 logger = logging.getLogger(__name__)
 
@@ -41,10 +42,9 @@ def list_concepts(scheme: str) -> List[Dict[str, any]]:
     # https://gcmd.earthdata.nasa.gov/static/kms/
     url = f"https://gcmd.earthdata.nasa.gov/kms/concepts/concept_scheme/{scheme}"
     r = requests.get(url, params={"format": "csv"})
-    # 2. Skip first line of CSV
-    # 3. Read with CSV DictReader
-    # 4. Return dictionary objects
-    return []
+    csv_contents = r.content.decode('utf-8')
+    csv_contents = csv_contents.splitlines()[1:] # Skip first line of CSV
+    return list(csv.DictReader(csv_contents))
 
 
 def lookup_concept(uuid: str):
