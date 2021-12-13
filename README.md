@@ -32,24 +32,16 @@ in the notebook, import your models file
 - Use Client Type: confidential, Authorization Grant Type: Resource owner password-based
 - get the `client_id` and `client_secret`
 - `curl -X POST -d "grant_type=password&username=<user_name>&password=<password>" -u"<client_id>:<client_secret>" http://domain/authenticate/token/`
-- You will get something like
+- You will get something like:
 
-  - ```javascript
-    {
+  ```javascript
+  {
       "access_token": "access_token",
       "expires_in": 36000,
       "token_type": "Bearer",
       "scope": "read write",
       "refresh_token": "refresh_token"
-    }
-    ```
-
-    ```
-
-    ```
-
-  ```
-
+  }
   ```
 
 - Use this `access_token` to hit on APIs
@@ -104,11 +96,11 @@ To build Sass files for the project:
 python manage.py sass admin_ui/static/scss admin_ui/static/css --watch
 ```
 
-# `admin_ui` frontend setup
+# `admin_ui` setup
 
 ## Installation
 
-1.  Install prerequisite technologies (for example, with `brew` on a mac): postgres, postgis
+1.  Install prerequisite technologies (for example, using `brew` on a mac): postgres, postgis
 
 2.  Create a virtual environment
 
@@ -118,39 +110,27 @@ python manage.py sass admin_ui/static/scss admin_ui/static/css --watch
     python3 -m venv .venv
     ```
 
-    To activate the env (do this every time you start the project)
+3.  Activate the virtual environment (do this every time you start the project)
 
     ```
     source .venv/bin/activate
     ```
 
-3.  Install requirements
+4.  Install requirements
 
     1. general requirements
 
        ```
-       `
-       ```
-
        pip install -r requirements/base.txt
-
-       ```
-       `
        ```
 
     2. local requirements
 
        ```
-       `
-       ```
-
        pip install -r local.txt
-
-       ```
-       `
        ```
 
-4.  Start postgres
+5.  Start postgres
 
     ```
     brew info posgresql` should give a path that you can use to start it
@@ -159,33 +139,45 @@ python manage.py sass admin_ui/static/scss admin_ui/static/css --watch
     ``(It will probably look something like `pg_ctl -D /usr/local/var
     ```postgres start`)
 
-5.  Check that postgres is working
+6.  Check that postgres is working
     If `psql -l` gives you a list of tables then all is well.
 
-6.  Create a database
+7.  Create a database
 
     ```
     createdb admg_prod
     ```
 
-7.  Load a dump of the database
+8.  Load a dump of the database
 
-    download the latest zip file of example data (get this from one of the database maintainers)
-
-    For example:
+    Download the latest zip file of example data (get this from one of the database maintainers) & load into the database. For example:
 
     ```
     cat ./production_dump-2020.01.28.sql | psql admg_prod
     ```
 
-(change the filename to match your local db data)
+9.  Run migrations
 
-## Start service
+    ```
+    python manage.py migrate
+    ```
 
-1. Activate your environment
+10. Create yourself a user
+
+    ```
+    python manage.py creatersuperuser
+    ```
+
+## Running the application
+
+1. With the virual environment activated, run the server
+
    ```
-   source .venv/bin/activate
+   python manage.py runserver_plus
    ```
+
+2. Open the webiste
+   http://localhost:8000/
 
 ### Understanding `python manage.py`
 
@@ -199,38 +191,7 @@ python manage.py sass admin_ui/static/scss admin_ui/static/css --watch
   - `shell_plus`
   - django extensions — third party modules
 
-### Set up your database
-
-1. Create the migrations
-
-   ```
-   python manage.py migrate
-   ```
-
-2. (varies depending on how the data model develops)
-   You first have to delete all the problematic tables
-   ```
-   psql admg_prod -c "delete from data_models_doi"
-   psql admg_prod -c "delete from data_models_instrument_dois"
-   psql admg_prod -c "delete from data_models_platform_dois"
-   psql admg_prod -c "delete from data_models_collectionperiod_dois"
-   ```
-3. Create yourself a user
-
-   ```
-   python manage.py creatersuperuser
-   ```
-
-4. Run the server
-
-   ```
-   python manage.py runserver_plus
-   ```
-
-5. Open the webiste
-   http://localhost:8000/
-
-### Optional additional tool
+### Optional additional tools
 
 interactive way to interact with the database and the database models.
 
