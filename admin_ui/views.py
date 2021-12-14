@@ -433,9 +433,12 @@ class ChangeCreateView(mixins.ChangeModelFormMixin, CreateView):
 
     def get_model_form_content_type(self) -> ContentType:
         if not hasattr(self, "model_form_content_type"):
-            self.model_form_content_type = ContentType.objects.get(
-                app_label="data_models", model__iexact=self.kwargs["model"]
-            )
+            try:
+                self.model_form_content_type = ContentType.objects.get(
+                    app_label="data_models", model__iexact=self.kwargs["model"]
+                )
+            except ContentType.DoesNotExist as e:
+                raise Http404(f'Unsupported model type: {self.kwargs["model"]}') from e
         return self.model_form_content_type
 
     def get_model_form_intial(self):
@@ -505,7 +508,7 @@ class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
                 update__object_id=str(self.object.uuid)
             )
         if content_type == "Campaign":
-            related_fields["campaignwebsite"] = (
+            related_fields["website"] = (
                 Change.objects.of_type(Website)
                 .filter(action=CREATE, update__campaign=str(self.object.uuid))
                 .annotate_from_relationship(

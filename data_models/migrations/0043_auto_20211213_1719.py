@@ -3,8 +3,6 @@
 from django.db import migrations, models
 import django.db.models.deletion
 
-from data_models.models import Campaign
-
 
 def populate_website_campaign(apps, schema_editor):
     CampaignWebsite = apps.get_model("data_models", "CampaignWebsite")

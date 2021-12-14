@@ -6,6 +6,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.gis.db.models.fields import PolygonField
 from django.db import models as model_fields
 from django.forms import modelform_factory, FileField, HiddenInput
+from django.http.response import Http404
 from django.shortcuts import render
 from django.views.generic.edit import ModelFormMixin
 
@@ -43,9 +44,9 @@ def formfield_callback(f, **kwargs):
     elif isinstance(f, PolygonField):
         kwargs.update({"form_class": fields.BboxField})
     elif isinstance(f, model_fields.DateTimeField):
-        # DateTimeField is a subclass of DateTime, we don't want to use 
+        # DateTimeField is a subclass of DateTime, we don't want to use
         # CustomDateField widget
-        pass  
+        pass
     elif isinstance(f, model_fields.DateField):
         kwargs.update({"form_class": fields.CustomDateField})
     elif isinstance(f, model_fields.BooleanField):
@@ -64,7 +65,7 @@ class ChangeModelFormMixin(ModelFormMixin):
 
     @property
     def destination_model_form(self):
-        """ Helper to return a form for the destination of the Draft object """
+        """Helper to return a form for the destination of the Draft object"""
         model_type = self.get_model_type()
         modelform = modelform_factory(
             model_type,
@@ -81,11 +82,15 @@ class ChangeModelFormMixin(ModelFormMixin):
         # However, we prioritize the self.get_model_form_content_type() function first
         try:
             model_type = self.get_model_form_content_type().model_class()
+            if not model_type:
+                raise Http404(
+                    f"Unsupported model type: {self.get_model_form_content_type()}"
+                )
         except NotImplementedError:
             if not self.model:
                 raise NotImplementedError("Subclass must implement this property")
             model_type = self.model
-        
+
         return model_type
 
     def get_model_form_content_type(self) -> ContentType:
@@ -172,7 +177,7 @@ class ChangeModelFormMixin(ModelFormMixin):
                     continue
                 model_field.save(model_field.url, model_form.cleaned_data[name])
                 update[name] = model_field.name
-            
+
             else:
                 # Populate Change's form with values from destination model's form.
                 # We're not saving the cleaned_data because we want the raw text, not
