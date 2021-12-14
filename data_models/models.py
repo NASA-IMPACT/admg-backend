@@ -333,6 +333,7 @@ class GcmdPhenomena(BaseModel):
     
 
 class Website(BaseModel):
+    campaign = models.ForeignKey("Campaign", on_delete=models.CASCADE)
     website_type = models.ForeignKey(
         WebsiteType, on_delete=models.CASCADE, related_name="websites"
     )
@@ -517,13 +518,6 @@ class Campaign(DataModel):
     )
 
     logo = models.ForeignKey(Image, on_delete=models.SET_NULL, null=True, blank=True)
-    websites = models.ManyToManyField(
-        Website,
-        related_name="campaigns",
-        through="CampaignWebsite",
-        default="",
-        blank=True,
-    )
 
     @property
     def website_details(self):
@@ -1047,24 +1041,3 @@ class DOI(BaseModel):
 
     class Meta:
         verbose_name = "DOI"
-
-
-##################
-# Linking Tables #
-##################
-
-
-class CampaignWebsite(BaseModel):
-    campaign = models.ForeignKey(
-        "Campaign", on_delete=models.CASCADE, related_name="campaign_websites"
-    )
-    website = models.ForeignKey(
-        "Website", on_delete=models.CASCADE, related_name="campaign_websites"
-    )
-    order_priority = models.PositiveIntegerField()
-
-    def __str__(self):
-        return f"{self.campaign} has {self.website}"
-
-    class Meta:
-        unique_together = [("campaign", "website"), ("campaign", "order_priority")]

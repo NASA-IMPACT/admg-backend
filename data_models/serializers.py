@@ -318,11 +318,6 @@ class GcmdPhenomenaSerializer(BaseSerializer):
 
 
 class WebsiteSerializer(BaseSerializer):
-    campaigns = serializers.SerializerMethodField(read_only=True)
-
-    def get_campaigns(self, obj):
-        return get_uuids(obj.campaigns)
-
     class Meta:
         model = models.Website
         fields = "__all__"
@@ -426,17 +421,6 @@ class InstrumentSerializer(GetAliasSerializer, GetDoiSerializer):
         extra_kwargs = {
             'notes_internal': {'write_only': True},
         }
-
-
-class CampaignWebsiteSerializer(BaseSerializer):
-    """
-    Serializer specifically for the linking table.
-    Can also be used to write data to the linking table directly.
-    """
-
-    class Meta:
-        model = models.CampaignWebsite
-        fields = "__all__"
 
 
 class CampaignSerializer(GetAliasSerializer, GetDoiSerializer):

@@ -22,7 +22,6 @@ from data_models.models import (
     IOP,
     Alias,
     Campaign,
-    CampaignWebsite,
     CollectionPeriod,
     Deployment,
     Image,
@@ -507,7 +506,7 @@ class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
             )
         if content_type == "Campaign":
             related_fields["campaignwebsite"] = (
-                Change.objects.of_type(CampaignWebsite)
+                Change.objects.of_type(Website)
                 .filter(action=CREATE, update__campaign=str(self.object.uuid))
                 .annotate_from_relationship(
                     of_type=Website,

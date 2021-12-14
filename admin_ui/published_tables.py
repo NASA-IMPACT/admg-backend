@@ -6,7 +6,6 @@ from data_models.models import (
     IOP,
     Alias,
     Campaign,
-    CampaignWebsite,
     CollectionPeriod,
     Deployment,
     FocusArea,
@@ -511,20 +510,6 @@ class WebsitePublishedTable(LimitedTableBase):
         )
         sequence = fields
         model_name = Website
-
-
-class CampaignWebsitePublishedTable(LimitedTableBase):
-    short_name = DraftLinkColumn(
-        viewname=f"{camel_to_snake('CampaignWebsite')}-detail-published",
-        url_kwargs={"pk": "uuid"},
-        verbose_name="Short Name",
-        accessor="short_name",
-    )
-
-    class Meta(LimitedTableBase.Meta):
-        fields = LimitedTableBase.initial_fields
-        sequence = fields
-        model = CampaignWebsite
 
 
 class AliasPublishedTable(LimitedTableBase):
