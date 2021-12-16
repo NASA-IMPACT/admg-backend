@@ -120,7 +120,6 @@ class CollectionPeriodPublishedTable(tables.Table):
         model=Deployment,
         verbose_name="Deployment",
         accessor="deployment",
-        update_viewname="change-diff",
     )
 
     platform = ShortNamefromUUIDColumn(
