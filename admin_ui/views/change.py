@@ -1,10 +1,28 @@
 from typing import Dict
 
 import django_tables2
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.contenttypes.models import ContentType
+from django.db.models import aggregates
+from django.urls import reverse
+from django.utils.decorators import method_decorator
+from django.views.generic import DetailView
+from django.views.generic.edit import (
+    CreateView,
+    FormMixin,
+    ProcessFormView,
+    UpdateView,
+)
+from django_filters.views import FilterView
+from django_tables2.views import SingleTableMixin
+
+from admin_ui.config import MODEL_CONFIG_MAP
 from api_app.models import (
     AVAILABLE_STATUSES,
     CREATE,
     IN_ADMIN_REVIEW_CODE,
+    IN_TRASH_CODE,
     IN_REVIEW_CODE,
     PUBLISHED_CODE,
     UPDATE,
@@ -26,23 +44,6 @@ from data_models.models import (
     SignificantEvent,
     Website,
 )
-from django.contrib import messages
-from django.contrib.auth.decorators import login_required, user_passes_test
-from django.contrib.contenttypes.models import ContentType
-from django.db.models import aggregates
-from django.urls import reverse
-from django.utils.decorators import method_decorator
-from django.views.generic import DetailView
-from django.views.generic.edit import (
-    CreateView,
-    FormMixin,
-    ProcessFormView,
-    UpdateView,
-)
-from django_filters.views import FilterView
-from django_tables2.views import SingleTableMixin
-
-from admin_ui.config import MODEL_CONFIG_MAP
 
 from .. import forms, mixins, tables, utils
 
@@ -233,7 +234,11 @@ class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
     )
 
     def get_success_url(self):
-        url = reverse("change-update", args=[self.object.pk])
+        url = (
+            reverse("change-diff", args=[self.object.pk])
+            if self.object.action == UPDATE
+            else reverse("change-update", args=[self.object.pk])
+        )
         if self.request.GET.get("back"):
             return f'{url}?back={self.request.GET["back"]}'
         return url
@@ -242,8 +247,8 @@ class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
         context = super().get_context_data(**kwargs)
         return {
             **context,
-            "transition_form": forms.TransitionForm(
-                change=context["object"], user=self.request.user
+            "transition_form": (
+                forms.TransitionForm(change=context["object"], user=self.request.user)
             ),
             "campaign_subitems": [
                 "Deployment",
@@ -253,12 +258,12 @@ class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
             ],
             "related_fields": self.get_related_fields(),
             "back_button": self.get_back_button_url(),
-            "ancestors": context["object"]
-            .get_ancestors()
-            .select_related("content_type"),
-            "descendents": context["object"]
-            .get_descendents()
-            .select_related("content_type"),
+            "ancestors": (
+                context["object"].get_ancestors().select_related("content_type")
+            ),
+            "descendents": (
+                context["object"].get_descendents().select_related("content_type")
+            ),
         }
 
     def get_model_form_content_type(self) -> ContentType:
@@ -328,6 +333,60 @@ class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
         """
         self.object = self.get_object()
         return super().post(*args, **kwargs)
+
+
+@method_decorator(login_required, name="dispatch")
+class DiffView(ChangeUpdateView):
+    model = Change
+    template_name = "api_app/change_diff.html"
+
+    def _compare_forms_and_format(
+        self, updated_form, original_form, field_names_to_compare
+    ):
+        for field_name in field_names_to_compare:
+            if not utils.compare_values(
+                original_form[field_name].value(), updated_form[field_name].value()
+            ):
+                attrs = updated_form.fields[field_name].widget.attrs
+                attrs["class"] = f"{attrs.get('class', '')} changed-item".strip()
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        destination_model_instance = context["object"].content_object
+        model_form = self.destination_model_form(
+            instance=destination_model_instance,
+            initial=self.get_model_form_intial(),
+            prefix=self.destination_model_prefix,
+        )
+        published_form = self.destination_model_form(
+            instance=destination_model_instance,
+            auto_id="readonly_%s",
+        )
+        is_published_or_trashed = (
+            context['object'].status == PUBLISHED_CODE
+            or context['object'].status == IN_TRASH_CODE
+        )
+
+        # if published or trashed then the old data doesn't need to be from the database, it
+        # needs to be from the previous field of the change_object
+        if is_published_or_trashed:
+            for key, val in context["object"].previous.items():
+                published_form.initial[key] = val
+
+            self._compare_forms_and_format(
+                model_form, published_form, context["object"].previous
+            )
+        else:
+            self._compare_forms_and_format(
+                model_form, published_form, context["object"].update
+            )
+
+        return {
+            **context,
+            "model_form": model_form,  # Override
+            "noneditable_published_form": utils.disable_form_fields(published_form),
+            "disable_save": is_published_or_trashed,
+        }
 
 
 def generate_base_list_view(model_name):
