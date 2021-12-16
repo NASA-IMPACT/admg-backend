@@ -29,7 +29,13 @@
 {% block tabs %}{% endblock tabs %}
 
 <div class="row mx-3">
-  {% block main %}{% endblock main %}
+  {% block main %}
+  <main class="{% firstof class 'col' %}">
+    {% block form %}
+      {% include "api_app/change_form.html" %}
+    {% endblock form %}
+  </main>
+  {% endblock main %}
 </div>
 
 {% endblock page %}
