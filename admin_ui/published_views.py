@@ -18,9 +18,7 @@ from django_filters.views import FilterView
 from django_tables2.views import SingleTableMixin
 
 from .config import MODEL_CONFIG_MAP
-from .forms import TransitionForm
 from .published_forms import GenericFormClass
-from .utils import compare_values
 from .mixins import ChangeModelFormMixin
 
 
@@ -45,13 +43,6 @@ def GenericListView(model_name):
 
 class ModelObjectView(ChangeModelFormMixin, DetailView):
     fields = "__all__"
-
-    @staticmethod
-    def is_published_or_trashed(change_instance):
-        return (
-            change_instance.status == PUBLISHED_CODE
-            or change_instance.status == IN_TRASH_CODE
-        )
 
     def _initialize_form(self, form_class, disable_all=False, **kwargs):
         form_instance = form_class(**kwargs)
