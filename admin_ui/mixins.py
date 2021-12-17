@@ -237,7 +237,7 @@ class ChangeModelFormMixin(ModelFormMixin):
         # Overriden to support handling both invalid Change form and an invalid
         # destination model form
         if not form.is_valid():
-            messages.error(self.request, "Unable to save.")
+            messages.error(self.request, f"Unable to save: {form.errors}")
         return self.render_to_response(
             self.get_context_data(form=form, model_form=model_form)
         )
