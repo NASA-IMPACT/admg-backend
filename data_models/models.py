@@ -333,6 +333,7 @@ class GcmdPhenomena(BaseModel):
     
 
 class Website(BaseModel):
+    # TODO: Add order field
     campaign = models.ForeignKey("Campaign", on_delete=models.CASCADE)
     website_type = models.ForeignKey(
         WebsiteType, on_delete=models.CASCADE, related_name="websites"
