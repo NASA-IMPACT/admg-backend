@@ -1,5 +1,4 @@
 import django_tables2 as tables
-from api_app.models import CREATE, UPDATE
 from api_app.urls import camel_to_snake
 from data_models.models import (
     DOI,
@@ -120,7 +119,6 @@ class CollectionPeriodPublishedTable(tables.Table):
         model=Deployment,
         verbose_name="Deployment",
         accessor="deployment",
-        update_viewname="change-diff",
     )
 
     platform = ShortNamefromUUIDColumn(
