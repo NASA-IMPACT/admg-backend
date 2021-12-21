@@ -1,12 +1,9 @@
 from api_app.models import (
     CREATED_CODE,
     DELETE,
-    IN_TRASH_CODE,
-    PUBLISHED_CODE,
     UPDATE,
     Change,
 )
-from data_models import serializers
 from django.contrib.auth.decorators import login_required
 from django.contrib.contenttypes.models import ContentType
 from django.shortcuts import redirect, render
