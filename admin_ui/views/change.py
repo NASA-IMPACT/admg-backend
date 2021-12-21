@@ -353,11 +353,7 @@ class DiffView(ChangeUpdateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         destination_model_instance = context["object"].content_object
-        model_form = self.destination_model_form(
-            instance=destination_model_instance,
-            initial=self.get_model_form_intial(),
-            prefix=self.destination_model_prefix,
-        )
+
         published_form = self.destination_model_form(
             instance=destination_model_instance,
             auto_id="readonly_%s",
@@ -374,16 +370,15 @@ class DiffView(ChangeUpdateView):
                 published_form.initial[key] = val
 
             self._compare_forms_and_format(
-                model_form, published_form, context["object"].previous
+                context['model_form'], published_form, context["object"].previous
             )
         else:
             self._compare_forms_and_format(
-                model_form, published_form, context["object"].update
+                context['model_form'], published_form, context["object"].update
             )
 
         return {
             **context,
-            "model_form": model_form,  # Override
             "noneditable_published_form": utils.disable_form_fields(published_form),
             "disable_save": is_published_or_trashed,
         }
