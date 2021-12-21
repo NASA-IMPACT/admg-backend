@@ -110,49 +110,37 @@ def GenericEditView(model_name):
         template_name = "api_app/published_edit.html"
 
         def post(self, request, **kwargs):
-            model_instance = self.model.objects.get(uuid=kwargs.get("pk"))
-
             # do this here because the super().get_context_data looks for a self.object
-            self.object = model_instance
+            self.object = self.model.objects.get(uuid=kwargs.get("pk"))
 
             # getting form with instance and data gives a lot of changed fields
             # however, getting a form with initial and data only gives the required changed fields
-            old_form = self._get_form_from_model_name(
-                model_name, instance=model_instance
-            )
+            old_form = self._get_form_from_model_name(model_name, instance=self.object)
             new_form = self._get_form_from_model_name(
                 model_name,
                 data=request.POST,
                 initial=old_form.initial,
-                files=request.FILES
+                files=request.FILES,
             )
 
-            kwargs = {**kwargs, "object": model_instance}
+            kwargs = {**kwargs, "object": self.object}
             context = self.get_context_data(**kwargs)
-            if new_form.is_valid():
-                if len(new_form.changed_data) > 0:
-                    diff_dict = self._create_diff_dict(new_form)
-                    model_to_query = MODEL_CONFIG_MAP[model_name]["model"]
-                    content_type = ContentType.objects.get_for_model(model_to_query)
-                    change_object = Change.objects.create(
-                        content_type=content_type,
-                        status=CREATED_CODE,
-                        action=UPDATE,
-                        model_instance_uuid=kwargs.get("pk"),
-                        update=diff_dict,
-                    )
-                    change_object.save()
-                    return redirect(
-                        reverse(
-                            f"{MODEL_CONFIG_MAP[model_name]['singular_snake_case']}-list-draft"
-                        )
-                    )
 
+            if not len(new_form.changed_data):
                 context["message"] = "Nothing changed"
                 return render(request, self.template_name, context)
 
-            context["model_form"] = new_form
-            return render(request, self.template_name, context)
+            diff_dict = self._create_diff_dict(new_form)
+            model_to_query = MODEL_CONFIG_MAP[model_name]["model"]
+            content_type = ContentType.objects.get_for_model(model_to_query)
+            change_object = Change.objects.create(
+                content_type=content_type,
+                status=CREATED_CODE,
+                action=UPDATE,
+                model_instance_uuid=kwargs.get("pk"),
+                update=diff_dict,
+            )
+            return redirect(reverse("change-update", kwargs={"pk": change_object.uuid}))
 
         def get_context_data(self, **kwargs):
             return {
