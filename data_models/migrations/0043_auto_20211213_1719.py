@@ -13,8 +13,9 @@ def populate_website_campaign(apps, schema_editor):
     websites = []
     for campaign_website in CampaignWebsite.objects.prefetch_related("website").all():
         campaign_website.website.campaign_id = campaign_website.campaign_id
+        campaign_website.website.order_priority = campaign_website.order_priority
         websites.append(campaign_website.website)
-    Website.objects.bulk_update(websites, ["campaign_id"])
+    Website.objects.bulk_update(websites, ["campaign_id", "order_priority"])
 
     # Update drafts
     for draft in Change.objects.filter(content_type__model="campaignwebsite"):
@@ -38,6 +39,11 @@ class Migration(migrations.Migration):
                 on_delete=django.db.models.deletion.CASCADE,
                 to="data_models.campaign",
             ),
+        ),
+        migrations.AddField(
+            model_name='website',
+            name='order_priority',
+            field=models.PositiveIntegerField(blank=True, null=True),
         ),
         migrations.RunPython(
             populate_website_campaign, reverse_code=migrations.RunPython.noop
