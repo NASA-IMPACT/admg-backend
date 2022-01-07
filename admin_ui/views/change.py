@@ -335,6 +335,55 @@ class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
         return super().post(*args, **kwargs)
 
 
+@method_decorator(login_required, name="dispatch")
+class DiffView(ChangeUpdateView):
+    model = Change
+    template_name = "api_app/change_diff.html"
+
+    def _compare_forms_and_format(
+        self, updated_form, original_form, field_names_to_compare
+    ):
+        for field_name in field_names_to_compare:
+            if not utils.compare_values(
+                original_form[field_name].value(), updated_form[field_name].value()
+            ):
+                attrs = updated_form.fields[field_name].widget.attrs
+                attrs["class"] = f"{attrs.get('class', '')} changed-item".strip()
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        destination_model_instance = context["object"].content_object
+
+        published_form = self.destination_model_form(
+            instance=destination_model_instance,
+            auto_id="readonly_%s",
+        )
+        is_published_or_trashed = (
+            context['object'].status == PUBLISHED_CODE
+            or context['object'].status == IN_TRASH_CODE
+        )
+
+        # if published or trashed then the old data doesn't need to be from the database, it
+        # needs to be from the previous field of the change_object
+        if is_published_or_trashed:
+            for key, val in context["object"].previous.items():
+                published_form.initial[key] = val
+
+            self._compare_forms_and_format(
+                context['model_form'], published_form, context["object"].previous
+            )
+        else:
+            self._compare_forms_and_format(
+                context['model_form'], published_form, context["object"].update
+            )
+
+        return {
+            **context,
+            "noneditable_published_form": utils.disable_form_fields(published_form),
+            "disable_save": is_published_or_trashed,
+        }
+
+
 def generate_base_list_view(model_name):
     if MODEL_CONFIG_MAP[model_name]["admin_required_to_view"]:
         authorization_level = user_passes_test(lambda user: user.is_admg_admin())
