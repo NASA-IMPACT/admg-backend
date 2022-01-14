@@ -2,7 +2,7 @@ from uuid import UUID
 
 import django_tables2 as tables
 from api_app.models import CREATE, UPDATE, Change
-from data_models.models import Campaign, Deployment, Instrument, Platform, Website
+from data_models.models import Campaign, Deployment, Instrument, Platform
 from django.urls import reverse
 from django_tables2 import A
 

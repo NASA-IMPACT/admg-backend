@@ -43,9 +43,9 @@ def formfield_callback(f, **kwargs):
     elif isinstance(f, PolygonField):
         kwargs.update({"form_class": fields.BboxField})
     elif isinstance(f, model_fields.DateTimeField):
-        # DateTimeField is a subclass of DateTime, we don't want to use 
+        # DateTimeField is a subclass of DateTime, we don't want to use
         # CustomDateField widget
-        pass  
+        pass
     elif isinstance(f, model_fields.DateField):
         kwargs.update({"form_class": fields.CustomDateField})
     elif isinstance(f, model_fields.BooleanField):
@@ -64,7 +64,7 @@ class ChangeModelFormMixin(ModelFormMixin):
 
     @property
     def destination_model_form(self):
-        """ Helper to return a form for the destination of the Draft object """
+        """Helper to return a form for the destination of the Draft object"""
         model_type = self.get_model_type()
         modelform = modelform_factory(
             model_type,
@@ -85,7 +85,7 @@ class ChangeModelFormMixin(ModelFormMixin):
             if not self.model:
                 raise NotImplementedError("Subclass must implement this property")
             model_type = self.model
-        
+
         return model_type
 
     def get_model_form_content_type(self) -> ContentType:
@@ -172,7 +172,7 @@ class ChangeModelFormMixin(ModelFormMixin):
                     continue
                 model_field.save(model_field.url, model_form.cleaned_data[name])
                 update[name] = model_field.name
-            
+
             else:
                 # Populate Change's form with values from destination model's form.
                 # We're not saving the cleaned_data because we want the raw text, not
@@ -232,7 +232,7 @@ class ChangeModelFormMixin(ModelFormMixin):
         # Overriden to support handling both invalid Change form and an invalid
         # destination model form
         if not form.is_valid():
-            messages.error(self.request, "Unable to save.")
+            messages.error(self.request, f"Unable to save: {form.errors}")
         return self.render_to_response(
             self.get_context_data(form=form, model_form=model_form)
         )

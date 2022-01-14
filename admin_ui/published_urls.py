@@ -1,6 +1,6 @@
 from django.urls import path
 
-from . import published_views
+from . import views, published_views
 from .config import MODEL_CONFIG_MAP
 
 published_urls = [
@@ -36,7 +36,7 @@ published_urls = [
     ],
     path(
         "published/<uuid:pk>/diff",
-        published_views.DiffView.as_view(),
+        views.DiffView.as_view(),
         name="change-diff",
     ),
 ]
