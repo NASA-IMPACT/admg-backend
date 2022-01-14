@@ -1,6 +1,7 @@
 {% extends "api_app/base_crud.html" %}
 {% load crispy_forms_tags %}
 {% load humanize %}
+{% load template_extras %}
 
 {% block extrahead %}
 {{ block.super }}
@@ -21,7 +22,7 @@
       <div class="col">
         <dt>Item Type</dt>
         <dd>
-          <span title="Item Type">{{ object.model_name }}</span>
+          <span title="Item Type">{{ object.model_name | get_display_name }}</span>
         </dd>
       </div>
           
