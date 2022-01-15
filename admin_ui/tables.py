@@ -656,13 +656,6 @@ class WebsiteChangeListTable(DraftTableBase):
         sequence = all_fields
 
 
-class CampaignWebsiteChangeListTable(DraftTableBase):
-    class Meta(DraftTableBase.Meta):
-        all_fields = DraftTableBase.final_fields
-        fields = list(all_fields)
-        sequence = all_fields
-
-
 class AliasChangeListTable(DraftTableBase):
     short_name = DraftLinkColumn(
         update_viewname="change-diff",

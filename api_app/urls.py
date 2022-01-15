@@ -56,7 +56,6 @@ urls = [
     "CollectionPeriod",
     "Website",
     "WebsiteType",
-    "CampaignWebsite",
 ]
 
 urlpatterns = []

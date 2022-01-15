@@ -17,12 +17,6 @@ from .inlines.doi import (
 )
 
 
-class CampaignWebsiteInline(admin.TabularInline):
-    model = models.Campaign.websites.through
-    fields = ["website", "order_priority"]
-    ordering = ("order_priority",)
-
-
 LIMITED_INFO_LIST_FIELDS = ("short_name", "long_name")
 
 CHANGABLE_INLINES = (InProgressInline, InReviewInline, InAdminReviewInline)
@@ -38,6 +32,7 @@ CHANGABLE_INLINES = (InProgressInline, InReviewInline, InAdminReviewInline)
 @admin.register(models.Website)
 class BasicAdmin(admin.ModelAdmin, EnforcedPermissionsMixin):
     ...
+
 
 @admin.register(models.CollectionPeriod)
 class CollectionPeriodAdmin(BasicAdmin):
@@ -83,7 +78,7 @@ class CampaignAdmin(BasicAdmin):
         "partner_orgs",
         "geophysical_concepts",
     )
-    inlines = (CampaignWebsiteInline, CampaignDoiInline) + CHANGABLE_INLINES
+    inlines = (CampaignDoiInline,) + CHANGABLE_INLINES
 
 
 @admin.register(models.Deployment)
@@ -113,10 +108,3 @@ class PlatformAdmin(BasicAdmin):
 class ShortNameChangable(BasicAdmin):
     inlines = CHANGABLE_INLINES
     list_display = ("short_name",)
-
-
-@admin.register(models.CampaignWebsite)
-class CampaignWebsiteAdmin(BasicAdmin):
-    list_display = ["__str__", "campaign", "order_priority"]
-
-

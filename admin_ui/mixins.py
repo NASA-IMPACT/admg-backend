@@ -6,6 +6,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.gis.db.models.fields import PolygonField
 from django.db import models as model_fields
 from django.forms import modelform_factory, FileField, HiddenInput
+from django.http.response import Http404
 from django.shortcuts import render
 from django.views.generic.edit import ModelFormMixin
 
@@ -81,6 +82,10 @@ class ChangeModelFormMixin(ModelFormMixin):
         # However, we prioritize the self.get_model_form_content_type() function first
         try:
             model_type = self.get_model_form_content_type().model_class()
+            if not model_type:
+                raise Http404(
+                    f"Unsupported model type: {self.get_model_form_content_type()}"
+                )
         except NotImplementedError:
             if not self.model:
                 raise NotImplementedError("Subclass must implement this property")

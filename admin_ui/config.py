@@ -85,9 +85,6 @@ CUSTOM_MODEL_VALUES = {
         "admin_required_to_view": False,
     },
     "WebsiteType": {},
-    "CampaignWebsite": {
-        "display_name": "Campaign Website Linkage",
-    },
 }
 
 # defaults are assigned to each model in this comprehension, and then overwritten by the above dictionary
