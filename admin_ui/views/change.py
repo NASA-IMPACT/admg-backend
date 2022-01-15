@@ -250,7 +250,9 @@ class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
         instance_class = obj.model_name
 
         context = super().get_context_data(**kwargs)
-        for field in MODEL_CONFIG_MAP[instance_class].get("change_view_readonly_fields", []):
+        for field in MODEL_CONFIG_MAP.get(instance_class, {}).get(
+            "change_view_readonly_fields", []
+        ):
             context["model_form"].fields[field].disabled = True
         return {
             **context,
@@ -366,8 +368,8 @@ class DiffView(ChangeUpdateView):
             auto_id="readonly_%s",
         )
         is_published_or_trashed = (
-            context['object'].status == PUBLISHED_CODE
-            or context['object'].status == IN_TRASH_CODE
+            context["object"].status == PUBLISHED_CODE
+            or context["object"].status == IN_TRASH_CODE
         )
 
         # if published or trashed then the old data doesn't need to be from the database, it
@@ -377,11 +379,11 @@ class DiffView(ChangeUpdateView):
                 published_form.initial[key] = val
 
             self._compare_forms_and_format(
-                context['model_form'], published_form, context["object"].previous
+                context["model_form"], published_form, context["object"].previous
             )
         else:
             self._compare_forms_and_format(
-                context['model_form'], published_form, context["object"].update
+                context["model_form"], published_form, context["object"].update
             )
 
         return {
