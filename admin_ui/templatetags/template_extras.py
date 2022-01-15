@@ -10,4 +10,6 @@ def zip_lists(a, b):
 
 @register.filter()
 def get_display_name(value):
-    return MODEL_CONFIG_MAP[value]["display_name"] if "display_name" in MODEL_CONFIG_MAP[value] else value
+    if "display_name" in MODEL_CONFIG_MAP.get(value, {}):
+        return MODEL_CONFIG_MAP[value]["display_name"]  
+    return value
