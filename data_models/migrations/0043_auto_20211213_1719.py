@@ -10,18 +10,23 @@ def populate_website_campaign(apps, schema_editor):
     Change = apps.get_model("api_app", "Change")
 
     # Update published
-    websites = []
     for campaign_website in CampaignWebsite.objects.prefetch_related("website").all():
         campaign_website.website.campaign_id = campaign_website.campaign_id
         campaign_website.website.order_priority = campaign_website.order_priority
-        websites.append(campaign_website.website)
-    Website.objects.bulk_update(websites, ["campaign_id", "order_priority"])
+        campaign_website.website.save()
 
     # Update drafts
-    for draft in Change.objects.filter(content_type__model="campaignwebsite"):
-        Change.objects.filter(content_type__model="website").filter(
-            model_instance_uuid=draft.update["website"]
-        ).update(update__campaign_id=draft.update["campaign"])
+    for draft_campaignwebsite in Change.objects.filter(
+        content_type__model="campaignwebsite"
+    ):
+        for draft_website in Change.objects.filter(
+            content_type__model="website",
+            model_instance_uuid=draft_campaignwebsite.update["website"],
+        ):
+            draft_website.update["campaign_id"] = draft_campaignwebsite.update[
+                "campaign"
+            ]
+            draft_website.save()
 
 
 class Migration(migrations.Migration):
@@ -41,8 +46,8 @@ class Migration(migrations.Migration):
             ),
         ),
         migrations.AddField(
-            model_name='website',
-            name='order_priority',
+            model_name="website",
+            name="order_priority",
             field=models.PositiveIntegerField(blank=True, null=True),
         ),
         migrations.RunPython(
