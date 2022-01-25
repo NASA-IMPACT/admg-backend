@@ -331,6 +331,7 @@ class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
             "GeographicalRegion": "geographical_region-season-list-draft",
             "Season": "season-season-list-draft",
             "WebsiteType": "website_type-list-draft",
+            "Website": "website-list-draft",
             "Repository": "repository-list-draft",
         }
         return button_mapping.get(content_type, "summary")
