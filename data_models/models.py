@@ -331,7 +331,7 @@ class GcmdPhenomena(BaseModel):
 
 
 class Website(BaseModel):
-    campaign = models.ForeignKey("Campaign", on_delete=models.CASCADE)
+    campaign = models.ForeignKey("Campaign", related_name="websites", on_delete=models.CASCADE)
     website_type = models.ForeignKey(
         WebsiteType, on_delete=models.CASCADE, related_name="websites"
     )
