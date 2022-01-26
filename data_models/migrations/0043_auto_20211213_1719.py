@@ -23,7 +23,7 @@ def populate_website_campaign(apps, schema_editor):
             content_type__model="website",
             model_instance_uuid=draft_campaignwebsite.update["website"],
         ):
-            draft_website.update["campaign_id"] = draft_campaignwebsite.update[
+            draft_website.update["campaign"] = draft_campaignwebsite.update[
                 "campaign"
             ]
             draft_website.save()
