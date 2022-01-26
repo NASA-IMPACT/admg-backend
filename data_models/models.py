@@ -337,7 +337,7 @@ class Website(BaseModel):
     )
     order_priority = models.PositiveIntegerField(null=True, blank=True)
 
-    url = models.URLField(unique=True, max_length=1024)
+    url = models.URLField(max_length=1024)
     title = models.TextField(default="", blank=True)
     description = models.TextField(default="", blank=True)
     notes_internal = models.TextField(
