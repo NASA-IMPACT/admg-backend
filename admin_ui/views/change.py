@@ -5,6 +5,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import aggregates
+from django.http import Http404
 from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.utils.safestring import mark_safe
@@ -252,9 +253,8 @@ class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
         instance_class = obj.model_name
 
         context = super().get_context_data(**kwargs)
-        for field in MODEL_CONFIG_MAP.get(instance_class, {}).get(
-            "change_view_readonly_fields", []
-        ):
+        config = MODEL_CONFIG_MAP.get(instance_class, {})
+        for field in config.get("change_view_readonly_fields", []):
             context["model_form"].fields[field].disabled = True
         return {
             **context,

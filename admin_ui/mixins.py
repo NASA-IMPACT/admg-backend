@@ -11,7 +11,7 @@ from django.shortcuts import render
 from django.views.generic.edit import ModelFormMixin
 
 from data_models import models
-from . import fields, widgets
+from . import fields, widgets, config
 
 
 def formfield_callback(f, **kwargs):
@@ -206,7 +206,17 @@ class ChangeModelFormMixin(ModelFormMixin):
         if not form.is_valid() or (validate_model_form and not model_form.is_valid()):
             return self.form_invalid(form=form, model_form=model_form)
 
-        form.instance.update = self.get_update_values(model_form)
+        model_config = config.MODEL_CONFIG_MAP.get(self.get_model_type().__name__, {})
+        readonly_fields = model_config.get("change_view_readonly_fields", [])
+        form.instance.update.update(
+            # Only update fields that can be altered by the form. Otherwise, retain
+            # original values from form.instance.update
+            {
+                k: v
+                for k, v in self.get_update_values(model_form).items()
+                if k not in readonly_fields
+            }
+        )
         return self.form_valid(form, model_form)
 
     def form_valid(self, form, model_form):
