@@ -1,0 +1,64 @@
+name: Tests
+
+on:
+  - push
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgis/postgis:13-3.2
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - uses: actions/checkout@v2
+    
+      - name: Setup Python
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.9
+
+      - name: Install GDAL
+        run: |
+          sudo apt-get install libgdal-dev
+
+      - uses: actions/cache@v2
+        with:
+          path: ${{ env.pythonLocation }}
+          key: ${{ env.pythonLocation }}-${{ hashFiles('requirements/base.txt') }}-${{ hashFiles('requirements/local.txt') }}
+
+      - name: Install Dependencies
+        run: |
+          pip install \
+            --upgrade \
+            --upgrade-strategy eager \
+            -r requirements/base.txt \
+            -r requirements/local.txt
+
+      - name: Run Tests
+        env:
+          DB_ENGINE: django.contrib.gis.db.backends.postgis
+          DB_NAME: admg
+          DB_USER: postgres
+          DB_PASSWORD: postgres
+          DB_HOST: 127.0.0.1
+          DB_PORT: 5432
+
+          DJANGO_SETTINGS_MODULE: config.settings.local
+          DJANGO_SECRET_KEY: "secret key here"
+          DJANGO_ADMIN_URL: admg/
+          GH_TOKEN: faketokenhere
+
+        run: |
+          python manage.py test
