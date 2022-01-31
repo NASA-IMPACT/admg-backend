@@ -347,89 +347,52 @@ class TestChange:
 
 
 @pytest.mark.django_db
+@pytest.mark.parametrize(
+    "endpoint",
+    [
+        "platform_type",
+        "home_base",
+        "repository",
+        "focus_area",
+        "season",
+        "measurement_style",
+        "measurement_type",
+        "measurement_region",
+        "geographical_region",
+        "geophysical_concept",
+        "campaign",
+        "platform",
+        "instrument",
+        "deployment",
+        "iop",
+        "significant_event",
+        "partner_org",
+        "collection_period",
+        "gcmd_phenomena",
+        "gcmd_project",
+        "gcmd_platform",
+        "gcmd_instrument",
+        "alias",
+    ],
+)
 class TestApi:
-    @staticmethod
-    def endpoints():
-        return [
-            "platform_type",
-            "home_base",
-            "repository",
-            "focus_area",
-            "season",
-            "measurement_style",
-            "measurement_type",
-            "measurement_region",
-            "geographical_region",
-            "geophysical_concept",
-            "campaign",
-            "platform",
-            "instrument",
-            "deployment",
-            "iop",
-            "significant_event",
-            "partner_org",
-            "collection_period",
-            "gcmd_phenomena",
-            "gcmd_project",
-            "gcmd_platform",
-            "gcmd_instrument",
-            "alias",
-        ]
-
-    def get(self, endpoint):
-        """Takes an ADMG endpoint as a string and runs a get request
-
-        Args:
-            endpoint (str): API endpoint such as 'campaign'
-
-        Returns:
-            dict: API response dictionary
-        """
-
-        get_url = f"http://localhost:8001/api/{endpoint}"
-        response = requests.get(get_url)
-
-        return self._generate_response_dict(response)
-
-    def post(self, endpoint):
-        """Takes an ADMG endpoint as a string and runs a get request
-
-        Args:
-            endpoint (str): API endpoint such as 'campaign'
-
-        Returns:
-            dict: API response dictionary
-        """
-
-        get_url = f"http://localhost:8001/api/{endpoint}"
-        response = requests.post(
-            get_url, data=json.dumps({}), headers={"Content-Type": "application/json"}
+    def test_get(self, client, endpoint):
+        response = client.get(
+            f"/api/{endpoint}",
+            headers={"Content-Type": "application/json"},
         )
-        return self._generate_response_dict(response)
-
-    @staticmethod
-    def _generate_response_dict(response):
-        """Takes a response and raises any HTTPErrors. If no errors are found, it will
-        convert the response text to a dict.
-
-        Args:
-            response (response): response
-
-        Returns:
-            response_dict [dict]: dictionary of the response.text
-        """
+        assert response.status_code == 200
         response_dict = response.json()
+        assert response_dict == {"success": True, "message": "", "data": []}
 
-        return response_dict
-
-    def test_get_endpoints(self):
-        for endpoint in self.endpoints():
-            response_dict = self.get(endpoint)
-            assert response_dict == {"success": True, "message": "", "data": []}
-
-    def test_post_arent_public(self):
-        for endpoint in self.endpoints():
-            response_dict = self.post(endpoint)
-            assert response_dict == {
-                "detail": "Authentication credentials were not provided."
-            }
+    def test_post_arent_public(self, client, endpoint):
+        response = client.post(
+            f"/api/{endpoint}",
+            data={},
+            headers={"Content-Type": "application/json"},
+        )
+        assert response.status_code == 401
+        response_dict = response.json()
+        assert response_dict == {
+            "detail": "Authentication credentials were not provided."
+        }
