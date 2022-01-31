@@ -330,6 +330,7 @@ class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
             "PlatformType": "platform_type-list-draft",
             "GeographicalRegion": "geographical_region-season-list-draft",
             "Season": "season-season-list-draft",
+            "Website": "website-list-draft",
             "WebsiteType": "website_type-list-draft",
             "Repository": "repository-list-draft",
         }
