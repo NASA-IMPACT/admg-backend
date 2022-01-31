@@ -331,13 +331,13 @@ class GcmdPhenomena(BaseModel):
 
 
 class Website(BaseModel):
-    campaign = models.ForeignKey("Campaign", on_delete=models.CASCADE)
+    campaign = models.ForeignKey("Campaign", related_name="websites", on_delete=models.CASCADE)
     website_type = models.ForeignKey(
         WebsiteType, on_delete=models.CASCADE, related_name="websites"
     )
     order_priority = models.PositiveIntegerField(null=True, blank=True)
 
-    url = models.URLField(unique=True, max_length=1024)
+    url = models.URLField(max_length=1024)
     title = models.TextField(default="", blank=True)
     description = models.TextField(default="", blank=True)
     notes_internal = models.TextField(
@@ -345,7 +345,6 @@ class Website(BaseModel):
         blank=True,
         help_text="Free text notes for ADMG staff - not visible to public.",
     )
-
     def __str__(self):
         return self.title
 
