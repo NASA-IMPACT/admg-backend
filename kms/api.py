@@ -38,8 +38,6 @@ endpoints = {
 
 
 def list_concepts(scheme: str) -> List[Dict[str, any]]:
-    # TODO: This should probably load data from the CSV as the CSV contains more information
-    # https://gcmd.earthdata.nasa.gov/static/kms/
     url = f"https://gcmd.earthdata.nasa.gov/kms/concepts/concept_scheme/{scheme}"
     r = requests.get(url, params={"format": "csv"})
     csv_contents = r.content.decode('utf-8')
