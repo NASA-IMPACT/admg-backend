@@ -7,6 +7,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.db.models import aggregates
 from django.urls import reverse
 from django.utils.decorators import method_decorator
+from django.utils.safestring import mark_safe
 from django.views.generic import DetailView
 from django.views.generic.edit import (
     CreateView,
@@ -16,6 +17,7 @@ from django.views.generic.edit import (
 )
 from django_filters.views import FilterView
 from django_tables2.views import SingleTableMixin
+from rest_framework.serializers import ValidationError
 
 from admin_ui.config import MODEL_CONFIG_MAP
 from api_app.models import (
@@ -447,9 +449,14 @@ class ChangeTransition(FormMixin, ProcessFormView, DetailView):
         }
 
     def form_valid(self, form):
-        response = form.apply_transition()
-
-        if response["success"]:
+        try:
+            response = form.apply_transition()
+        except ValidationError as err:
+            messages.error(
+                self.request,
+                mark_safe(f"<b>Unable to transition draft.</b> {format_validation_error(err)}"),
+            )
+        else:
             obj = self.get_object()
             messages.success(
                 self.request,
@@ -458,10 +465,23 @@ class ChangeTransition(FormMixin, ProcessFormView, DetailView):
                     f'to "{obj.get_status_display()}".'
                 ),
             )
-        else:
-            messages.error(self.request, response["message"])
 
         return super().form_valid(form)
 
     def get_success_url(self):
         return self.request.META.get("HTTP_REFERER") or super().get_success_url()
+
+
+def format_validation_error(err: ValidationError) -> str:
+    return (
+        '<ul class="list-unstyled">'
+        + "".join(
+            (
+                f"<li>{field}"
+                '<ul>' + "".join(f"<li>{e}</li>" for e in errors) + "</ul>"
+                "</li>"
+            )
+            for field, errors in err.detail.items()
+        )
+        + "</ul>"
+    )

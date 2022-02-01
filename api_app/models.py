@@ -12,6 +12,7 @@ from django.db.models.fields.json import KeyTextTransform
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from rest_framework.response import Response
+from rest_framework.serializers import ValidationError
 
 CREATE = "Create"
 UPDATE = "Update"
@@ -553,48 +554,43 @@ class Change(models.Model):
 
         if serializer.is_valid(raise_exception=True):
             new_model_instance = serializer.save()
-            response = {"uuid": new_model_instance.uuid, "status": PUBLISHED_CODE}
-
-        return response
+            return {"uuid": new_model_instance.uuid, "status": PUBLISHED_CODE}
 
     def _create(self):
         # set the db uuid == change request uuid
         self.update["uuid"] = str(self.uuid)
 
-        response = self._save_serializer(
+        return self._save_serializer(
             model_instance=None, data=self.update, partial=False
         )
 
-        return response
-
     def _update_patch(self):
+        model_instance = self._get_model_instance()
         if not self.model_instance_uuid:
-            response = {"success": False, "message": "UUID for the model was not found"}
-        else:
-            response = self._save_serializer(
-                model_instance=self._get_model_instance(),
-                data=self.update,
-                partial=True,
-            )
+            raise ValidationError({"uuid": "UUID for the model was not found"})
 
-        return response
+        return self._save_serializer(
+            model_instance=model_instance,
+            data=self.update,
+            partial=True,
+        )
 
     def _delete(self):
+        model_instance = self._get_model_instance()
         if not self.model_instance_uuid:
-            response = {"success": False, "message": "UUID for the model was not found"}
-        else:
-            model_instance = self._get_model_instance()
-            self.update = {
-                key: Change._get_processed_value(getattr(model_instance, key))
-                for key in model_instance.__dict__
-                if not key.startswith("_")
-            }
-            self.save(post_save=True)
-            model_instance.delete()
+            raise serializers.ValidationError(
+                {"uuid": "UUID for the model was not found"}
+            )
 
-            response = {"uuid": self.model_instance_uuid, "status": PUBLISHED_CODE}
+        self.update = {
+            key: Change._get_processed_value(getattr(model_instance, key))
+            for key in model_instance.__dict__
+            if not key.startswith("_")
+        }
+        self.save(post_save=True)
+        model_instance.delete()
 
-        return response
+        return {"uuid": self.model_instance_uuid, "status": PUBLISHED_CODE}
 
     @is_status([CREATED_CODE, IN_PROGRESS_CODE])
     def submit(self, user, notes=""):
@@ -652,9 +648,6 @@ class Change(models.Model):
             response = self._update_patch()
         elif self.action == DELETE:
             response = self._delete()
-
-        if response.get("success") == False:
-            return response
 
         # links co to the new db instance
         # this is not what syncs the UUIDs
