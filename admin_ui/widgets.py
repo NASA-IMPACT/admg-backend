@@ -9,7 +9,7 @@ from django.contrib.gis import gdal
 from django.contrib.gis.forms import widgets
 from django.contrib.gis.gdal import CoordTransform, SpatialReference
 from django.contrib.gis.gdal.error import GDALException
-from django.contrib.gis.geos import GEOSException, GEOSGeometry
+from django.contrib.gis.geos import GEOSException, GEOSGeometry, Polygon
 from django.urls import reverse
 from django.utils import translation
 from django.utils.safestring import mark_safe
@@ -30,6 +30,14 @@ class BoundingBoxWidget(widgets.OpenLayersWidget):
             return get_geojson_from_bb(value)
 
     def get_context(self, name, value, attrs):
+        # this serves the purpose of rendering value saved to models
+        # since the code expects a bounding box (comma separated 4 values)
+        # we just provide the same kind of input to the code if it is a model value
+        if isinstance(value, Polygon):
+            W, S, E, N = value.extent
+            # show as bounding box
+            value = f"{N}, {S}, {E}, {W}"
+
         context = super().get_context(name, value, attrs)
 
         geom_type = gdal.OGRGeomType(self.attrs["geom_type"]).name

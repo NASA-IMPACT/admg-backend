@@ -52,14 +52,14 @@ from django.views.generic.edit import (
     ProcessFormView,
     UpdateView,
 )
-from django.views.generic.list import ListView, MultipleObjectMixin
+from django.views.generic.list import MultipleObjectMixin
 from django_celery_results.models import TaskResult
 from django_filters.views import FilterView
 from django_tables2.views import SingleTableMixin
 
 from admin_ui.config import MODEL_CONFIG_MAP
 
-from . import filters, forms, mixins, tables
+from . import forms, mixins, tables
 
 
 @login_required
@@ -462,7 +462,7 @@ class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
         Change.objects.select_related("content_type")
         .prefetch_approvals()
         .annotate_from_relationship(
-            of_type=Image, to_attr="logo_url", uuid_from="logo", identifier="image"
+            of_type=Image, to_attr="logo_path", uuid_from="logo", identifier="image"
         )
     )
 
@@ -473,10 +473,10 @@ class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
         return url
 
     def get_context_data(self, **kwargs):
-        obj = self.get_object()
+        context = super().get_context_data(**kwargs)
         return {
-            **super().get_context_data(**kwargs),
-            "transition_form": forms.TransitionForm(change=obj, user=self.request.user),
+            **context,
+            "transition_form": forms.TransitionForm(change=context['object'], user=self.request.user),
             "campaign_subitems": [
                 "Deployment",
                 "IOP",
@@ -485,6 +485,8 @@ class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
             ],
             "related_fields": self.get_related_fields(),
             "back_button": self.get_back_button_url(),
+            "ancestors": context['object'].get_ancestors().select_related("content_type"),
+            "descendents": context['object'].get_descendents().select_related("content_type"),
         }
 
     def get_model_form_content_type(self) -> ContentType:
@@ -566,7 +568,7 @@ def generate_base_list_view(model_name):
     class BaseListView(SingleTableMixin, FilterView):
         model = Change
         template_name = "api_app/change_list.html"
-        filterset_class = MODEL_CONFIG_MAP[model_name]["filter"]
+        filterset_class = MODEL_CONFIG_MAP[model_name]["draft_filter"]
         table_class = MODEL_CONFIG_MAP[model_name]["change_list_table"]
         linked_model = MODEL_CONFIG_MAP[model_name]["model"]
 

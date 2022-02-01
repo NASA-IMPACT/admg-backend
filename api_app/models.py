@@ -393,12 +393,88 @@ class Change(models.Model):
             if self.action == UPDATE:
                 serializer = serializer_class(instance)
                 self.previous = {
-                    key: Change._get_processed_value(getattr(instance, key))
+                    key: Change._get_processed_value(serializer.data.get(key))
                     for key in self.update
                 }
 
     def get_latest_log(self):
         return ApprovalLog.objects.filter(change=self).order_by("date").last()
+
+    def get_ancestors(self):
+        """
+        Get record and all ancestry records.
+        """
+        # We use a recursive CTE to allow us to get all of the UUIDs of
+        # this change and all of its ancestors. We join the data to the
+        # django_content_type table to allow us to customize how the
+        # relationship between parent and child is linked (ie on which
+        # field). UUIDs come out in order of this change first, then its
+        # parent, parent's parent, and so on.
+        query = f"""
+            WITH RECURSIVE parent AS (
+                SELECT
+                    c.uuid,
+                    c.update,
+                    ct.model
+                FROM
+                    {self._meta.db_table} c,
+                    django_content_type ct
+                WHERE
+                    c.content_type_id = ct.id
+                    AND c.uuid = %s
+                UNION ALL
+                SELECT
+                    c.uuid,
+                    c.update,
+                    ct.model
+                FROM
+                    {self._meta.db_table} c,
+                    django_content_type ct,
+                    parent p
+                WHERE
+                    c.content_type_id = ct.id
+                    -- The only time we want campaign relationships is when
+                    -- looking up the parent of a deployment
+                    AND CASE WHEN p.model ~* 'deployment|doi' THEN
+                        p.update ->> 'campaign' = c.uuid::text
+                    ELSE
+                        p.update ->> 'deployment' = c.uuid::text
+                    END
+            )
+            SELECT
+                uuid::text
+            FROM
+                parent
+        """
+        uuids = [c.uuid for c in Change.objects.raw(query, [self.uuid])]
+        # Using this "uuid__in" trick allows us to return a standard queryset
+        # rather than a RawQueryset. This means we can use all of the other
+        # queryset helpers like ".select_related()". However, this can return records
+        # out of order so we also need to reinforce the order by adding a "place"
+        # attribute on each record.
+        return (
+            Change.objects.filter(uuid__in=uuids)
+            .annotate(
+                place=expressions.RawSQL(
+                    "select array_position(%s, uuid::text)", [uuids]
+                )
+            )
+            # Reverse the order so that this change is last in list
+            .order_by("-place")
+        )
+
+    def get_descendents(self):
+        return self.__class__.objects.filter(
+            **{f"update__{self.content_type.model}": str(self.uuid)},
+            # Hack: Some draft IOPs, SigEvents, and CollectionPeriods will have a 'update.campaign'
+            # property, despite the fact that the actual models do not store that detail. We want to
+            # ignore those records as they misrepresent the heirarchy of the data.
+            **(
+                {"content_type__model": "deployment"}
+                if self.model_name == "Campaign"
+                else {}
+            ),
+        )
 
     def save(self, *args, post_save=False, **kwargs):
         # do not check for validity of model_name and uuid if it has been approved or rejected.
