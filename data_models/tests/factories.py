@@ -16,7 +16,7 @@ def create_m2m_records(field_name: str, Factory: Union["BaseFactory", str]):
     """
 
     def post_generation(obj, create, extracted, **kwargs):
-        # Lookup factory at runtime, allowing us to refernce factories before defining them
+        # Lookup factory at runtime, allowing us to reference factories before defining them
         if isinstance(Factory, str):
             module = ".".join(Factory.split(".")[:-1])
             factory_name = Factory.split(".")[-1]
