@@ -83,6 +83,8 @@ CUSTOM_MODEL_VALUES = {
     },
     "Website": {
         "admin_required_to_view": False,
+        "draft_filter": filters.WebsiteFilter,
+        "published_filter": published_filters.WebsiteFilter,
     },
     "WebsiteType": {},
 }
