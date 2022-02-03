@@ -54,6 +54,7 @@ class WebsiteFilter(django_filters.FilterSet):
         method=filter_draft_and_published("Website"),
     )
 
+
 class DeploymentFilter(CampaignFilter):
     short_name = django_filters.CharFilter(
         label="Short Name",
