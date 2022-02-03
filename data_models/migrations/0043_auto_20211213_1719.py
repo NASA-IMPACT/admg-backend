@@ -16,17 +16,19 @@ def populate_website_campaign(apps, schema_editor):
         campaign_website.website.save()
 
     # Update drafts
-    for draft_campaignwebsite in Change.objects.filter(
+    campaign_website_drafts = Change.objects.filter(
         content_type__model="campaignwebsite"
-    ):
+    )
+    for draft_campaignwebsite in campaign_website_drafts:
         for draft_website in Change.objects.filter(
             content_type__model="website",
             model_instance_uuid=draft_campaignwebsite.update["website"],
         ):
-            draft_website.update["campaign"] = draft_campaignwebsite.update[
-                "campaign"
-            ]
+            draft_website.update["campaign"] = draft_campaignwebsite.update["campaign"]
             draft_website.save()
+
+    # Purge all CampaignWebsite drafts
+    campaign_website_drafts.delete()
 
 
 class Migration(migrations.Migration):
