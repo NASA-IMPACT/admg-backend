@@ -444,6 +444,7 @@ class CampaignSerializer(GetAliasSerializer, GetDoiSerializer):
     instruments = serializers.ListField(read_only=True)
     platforms = serializers.ListField(read_only=True)
     website_details = serializers.ListField(read_only=True)
+
     def get_deployments(self, obj):
         return get_uuids(obj.deployments)
 
@@ -453,9 +454,11 @@ class CampaignSerializer(GetAliasSerializer, GetDoiSerializer):
     def create(self, validated_data):
         validated_data = change_bbox_to_polygon(validated_data)
         return super().create(validated_data)
+
     def update(self, instance, validated_data, **kwargs):
         validated_data = change_bbox_to_polygon(validated_data)
         return super().update(instance, validated_data, **kwargs)
+        
     class Meta:
         model = models.Campaign
         fields = "__all__"
