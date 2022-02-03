@@ -42,6 +42,18 @@ def GenericDraftFilter(model_name, filter_configs=default_filter_configs):
     return GenericFilterClass
 
 
+class WebsiteFilter(django_filters.FilterSet):
+    title = django_filters.CharFilter(
+        label="Title",
+        field_name="update__title",
+        method=filter_draft_and_published("Website"),
+    )
+    url = django_filters.CharFilter(
+        label="url",
+        field_name="update__url",
+        method=filter_draft_and_published("Website"),
+    )
+
 class DeploymentFilter(CampaignFilter):
     short_name = django_filters.CharFilter(
         label="Short Name",

@@ -27,6 +27,19 @@ def GenericPublishedListFilter(model_name, filter_configs=default_filter_configs
     return GenericFilterClass
 
 
+class WebsiteFilter(django_filters.FilterSet):
+    title = django_filters.CharFilter(
+        label="Title",
+        field_name="title",
+        lookup_expr="icontains",
+    )
+    url = django_filters.CharFilter(
+        label="url",
+        field_name="url",
+        lookup_expr="icontains",
+    )
+
+
 class DeploymentFilter(CampaignFilter):
     short_name = django_filters.CharFilter(
         label="Short Name",
