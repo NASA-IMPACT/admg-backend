@@ -1,6 +1,8 @@
 import json
 from uuid import uuid4
 
+from django.apps import apps
+from django.contrib.contenttypes.models import ContentType
 from django.contrib.gis.geos import GEOSGeometry
 from rest_framework import serializers
 
@@ -75,19 +77,7 @@ class GetDoiSerializer(BaseSerializer):
         return get_uuids(obj.dois)
 
 
-class TextImageField(serializers.ImageField):
-    def to_internal_value(self, data):
-        """ 
-        Allow a user to provide a string referencing an image rather than the
-        actual image file. Useful for when publishing a Change Record for a model
-        with an image field (ie allows serializer to pass validation).
-        """
-        return data
-
-
 class ImageSerializer(BaseSerializer):
-    image = TextImageField()
-
     class Meta:
         model = models.Image
         fields = "__all__"
