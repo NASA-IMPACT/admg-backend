@@ -44,7 +44,7 @@ class TestChange:
 
     @staticmethod
     def make_create_change_object(factory):
-        """make a CREATE PartnerOrg change object to use during testing"""
+        """make a CREATE change object to use during testing"""
         content_type = ContentType.objects.get_for_model(factory._meta.model)
 
         return Change.objects.create(
