@@ -1,3 +1,6 @@
+from typing import Union
+import importlib
+
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Model, fields
 import factory
@@ -5,15 +8,39 @@ import factory
 from data_models import models
 
 
-class BaseFactory(factory.django.DjangoModelFactory):
-    @classmethod
-    def as_dict(cls, **attrs):
-        """
-        Generate a dictionary representation of a model. Useful for
-        passing to Change.update field.
-        """
-        return factory.build(dict, **attrs, FACTORY_CLASS=cls)
+def create_m2m_records(field_name: str, Factory: Union["BaseFactory", str]):
+    """
+    Helper to avoid boilerplace for creating post_generation handlers that
+    add M2M records to a record.
+    https://factoryboy.readthedocs.io/en/stable/recipes.html#simple-many-to-many-relationship
+    """
 
+    def post_generation(obj, create, extracted, **kwargs):
+        # Lookup factory at runtime, allowing us to refernce factories before defining them
+        if isinstance(Factory, str):
+            module = ".".join(Factory.split(".")[:-1])
+            factory_name = Factory.split(".")[-1]
+            _Factory = getattr(importlib.import_module(module), factory_name)
+        else:
+            _Factory = Factory
+
+        if not isinstance(obj, dict):
+            # Currently, only supporting situations where obj == dict (ie when
+            # calling .as_change_dict()), consider supporting situations where obj
+            # is a Model instance if needed in the future.
+            return
+
+        if extracted:
+            # A list of records were passed in, use them
+            obj.setdefault(field_name, extracted)
+        else:
+            # Create new record in DB
+            obj.setdefault(field_name, _Factory.create_batch(1))
+
+    return post_generation
+
+
+class BaseFactory(factory.django.DjangoModelFactory):
     @classmethod
     def _ensure_saved(cls, value):
         """
@@ -49,6 +76,14 @@ class BaseFactory(factory.django.DjangoModelFactory):
 
         # For any foreign relations, we want the UUID of the FK, not the instance
         return str(getattr(value, "uuid", getattr(value, "pk")))
+
+    @classmethod
+    def as_dict(cls, **attrs):
+        """
+        Generate a dictionary representation of a model. Useful for
+        passing to Change.update field.
+        """
+        return factory.build(dict, **attrs, FACTORY_CLASS=cls)
 
     @classmethod
     def as_change_dict(cls, *, _save=True, **attrs):
@@ -94,86 +129,39 @@ class CampaignFactory(LimitedInfoBaseFactory):
     start_date = factory.Faker("date")
     ongoing = factory.Faker("boolean")
     nasa_led = factory.Faker("boolean")
-
     region_description = factory.Faker("sentence")
     focus_phenomena = factory.Faker("sentence")
     lead_investigator = factory.Faker("name")
+    repositories = factory.PostGeneration(
+        create_m2m_records("repositories", f"{__name__}.RepositoryFactory")
+    )
+    platform_types = factory.PostGeneration(
+        create_m2m_records("platform_types", f"{__name__}.PlatformTypeFactory")
+    )
+    geophysical_concepts = factory.PostGeneration(
+        create_m2m_records(
+            "geophysical_concepts", f"{__name__}.GeophysicalConceptFactory"
+        )
+    )
+    seasons = factory.PostGeneration(
+        create_m2m_records("seasons", f"{__name__}.SeasonFactory")
+    )
+    focus_areas = factory.PostGeneration(
+        create_m2m_records("focus_areas", f"{__name__}.FocusAreaFactory")
+    )
 
     class Meta:
         model = models.Campaign
 
-    @factory.post_generation
-    def repositories(self, create, extracted, **kwargs):
-        if isinstance(self, dict):
-            self.setdefault("repositories", [RepositoryFactory()])
-
-        if not create:
-            # Simple build, do nothing.
-            return
-
-        if extracted:
-            # A list of repositories were passed in, use them
-            for repository in extracted:
-                self["repositories"].add(repository)
-
-    @factory.post_generation
-    def platform_types(self, create, extracted, **kwargs):
-        if isinstance(self, dict):
-            self.setdefault("platform_types", [PlatformTypeFactory()])
-
-        if not create:
-            # Simple build, do nothing.
-            return
-
-        if extracted:
-            # A list of platform_types were passed in, use them
-            for platform_type in extracted:
-                self["platform_types"].add(platform_types)
-
-    @factory.post_generation
-    def geophysical_concepts(self, create, extracted, **kwargs):
-        if isinstance(self, dict):
-            self.setdefault("geophysical_concepts", [GeophysicalConceptFactory()])
-
-        if not create:
-            # Simple build, do nothing.
-            return
-
-        if extracted:
-            # A list of geophysical_concepts were passed in, use them
-            for geophysical_concept in extracted:
-                self["geophysical_concepts"].add(geophysical_concept)
-
-    @factory.post_generation
-    def seasons(self, create, extracted, **kwargs):
-        if isinstance(self, dict):
-            self.setdefault("seasons", [SeasonFactory()])
-
-        if not create:
-            # Simple build, do nothing.
-            return
-
-        if extracted:
-            # A list of seasons were passed in, use them
-            for season in extracted:
-                self["seasons"].add(season)
-
-    @factory.post_generation
-    def focus_areas(self, create, extracted, **kwargs):
-        if isinstance(self, dict):
-            self.setdefault("focus_areas", [FocusAreaFactory()])
-
-        if not create:
-            # Simple build, do nothing.
-            return
-
-        if extracted:
-            # A list of focus_areas were passed in, use them
-            for focus_area in extracted:
-                self["focus_areas"].add(focus_area)
-
 
 class CollectionPeriodFactory(BaseFactory):
+    deployment = factory.SubFactory(f"{__name__}.DeploymentFactory")
+    platform = factory.SubFactory(f"{__name__}.PlatformFactory")
+    auto_generated = factory.Faker("boolean")
+    instruments = factory.PostGeneration(
+        create_m2m_records("instruments", f"{__name__}.InstrumentFactory")
+    )
+
     class Meta:
         model = models.CollectionPeriod
 
@@ -188,6 +176,12 @@ class DeploymentFactory(LimitedInfoBaseFactory):
 
 
 class DOIFactory(BaseFactory):
+    concept_id = factory.Faker("isbn10")
+    date_queried = factory.Faker("iso8601")
+    campaigns = factory.PostGeneration(
+        create_m2m_records("campaigns", f"{__name__}.CampaignFactory")
+    )
+
     class Meta:
         model = models.DOI
 
@@ -197,22 +191,46 @@ class FocusAreaFactory(LimitedInfoPriorityBaseFactory):
         model = models.FocusArea
 
 
-class GcmdInstrumentFactory(BaseFactory):
+class GcmdBaseFactory(BaseFactory):
+    gcmd_uuid = factory.Faker("uuid4")
+
+
+class GcmdInstrumentFactory(GcmdBaseFactory):
+    description = factory.Faker("paragraph")
+    technical_contact = factory.Faker("name")
+    spatial_resolution = factory.Faker("text")
+    temporal_resolution = factory.Faker("text")
+    radiometric_frequency = factory.Faker("text")
+    gcmd_phenomenas = factory.PostGeneration(
+        create_m2m_records("gcmd_phenomenas", f"{__name__}.GcmdPhenomenaFactory")
+    )
+    measurement_regions = factory.PostGeneration(
+        create_m2m_records(
+            "measurement_regions", f"{__name__}.MeasurementRegionFactory"
+        )
+    )
+
     class Meta:
         model = models.GcmdInstrument
 
 
-class GcmdPhenomenaFactory(BaseFactory):
+class GcmdPhenomenaFactory(GcmdBaseFactory):
+    category = factory.Faker("word")
+
     class Meta:
         model = models.GcmdPhenomena
 
 
-class GcmdPlatformFactory(BaseFactory):
+class GcmdPlatformFactory(GcmdBaseFactory):
+    category = factory.Faker("word")
+
     class Meta:
         model = models.GcmdPlatform
 
 
-class GcmdProjectFactory(BaseFactory):
+class GcmdProjectFactory(GcmdBaseFactory):
+    bucket = factory.Faker("word")
+
     class Meta:
         model = models.GcmdProject
 
@@ -240,11 +258,31 @@ class ImageFactory(BaseFactory):
 
 
 class InstrumentFactory(LimitedInfoBaseFactory):
+    description = factory.Faker("paragraph")
+    technical_contact = factory.Faker("name")
+    spatial_resolution = factory.Faker("text")
+    temporal_resolution = factory.Faker("text")
+    radiometric_frequency = factory.Faker("text")
+    gcmd_phenomenas = factory.PostGeneration(
+        create_m2m_records("gcmd_phenomenas", f"{__name__}.GcmdPhenomenaFactory")
+    )
+    measurement_regions = factory.PostGeneration(
+        create_m2m_records(
+            "measurement_regions", f"{__name__}.MeasurementRegionFactory"
+        )
+    )
+
     class Meta:
         model = models.Instrument
 
 
 class IOPFactory(BaseFactory):
+    start_date = factory.Faker("date")
+    end_date = factory.Faker("date")
+    description = factory.Faker("sentence")
+    region_description = factory.Faker("sentence")
+    deployment = factory.SubFactory(f"{__name__}.DeploymentFactory")
+
     class Meta:
         model = models.IOP
 
@@ -270,6 +308,9 @@ class PartnerOrgFactory(LimitedInfoPriorityBaseFactory):
 
 
 class PlatformFactory(LimitedInfoBaseFactory):
+    stationary = factory.Faker("boolean")
+    description = factory.Faker("sentence")
+
     class Meta:
         model = models.Platform
 
@@ -317,28 +358,28 @@ class WebsiteTypeFactory(LimitedInfoPriorityBaseFactory):
 DATAMODELS_FACTORIES = [
     AliasFactory,
     CampaignFactory,
-    # CollectionPeriodFactory,
+    CollectionPeriodFactory,
     DeploymentFactory,
-    # DOIFactory,
-    # FocusAreaFactory,
-    # GcmdInstrumentFactory,
-    # GcmdPhenomenaFactory,
-    # GcmdPlatformFactory,
-    # GcmdProjectFactory,
-    # GeographicalRegionFactory,
-    # GeophysicalConceptFactory,
-    # HomeBaseFactory,
+    DOIFactory,
+    FocusAreaFactory,
+    GcmdInstrumentFactory,
+    GcmdPhenomenaFactory,
+    GcmdPlatformFactory,
+    GcmdProjectFactory,
+    GeographicalRegionFactory,
+    GeophysicalConceptFactory,
+    HomeBaseFactory,
     ImageFactory,
-    # InstrumentFactory,
-    # IOPFactory,
-    # MeasurementRegionFactory,
-    # MeasurementStyleFactory,
-    # MeasurementTypeFactory,
-    # PartnerOrgFactory,
-    # PlatformFactory,
-    # PlatformTypeFactory,
-    # RepositoryFactory,
-    # SeasonFactory,
+    InstrumentFactory,
+    IOPFactory,
+    MeasurementRegionFactory,
+    MeasurementStyleFactory,
+    MeasurementTypeFactory,
+    PartnerOrgFactory,
+    PlatformFactory,
+    PlatformTypeFactory,
+    RepositoryFactory,
+    SeasonFactory,
     SignificantEventFactory,
     WebsiteFactory,
     WebsiteTypeFactory,
