@@ -65,7 +65,7 @@ class BaseFactory(factory.django.DjangoModelFactory):
     def _transform_to_identifier(cls, value, _save=True):
         """
         For Change models, we want to store records as their identifiers
-        (ie UUDI) rather than their model instance.
+        (ie UUID) rather than their model instance.
         """
         if not isinstance(value, Model):
             return value
