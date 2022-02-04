@@ -249,13 +249,7 @@ class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
         return url
 
     def get_context_data(self, **kwargs):
-        obj = self.get_object()
-        instance_class = obj.model_name
-
         context = super().get_context_data(**kwargs)
-        config = MODEL_CONFIG_MAP.get(instance_class, {})
-        for field in config.get("change_view_readonly_fields", []):
-            context["model_form"].fields[field].disabled = True
         return {
             **context,
             "transition_form": (

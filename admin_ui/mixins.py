@@ -106,6 +106,11 @@ class ChangeModelFormMixin(ModelFormMixin):
                 initial=self.get_model_form_intial(),
                 prefix=self.destination_model_prefix,
             )
+
+        model_name = kwargs["model_form"]._meta.model.__name__
+        model_config = config.MODEL_CONFIG_MAP.get(model_name, {})
+        for field in model_config.get("change_view_readonly_fields", []):
+            kwargs["model_form"].fields[field].disabled = True
         return super().get_context_data(**kwargs)
 
     @staticmethod
