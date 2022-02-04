@@ -213,10 +213,22 @@ class ChangeModelFormMixin(ModelFormMixin):
 
         model_config = config.MODEL_CONFIG_MAP.get(self.get_model_type().__name__, {})
         readonly_fields = model_config.get("change_view_readonly_fields", [])
+
+        if form.instance._state.adding:
+            # If we're create a new Change instance, we want to populate any fields that
+            # are specified in the GET params. This is useful when we autopopulate a field
+            # but that field is marked "disabled" (eg creating a Deployment draft with the
+            # campaign field populated), this way we can retrieve the intended value of the
+            # field even though its prepopulated field's values are not submitted with the
+            # form.
+            form.instance.update.update(
+                {k: v for k, v in request.GET.items() if k in model_form.fields}
+            )
+
         form.instance.update.update(
-            # Only update fields that can be altered by the form. Otherwise, retain
-            # original values from form.instance.update
             {
+                # Only update fields that can be altered by the form. Otherwise, retain
+                # original values from form.instance.update
                 k: v
                 for k, v in self.get_update_values(model_form).items()
                 if k not in readonly_fields
