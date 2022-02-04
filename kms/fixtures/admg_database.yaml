@@ -61,3 +61,17 @@
       gcmd_uuid: 690b684a-0857-4264-b9b3-d6c60f07ae02
     previous: {}
     action: Create
+
+- model: api_app.change
+  pk: b114825d-7b14-4852-ba6a-9ed84d323969
+  fields:
+    content_type: 25
+    model_instance_uuid: 133805af-507b-4bdb-b310-1c728a0cbab2
+    status: 0
+    update:
+      short_name: "OLI/TIRS"
+      long_name: "Landsat 8 OLI/TIRS"
+      instrument_category: Earth Remote Sensing Instruments
+      gcmd_uuid: 7e74257a-f59f-4591-8530-93bbaf39c7cd
+    previous: {}
+    action: Create
