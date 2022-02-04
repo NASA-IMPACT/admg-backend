@@ -84,8 +84,7 @@ class TransitionForm(forms.Form):
             actions["publish"] = "Publish to production"
             if change.status != IN_ADMIN_REVIEW_CODE:
                 actions["publish"] = mark_safe(
-                    '<span class="text-danger font-italic">Danger:</span>  '
-                    + actions["publish"]
+                    '<span class="text-danger font-italic">Danger:</span>  ' + actions["publish"]
                 )
 
         return actions.items()
@@ -93,15 +92,9 @@ class TransitionForm(forms.Form):
 
 class DoiForm(forms.Form):
     uuid = forms.UUIDField(disabled=True, widget=forms.HiddenInput)
-    campaigns = ChangeMultipleChoiceField(
-        dest_model=data_models.Campaign, required=False
-    )
-    platforms = ChangeMultipleChoiceField(
-        dest_model=data_models.Platform, required=False
-    )
-    instruments = ChangeMultipleChoiceField(
-        dest_model=data_models.Instrument, required=False
-    )
+    campaigns = ChangeMultipleChoiceField(dest_model=data_models.Campaign, required=False)
+    platforms = ChangeMultipleChoiceField(dest_model=data_models.Platform, required=False)
+    instruments = ChangeMultipleChoiceField(dest_model=data_models.Instrument, required=False)
     collection_periods = forms.MultipleChoiceField(label="CDPIs", required=False)
     keep = forms.NullBooleanField(
         help_text="Mark as reviewed or deleted",
@@ -118,8 +111,8 @@ class DoiForm(forms.Form):
 
             field.choices = choices
 
-            if (self.initial.get('readonly')):
-                field.widget.attrs['readonly'] = True
+            if self.initial.get("readonly"):
+                field.widget.attrs["readonly"] = True
 
 
 class DoiFormSet(forms.formset_factory(DoiForm, extra=0)):
@@ -134,23 +127,14 @@ class DoiFormSet(forms.formset_factory(DoiForm, extra=0)):
         # formset's forms, we manually build the choices outside of the form.
         # https://code.djangoproject.com/ticket/22841
         querysets = {
-            "campaigns": ChangeMultipleChoiceField.get_queryset_for_model(
-                data_models.Campaign
-            ),
-            "platforms": ChangeMultipleChoiceField.get_queryset_for_model(
-                data_models.Platform
-            ),
-            "instruments": ChangeMultipleChoiceField.get_queryset_for_model(
-                data_models.Instrument
-            ),
+            "campaigns": ChangeMultipleChoiceField.get_queryset_for_model(data_models.Campaign),
+            "platforms": ChangeMultipleChoiceField.get_queryset_for_model(data_models.Platform),
+            "instruments": ChangeMultipleChoiceField.get_queryset_for_model(data_models.Instrument),
             "collection_periods": ChangeMultipleChoiceField.get_queryset_for_model(
                 data_models.CollectionPeriod
             ),
         }
-        return {
-            field: list(forms.ModelChoiceField(qs).choices)
-            for field, qs in querysets.items()
-        }
+        return {field: list(forms.ModelChoiceField(qs).choices) for field, qs in querysets.items()}
 
     def get_form_kwargs(self, index):
         return {**super().get_form_kwargs(index), "choices": self.choices}

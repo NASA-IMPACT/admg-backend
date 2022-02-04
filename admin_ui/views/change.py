@@ -132,9 +132,7 @@ class CampaignDetailView(DetailView):
         # Build collection periods instruments (too difficult to do in SQL)
         instrument_uuids = set(
             uuid
-            for instruments in collection_periods.values_list(
-                "update__instruments", flat=True
-            )
+            for instruments in collection_periods.values_list("update__instruments", flat=True)
             for uuid in instruments
         )
         instrument_names = {
@@ -190,9 +188,7 @@ class ChangeCreateView(mixins.ChangeModelFormMixin, CreateView):
     def get_context_data(self, **kwargs):
         return {
             **super().get_context_data(**kwargs),
-            "content_type_name": (
-                self.get_model_form_content_type().model_class().__name__
-            ),
+            "content_type_name": (self.get_model_form_content_type().model_class().__name__),
         }
 
     def get_success_url(self):
@@ -263,12 +259,8 @@ class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
             ],
             "related_fields": self.get_related_fields(),
             "back_button": self.get_back_button_url(),
-            "ancestors": (
-                context["object"].get_ancestors().select_related("content_type")
-            ),
-            "descendents": (
-                context["object"].get_descendents().select_related("content_type")
-            ),
+            "ancestors": (context["object"].get_ancestors().select_related("content_type")),
+            "descendents": (context["object"].get_descendents().select_related("content_type")),
         }
 
     def get_model_form_content_type(self) -> ContentType:
@@ -346,9 +338,7 @@ class DiffView(ChangeUpdateView):
     model = Change
     template_name = "api_app/change_diff.html"
 
-    def _compare_forms_and_format(
-        self, updated_form, original_form, field_names_to_compare
-    ):
+    def _compare_forms_and_format(self, updated_form, original_form, field_names_to_compare):
         for field_name in field_names_to_compare:
             if not utils.compare_values(
                 original_form[field_name].value(), updated_form[field_name].value()
@@ -365,8 +355,7 @@ class DiffView(ChangeUpdateView):
             auto_id="readonly_%s",
         )
         is_published_or_trashed = (
-            context["object"].status == PUBLISHED_CODE
-            or context["object"].status == IN_TRASH_CODE
+            context["object"].status == PUBLISHED_CODE or context["object"].status == IN_TRASH_CODE
         )
 
         # if published or trashed then the old data doesn't need to be from the database, it
@@ -406,9 +395,7 @@ def generate_base_list_view(model_name):
 
         def get_queryset(self):
             queryset = (
-                Change.objects.of_type(self.linked_model)
-                .add_updated_at()
-                .order_by("-updated_at")
+                Change.objects.of_type(self.linked_model).add_updated_at().order_by("-updated_at")
             )
 
             if self.linked_model == Platform:
@@ -471,11 +458,7 @@ def format_validation_error(err: ValidationError) -> str:
     return (
         '<ul class="list-unstyled">'
         + "".join(
-            (
-                f"<li>{field}"
-                '<ul>' + "".join(f"<li>{e}</li>" for e in errors) + "</ul>"
-                "</li>"
-            )
+            (f"<li>{field}" "<ul>" + "".join(f"<li>{e}</li>" for e in errors) + "</ul>" "</li>")
             for field, errors in err.detail.items()
         )
         + "</ul>"

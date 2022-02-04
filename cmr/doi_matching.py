@@ -2,10 +2,19 @@ import json
 import pickle
 from datetime import datetime
 
-from api_app.models import (AWAITING_ADMIN_REVIEW_CODE, AWAITING_REVIEW_CODE,
-                            CREATE, CREATED_CODE, DELETE, IN_ADMIN_REVIEW_CODE,
-                            IN_PROGRESS_CODE, IN_REVIEW_CODE, PUBLISHED_CODE,
-                            UPDATE, Change)
+from api_app.models import (
+    AWAITING_ADMIN_REVIEW_CODE,
+    AWAITING_REVIEW_CODE,
+    CREATE,
+    CREATED_CODE,
+    DELETE,
+    IN_ADMIN_REVIEW_CODE,
+    IN_PROGRESS_CODE,
+    IN_REVIEW_CODE,
+    PUBLISHED_CODE,
+    UPDATE,
+    Change,
+)
 from data_models.models import DOI
 from django.apps import apps
 from django.contrib.contenttypes.models import ContentType
@@ -21,14 +30,14 @@ ALL_STATUSES = [
     IN_REVIEW_CODE,
     AWAITING_ADMIN_REVIEW_CODE,
     IN_ADMIN_REVIEW_CODE,
-    PUBLISHED_CODE
+    PUBLISHED_CODE,
 ]
 
-class DoiMatcher():
+
+class DoiMatcher:
     def __init__(self):
         self.uuid_to_aliases = {}
         self.table_to_valid_uuids = {}
-
 
     def universal_get(self, table_name, uuid):
         """Queries the database for a uuid within a table name, but searches
@@ -43,22 +52,25 @@ class DoiMatcher():
             data (dict): object from db or change table if not found
         """
 
-        model = apps.get_model('data_models', table_name.replace('_', ''))
+        model = apps.get_model("data_models", table_name.replace("_", ""))
         # attempt to find the uuid as a published object
         try:
             obj = model.objects.get(uuid=uuid)
-            data = json.loads(serializers.serialize('json', [obj,]))[0]['fields']
+            data = json.loads(serializers.serialize("json", [obj,]))[
+                0
+            ]["fields"]
 
         # if the published object isn't found, search the drafts
         except model.DoesNotExist:
-            model = apps.get_model('api_app', 'change')
+            model = apps.get_model("api_app", "change")
             obj = model.objects.get(uuid=uuid)
-            data = json.loads(serializers.serialize('json', [obj,]))[0]['fields']['update']
-            data['uuid'] = uuid
-            data['change_object'] = True
+            data = json.loads(serializers.serialize("json", [obj,]))[0][
+                "fields"
+            ]["update"]
+            data["uuid"] = uuid
+            data["change_object"] = True
 
         return data
-
 
     def valid_object_list_generator(self, table_name, query_parameter=None, query_value=None):
         """Takes a table_name and outputs a list of the valid uuids for that table. Because objects
@@ -78,21 +90,17 @@ class DoiMatcher():
         """
 
         valid_objects = Change.objects.filter(
-            content_type__model=table_name,
-            action=CREATE
-            ).exclude(
-                action=DELETE,
-                status=PUBLISHED_CODE)
+            content_type__model=table_name, action=CREATE
+        ).exclude(action=DELETE, status=PUBLISHED_CODE)
 
         if query_parameter:
-            query_parameter = 'update__' + query_parameter
+            query_parameter = "update__" + query_parameter
             kwargs = {query_parameter: query_value}
             valid_objects = valid_objects.filter(**kwargs)
 
-        valid_object_uuids = [str(uuid) for uuid in valid_objects.values_list('uuid', flat=True)]
+        valid_object_uuids = [str(uuid) for uuid in valid_objects.values_list("uuid", flat=True)]
 
         return valid_object_uuids
-
 
     def universal_alias(self, table_name, uuid):
         """Every object has multiple forms of aliases such as long_names, gmcd names, and
@@ -108,32 +116,32 @@ class DoiMatcher():
             alias_set (set): Set containing lower-case aliases for the given UUID.
         """
 
-        if aliases:=self.uuid_to_aliases.get(table_name, {}).get(uuid):
+        if aliases := self.uuid_to_aliases.get(table_name, {}).get(uuid):
             return aliases
 
         table_name = clean_table_name(table_name)
         obj = self.universal_get(table_name, uuid)
 
         alias_list = []
-        alias_list.append(obj.get('short_name'))
-        alias_list.append(obj.get('long_name'))
+        alias_list.append(obj.get("short_name"))
+        alias_list.append(obj.get("long_name"))
 
         # gets gcmd alias
-        if table_name in ['campaign', 'platform', 'instrument']:
-            if table_name == 'campaign':
-                table_name = 'project'
+        if table_name in ["campaign", "platform", "instrument"]:
+            if table_name == "campaign":
+                table_name = "project"
 
-            gcmd_uuids = obj.get(f'gcmd_{table_name}s', [])
+            gcmd_uuids = obj.get(f"gcmd_{table_name}s", [])
             for gcmd_uuid in gcmd_uuids:
-                gcmd_obj = self.universal_get(f'gcmd_{table_name}', gcmd_uuid)
-                alias_list.append(gcmd_obj.get('short_name'))
-                alias_list.append(gcmd_obj.get('long_name'))
+                gcmd_obj = self.universal_get(f"gcmd_{table_name}", gcmd_uuid)
+                alias_list.append(gcmd_obj.get("short_name"))
+                alias_list.append(gcmd_obj.get("long_name"))
 
         # get alias that are still in draft
-        linked_aliases = self.valid_object_list_generator('alias', 'object_id', uuid)
+        linked_aliases = self.valid_object_list_generator("alias", "object_id", uuid)
         for alias_uuid in linked_aliases:
-            alias = self.universal_get('alias', alias_uuid)
-            alias_list.append(alias.get('short_name'))
+            alias = self.universal_get("alias", alias_uuid)
+            alias_list.append(alias.get("short_name"))
 
         alias_set = purify_list(alias_list)
 
@@ -142,7 +150,6 @@ class DoiMatcher():
         self.uuid_to_aliases[table_name][uuid] = alias_set
 
         return alias_set
-
 
     def campaign_recommender(self, doi_metadata):
         """Takes the metadata for a single dataproduct and returns a list of the UUIDs
@@ -158,17 +165,17 @@ class DoiMatcher():
         campaign_recs = []
         # extract all cmr_project_names
         cmr_project_names = []
-        for project in doi_metadata.get('cmr_projects', []):
-            cmr_project_names.append(project.get('ShortName'))
-            cmr_project_names.append(project.get('LongName'))
+        for project in doi_metadata.get("cmr_projects", []):
+            cmr_project_names.append(project.get("ShortName"))
+            cmr_project_names.append(project.get("LongName"))
         cmr_project_names = purify_list(cmr_project_names)
 
         # list of each campaign uuid with all it's names
-        campaign_uuids = self.valid_object_list_generator('campaign')
+        campaign_uuids = self.valid_object_list_generator("campaign")
 
         # compare the lists for matches and suppelent the metadata
         for campaign_uuid in campaign_uuids:
-            camp_uuid_aliases = self.universal_alias('campaign', campaign_uuid)
+            camp_uuid_aliases = self.universal_alias("campaign", campaign_uuid)
             if cmr_project_names.intersection(camp_uuid_aliases):
                 campaign_recs.append(campaign_uuid)
 
@@ -188,18 +195,18 @@ class DoiMatcher():
         instrument_recs = []
         # extract all cmr instrument names
         cmr_instrument_names = []
-        for platform_data in doi_metadata['cmr_plats_and_insts']:
-            for instrument_data in platform_data.get('Instruments', []):
-                cmr_instrument_names.append(instrument_data.get('ShortName'))
-                cmr_instrument_names.append(instrument_data.get('LongName'))
+        for platform_data in doi_metadata["cmr_plats_and_insts"]:
+            for instrument_data in platform_data.get("Instruments", []):
+                cmr_instrument_names.append(instrument_data.get("ShortName"))
+                cmr_instrument_names.append(instrument_data.get("LongName"))
         cmr_instrument_names = purify_list(cmr_instrument_names)
 
         # list of each instrument uuid with all it's names
-        instrument_uuids = self.valid_object_list_generator('instrument')
+        instrument_uuids = self.valid_object_list_generator("instrument")
 
         # compare the lists for matches and suppelent the metadata
         for instrument_uuid in instrument_uuids:
-            inst_uuid_aliases = self.universal_alias('instrument', instrument_uuid)
+            inst_uuid_aliases = self.universal_alias("instrument", instrument_uuid)
             if cmr_instrument_names.intersection(inst_uuid_aliases):
                 instrument_recs.append(instrument_uuid)
 
@@ -219,17 +226,17 @@ class DoiMatcher():
         platform_recs = []
         # extract all cmr platform names
         cmr_platform_names = []
-        for platform_data in doi_metadata['cmr_plats_and_insts']:
-            cmr_platform_names.append(platform_data.get('ShortName'))
-            cmr_platform_names.append(platform_data.get('LongName'))
+        for platform_data in doi_metadata["cmr_plats_and_insts"]:
+            cmr_platform_names.append(platform_data.get("ShortName"))
+            cmr_platform_names.append(platform_data.get("LongName"))
         cmr_platform_names = purify_list(cmr_platform_names)
 
         # list of each platform uuid with all it's names
-        platform_uuids = self.valid_object_list_generator('platform')
+        platform_uuids = self.valid_object_list_generator("platform")
 
         # compare the lists for matches and suppelent the metadata
         for platform_uuid in platform_uuids:
-            plat_uuid_aliases = self.universal_alias('platform', platform_uuid)
+            plat_uuid_aliases = self.universal_alias("platform", platform_uuid)
             if cmr_platform_names.intersection(plat_uuid_aliases):
                 platform_recs.append(platform_uuid)
 
@@ -250,7 +257,6 @@ class DoiMatcher():
         flight_recs = []
         return flight_recs
 
-
     def supplement_metadata(self, metadata_list, development=False):
         """Takes a list of metadata dicts and supplements the metadata with UUID
         recommendations from the database and with the date_queried.
@@ -270,16 +276,15 @@ class DoiMatcher():
 
         supplemented_metadata_list = []
         for doi_metadata in metadata_list:
-            doi_metadata['date_queried'] = datetime.now().isoformat()
-            doi_metadata['campaigns'] = self.campaign_recommender(doi_metadata)
-            doi_metadata['instruments'] = self.instrument_recommender(doi_metadata)
-            doi_metadata['platforms'] = self.platform_recommender(doi_metadata)
-            doi_metadata['collection_periods'] = self.flight_recommender(doi_metadata)
+            doi_metadata["date_queried"] = datetime.now().isoformat()
+            doi_metadata["campaigns"] = self.campaign_recommender(doi_metadata)
+            doi_metadata["instruments"] = self.instrument_recommender(doi_metadata)
+            doi_metadata["platforms"] = self.platform_recommender(doi_metadata)
+            doi_metadata["collection_periods"] = self.flight_recommender(doi_metadata)
 
             supplemented_metadata_list.append(doi_metadata)
 
         return supplemented_metadata_list
-
 
     def add_to_db(self, doi):
         """After cmr has been queried and each dataproduct has received recommended UUID
@@ -303,7 +308,9 @@ class DoiMatcher():
         """
 
         # search db for existing items with concept_id
-        existing_doi_uuids = self.valid_object_list_generator('doi', query_parameter='concept_id', query_value=doi['concept_id'])
+        existing_doi_uuids = self.valid_object_list_generator(
+            "doi", query_parameter="concept_id", query_value=doi["concept_id"]
+        )
         # this check can fail for some complicated reasons that will be addressed in a future PR
         # if len(existing_doi_uuids)>1:
         #     raise ValueError('There has been an internal database error')
@@ -311,21 +318,21 @@ class DoiMatcher():
         # if none exist add normally as a draft
         if not existing_doi_uuids:
             doi_obj = Change(
-                content_type=ContentType.objects.get(model='doi'),
+                content_type=ContentType.objects.get(model="doi"),
                 model_instance_uuid=None,
                 update=json.loads(json.dumps(doi)),
                 status=CREATED_CODE,
-                action=CREATE
+                action=CREATE,
             )
             doi_obj.save()
 
-            return 'Draft created for DOI'
+            return "Draft created for DOI"
 
         uuid = existing_doi_uuids[0]
-        existing_doi = self.universal_get('doi', uuid)
+        existing_doi = self.universal_get("doi", uuid)
         # if item exists as a draft, directly update using db functions with same methodology as above
-        if existing_doi.get('change_object'):
-            for field in ['campaigns', 'instruments', 'platforms', 'collection_periods']:
+        if existing_doi.get("change_object"):
+            for field in ["campaigns", "instruments", "platforms", "collection_periods"]:
                 doi[field].extend(existing_doi.get(field))
                 doi[field] = list(set(doi[field]))
 
@@ -333,7 +340,7 @@ class DoiMatcher():
             draft.update = doi
             draft.save()
 
-            return f'DOI already exists as a draft. Existing draft updated. {uuid}'
+            return f"DOI already exists as a draft. Existing draft updated. {uuid}"
 
         # if db item exists, replace cmr metadata fields and append suggestion fields as an update
         existing_doi = DOI.objects.all().filter(uuid=uuid).first()
@@ -342,26 +349,25 @@ class DoiMatcher():
         existing_platforms = [str(c.uuid) for c in existing_doi.platforms.all()]
         existing_collection_periods = [str(c.uuid) for c in existing_doi.collection_periods.all()]
 
-        doi['campaigns'].extend(existing_campaigns)
-        doi['instruments'].extend(existing_instruments)
-        doi['platforms'].extend(existing_platforms)
-        doi['collection_periods'].extend(existing_collection_periods)
+        doi["campaigns"].extend(existing_campaigns)
+        doi["instruments"].extend(existing_instruments)
+        doi["platforms"].extend(existing_platforms)
+        doi["collection_periods"].extend(existing_collection_periods)
 
-        for field in ['campaigns', 'instruments', 'platforms', 'collection_periods']:
+        for field in ["campaigns", "instruments", "platforms", "collection_periods"]:
             doi[field] = list(set(doi[field]))
 
         doi_obj = Change(
-            content_type=ContentType.objects.get(model='doi'),
+            content_type=ContentType.objects.get(model="doi"),
             model_instance_uuid=str(uuid),
             update=json.loads(json.dumps(doi)),
             status=CREATED_CODE,
-            action=UPDATE
+            action=UPDATE,
         )
 
         doi_obj.save()
 
-        return f'DOI already exists in database. Update draft created. {uuid}'
-
+        return f"DOI already exists in database. Update draft created. {uuid}"
 
     def generate_recommendations(self, table_name, uuid, development=False):
         """This is the overarching parent function which takes a table_name and a uuid and
@@ -385,19 +391,19 @@ class DoiMatcher():
         failed = False
         if development:
             try:
-                metadata_list = pickle.load(open(f'metadata_{uuid}', 'rb'))
-                print('using cached CMR metadata')
+                metadata_list = pickle.load(open(f"metadata_{uuid}", "rb"))
+                print("using cached CMR metadata")
             except FileNotFoundError:
-                failed=True
-                print('cached CMR data unavailable')
+                failed = True
+                print("cached CMR data unavailable")
 
         aliases = self.universal_alias(table_name, uuid)
 
         if failed or not development:
             metadata_list = query_and_process_cmr(table_name, aliases)
-        
+
         if development:
-            pickle.dump(metadata_list, open(f'metadata_{uuid}', 'wb'))
+            pickle.dump(metadata_list, open(f"metadata_{uuid}", "wb"))
 
         supplemented_metadata_list = self.supplement_metadata(metadata_list, development)
 

@@ -8,18 +8,19 @@ from api_app.serializers import ValidationSerializer
 from .view_utils import handle_exception
 
 
-class JsonValidationView(GenericAPIView):#CreateAPIView):
+class JsonValidationView(GenericAPIView):  # CreateAPIView):
     """
-        Take in Json for one database entry and run validation.
+    Take in Json for one database entry and run validation.
     """
+
     validation_serializer = ValidationSerializer
 
     @handle_exception
     def post(self, request, *args, **kwargs):
         # TODO: there needs to be some error handling for if the request is missing these things
-        model_name = request.data['model_name']
-        data = request.data['data']
-        partial = request.data['partial']
+        model_name = request.data["model_name"]
+        data = request.data["data"]
+        partial = request.data["partial"]
 
         serializer_class = getattr(data_models_serializers, f"{model_name}Serializer")
         serializer_obj = serializer_class(data=data, partial=partial)
@@ -31,6 +32,6 @@ class JsonValidationView(GenericAPIView):#CreateAPIView):
         return Response(
             status=200,
             data={
-                'message':'All serializer validations passed',
-            }
+                "message": "All serializer validations passed",
+            },
         )

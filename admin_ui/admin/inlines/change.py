@@ -8,7 +8,7 @@ from api_app.models import Change, IN_PROGRESS_CODE, IN_REVIEW_CODE, IN_ADMIN_RE
 class BaseChangeInline(GenericTabularInline):
     model = Change
     ct_fk_field = "model_instance_uuid"
-    classes = ('collapse',)
+    classes = ("collapse",)
 
     extra = 0
 

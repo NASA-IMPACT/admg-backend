@@ -45,9 +45,7 @@ def collapsable_menu(parser, token):
         )
 
     if not all(is_quoted(text) for text in [title, *model_names]):
-        raise template.TemplateSyntaxError(
-            "%r tag's arguments should be in quotes" % tag
-        )
+        raise template.TemplateSyntaxError("%r tag's arguments should be in quotes" % tag)
 
     nodelist = parser.parse(("endcollapsable_menu",))
     parser.delete_first_token()

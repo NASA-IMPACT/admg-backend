@@ -5,7 +5,6 @@ from .mixins import formfield_callback
 
 
 def GenericFormClass(model_name):
-
     class MyFormClass(ModelForm):
         formfield_callback = formfield_callback
 

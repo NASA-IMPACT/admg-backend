@@ -18,7 +18,7 @@ def GenericPublishedListFilter(model_name, filter_configs=default_filter_configs
         class Meta:
             model = getattr(models, model_name)
             fields = []
-    
+
     for config in filter_configs:
         GenericFilterClass.base_filters[config["field_name"]] = django_filters.CharFilter(
             label=config["label"], field_name=config["field_name"], lookup_expr="icontains"
@@ -57,15 +57,15 @@ class DeploymentFilter(CampaignFilter):
 
 
 def second_level_campaign_filter(model_name):
-    
-    Model = getattr(models, model_name)
-    class FilterForDeploymentToCampaign(DeploymentFilter):
 
+    Model = getattr(models, model_name)
+
+    class FilterForDeploymentToCampaign(DeploymentFilter):
         def filter_campaign_name(self, queryset, field_name, search_string):
             campaigns = get_published_campaigns(search_string)
             deployments = get_deployments(campaigns)
             return queryset.filter(deployment__in=deployments)
-        
+
         class Meta:
             model = Model
             fields = ["short_name"]
@@ -88,7 +88,6 @@ class DoiFilter(CampaignFilter):
 
 
 class CollectionPeriodFilter(CampaignFilter):
-
     def filter_campaign_name(self, queryset, field_name, search_string):
         campaigns = get_published_campaigns(search_string)
         deployments = get_deployments(campaigns)

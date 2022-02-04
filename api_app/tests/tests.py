@@ -165,17 +165,13 @@ class TestChange:
 
         response = change.trash(staff_user, notes="trash")
         assert response["success"] is False
-        assert (
-            response["message"] == "action failed because initiating user was not admin"
-        )
+        assert response["message"] == "action failed because initiating user was not admin"
 
         change.trash(admin_user, notes="trash")
 
         response = change.untrash(staff_user)
         assert response["success"] is False
-        assert (
-            response["message"] == "action failed because initiating user was not admin"
-        )
+        assert response["message"] == "action failed because initiating user was not admin"
 
     def test_published_cant_be_trash(self, factory):
         """check that error is thrown when admin tries to trash a published item"""
@@ -206,15 +202,11 @@ class TestChange:
 
         response = change.claim(staff_user)
         assert response["success"] is False
-        assert (
-            response["message"] == "action failed because initiating user was not admin"
-        )
+        assert response["message"] == "action failed because initiating user was not admin"
         change.claim(admin_user)
         response = change.publish(staff_user)
         assert response["success"] is False
-        assert (
-            response["message"] == "action failed because initiating user was not admin"
-        )
+        assert response["message"] == "action failed because initiating user was not admin"
 
     def test_only_claim_awaiting(self, factory):
         """test that the claim function throws errors if not used on AWAITING objects"""
@@ -392,6 +384,4 @@ class TestApi:
         )
         assert response.status_code == 401
         response_dict = response.json()
-        assert response_dict == {
-            "detail": "Authentication credentials were not provided."
-        }
+        assert response_dict == {"detail": "Authentication credentials were not provided."}
