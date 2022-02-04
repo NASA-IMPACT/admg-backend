@@ -9,7 +9,7 @@ def extract_doi(concept):
                 .split("DOI: ")[1]
                 .split(".org/")[1]
             )
-        except:
+        except Exception:
             pass
     return doi
 
