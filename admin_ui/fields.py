@@ -66,7 +66,7 @@ class ChangeChoiceMixin:
             ChangeWithIdentifier("short_name")
             .objects
             # Only focus on Created drafts, so we can treat the `uuid` as the target model's uuid
-            .filter(action=models.CREATE, content_type__model=dest_model_name)
+            .filter(action=models.Change.Actions.CREATE, content_type__model=dest_model_name)
             # Remove any Changes that have been successfully deleted
             .exclude(
                 uuid__in=models.Change.objects.of_type(dest_model)
@@ -93,7 +93,7 @@ class ChangeChoiceMixin:
             )
             .objects.of_type(data_models.CollectionPeriod)
             # Only focus on Created drafts, so we can treat the `uuid` as the target model's uuid
-            .filter(action=models.CREATE)
+            .filter(action=models.Change.Actions.CREATE)
             # Remove any Changes that have been successfully deleted
             .exclude(
                 uuid__in=models.Change.objects.of_type(data_models.CollectionPeriod)

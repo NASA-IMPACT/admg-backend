@@ -11,7 +11,7 @@ from rest_framework.views import APIView
 from oauth2_provider.contrib.rest_framework import TokenHasScope
 
 from admg_webapp.users.models import ADMIN, STAFF
-from ..models import ApprovalLog, Change, PUBLISHED_CODE
+from ..models import ApprovalLog, Change
 from ..serializers import ApprovalLogSerializer, ChangeSerializer
 from .view_utils import handle_exception
 
@@ -19,7 +19,7 @@ from .view_utils import handle_exception
 def _validate_update(request, uuid):
     instance = Change.objects.get(uuid=uuid)
     # the change object can only be changed in pending or in_progress state
-    if instance.status == PUBLISHED_CODE:
+    if instance.status == Change.Statuses.PUBLISHED:
         raise Exception("Change has already been published. Make a new change request")
     return instance
 

@@ -2,10 +2,7 @@ import json
 import pickle
 from datetime import datetime
 
-from api_app.models import (AWAITING_ADMIN_REVIEW_CODE, AWAITING_REVIEW_CODE,
-                            CREATE, CREATED_CODE, DELETE, IN_ADMIN_REVIEW_CODE,
-                            IN_PROGRESS_CODE, IN_REVIEW_CODE, PUBLISHED_CODE,
-                            UPDATE, Change)
+from api_app.models import Change
 from data_models.models import DOI
 from django.apps import apps
 from django.contrib.contenttypes.models import ContentType
@@ -14,15 +11,6 @@ from django.core import serializers
 from cmr.cmr import query_and_process_cmr
 from cmr.utils import clean_table_name, purify_list
 
-ALL_STATUSES = [
-    CREATED_CODE,
-    IN_PROGRESS_CODE,
-    AWAITING_REVIEW_CODE,
-    IN_REVIEW_CODE,
-    AWAITING_ADMIN_REVIEW_CODE,
-    IN_ADMIN_REVIEW_CODE,
-    PUBLISHED_CODE
-]
 
 class DoiMatcher():
     def __init__(self):
@@ -79,10 +67,10 @@ class DoiMatcher():
 
         valid_objects = Change.objects.filter(
             content_type__model=table_name,
-            action=CREATE
+            action=Change.Actions.CREATE
             ).exclude(
                 action=DELETE,
-                status=PUBLISHED_CODE)
+                status=Change.Statuses.PUBLISHED)
 
         if query_parameter:
             query_parameter = 'update__' + query_parameter
@@ -314,8 +302,8 @@ class DoiMatcher():
                 content_type=ContentType.objects.get(model='doi'),
                 model_instance_uuid=None,
                 update=json.loads(json.dumps(doi)),
-                status=CREATED_CODE,
-                action=CREATE
+                status=Change.Statuses.CREATED,
+                action=Change.Actions.CREATE
             )
             doi_obj.save()
 
@@ -354,8 +342,8 @@ class DoiMatcher():
             content_type=ContentType.objects.get(model='doi'),
             model_instance_uuid=str(uuid),
             update=json.loads(json.dumps(doi)),
-            status=CREATED_CODE,
-            action=UPDATE
+            status=Change.Statuses.CREATED,
+            action=Change.Actions.UPDATE
         )
 
         doi_obj.save()

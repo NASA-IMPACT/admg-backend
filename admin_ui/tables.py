@@ -1,7 +1,7 @@
 from uuid import UUID
 
 import django_tables2 as tables
-from api_app.models import CREATE, UPDATE, Change
+from api_app.models import Change
 from data_models.models import Campaign, Deployment, Instrument, Platform
 from django.urls import reverse
 from django_tables2 import A
@@ -23,7 +23,7 @@ class ConditionalValueColumn(tables.Column):
     def get_backup_value(self, **kwargs):
         """Update drafts won't always contain the metadata that
         is needed to be displayed in the table columns. Takes the value
-        originally in the row, and if the row is for an UPDATE draft,
+        originally in the row, and if the row is for an Change.Actions.UPDATE draft,
         and the value is missing will check the published item to see
         if a value exists.
 
@@ -38,7 +38,7 @@ class ConditionalValueColumn(tables.Column):
         if (
             not value
             and self.update_accessor
-            and getattr(record, "action", None) != CREATE
+            and getattr(record, "action", None) != Change.Actions.CREATE
         ):
             accessor = A(self.update_accessor)
             value = self._get_processed_value(accessor.resolve(record))
@@ -76,7 +76,7 @@ class DraftLinkColumn(ConditionalValueColumn):
         }
 
         # records from published item do not have action
-        if getattr(record, "action", None) == UPDATE:
+        if getattr(record, "action", None) == Change.Actions.UPDATE:
             view_name = self.update_viewname
         else:
             view_name = self.viewname

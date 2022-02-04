@@ -1,9 +1,3 @@
-from api_app.models import (
-    CREATED_CODE,
-    DELETE,
-    UPDATE,
-    Change,
-)
 from django.contrib.auth.decorators import login_required
 from django.contrib.contenttypes.models import ContentType
 from django.shortcuts import redirect, render
@@ -13,6 +7,8 @@ from django.views import View
 from django.views.generic import DetailView
 from django_filters.views import FilterView
 from django_tables2.views import SingleTableMixin
+
+from api_app.models import Change
 
 from .config import MODEL_CONFIG_MAP
 from .published_forms import GenericFormClass
@@ -122,8 +118,8 @@ def GenericEditView(model_name):
             content_type = ContentType.objects.get_for_model(model_to_query)
             change_object = Change.objects.create(
                 content_type=content_type,
-                status=CREATED_CODE,
-                action=UPDATE,
+                status=Change.Statuses.CREATED,
+                action=Change.Actions.UPDATE,
                 model_instance_uuid=kwargs.get("pk"),
                 update=diff_dict,
             )
@@ -151,8 +147,8 @@ def GenericDeleteView(model_name):
             content_type = ContentType.objects.get_for_model(model_to_query)
             change_object = Change.objects.create(
                 content_type=content_type,
-                status=CREATED_CODE,
-                action=DELETE,
+                status=Change.Statuses.CREATED,
+                action=Change.Actions.DELETE,
                 model_instance_uuid=kwargs.get("pk"),
                 update={},
             )
