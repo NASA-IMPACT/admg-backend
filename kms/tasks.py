@@ -11,15 +11,16 @@ logger = logging.getLogger(__name__)
 @shared_task
 def sync_gcmd(concept_scheme: str) -> str:
     """This function aims to sync the gcmd API with the gcmd database by doing the following:
-        # If item not in local db but in API, create "ADD" change record
-        # If item in local db but not in API, create "DELETE" change record
-        # If item in local db and in API and they are not the same, create "UPDATE" change record
+        # If item not in db but in API, create "ADD" change record
+        # If item in db and in API do not match, create "UPDATE" change record
+        # If item in db but not in API, create "DELETE" change record
     """
     model = gcmd.concept_to_model_map[concept_scheme]
     concepts = api.list_concepts(concept_scheme)
+    print(f"Concepts: {concepts}")
     uuids = set([concept.get("UUID") for concept in concepts])
     for concept in concepts:
-        if not gcmd.is_valid_record(concept, model):
+        if not gcmd.is_valid_concept(concept, model):
             continue
         concept = gcmd.convert_record(concept, model)
 

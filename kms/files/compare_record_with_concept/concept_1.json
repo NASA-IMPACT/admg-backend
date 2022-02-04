@@ -1,0 +1,9 @@
+{
+  "short_name": "LVIS",
+  "long_name": "Land, Vegetation, and Ice Sensor",
+  "instrument_category": "Earth Remote Sensing Instruments",
+  "instrument_class": "Active Remote Sensing",
+  "instrument_type": "Altimeters",
+  "instrument_subtype": "Lidar/Laser Altimeters",
+  "gcmd_uuid": "aa338429-35e6-4ee2-821f-0eac81802689"
+}

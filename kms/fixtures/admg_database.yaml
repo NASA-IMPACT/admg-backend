@@ -1,0 +1,63 @@
+###################################################
+# GcmdInstruments
+###################################################
+- model: data_models.gcmdinstrument
+  pk: ff6d19df-87c9-42a5-8704-399c65acf2ff
+  fields:
+    short_name: FGM
+    long_name: Fluxgate Magnetometer
+    gcmd_uuid: 16187619-9586-41e3-8faf-16981d5e6ef9
+# "old" row
+- model: data_models.gcmdinstrument
+  pk: eaa1cffc-81d8-4131-a1ba-418a8dfe07e7
+  fields:
+    short_name: in-1
+    long_name: instrument-1
+    gcmd_uuid: 8c868eeb-b935-4eab-9abf-e6f4dde70fdf
+- model: data_models.gcmdinstrument
+  pk: afecdb70-b61f-4aa3-9b11-f95ad4435020
+  fields:
+    short_name: in-2
+    long_name: instrument-2
+    gcmd_uuid: 03c9e37e-d162-43f2-824d-ad4dca88080e
+# "old" row
+- model: data_models.gcmdinstrument
+  pk: 05f36a80-e5b0-4014-96a0-ad6183011da5
+  fields:
+    short_name: instrument-3
+    long_name: in-3
+    gcmd_uuid: 566cc179-3ac3-496c-ab4f-6a9c44bf5dde
+
+###################################################
+# Changes
+###################################################
+- model: api_app.change
+  pk: ffff3537-a63b-458b-a431-8814e3d2c48d
+  fields:
+    content_type: 26
+    model_instance_uuid: 1581e268-112d-4d24-9f0d-a364f25dc24b
+    status: 6
+    update:
+      term: ECOSYSTEMS
+      topic: BIOSPHERE
+      category: EARTH SCIENCE
+      gcmd_uuid: a9f2e036-f04f-46cc-a4e8-dfba30d9034c
+      variable_1: ANTHROPOGENIC/HUMAN INFLUENCED ECOSYSTEMS
+      variable_2: URBAN LANDS
+      variable_3: ROADSIDE
+    previous: {}
+    action: Create
+
+- model: api_app.change
+  pk: 21968887-e8aa-4378-a683-bfaba93b5d19
+  fields:
+    content_type: 25
+    model_instance_uuid: fa690129-8ab1-40d2-8968-d207db93a47f
+    status: 0
+    update:
+      short_name: instr-change
+      long_name: instrument-change
+      instrument_category: committee
+      gcmd_uuid: 690b684a-0857-4264-b9b3-d6c60f07ae02
+    previous: {}
+    action: Create

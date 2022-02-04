@@ -1,4 +1,5 @@
 import logging
+import uuid
 
 from typing import Dict, Optional, Set, Union
 from api_app.models import Change, CREATE, UPDATE, DELETE, PATCH, IN_ADMIN_REVIEW_CODE 
@@ -64,7 +65,7 @@ def compare_record_with_concept(row, concept: dict) -> bool:
 def delete_old_records(uuids: Set[str], model: Models) -> None:
     for row in model.objects.all().iterator():
         if str(row.gcmd_uuid) not in uuids:
-            # If item in local db but not in API, create "DELETE" change record
+            # If item in db but not in API, create "DELETE" change record
             create_change({}, model, DELETE, row.uuid)
 
 
@@ -78,8 +79,7 @@ def check_change_records(concept: dict, action: Actions, model: Models, model_uu
     for row in rows:
         if row.update == concept:
             return row
-
-    return rows[0] if rows else None
+    return None
 
 
 def create_change(concept: dict, model: Models, action: Actions, model_uuid: Optional[str]) -> None:
@@ -101,12 +101,31 @@ def create_change(concept: dict, model: Models, action: Actions, model_uuid: Opt
         change_object.save()
 
 
-def is_valid_record(record: dict, model: Models) -> bool:
+def is_valid_value(*values: str) -> bool:
+    nonvalid_values = ["", "NOT APPLICABLE"]
+    for value in values:
+        if value is None or value.strip() in nonvalid_values:
+            return False
+    return True
+
+
+def is_valid_uuid(uuid_str: str, version: str = 4) -> bool:
+    if uuid_str is None:
+        return False
+    try:
+        return bool(uuid.UUID(uuid_str, version=version))
+    except ValueError:
+        return False
+
+
+def is_valid_concept(record: dict, model: Models) -> bool:
     if model == models.GcmdProject:
-        return not (record["Short_Name"] == "NOT APPLICABLE" or record["Bucket"] == "NOT APPLICABLE" or record["UUID"] == "")
+        return is_valid_value(record.get("Short_Name"),record.get("Bucket")) and is_valid_uuid(record.get("UUID"))
     elif model == models.GcmdInstrument:
-        return not (record["Category"] == "" or record["Class"] == "" or record["UUID"] == "")
+        return is_valid_value(record.get("Short_Name"),record.get("Class")) and is_valid_uuid(record.get("UUID"))
     elif model == models.GcmdPlatform:
-        return not (record["Short_Name"] == "NOT APPLICABLE" or record["UUID"] == "")
+        return is_valid_value(record.get("Short_Name")) and is_valid_uuid(record.get("UUID"))
     elif model == models.GcmdPhenomena:
-        return not (record["Category"] == "" or record["UUID"] == "")
+        return is_valid_value(record.get("Category")) and is_valid_uuid(record.get("UUID"))
+    else:
+        return False
