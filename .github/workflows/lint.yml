@@ -24,6 +24,4 @@ jobs:
         uses: wearerequired/lint-action@v1
         with:
           black: true
-          black_args: "--line-length 100 --skip-string-normalization"
           flake8: true
-          flake8_args: "--ignore E1,E2,E3,E5,W1,W2,W3,W5"
