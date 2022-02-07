@@ -27,7 +27,47 @@
     short_name: instrument-3
     long_name: in-3
     gcmd_uuid: 566cc179-3ac3-496c-ab4f-6a9c44bf5dde
-
+###################################################
+# GcmdPhenomena
+###################################################
+- model: data_models.gcmdphenomena
+  pk: 7dea46ac-96aa-4335-a05f-e1a83072ec4f
+  fields:
+    term: CALIBRATION/VALIDATION
+    category: EARTH SCIENCE SERVICES
+    topic: DATA ANALYSIS AND VISUALIZATION
+    variable_1: VALIDATION
+    gcmd_uuid: 16187619-9586-41e3-8faf-16981d5e6ef9
+# This Phenomena won't be in the API, should create DELETE record when testing sync_gcmd
+- model: data_models.gcmdphenomena
+  pk: 2c63d336-5192-42f9-acd9-d3539eade4c3
+  fields:
+    term: WEATHER EVENTS
+    category: EARTH SCIENCE
+    topic: ATMOSPHERE
+    variable_1: FREEZE/FROST
+    variable_2: FIRST FREEZE/FROST DATE
+    gcmd_uuid: 3f0682e6-9713-4b31-852f-33beceb677a7
+- model: data_models.gcmdphenomena
+  pk: 31d8bfd0-47db-4260-a0b1-bb632ac629bc
+  fields:
+    term: ANIMALS/INVERTEBRATES
+    category: EARTH SCIENCE
+    topic: BIOLOGICAL CLASSIFICATION
+    variable_1: MOLLUSKS
+    variable_2: CEPHALOPODS
+    variable_3: SQUIDS
+    gcmd_uuid: cb21ad9d-7a83-482a-833d-fc3d3079a391
+- model: data_models.gcmdphenomena
+  pk: aba9f39a-5455-4749-8b6b-9f33fba2f6b1
+  fields:
+    term: PRECIPITATION
+    category: EARTH SCIENCE
+    topic: ATMOSPHERE
+    variable_1: SOLID PRECIPITATION
+    variable_2: ICE PELLETS
+    variable_3: SLEET
+    gcmd_uuid: 5beaf99c-0675-4af3-9236-f55d8d206d85
 ###################################################
 # Changes
 ###################################################

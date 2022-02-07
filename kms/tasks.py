@@ -23,7 +23,6 @@ def sync_gcmd(concept_scheme: str) -> str:
         if not gcmd.is_valid_concept(concept, model):
             continue
         concept = gcmd.convert_record(concept, model)
-
         try:
             row = model.objects.get(gcmd_uuid=concept["gcmd_uuid"])
         except model.DoesNotExist:

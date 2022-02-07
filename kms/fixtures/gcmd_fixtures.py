@@ -54,7 +54,7 @@ def delete_old_records_uuids():
     }
 
 @pytest.fixture(params=["test1", "test2"])
-def check_change_records_inputs(request):
+def get_change_record_inputs(request):
     inputs = {
         "test1": {
             "concept": {
@@ -84,24 +84,73 @@ def check_change_records_inputs(request):
     return inputs[request.param]
 
 @pytest.fixture
-def check_concept(check_change_records_inputs):
-    return check_change_records_inputs["concept"]
+def get_change_concept(get_change_record_inputs):
+    return get_change_record_inputs["concept"]
 
 @pytest.fixture
-def check_action(check_change_records_inputs):
-    return check_change_records_inputs["action"]
+def get_change_model(get_change_record_inputs):
+    return get_change_record_inputs["model"]
 
 @pytest.fixture
-def check_model(check_change_records_inputs):
-    return check_change_records_inputs["model"]
+def get_change_action(get_change_record_inputs):
+    return get_change_record_inputs["action"]
 
 @pytest.fixture
-def check_model_uuid(check_change_records_inputs):
-    return check_change_records_inputs["model_uuid"]
+def get_change_model_uuid(get_change_record_inputs):
+    return get_change_record_inputs["model_uuid"]
 
 @pytest.fixture
-def check_exists(check_change_records_inputs):
-    return check_change_records_inputs["exists"]
+def get_change_exists(get_change_record_inputs):
+    return get_change_record_inputs["exists"]
+
+@pytest.fixture(params=["createTest1", "updateTest1", "deleteTest1"])
+def create_change_input(request):
+    inputs = {
+        "createTest1": {
+            "concept": {
+                "term": "CALIBRATION/VALIDATION",
+                "category": "EARTH SCIENCE SERVICES",
+                "topic": "DATA ANALYSIS AND VISUALIZATION",
+                "gcmd_uuid": "4f938731-d686-4d89-b72b-ff60474bb1f0"
+            },
+            "model": models.GcmdPhenomena,
+            "action": CREATE,
+            "model_uuid": None
+        },
+        "updateTest1": {
+            "concept": {
+                "term": "ANIMALS/INVERTEBRATES",
+                "category": "EARTH SCIENCE",
+                "topic": "BIOLOGICAL CLASSIFICATION",
+                "variable_1": "MOLLUSKS",
+                "variable_2": "CEPHALOPODS",
+                "variable_3": "OCTOPUS",
+                "gcmd_uuid": "cb21ad9d-7a83-482a-833d-fc3d3079a391"
+            },
+            "model": models.GcmdPhenomena,
+            "action": UPDATE,
+            "model_uuid": '31d8bfd0-47db-4260-a0b1-bb632ac629bc'
+        },
+        "deleteTest1": {
+            "concept": {
+                "gcmd_uuid": "8c868eeb-b935-4eab-9abf-e6f4dde70fdf"
+            },
+            "model": models.GcmdInstrument,
+            "action": DELETE,
+            "model_uuid": 'eaa1cffc-81d8-4131-a1ba-418a8dfe07e7'
+        },
+    }
+    return inputs[request.param]
+
+
+@pytest.fixture
+def is_valid_concept(is_valid_concept_input):
+    return is_valid_concept_input["concept"]
+
+@pytest.fixture
+def is_valid_model(is_valid_concept_input):
+    return is_valid_concept_input["model"]
+
 
 @pytest.fixture(params=["validProject1", "validProject2", "invalidProject1", "invalidProject2", "invalidProject3", "invalidProject4", "invalidProject5"])
 def is_valid_concept_input(request):
@@ -187,44 +236,48 @@ def is_valid_outcome(is_valid_concept_input):
     return is_valid_concept_input["outcome"]
 
 mock_concepts = [
-  {
-    "Basis": "Space Stations/Crewed Spacecraft",
-    "Category": "",
-    "Sub_Category": "",
-    "Short_Name": "MIR-PRIRODA",
-    "Long_Name": "PRIRODA Module of MIR Space Station",
-    "UUID": "207e6805-2bdf-4954-8178-c4cd63ce2269"
-  },
-  {
-    "Basis": "Space Stations/Crewed Spacecraft",
-    "Category": "",
-    "Sub_Category": "",
-    "Short_Name": "OSTA-1",
-    "Long_Name": "Office of Space & Terrestrial Applications-1",
-    "UUID": "e554b6aa-8d53-4fc5-a7d3-e43808d9e41b"
-  },
-  {
-    "Basis": "Space Stations/Crewed Spacecraft",
-    "Category": "",
-    "Sub_Category": "",
-    "Short_Name": "SKYLAB",
-    "Long_Name": "",
-    "UUID": "b0f992d7-3ff5-4470-849a-a540a9f8ce3e"
-  },
-  {
-    "Basis": "Space Stations/Crewed Spacecraft",
-    "Category": "",
-    "Sub_Category": "",
-    "Short_Name": "SOYUZ",
-    "Long_Name": "",
-    "UUID": "0a14ea80-5b3a-4d6f-a81b-38150a1fbe93"
-  },
-  {
-    "Basis": "Space Stations/Crewed Spacecraft",
-    "Category": "",
-    "Sub_Category": "",
-    "Short_Name": "",
-    "Long_Name": "",
-    "UUID": "388e72a1-b851-4b78-9e69-747e06ae215f"
-  }
+    # Term shouldn't match, CREATE change record should be created.
+    {
+        "Term": "CALIBRATION/VALIDATION",
+        "Category": "EARTH SCIENCE SERVICES",
+        "Topic": "DATA ANALYSIS AND VISUALIZATION",
+        "Variable_Level_1": "",
+        "Variable_Level_2": "",
+        "Variable_Level_3": "",
+        "Detailed_Variable": "",
+        "UUID": "4f938731-d686-4d89-b72b-ff60474bb1f0"
+    },
+    # Term that should match without any changes.
+    {
+        "Term": "CALIBRATION/VALIDATION",
+        "Category": "EARTH SCIENCE SERVICES",
+        "Topic": "DATA ANALYSIS AND VISUALIZATION",
+        "Variable_Level_1": "VALIDATION",
+        "Variable_Level_2": "",
+        "Variable_Level_3": "",
+        "Detailed_Variable": "",
+        "UUID": "16187619-9586-41e3-8faf-16981d5e6ef9"
+    },
+    # Term that exists in DB but info doesn't match, UPDATE change record should be created.
+    {
+        "Term": "ANIMALS/INVERTEBRATES",
+        "Category": "EARTH SCIENCE",
+        "Topic": "BIOLOGICAL CLASSIFICATION",
+        "Variable_Level_1": "MOLLUSKS",
+        "Variable_Level_2": "CEPHALOPODS",
+        "Variable_Level_3": "OCTOPUS",
+        "Detailed_Variable": "",
+        "UUID": "cb21ad9d-7a83-482a-833d-fc3d3079a391"
+    },
+    # Term that should match without any changes.
+    {
+        "Term": "PRECIPITATION",
+        "Category": "EARTH SCIENCE",
+        "Topic": "ATMOSPHERE",
+        "Variable_Level_1": "SOLID PRECIPITATION",
+        "Variable_Level_2": "ICE PELLETS",
+        "Variable_Level_3": "SLEET",
+        "Detailed_Variable": "",
+        "UUID": "5beaf99c-0675-4af3-9236-f55d8d206d85"
+    }
 ]

@@ -13,16 +13,16 @@ Models = Union[models.GcmdProject, models.GcmdInstrument, models.GcmdPlatform, m
 Actions = Union[CREATE, UPDATE, DELETE, PATCH]
 
 
-# concept_to_model_map = {
-#     "instruments": models.GcmdInstrument,
-#     "projects": models.GcmdProject,
-#     "platforms": models.GcmdPlatform,
-#     "sciencekeywords": models.GcmdPhenomena,
-# }
-# TODO: Take this out!
 concept_to_model_map = {
-    "platforms": models.GcmdPlatform
+    "instruments": models.GcmdInstrument,
+    "projects": models.GcmdProject,
+    "platforms": models.GcmdPlatform,
+    "sciencekeywords": models.GcmdPhenomena,
 }
+# TODO: Take this out!
+# concept_to_model_map = {
+#     "platforms": models.GcmdPlatform
+# }
 
 
 def get_content_type(model: Models) -> ContentType:
@@ -66,24 +66,22 @@ def delete_old_records(uuids: Set[str], model: Models) -> None:
     for row in model.objects.all().iterator():
         if str(row.gcmd_uuid) not in uuids:
             # If item in db but not in API, create "DELETE" change record
-            create_change({}, model, DELETE, row.uuid)
+            create_change({"gcmd_uuid": str(row.gcmd_uuid)}, model, DELETE, row.uuid)
 
 
-def check_change_records(concept: dict, action: Actions, model: Models, model_uuid: Optional[str]) -> Union[Change, None]:
+def get_change(concept: dict, model: Models, action: Actions, model_uuid: Optional[str]) -> Union[Change, None]:
     content_type = get_content_type(model)
-    if action in [CREATE]:
-        rows = Change.objects.filter(content_type=content_type, action=action, update__gcmd_uuid=concept["gcmd_uuid"], status__lte=IN_ADMIN_REVIEW_CODE)
-    else:
-        rows = Change.objects.filter(content_type=content_type, action=action, model_instance_uuid=model_uuid, status__lte=IN_ADMIN_REVIEW_CODE)
-
-    for row in rows:
-        if row.update == concept:
-            return row
-    return None
+    try:
+        if action in [CREATE]:
+            return Change.objects.get(content_type=content_type, action=action, update__gcmd_uuid=concept["gcmd_uuid"], status__lte=IN_ADMIN_REVIEW_CODE)
+        else:
+            return Change.objects.get(content_type=content_type, action=action, model_instance_uuid=model_uuid, status__lte=IN_ADMIN_REVIEW_CODE)
+    except Change.DoesNotExist:
+        return None
 
 
 def create_change(concept: dict, model: Models, action: Actions, model_uuid: Optional[str]) -> None:
-    change_object = check_change_records(concept, action, model, model_uuid)
+    change_object = get_change(concept, model, action, model_uuid)
     if change_object:
         if change_object.update != concept:
             change_object.update = concept
@@ -94,10 +92,10 @@ def create_change(concept: dict, model: Models, action: Actions, model_uuid: Opt
             logger.info(f"Row and change record didn't exist, creating new 'CREATE' change record '{change_object}'")
         elif action is UPDATE:
             change_object = Change(content_type=get_content_type(model),update=concept,model_instance_uuid=model_uuid,action=action)
-            logger.info(f"Row '{model_uuid}' found with mismatching contents and change record not found, creating new 'UPDATE' change record '{change_object}'")
+            logger.info(f"Row '{concept['gcmd_uuid']}' found with mismatching contents and change record not found, creating new 'UPDATE' change record '{change_object}'")
         elif action is DELETE:
             change_object = Change(content_type=get_content_type(model),update={},model_instance_uuid=model_uuid,action=action)
-            logger.info(f"Row '{model_uuid}' found that isn't in GCMD API, creating 'DELETE' change record '{change_object}'")
+            logger.info(f"Row '{concept['gcmd_uuid']}' found that isn't in GCMD API, creating 'DELETE' change record '{change_object}'")
         change_object.save()
 
 
