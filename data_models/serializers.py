@@ -1,8 +1,6 @@
 import json
 from uuid import uuid4
 
-from django.apps import apps
-from django.contrib.contenttypes.models import ContentType
 from django.contrib.gis.geos import GEOSGeometry
 from rest_framework import serializers
 
@@ -77,7 +75,19 @@ class GetDoiSerializer(BaseSerializer):
         return get_uuids(obj.dois)
 
 
+class TextImageField(serializers.ImageField):
+    def to_internal_value(self, data):
+        """ 
+        Allow a user to provide a string referencing an image rather than the
+        actual image file. Useful for when publishing a Change Record for a model
+        with an image field (ie allows serializer to pass validation).
+        """
+        return data
+
+
 class ImageSerializer(BaseSerializer):
+    image = TextImageField()
+
     class Meta:
         model = models.Image
         fields = "__all__"
@@ -318,11 +328,6 @@ class GcmdPhenomenaSerializer(BaseSerializer):
 
 
 class WebsiteSerializer(BaseSerializer):
-    campaigns = serializers.SerializerMethodField(read_only=True)
-
-    def get_campaigns(self, obj):
-        return get_uuids(obj.campaigns)
-
     class Meta:
         model = models.Website
         fields = "__all__"
@@ -428,19 +433,9 @@ class InstrumentSerializer(GetAliasSerializer, GetDoiSerializer):
         }
 
 
-class CampaignWebsiteSerializer(BaseSerializer):
-    """
-    Serializer specifically for the linking table.
-    Can also be used to write data to the linking table directly.
-    """
-
-    class Meta:
-        model = models.CampaignWebsite
-        fields = "__all__"
-
-
 class CampaignSerializer(GetAliasSerializer, GetDoiSerializer):
     deployments = serializers.SerializerMethodField(read_only=True)
+    websites = serializers.SerializerMethodField(read_only=True)
     significant_events = serializers.ListField(read_only=True)
     iops = serializers.ListField(read_only=True)
     number_ventures = serializers.IntegerField(read_only=True)
@@ -452,6 +447,9 @@ class CampaignSerializer(GetAliasSerializer, GetDoiSerializer):
 
     def get_deployments(self, obj):
         return get_uuids(obj.deployments)
+
+    def get_websites(self, obj):
+        return get_uuids(obj.websites)
 
     def create(self, validated_data):
         validated_data = change_bbox_to_polygon(validated_data)

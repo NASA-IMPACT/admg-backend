@@ -79,7 +79,6 @@ auto_url_keys = [
     "CollectionPeriod",
     "Website",
     "WebsiteType",
-    # "CampaignWebsite",
 ]
 
 draft_list_urls = [

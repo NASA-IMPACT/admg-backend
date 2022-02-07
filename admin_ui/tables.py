@@ -2,7 +2,7 @@ from uuid import UUID
 
 import django_tables2 as tables
 from api_app.models import CREATE, UPDATE, Change
-from data_models.models import Campaign, Deployment, Instrument, Platform, Website
+from data_models.models import Campaign, Deployment, Instrument, Platform
 from django.urls import reverse
 from django_tables2 import A
 
@@ -652,13 +652,6 @@ class WebsiteChangeListTable(DraftTableBase):
             "url",
             "website_type",
         ) + DraftTableBase.final_fields
-        fields = list(all_fields)
-        sequence = all_fields
-
-
-class CampaignWebsiteChangeListTable(DraftTableBase):
-    class Meta(DraftTableBase.Meta):
-        all_fields = DraftTableBase.final_fields
         fields = list(all_fields)
         sequence = all_fields
 

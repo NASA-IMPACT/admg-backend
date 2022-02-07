@@ -60,30 +60,33 @@ CUSTOM_MODEL_VALUES = {
         "admin_required_to_view": False,
         "draft_filter": filters.DeploymentFilter,
         "published_filter": published_filters.DeploymentFilter,
+        "change_view_readonly_fields": ["campaign"],
     },
     "IOP": {
         "admin_required_to_view": False,
         "filter_generator": filters.second_level_campaign_filter,
         "published_filter_generator": published_filters.second_level_campaign_filter,
+        "change_view_readonly_fields": ["deployment"],
     },
     "SignificantEvent": {
         "admin_required_to_view": False,
         "filter_generator": filters.second_level_campaign_filter,
         "published_filter_generator": published_filters.second_level_campaign_filter,
+        "change_view_readonly_fields": ["deployment"],
     },
     "CollectionPeriod": {
         "display_name": "C-D-P-I",
         "admin_required_to_view": False,
         "draft_filter": filters.CollectionPeriodFilter,
         "published_filter": published_filters.CollectionPeriodFilter,
+        "change_view_readonly_fields": ["deployment"],
     },
     "Website": {
         "admin_required_to_view": False,
+        "draft_filter": filters.WebsiteFilter,
+        "published_filter": published_filters.WebsiteFilter,
     },
     "WebsiteType": {},
-    "CampaignWebsite": {
-        "display_name": "Campaign Website Linkage",
-    },
 }
 
 # defaults are assigned to each model in this comprehension, and then overwritten by the above dictionary

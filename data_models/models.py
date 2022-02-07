@@ -26,7 +26,7 @@ def select_related_distinct_data(queryset, related_data_string):
 
 
 def create_gcmd_str(categories):
-    """Inputs a list of GCMD category strings and combines them with > if they exist. 
+    """Inputs a list of GCMD category strings and combines them with > if they exist.
     This is used in some GCMD models to make a better __str__ representation that shows
     the entire GCMD path.
 
@@ -37,7 +37,8 @@ def create_gcmd_str(categories):
         str: __str__ representation. ie: 'first > second > third'
     """
 
-    return ' > '.join(category for category in categories if category)
+    return " > ".join(category for category in categories if category)
+
 
 class BaseModel(models.Model):
     uuid = models.UUIDField(
@@ -284,12 +285,13 @@ class GcmdInstrument(BaseModel):
             self.instrument_type,
             self.instrument_subtype,
             self.long_name,
-            self.short_name
+            self.short_name,
         )
         return create_gcmd_str(categories)
-    
+
     class Meta:
         ordering = ("short_name",)
+
 
 class GcmdPlatform(BaseModel):
     short_name = models.CharField(max_length=256, blank=True, default="")
@@ -300,11 +302,7 @@ class GcmdPlatform(BaseModel):
     gcmd_uuid = models.UUIDField(unique=True)
 
     def __str__(self):
-        categories = (
-            self.category,
-            self.long_name,
-            self.short_name
-        )
+        categories = (self.category, self.long_name, self.short_name)
         return create_gcmd_str(categories)
 
     class Meta:
@@ -327,17 +325,19 @@ class GcmdPhenomena(BaseModel):
             self.term,
             self.variable_1,
             self.variable_2,
-            self.variable_3
+            self.variable_3,
         )
         return create_gcmd_str(categories)
-    
+
 
 class Website(BaseModel):
+    campaign = models.ForeignKey("Campaign", related_name="websites", on_delete=models.CASCADE)
     website_type = models.ForeignKey(
         WebsiteType, on_delete=models.CASCADE, related_name="websites"
     )
+    order_priority = models.PositiveIntegerField(null=True, blank=True)
 
-    url = models.URLField(unique=True, max_length=1024)
+    url = models.URLField(max_length=1024)
     title = models.TextField(default="", blank=True)
     description = models.TextField(default="", blank=True)
     notes_internal = models.TextField(
@@ -345,7 +345,6 @@ class Website(BaseModel):
         blank=True,
         help_text="Free text notes for ADMG staff - not visible to public.",
     )
-
     def __str__(self):
         return self.title
 
@@ -517,13 +516,6 @@ class Campaign(DataModel):
     )
 
     logo = models.ForeignKey(Image, on_delete=models.SET_NULL, null=True, blank=True)
-    websites = models.ManyToManyField(
-        Website,
-        related_name="campaigns",
-        through="CampaignWebsite",
-        default="",
-        blank=True,
-    )
 
     @property
     def website_details(self):
@@ -1047,24 +1039,3 @@ class DOI(BaseModel):
 
     class Meta:
         verbose_name = "DOI"
-
-
-##################
-# Linking Tables #
-##################
-
-
-class CampaignWebsite(BaseModel):
-    campaign = models.ForeignKey(
-        "Campaign", on_delete=models.CASCADE, related_name="campaign_websites"
-    )
-    website = models.ForeignKey(
-        "Website", on_delete=models.CASCADE, related_name="campaign_websites"
-    )
-    order_priority = models.PositiveIntegerField()
-
-    def __str__(self):
-        return f"{self.campaign} has {self.website}"
-
-    class Meta:
-        unique_together = [("campaign", "website"), ("campaign", "order_priority")]

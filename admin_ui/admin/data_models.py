@@ -2,11 +2,9 @@ from django.contrib import admin
 
 from data_models import models
 
+LIMITED_INFO_LIST_FIELDS = ("short_name", "long_name")
 
-class CampaignWebsiteInline(admin.TabularInline):
-    model = models.Campaign.websites.through
-    fields = ["website", "order_priority"]
-    ordering = ("order_priority",)
+CHANGABLE_INLINES = (InProgressInline, InReviewInline, InAdminReviewInline)
 
 
 @admin.register(models.Alias)
@@ -22,6 +20,20 @@ class CampaignWebsiteInline(admin.TabularInline):
 class BasicAdmin(admin.ModelAdmin):
     ...
 
+
+@admin.register(models.CollectionPeriod)
+class CollectionPeriodAdmin(BasicAdmin):
+    inlines = [CollectionPeriodDoiInline]
+
+
+@admin.register(models.DOI)
+class DoiAdmin(BasicAdmin):
+    inlines = [
+        DoiCampaignInline,
+        DoiInstrumentInline,
+        DoiPlatformInline,
+        DoiCollectionPeriodInline,
+    ]
 
 @admin.register(models.Deployment)
 @admin.register(models.FocusArea)
@@ -54,6 +66,21 @@ class CampaignAdmin(BasicAdmin):
         "partner_orgs",
         "geophysical_concepts",
     )
+    inlines = (CampaignDoiInline,) + CHANGABLE_INLINES
+
+
+@admin.register(models.Deployment)
+@admin.register(models.PartnerOrg)
+class LimitedInfoChangable(BasicAdmin):
+    inlines = CHANGABLE_INLINES
+    list_display = LIMITED_INFO_LIST_FIELDS
+
+
+@admin.register(models.Instrument)
+class InstrumentAdmin(BasicAdmin):
+    actions = [fetch_dois]
+    inlines = CHANGABLE_INLINES + (InstrumentDoiInline,)
+    list_display = LIMITED_INFO_LIST_FIELDS
 
 
 @admin.register(models.Platform)
@@ -65,8 +92,3 @@ class PlatformAdmin(BasicAdmin):
 @admin.register(models.SignificantEvent)
 class ShortNameChangable(BasicAdmin):
     list_display = ("short_name",)
-
-
-@admin.register(models.CampaignWebsite)
-class CampaignWebsiteAdmin(BasicAdmin):
-    list_display = ["__str__", "campaign", "order_priority"]

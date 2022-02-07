@@ -1,12 +1,10 @@
 import django_tables2 as tables
-from api_app.models import CREATE, UPDATE
 from api_app.urls import camel_to_snake
 from data_models.models import (
     DOI,
     IOP,
     Alias,
     Campaign,
-    CampaignWebsite,
     CollectionPeriod,
     Deployment,
     FocusArea,
@@ -120,7 +118,6 @@ class CollectionPeriodPublishedTable(tables.Table):
         model=Deployment,
         verbose_name="Deployment",
         accessor="deployment",
-        update_viewname="change-diff",
     )
 
     platform = ShortNamefromUUIDColumn(
@@ -511,20 +508,6 @@ class WebsitePublishedTable(LimitedTableBase):
         )
         sequence = fields
         model_name = Website
-
-
-class CampaignWebsitePublishedTable(LimitedTableBase):
-    short_name = DraftLinkColumn(
-        viewname=f"{camel_to_snake('CampaignWebsite')}-detail-published",
-        url_kwargs={"pk": "uuid"},
-        verbose_name="Short Name",
-        accessor="short_name",
-    )
-
-    class Meta(LimitedTableBase.Meta):
-        fields = LimitedTableBase.initial_fields
-        sequence = fields
-        model = CampaignWebsite
 
 
 class AliasPublishedTable(LimitedTableBase):

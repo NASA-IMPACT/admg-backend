@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+## 0.2.2 - 2022.01.31
+
+### Changed
+
+- `/api/campaign_website` has been removed, as the data model has been simplified. Information about websites is now obtained exclusively from `/api/website`
+- `/api/campaign`
+  - `websites` is now an available field which provides a list of website uuids
+
 
 ## 0.2.1 - 2021.08.31
 

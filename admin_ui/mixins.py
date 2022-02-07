@@ -6,11 +6,12 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.gis.db.models.fields import PolygonField
 from django.db import models as model_fields
 from django.forms import modelform_factory, FileField, HiddenInput
+from django.http.response import Http404
 from django.shortcuts import render
 from django.views.generic.edit import ModelFormMixin
 
 from data_models import models
-from . import fields, widgets
+from . import fields, widgets, config
 
 
 def formfield_callback(f, **kwargs):
@@ -43,9 +44,9 @@ def formfield_callback(f, **kwargs):
     elif isinstance(f, PolygonField):
         kwargs.update({"form_class": fields.BboxField})
     elif isinstance(f, model_fields.DateTimeField):
-        # DateTimeField is a subclass of DateTime, we don't want to use 
+        # DateTimeField is a subclass of DateTime, we don't want to use
         # CustomDateField widget
-        pass  
+        pass
     elif isinstance(f, model_fields.DateField):
         kwargs.update({"form_class": fields.CustomDateField})
     elif isinstance(f, model_fields.BooleanField):
@@ -64,7 +65,7 @@ class ChangeModelFormMixin(ModelFormMixin):
 
     @property
     def destination_model_form(self):
-        """ Helper to return a form for the destination of the Draft object """
+        """Helper to return a form for the destination of the Draft object"""
         model_type = self.get_model_type()
         modelform = modelform_factory(
             model_type,
@@ -81,11 +82,15 @@ class ChangeModelFormMixin(ModelFormMixin):
         # However, we prioritize the self.get_model_form_content_type() function first
         try:
             model_type = self.get_model_form_content_type().model_class()
+            if not model_type:
+                raise Http404(
+                    f"Unsupported model type: {self.get_model_form_content_type()}"
+                )
         except NotImplementedError:
             if not self.model:
                 raise NotImplementedError("Subclass must implement this property")
             model_type = self.model
-        
+
         return model_type
 
     def get_model_form_content_type(self) -> ContentType:
@@ -101,6 +106,11 @@ class ChangeModelFormMixin(ModelFormMixin):
                 initial=self.get_model_form_intial(),
                 prefix=self.destination_model_prefix,
             )
+
+        model_name = kwargs["model_form"]._meta.model.__name__
+        model_config = config.MODEL_CONFIG_MAP.get(model_name, {})
+        for field in model_config.get("change_view_readonly_fields", []):
+            kwargs["model_form"].fields[field].disabled = True
         return super().get_context_data(**kwargs)
 
     @staticmethod
@@ -172,7 +182,7 @@ class ChangeModelFormMixin(ModelFormMixin):
                     continue
                 model_field.save(model_field.url, model_form.cleaned_data[name])
                 update[name] = model_field.name
-            
+
             else:
                 # Populate Change's form with values from destination model's form.
                 # We're not saving the cleaned_data because we want the raw text, not
@@ -201,7 +211,29 @@ class ChangeModelFormMixin(ModelFormMixin):
         if not form.is_valid() or (validate_model_form and not model_form.is_valid()):
             return self.form_invalid(form=form, model_form=model_form)
 
-        form.instance.update = self.get_update_values(model_form)
+        model_config = config.MODEL_CONFIG_MAP.get(self.get_model_type().__name__, {})
+        readonly_fields = model_config.get("change_view_readonly_fields", [])
+
+        if form.instance._state.adding:
+            # If we're create a new Change instance, we want to populate any fields that
+            # are specified in the GET params. This is useful when we autopopulate a field
+            # but that field is marked "disabled" (eg creating a Deployment draft with the
+            # campaign field populated), this way we can retrieve the intended value of the
+            # field even though its prepopulated field's values are not submitted with the
+            # form.
+            form.instance.update.update(
+                {k: v for k, v in request.GET.items() if k in model_form.fields}
+            )
+
+        form.instance.update.update(
+            {
+                # Only update fields that can be altered by the form. Otherwise, retain
+                # original values from form.instance.update
+                k: v
+                for k, v in self.get_update_values(model_form).items()
+                if k not in readonly_fields
+            }
+        )
         return self.form_valid(form, model_form)
 
     def form_valid(self, form, model_form):
@@ -232,7 +264,7 @@ class ChangeModelFormMixin(ModelFormMixin):
         # Overriden to support handling both invalid Change form and an invalid
         # destination model form
         if not form.is_valid():
-            messages.error(self.request, "Unable to save.")
+            messages.error(self.request, f"Unable to save: {form.errors}")
         return self.render_to_response(
             self.get_context_data(form=form, model_form=model_form)
         )

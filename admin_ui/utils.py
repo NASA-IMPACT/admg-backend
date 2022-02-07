@@ -21,3 +21,9 @@ def compare_values(old_item, new_item):
         new_item = " ".join(str(new_item).strip().split())
 
     return old_item == new_item
+
+
+def disable_form_fields(form):
+    for fieldname in form.fields:
+        form.fields[fieldname].disabled = True
+    return form
