@@ -2,8 +2,7 @@ import logging
 from celery import shared_task
 
 from . import api, gcmd
-from api_app.models import Change, CREATE, UPDATE, DELETE, PATCH, IN_ADMIN_REVIEW_CODE 
-from data_models import models
+from api_app.models import CREATE, UPDATE
 
 logger = logging.getLogger(__name__)
 
@@ -17,12 +16,11 @@ def sync_gcmd(concept_scheme: str) -> str:
     """
     model = gcmd.concept_to_model_map[concept_scheme]
     concepts = api.list_concepts(concept_scheme)
-    print(f"Concepts: {concepts}")
     uuids = set([concept.get("UUID") for concept in concepts])
     for concept in concepts:
         if not gcmd.is_valid_concept(concept, model):
             continue
-        concept = gcmd.convert_record(concept, model)
+        concept = gcmd.convert_concept(concept, model)
         try:
             row = model.objects.get(gcmd_uuid=concept["gcmd_uuid"])
         except model.DoesNotExist:

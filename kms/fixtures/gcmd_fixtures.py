@@ -1,18 +1,13 @@
 import json
 import pickle
 import pytest
+import uuid
 
 from data_models import models
 from api_app.models import Change, CREATE, UPDATE, DELETE
 
-def open_json_file(filepath):
-    return json.load(open(filepath, 'r'))
-
-def open_pickle_file(filepath):
-    return pickle.load(open(filepath, 'rb'))
-
 @pytest.fixture
-def convert_record_input():
+def convert_concept_input():
     return {
         "Bucket": "A-C",
         "Short_Name": "Test123",
@@ -21,7 +16,7 @@ def convert_record_input():
     }
 
 @pytest.fixture
-def convert_record_result():
+def convert_concept_result():
     return {
         "bucket": "A-C",
         "short_name": "Test123",
@@ -103,54 +98,79 @@ def get_change_model_uuid(get_change_record_inputs):
 def get_change_exists(get_change_record_inputs):
     return get_change_record_inputs["exists"]
 
-@pytest.fixture(params=["createTest1", "updateTest1", "deleteTest1"])
-def create_change_input(request):
-    inputs = {
+@pytest.fixture(params=["createTest1", "updateTest1", "updateTest2", "deleteTest1"])
+def create_change_data(request):
+    data = {
         "createTest1": {
-            "concept": {
-                "term": "CALIBRATION/VALIDATION",
-                "category": "EARTH SCIENCE SERVICES",
-                "topic": "DATA ANALYSIS AND VISUALIZATION",
-                "gcmd_uuid": "4f938731-d686-4d89-b72b-ff60474bb1f0"
+            "input": {
+                "concept": {
+                    "term": "CALIBRATION/VALIDATION",
+                    "category": "EARTH SCIENCE SERVICES",
+                    "topic": "DATA ANALYSIS AND VISUALIZATION",
+                    "gcmd_uuid": "4f938731-d686-4d89-b72b-ff60474bb1f0"
+                },
+                "model": models.GcmdPhenomena,
+                "action": CREATE,
+                "model_uuid": None
             },
-            "model": models.GcmdPhenomena,
-            "action": CREATE,
-            "model_uuid": None
+            "new_row": True
         },
         "updateTest1": {
-            "concept": {
-                "term": "ANIMALS/INVERTEBRATES",
-                "category": "EARTH SCIENCE",
-                "topic": "BIOLOGICAL CLASSIFICATION",
-                "variable_1": "MOLLUSKS",
-                "variable_2": "CEPHALOPODS",
-                "variable_3": "OCTOPUS",
-                "gcmd_uuid": "cb21ad9d-7a83-482a-833d-fc3d3079a391"
+            "input": {
+                "concept": {
+                    "term": "ANIMALS/INVERTEBRATES",
+                    "category": "EARTH SCIENCE",
+                    "topic": "BIOLOGICAL CLASSIFICATION",
+                    "variable_1": "MOLLUSKS",
+                    "variable_2": "CEPHALOPODS",
+                    "variable_3": "OCTOPUS",
+                    "gcmd_uuid": "cb21ad9d-7a83-482a-833d-fc3d3079a391"
+                },
+                "model": models.GcmdPhenomena,
+                "action": UPDATE,
+                "model_uuid": "31d8bfd0-47db-4260-a0b1-bb632ac629bc"
             },
-            "model": models.GcmdPhenomena,
-            "action": UPDATE,
-            "model_uuid": '31d8bfd0-47db-4260-a0b1-bb632ac629bc'
+            "new_row": True
+        },
+        # This test will reuse a change record that is already in the database.
+        "updateTest2": {
+            "input": {
+                "concept": {
+                    "short_name": "HALO",
+                    "long_name": "High Altitude Lidar Observatory",
+                    "instrument_category": "Earth Remote Sensing Instruments",
+                    "instrument_class": "Active Remote Sensing",
+                    "instrument_type": "Altimeters",
+                    "instrument_subtype": "Lidar/Laser Altimeters",
+                    "gcmd_uuid": "16187619-9586-41e3-8faf-16981d5e6ef9"
+                },
+                "model": models.GcmdInstrument,
+                "action": UPDATE,
+                "model_uuid": "ff6d19df-87c9-42a5-8704-399c65acf2ff"
+            },
+            "new_row": False
         },
         "deleteTest1": {
-            "concept": {
-                "gcmd_uuid": "8c868eeb-b935-4eab-9abf-e6f4dde70fdf"
+            "input": {
+                "concept": {
+                    "gcmd_uuid": "8c868eeb-b935-4eab-9abf-e6f4dde70fdf"
+                },
+                "model": models.GcmdInstrument,
+                "action": DELETE,
+                "model_uuid": "eaa1cffc-81d8-4131-a1ba-418a8dfe07e7"
             },
-            "model": models.GcmdInstrument,
-            "action": DELETE,
-            "model_uuid": 'eaa1cffc-81d8-4131-a1ba-418a8dfe07e7'
-        },
+            "new_row": True
+        }
     }
-    return inputs[request.param]
-
-
-@pytest.fixture
-def is_valid_concept(is_valid_concept_input):
-    return is_valid_concept_input["concept"]
+    return data[request.param]
 
 @pytest.fixture
-def is_valid_model(is_valid_concept_input):
-    return is_valid_concept_input["model"]
+def create_change_input(create_change_data):
+    return create_change_data["input"]
 
+@pytest.fixture
+def create_change_new_row(create_change_data):
+    return create_change_data["new_row"]
 
 @pytest.fixture(params=["validProject1", "validProject2", "invalidProject1", "invalidProject2", "invalidProject3", "invalidProject4", "invalidProject5"])
 def is_valid_concept_input(request):
@@ -163,7 +183,7 @@ def is_valid_concept_input(request):
                 "UUID": "80b0db10-fe44-4d15-b66c-374476e8c93b"
             },
             "model": models.GcmdProject,
-            "outcome": True
+            "result": True
         },
         "validProject2": {
             "concept": {
@@ -173,12 +193,12 @@ def is_valid_concept_input(request):
                 "UUID": "32ccf67d-e2e1-4fe9-b17d-08bfd6bf1ba3"
             },
             "model": models.GcmdProject,
-            "outcome": True
+            "result": True
         },
         "invalidProject1": {
             "concept": {},
             "model": models.GcmdProject,
-            "outcome": False
+            "result": False
         },
         "invalidProject2": {
             "concept": {
@@ -188,7 +208,7 @@ def is_valid_concept_input(request):
                 "UUID": "58c2f733-c316-4991-ae9d-d936a75ce365"
             },
             "model": models.GcmdProject,
-            "outcome": False
+            "result": False
         },
         "invalidProject3": {
             "concept": {
@@ -198,7 +218,7 @@ def is_valid_concept_input(request):
                 "UUID": "58c2f733-c316-4991-ae9d-d936a75ce365"
             },
             "model": models.GcmdProject,
-            "outcome": False
+            "result": False
         },
         "invalidProject4": {
             "concept": {
@@ -208,7 +228,7 @@ def is_valid_concept_input(request):
                 "UUID": "58c2f733-c316-4991-ae9d-d936a75ce365"
             },
             "model": models.GcmdProject,
-            "outcome": False
+            "result": False
         },
         "invalidProject5": {
             "concept": {
@@ -218,7 +238,7 @@ def is_valid_concept_input(request):
                 "UUID": "58c2f733-c316-4991-"
             },
             "model": models.GcmdProject,
-            "outcome": False
+            "result": False
         }
     }
     return inputs[request.param]
@@ -232,10 +252,43 @@ def is_valid_model(is_valid_concept_input):
     return is_valid_concept_input["model"]
 
 @pytest.fixture
-def is_valid_outcome(is_valid_concept_input):
-    return is_valid_concept_input["outcome"]
+def is_valid_result(is_valid_concept_input):
+    return is_valid_concept_input["result"]
 
-mock_concepts = [
+@pytest.fixture
+def sync_gcmd_create_args():
+    return [
+        {
+            "action": CREATE,
+            "model": models.GcmdPhenomena,
+            "uuid": None
+        },
+        {
+            "action": UPDATE,
+            "model": models.GcmdPhenomena,
+            "uuid": uuid.UUID("7dea46ac-96aa-4335-a05f-e1a83072ec4f", version=4)
+        },
+        {
+            "action": UPDATE,
+            "model": models.GcmdPhenomena,
+            "uuid": uuid.UUID("31d8bfd0-47db-4260-a0b1-bb632ac629bc", version=4)
+        },
+        None
+    ]
+
+@pytest.fixture
+def sync_gcmd_delete_args():
+    return (
+        {
+            "4f938731-d686-4d89-b72b-ff60474bb1f0",
+            "16187619-9586-41e3-8faf-16981d5e6ef9",
+            "cb21ad9d-7a83-482a-833d-fc3d3079a391",
+            "4fb2bd9c-98ed-475d-9d9f-dfdc926e516e"
+        },
+        models.GcmdPhenomena
+    )
+
+mock_concepts_changes = [
     # Term shouldn't match, CREATE change record should be created.
     {
         "Term": "CALIBRATION/VALIDATION",
@@ -247,10 +300,10 @@ mock_concepts = [
         "Detailed_Variable": "",
         "UUID": "4f938731-d686-4d89-b72b-ff60474bb1f0"
     },
-    # Term that should match without any changes.
+    # Term that exists in DB but info doesn't match, UPDATE change record should be created.
     {
         "Term": "CALIBRATION/VALIDATION",
-        "Category": "EARTH SCIENCE SERVICES",
+        "Category": "EARTH SCIENCE",
         "Topic": "DATA ANALYSIS AND VISUALIZATION",
         "Variable_Level_1": "VALIDATION",
         "Variable_Level_2": "",
@@ -269,7 +322,7 @@ mock_concepts = [
         "Detailed_Variable": "",
         "UUID": "cb21ad9d-7a83-482a-833d-fc3d3079a391"
     },
-    # Term that should match without any changes.
+    # Row should already exist with no changes.
     {
         "Term": "PRECIPITATION",
         "Category": "EARTH SCIENCE",
@@ -278,6 +331,6 @@ mock_concepts = [
         "Variable_Level_2": "ICE PELLETS",
         "Variable_Level_3": "SLEET",
         "Detailed_Variable": "",
-        "UUID": "5beaf99c-0675-4af3-9236-f55d8d206d85"
+        "UUID": "4fb2bd9c-98ed-475d-9d9f-dfdc926e516e"
     }
 ]

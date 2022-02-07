@@ -19,21 +19,18 @@ concept_to_model_map = {
     "platforms": models.GcmdPlatform,
     "sciencekeywords": models.GcmdPhenomena,
 }
-# TODO: Take this out!
-# concept_to_model_map = {
-#     "platforms": models.GcmdPlatform
-# }
 
 
 def get_content_type(model: Models) -> ContentType:
     return ContentType.objects.get(app_label="data_models", model=model.__name__.lower())
 
 
-def convert_record(record: dict, model: Models) -> dict:
+def convert_concept(record: dict, model: Models) -> dict:
     """Convert GCMD API record to match the format from the output of model_to_dict for each type of model."""
     record["gcmd_uuid"] = record.pop("UUID")
     if model == models.GcmdProject:
-        pass # GcmdProject doesn't have any attributes we need to convert
+        # GcmdProject doesn't have any attributes we need to convert
+        pass
     elif model == models.GcmdInstrument:
         record["instrument_category"] = record.pop("Category")
         record["instrument_class"] = record.pop("Class")
@@ -72,7 +69,7 @@ def delete_old_records(uuids: Set[str], model: Models) -> None:
 def get_change(concept: dict, model: Models, action: Actions, model_uuid: Optional[str]) -> Union[Change, None]:
     content_type = get_content_type(model)
     try:
-        if action in [CREATE]:
+        if action in [CREATE] or model_uuid is None:
             return Change.objects.get(content_type=content_type, action=action, update__gcmd_uuid=concept["gcmd_uuid"], status__lte=IN_ADMIN_REVIEW_CODE)
         else:
             return Change.objects.get(content_type=content_type, action=action, model_instance_uuid=model_uuid, status__lte=IN_ADMIN_REVIEW_CODE)
@@ -83,6 +80,7 @@ def get_change(concept: dict, model: Models, action: Actions, model_uuid: Option
 def create_change(concept: dict, model: Models, action: Actions, model_uuid: Optional[str]) -> None:
     change_object = get_change(concept, model, action, model_uuid)
     if change_object:
+        # If a change object already exists, just update the current one.
         if change_object.update != concept:
             change_object.update = concept
             change_object.save()

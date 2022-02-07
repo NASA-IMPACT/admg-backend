@@ -6,6 +6,10 @@
   fields:
     short_name: FGM
     long_name: Fluxgate Magnetometer
+    instrument_category: Earth Remote Sensing Instruments
+    instrument_class: Active Remote Sensing
+    instrument_type: Altimeters
+    instrument_subtype: Lidar/Laser Altimeters
     gcmd_uuid: 16187619-9586-41e3-8faf-16981d5e6ef9
 # "old" row
 - model: data_models.gcmdinstrument
@@ -115,3 +119,20 @@
       gcmd_uuid: 7e74257a-f59f-4591-8530-93bbaf39c7cd
     previous: {}
     action: Create
+
+- model: api_app.change
+  pk: 2d334026-2a38-4c81-8235-141fbab725f5
+  fields:
+    content_type: 25
+    model_instance_uuid: ff6d19df-87c9-42a5-8704-399c65acf2ff
+    status: 0
+    update:
+      short_name: FGM-change
+      long_name: Fluxgate Magnetometer-change
+      instrument_category: Earth Remote Sensing Instruments
+      instrument_class: Active Remote Sensing
+      instrument_type: Altimeters
+      instrument_subtype: Lidar/Laser Altimeters
+      gcmd_uuid: 16187619-9586-41e3-8faf-16981d5e6ef9
+    previous: {}
+    action: Update
