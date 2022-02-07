@@ -1,6 +1,4 @@
-from django.utils.translation import gettext as _
 from django.contrib.contenttypes.admin import GenericTabularInline
-from django.contrib.admin import ModelAdmin
 
 from api_app.models import Change, IN_PROGRESS_CODE, IN_REVIEW_CODE, IN_ADMIN_REVIEW_CODE
 

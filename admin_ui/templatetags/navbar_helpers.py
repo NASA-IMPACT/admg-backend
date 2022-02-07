@@ -4,8 +4,14 @@ from django.template.loader import get_template
 
 
 register = template.Library()
-build_draft_view = lambda view: f"{view}-list-draft"
-build_published_view = lambda view: f"{view}-list-published"
+
+
+def build_draft_view(view):
+    return f"{view}-list-draft"
+
+
+def build_published_view(view):
+    return f"{view}-list-published"
 
 
 def is_quoted(text: str):

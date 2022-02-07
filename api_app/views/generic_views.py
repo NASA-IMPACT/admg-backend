@@ -1,6 +1,6 @@
 from django.apps import apps
 
-from rest_framework import permissions, filters
+from rest_framework import permissions
 from rest_framework.generics import RetrieveUpdateDestroyAPIView, ListCreateAPIView, GenericAPIView
 
 from oauth2_provider.contrib.rest_framework import TokenHasScope

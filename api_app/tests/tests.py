@@ -1,6 +1,5 @@
 # to run this test file, use 'pytest -k api_app'
 
-from typing import Dict
 import json
 
 import pytest

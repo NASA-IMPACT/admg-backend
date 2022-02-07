@@ -17,7 +17,6 @@ from api_app.models import (
 )
 from admg_webapp.users.models import User, ADMIN_CODE
 from data_models import models as data_models
-from api_app.models import Change
 from .widgets import IconBooleanWidget
 from .fields import ChangeMultipleChoiceField
 

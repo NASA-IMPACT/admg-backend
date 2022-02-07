@@ -4,6 +4,7 @@ from django.urls import path
 from django.views.generic.base import TemplateView
 
 from admin_ui.config import MODEL_CONFIG_MAP
+from admin_ui.views import generate_base_list_view
 
 from . import views
 from .published_urls import published_urls
@@ -46,7 +47,6 @@ urlpatterns = [
     ),
 ]
 
-from admin_ui.views import generate_base_list_view
 
 # limited has short, long
 
