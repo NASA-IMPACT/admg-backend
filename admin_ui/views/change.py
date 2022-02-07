@@ -432,7 +432,7 @@ class ChangeTransition(FormMixin, ProcessFormView, DetailView):
 
     def form_valid(self, form):
         try:
-            response = form.apply_transition()
+            form.apply_transition()
         except ValidationError as err:
             messages.error(
                 self.request,

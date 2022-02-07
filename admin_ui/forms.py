@@ -1,7 +1,6 @@
 from collections import OrderedDict
 
 from django import forms
-from django.core.exceptions import ValidationError
 from django.utils.functional import cached_property
 from django.utils.safestring import mark_safe
 from crispy_forms.helper import FormHelper
@@ -9,7 +8,6 @@ from crispy_forms.layout import Submit
 
 from api_app.models import (
     Change,
-    AVAILABLE_STATUSES,
     CREATED_CODE,
     IN_REVIEW_CODE,
     IN_ADMIN_REVIEW_CODE,

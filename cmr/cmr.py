@@ -1,6 +1,3 @@
-import json
-from collections import namedtuple
-from datetime import datetime
 from urllib.parse import urlencode
 
 import requests

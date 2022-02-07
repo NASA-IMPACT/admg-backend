@@ -1,8 +1,7 @@
-from data_models.models import PlatformType
 from django.conf import settings
 from django.contrib import admin
 from django.urls import path
-from django.views.generic.base import RedirectView, TemplateView
+from django.views.generic.base import TemplateView
 
 from admin_ui.config import MODEL_CONFIG_MAP
 

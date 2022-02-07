@@ -27,7 +27,6 @@ from data_models.models import (
     Website,
     WebsiteType,
 )
-from django_tables2 import A
 
 from .tables import (
     DraftLinkColumn,

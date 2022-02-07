@@ -1,7 +1,6 @@
 import django_filters
 from data_models import models
-from data_models.models import DOI, Campaign, Deployment
-from django.db.models.query_utils import Q
+from data_models.models import DOI, Deployment
 
 from .filters import CampaignFilter
 from .filter_utils import (

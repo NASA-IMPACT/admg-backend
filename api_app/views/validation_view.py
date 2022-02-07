@@ -27,7 +27,7 @@ class JsonValidationView(GenericAPIView):  # CreateAPIView):
 
         # if validation fails, the code ends here.
         # TODO: add custom validation?
-        validation_results = serializer_obj.is_valid(raise_exception=True)
+        serializer_obj.is_valid(raise_exception=True)
 
         return Response(
             status=200,

@@ -144,11 +144,11 @@ class DoiApprovalView(SingleObjectMixin, MultipleObjectMixin, FormView):
                         continue
                     stored_doi.update[field] = value
                 # never been previously edited and checkmark and trash haven't been selected
-                if stored_doi.status == CREATED_CODE and doi["keep"] == None:
+                if stored_doi.status == CREATED_CODE and doi["keep"] is None:
                     stored_doi.status = IN_PROGRESS_CODE
                     change_status_to_edit.append(stored_doi)
                 # checkmark was selected
-                elif doi["keep"] == True:
+                elif doi["keep"]:
                     if stored_doi.status == IN_TRASH_CODE:
                         stored_doi.untrash(user=self.request.user, doi=True)
                     stored_doi.status = AWAITING_REVIEW_CODE
