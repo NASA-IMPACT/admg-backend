@@ -79,6 +79,3 @@ class TestGCMD():
             if x % 2 == 1:
                 assert args[0] == concept
             print(f"Call Type: {mock_create_change.call_args_list[x][0]}")
-
-
-
