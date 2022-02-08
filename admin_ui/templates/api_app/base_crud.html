@@ -29,7 +29,11 @@
 {% block tabs %}{% endblock tabs %}
 
 <div class="row mx-3">
-  {% block main %}{% endblock main %}
+  {% block main %}
+  <main class="{% firstof class 'col' %}">
+    {% block form %}{% endblock form %}
+  </main>
+  {% endblock main %}
 </div>
 
 {% endblock page %}
