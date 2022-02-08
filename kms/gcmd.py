@@ -1,7 +1,7 @@
 import logging
 import uuid
 
-from typing import Dict, Optional, Set, Union
+from typing import Dict, Optional, Set, Union, Type
 from api_app.models import Change, CREATE, UPDATE, DELETE, PATCH, IN_ADMIN_REVIEW_CODE 
 from django.contrib.contenttypes.models import ContentType
 from django.forms.models import model_to_dict
@@ -25,7 +25,7 @@ def get_content_type(model: Models) -> ContentType:
     return ContentType.objects.get(app_label="data_models", model=model.__name__.lower())
 
 
-def convert_concept(record: dict, model: Models) -> dict:
+def convert_concept(record: dict, model: Type[Models]) -> dict:
     """Convert GCMD API record to match the format from the output of model_to_dict for each type of model."""
     record["gcmd_uuid"] = record.pop("UUID")
     if model == models.GcmdProject:
@@ -53,7 +53,7 @@ def convert_concept(record: dict, model: Models) -> dict:
 
 
 # TODO: Figure out what type row should be!
-def compare_record_with_concept(row, concept: dict) -> bool:
+def compare_record_with_concept(row: Models, concept: dict) -> bool:
     row_dict = model_to_dict(row)
     row_dict["gcmd_uuid"] = str(row_dict["gcmd_uuid"])
     return concept == row_dict
@@ -100,7 +100,7 @@ def create_change(concept: dict, model: Models, action: Actions, model_uuid: Opt
 def is_valid_value(*values: str) -> bool:
     nonvalid_values = ["", "NOT APPLICABLE"]
     for value in values:
-        if value is None or value.strip() in nonvalid_values:
+        if value is None or value.strip().upper() in nonvalid_values:
             return False
     return True
 
