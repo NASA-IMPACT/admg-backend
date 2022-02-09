@@ -1,4 +1,3 @@
-from django.utils.translation import gettext as _
 from django.contrib.contenttypes.admin import GenericTabularInline
 
 from api_app.models import Change

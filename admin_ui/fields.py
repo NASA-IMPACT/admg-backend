@@ -31,9 +31,7 @@ def ChangeWithIdentifier(*fields):
     class DynamicIdentifierChange(models.Change):
         def __str__(self):
             return (
-                " | ".join(
-                    str(get_attr(self.__dict__, field) or "") for field in fields
-                )
+                " | ".join(str(get_attr(self.__dict__, field) or "") for field in fields)
                 or f"missing identifier ({self.__dict__.get('uuid', '')})"
             )
 
@@ -74,9 +72,7 @@ class ChangeChoiceMixin:
                 .values("model_instance_uuid")
             )
             # Add identifier from published record (if available) or models.change.update.short_name
-            .annotate_from_published(
-                dest_model, to_attr="short_name", identifier=identifier_field
-            )
+            .annotate_from_published(dest_model, to_attr="short_name", identifier=identifier_field)
             .select_related("content_type")
             .order_by("short_name")
         )

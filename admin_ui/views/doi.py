@@ -56,9 +56,7 @@ class DoiApprovalView(SingleObjectMixin, MultipleObjectMixin, FormView):
 
     def get_queryset(self):
         return (
-            Change.objects.of_type(DOI).filter(
-                update__campaigns__contains=str(self.kwargs["pk"])
-            )
+            Change.objects.of_type(DOI).filter(update__campaigns__contains=str(self.kwargs["pk"]))
             # Order the DOIs by review status so that unreviewed DOIs are shown first
             .order_by("status", "update__concept_id")
         )
@@ -71,9 +69,7 @@ class DoiApprovalView(SingleObjectMixin, MultipleObjectMixin, FormView):
         relevant_doi_fetches = all_past_doi_fetches.get(uuid, [])
         doi_tasks = {task_id: None for task_id in relevant_doi_fetches}
         if relevant_doi_fetches:
-            doi_tasks.update(
-                TaskResult.objects.in_bulk(relevant_doi_fetches, field_name="task_id")
-            )
+            doi_tasks.update(TaskResult.objects.in_bulk(relevant_doi_fetches, field_name="task_id"))
         return super().get_context_data(
             **{
                 "object_list": self.get_queryset(),
@@ -109,9 +105,7 @@ class DoiApprovalView(SingleObjectMixin, MultipleObjectMixin, FormView):
         ]
 
     def form_valid(self, formset):
-        changed_dois = [
-            form.cleaned_data for form in formset.forms if form.has_changed()
-        ]
+        changed_dois = [form.cleaned_data for form in formset.forms if form.has_changed()]
 
         to_update = []
         to_trash = []
@@ -124,9 +118,7 @@ class DoiApprovalView(SingleObjectMixin, MultipleObjectMixin, FormView):
                 to_update.append(doi)
 
         if to_trash:
-            for doi in Change.objects.filter(
-                uuid__in=[doi["uuid"] for doi in to_trash]
-            ):
+            for doi in Change.objects.filter(uuid__in=[doi["uuid"] for doi in to_trash]):
                 doi.trash(user=self.request.user, doi=True)
                 doi.save()
 
@@ -157,9 +149,7 @@ class DoiApprovalView(SingleObjectMixin, MultipleObjectMixin, FormView):
                     stored_doi.status = Change.Statuses.AWAITING_REVIEW
                     change_status_to_review.append(stored_doi)
 
-            Change.objects.bulk_update(
-                stored_dois.values(), ["update", "status"], batch_size=100
-            )
+            Change.objects.bulk_update(stored_dois.values(), ["update", "status"], batch_size=100)
 
             ApprovalLog.objects.bulk_create(
                 [
@@ -217,9 +207,7 @@ class ChangeCreateView(mixins.ChangeModelFormMixin, CreateView):
     def get_context_data(self, **kwargs):
         return {
             **super().get_context_data(**kwargs),
-            "content_type_name": (
-                self.get_model_form_content_type().model_class().__name__
-            ),
+            "content_type_name": (self.get_model_form_content_type().model_class().__name__),
         }
 
     def get_success_url(self):

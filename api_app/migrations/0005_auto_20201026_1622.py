@@ -9,10 +9,9 @@ def populate_content_type(apps, schema_editor):
     ContentType = apps.get_model("contenttypes", "ContentType")
     for model_name in Change.objects.values_list("model_name", flat=True).distinct():
         Change.objects.filter(model_name=model_name).update(
-            content_type=ContentType.objects.get(
-                app_label="data_models", model=model_name.lower()
-            )
+            content_type=ContentType.objects.get(app_label="data_models", model=model_name.lower())
         )
+
 
 def noop(apps, schema_editor):
     pass

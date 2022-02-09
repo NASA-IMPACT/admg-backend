@@ -6,38 +6,38 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('data_models', '0033_auto_20210331_1612'),
+        ("data_models", "0033_auto_20210331_1612"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='gcmdinstrument',
-            name='gcmd_uuid',
+            model_name="gcmdinstrument",
+            name="gcmd_uuid",
             field=models.UUIDField(unique=True),
         ),
         migrations.AlterField(
-            model_name='gcmdinstrument',
-            name='short_name',
-            field=models.CharField(blank=True, default='', max_length=256),
+            model_name="gcmdinstrument",
+            name="short_name",
+            field=models.CharField(blank=True, default="", max_length=256),
         ),
         migrations.AlterField(
-            model_name='gcmdphenomena',
-            name='gcmd_uuid',
+            model_name="gcmdphenomena",
+            name="gcmd_uuid",
             field=models.UUIDField(unique=True),
         ),
         migrations.AlterField(
-            model_name='gcmdplatform',
-            name='gcmd_uuid',
+            model_name="gcmdplatform",
+            name="gcmd_uuid",
             field=models.UUIDField(unique=True),
         ),
         migrations.AlterField(
-            model_name='gcmdproject',
-            name='gcmd_uuid',
+            model_name="gcmdproject",
+            name="gcmd_uuid",
             field=models.UUIDField(unique=True),
         ),
         migrations.AlterField(
-            model_name='gcmdproject',
-            name='short_name',
-            field=models.CharField(blank=True, default='', max_length=256),
+            model_name="gcmdproject",
+            name="short_name",
+            field=models.CharField(blank=True, default="", max_length=256),
         ),
     ]

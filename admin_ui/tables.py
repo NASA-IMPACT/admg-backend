@@ -14,9 +14,7 @@ class ConditionalValueColumn(tables.Column):
 
     def _get_processed_value(self, value):
         if value.__class__.__name__ == "ManyRelatedManager":
-            many_values = [
-                str(uuid) for uuid in list(value.all().values_list("uuid", flat=True))
-            ]
+            many_values = [str(uuid) for uuid in list(value.all().values_list("uuid", flat=True))]
             return many_values
         return value
 
@@ -71,9 +69,7 @@ class DraftLinkColumn(ConditionalValueColumn):
     def get_url(self, **kwargs):
         record = kwargs.get("record")
 
-        url_kwargs = {
-            item: getattr(record, self.url_kwargs[item]) for item in self.url_kwargs
-        }
+        url_kwargs = {item: getattr(record, self.url_kwargs[item]) for item in self.url_kwargs}
 
         # records from published item do not have action
         if getattr(record, "action", None) == Change.Actions.UPDATE:
@@ -133,9 +129,7 @@ class ShortNamefromUUIDColumn(ConditionalValueColumn):
     def render(self, **kwargs):
         value = self.get_backup_value(**kwargs)
         if isinstance(value, list):
-            return ", ".join(
-                self.get_short_name(potential_uuid) for potential_uuid in value
-            )
+            return ", ".join(self.get_short_name(potential_uuid) for potential_uuid in value)
         else:
             return self.get_short_name(value)
 
@@ -382,11 +376,7 @@ class PlatformTypeChangeListTable(LimitedTableBase):
     )
 
     class Meta(LimitedTableBase.Meta):
-        all_fields = (
-            LimitedTableBase.initial_fields
-            + ("parent",)
-            + LimitedTableBase.final_fields
-        )
+        all_fields = LimitedTableBase.initial_fields + ("parent",) + LimitedTableBase.final_fields
         fields = list(all_fields)
         sequence = all_fields
 
@@ -399,11 +389,7 @@ class MeasurementTypeChangeListTable(LimitedTableBase):
     )
 
     class Meta(LimitedTableBase.Meta):
-        all_fields = (
-            LimitedTableBase.initial_fields
-            + ("parent",)
-            + LimitedTableBase.final_fields
-        )
+        all_fields = LimitedTableBase.initial_fields + ("parent",) + LimitedTableBase.final_fields
         fields = all_fields
         sequence = all_fields
 
@@ -416,11 +402,7 @@ class MeasurementStyleChangeListTable(LimitedTableBase):
     )
 
     class Meta(LimitedTableBase.Meta):
-        all_fields = (
-            LimitedTableBase.initial_fields
-            + ("parent",)
-            + LimitedTableBase.final_fields
-        )
+        all_fields = LimitedTableBase.initial_fields + ("parent",) + LimitedTableBase.final_fields
         fields = all_fields
         sequence = all_fields
 
@@ -433,11 +415,7 @@ class HomeBaseChangeListTable(LimitedTableBase):
     )
 
     class Meta(LimitedTableBase.Meta):
-        all_fields = (
-            LimitedTableBase.initial_fields
-            + ("location",)
-            + LimitedTableBase.final_fields
-        )
+        all_fields = LimitedTableBase.initial_fields + ("location",) + LimitedTableBase.final_fields
         fields = all_fields
         sequence = all_fields
 
@@ -448,9 +426,7 @@ class FocusAreaChangeListTable(LimitedTableBase):
     )
 
     class Meta(LimitedTableBase.Meta):
-        all_fields = (
-            LimitedTableBase.initial_fields + ("url",) + LimitedTableBase.final_fields
-        )
+        all_fields = LimitedTableBase.initial_fields + ("url",) + LimitedTableBase.final_fields
         fields = all_fields
         sequence = all_fields
 
@@ -471,9 +447,7 @@ class RepositoryChangeListTable(LimitedTableBase):
 
     class Meta(LimitedTableBase.Meta):
         all_fields = (
-            LimitedTableBase.initial_fields
-            + ("gcmd_uuid",)
-            + LimitedTableBase.final_fields
+            LimitedTableBase.initial_fields + ("gcmd_uuid",) + LimitedTableBase.final_fields
         )
         fields = all_fields
         sequence = all_fields
@@ -487,11 +461,7 @@ class MeasurementRegionChangeListTable(LimitedTableBase):
     )
 
     class Meta(LimitedTableBase.Meta):
-        all_fields = (
-            LimitedTableBase.initial_fields
-            + ("example",)
-            + LimitedTableBase.final_fields
-        )
+        all_fields = LimitedTableBase.initial_fields + ("example",) + LimitedTableBase.final_fields
         fields = all_fields
         sequence = all_fields
 
@@ -504,11 +474,7 @@ class GeographicalRegionChangeListTable(LimitedTableBase):
     )
 
     class Meta(LimitedTableBase.Meta):
-        all_fields = (
-            LimitedTableBase.initial_fields
-            + ("example",)
-            + LimitedTableBase.final_fields
-        )
+        all_fields = LimitedTableBase.initial_fields + ("example",) + LimitedTableBase.final_fields
         fields = all_fields
         sequence = all_fields
 
@@ -521,11 +487,7 @@ class GeophysicalConceptChangeListTable(LimitedTableBase):
     )
 
     class Meta(LimitedTableBase.Meta):
-        all_fields = (
-            LimitedTableBase.initial_fields
-            + ("example",)
-            + LimitedTableBase.final_fields
-        )
+        all_fields = LimitedTableBase.initial_fields + ("example",) + LimitedTableBase.final_fields
         fields = all_fields
         sequence = all_fields
 
@@ -538,11 +500,7 @@ class PartnerOrgChangeListTable(LimitedTableBase):
     )
 
     class Meta(LimitedTableBase.Meta):
-        all_fields = (
-            LimitedTableBase.initial_fields
-            + ("website",)
-            + LimitedTableBase.final_fields
-        )
+        all_fields = LimitedTableBase.initial_fields + ("website",) + LimitedTableBase.final_fields
         fields = all_fields
         sequence = all_fields
 
@@ -571,9 +529,7 @@ class CampaignChangeListTable(LimitedTableBase):
 
     class Meta(LimitedTableBase.Meta):
         all_fields = (
-            LimitedTableBase.initial_fields
-            + ("funding_agency",)
-            + LimitedTableBase.final_fields
+            LimitedTableBase.initial_fields + ("funding_agency",) + LimitedTableBase.final_fields
         )
         fields = all_fields
         sequence = all_fields
@@ -588,9 +544,7 @@ class PlatformChangeListTable(LimitedTableBase):
 
     class Meta(LimitedTableBase.Meta):
         all_fields = (
-            LimitedTableBase.initial_fields
-            + ("platform_type",)
-            + LimitedTableBase.final_fields
+            LimitedTableBase.initial_fields + ("platform_type",) + LimitedTableBase.final_fields
         )
         fields = all_fields
         sequence = all_fields

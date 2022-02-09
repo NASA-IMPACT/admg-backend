@@ -1,6 +1,3 @@
-import json
-from collections import namedtuple
-from datetime import datetime
 from urllib.parse import urlencode
 
 import requests
@@ -53,7 +50,7 @@ class QueryCounter:
 
 
 def get_json(cmr_url):
-    """Takes a CMR query url and returns the response JSON as a dict. 
+    """Takes a CMR query url and returns the response JSON as a dict.
 
     Args:
         cmr_url (str): CMR query url
@@ -84,15 +81,19 @@ def universal_query(query_parameter, query_value):
 
     # set initial variables
     counter = QueryCounter()
-    base_url = 'https://cmr.earthdata.nasa.gov/search/collections.umm_json?'
+    base_url = "https://cmr.earthdata.nasa.gov/search/collections.umm_json?"
     results = []
 
     while not counter.finished:
         # make inital query and append results
-        parameters = urlencode({query_parameter: query_value,
-                                'page_size': counter.page_size,
-                                'page_num': counter.page_num},
-                                doseq=True)
+        parameters = urlencode(
+            {
+                query_parameter: query_value,
+                "page_size": counter.page_size,
+                "page_num": counter.page_num,
+            },
+            doseq=True,
+        )
         url = base_url + parameters
 
         # retrieve and append results
@@ -100,7 +101,7 @@ def universal_query(query_parameter, query_value):
         results.append(response)
 
         # iterate counter
-        num_hits = int(response['hits'])
+        num_hits = int(response["hits"])
         counter.iterate(num_hits)
 
     return results
@@ -119,7 +120,10 @@ def extract_concept_ids_from_universal_query(collections_json):
         list: list of concept_id strings
     """
 
-    concept_ids_nested = [[collection['meta']['concept-id'] for collection in page['items']] for page in collections_json]
+    concept_ids_nested = [
+        [collection["meta"]["concept-id"] for collection in page["items"]]
+        for page in collections_json
+    ]
     concept_ids = [concept_id for sublist in concept_ids_nested for concept_id in sublist]
     concept_ids = purify_list(concept_ids, lower=False)
 
@@ -189,11 +193,15 @@ def bulk_cmr_query(query_parameter, query_value_list):
     concept_ids_responses = []
     length = len(concept_id_list)
     while current_index < length:
-        concept_ids = concept_id_list[current_index:(current_index + CHUNK_SIZE)]
-        concept_ids_responses.extend(universal_query('echo_collection_id[]', concept_ids))
+        concept_ids = concept_id_list[current_index : (current_index + CHUNK_SIZE)]
+        concept_ids_responses.extend(universal_query("echo_collection_id[]", concept_ids))
         current_index += CHUNK_SIZE
 
-    metadata_list = [concept_id_data for page in [response['items'] for response in concept_ids_responses] for concept_id_data in page]
+    metadata_list = [
+        concept_id_data
+        for page in [response["items"] for response in concept_ids_responses]
+        for concept_id_data in page
+    ]
 
     return metadata_list
 
@@ -214,27 +222,27 @@ def cmr_parameter_transform(input_str, reverse=False):
     """
 
     mapping = {
-        'instrument': 'instrument',
-        'platform': 'platform',
-        'campaign': 'project',
+        "instrument": "instrument",
+        "platform": "platform",
+        "campaign": "project",
     }
 
     input_str = input_str.lower()
 
     if reverse:
         if input_str not in [cmr_param for table_name, cmr_param in mapping.items()]:
-            raise ValueError('cmr_param must be project, instrument, or platform')
-        result = {v:k for k,v in mapping.items()}[input_str]
+            raise ValueError("cmr_param must be project, instrument, or platform")
+        result = {v: k for k, v in mapping.items()}[input_str]
     else:
         if input_str not in [table_name for table_name, cmr_param in mapping.items()]:
-            raise ValueError('table_name must be campaign, instrument, or platform')
+            raise ValueError("table_name must be campaign, instrument, or platform")
         result = mapping[input_str]
 
     return result
 
 
 def query_and_process_cmr(table_name, aliases):
-    """Takes a database table name and a list of aliases and runs cmr queries for each 
+    """Takes a database table name and a list of aliases and runs cmr queries for each
     alias, aggregating the results before filtering out the unused metadata.
 
     Args:
