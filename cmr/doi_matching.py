@@ -72,7 +72,7 @@ class DoiMatcher:
             content_type__model=table_name,
             action=Change.Actions.CREATE
             ).exclude(
-                action=DELETE,
+                action=Change.Actions.DELETE,
                 status=Change.Statuses.PUBLISHED)
 
         if query_parameter:
