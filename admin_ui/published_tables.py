@@ -27,7 +27,6 @@ from data_models.models import (
     Website,
     WebsiteType,
 )
-from django_tables2 import A
 
 from .tables import (
     DraftLinkColumn,
@@ -410,9 +409,7 @@ class CampaignPublishedTable(LimitedTableBase):
         verbose_name="Short Name",
         accessor="short_name",
     )
-    funding_agency = tables.Column(
-        verbose_name="Funding Agency", accessor="funding_agency"
-    )
+    funding_agency = tables.Column(verbose_name="Funding Agency", accessor="funding_agency")
 
     class Meta(LimitedTableBase.Meta):
         fields = LimitedTableBase.initial_fields + ("funding_agency",)
@@ -427,9 +424,7 @@ class PlatformPublishedTable(LimitedTableBase):
         verbose_name="Short Name",
         accessor="short_name",
     )
-    platform_type = tables.Column(
-        verbose_name="Platform Type", accessor="platform_type"
-    )
+    platform_type = tables.Column(verbose_name="Platform Type", accessor="platform_type")
 
     class Meta(LimitedTableBase.Meta):
         fields = LimitedTableBase.initial_fields + ("platform_type",)
@@ -520,12 +515,8 @@ class GcmdInstrumentPublishedTable(LimitedTableBase):
     instrument_category = tables.Column(
         verbose_name="Instrument Category", accessor="instrument_category"
     )
-    instrument_class = tables.Column(
-        verbose_name="Instrument Class", accessor="instrument_class"
-    )
-    instrument_type = tables.Column(
-        verbose_name="Instrument Type", accessor="instrument_type"
-    )
+    instrument_class = tables.Column(verbose_name="Instrument Class", accessor="instrument_class")
+    instrument_type = tables.Column(verbose_name="Instrument Type", accessor="instrument_type")
     instrument_subtype = tables.Column(
         verbose_name="Instrument Subtype", accessor="instrument_subtype"
     )

@@ -77,7 +77,7 @@ class GetDoiSerializer(BaseSerializer):
 
 class TextImageField(serializers.ImageField):
     def to_internal_value(self, data):
-        """ 
+        """
         Allow a user to provide a string referencing an image rather than the
         actual image file. Useful for when publishing a Change Record for a model
         with an image field (ie allows serializer to pass validation).
@@ -112,7 +112,7 @@ class PlatformTypeSerializer(BaseSerializer):
         model = models.PlatformType
         fields = "__all__"
         extra_kwargs = {
-            'notes_internal': {'write_only': True},
+            "notes_internal": {"write_only": True},
         }
 
 
@@ -130,7 +130,7 @@ class MeasurementTypeSerializer(BaseSerializer):
         model = models.MeasurementType
         fields = "__all__"
         extra_kwargs = {
-            'notes_internal': {'write_only': True},
+            "notes_internal": {"write_only": True},
         }
 
 
@@ -148,7 +148,7 @@ class MeasurementStyleSerializer(BaseSerializer):
         model = models.MeasurementStyle
         fields = "__all__"
         extra_kwargs = {
-            'notes_internal': {'write_only': True},
+            "notes_internal": {"write_only": True},
         }
 
 
@@ -157,7 +157,7 @@ class HomeBaseSerializer(BaseSerializer):
         model = models.HomeBase
         fields = "__all__"
         extra_kwargs = {
-            'notes_internal': {'write_only': True},
+            "notes_internal": {"write_only": True},
         }
 
 
@@ -171,7 +171,7 @@ class FocusAreaSerializer(BaseSerializer):
         model = models.FocusArea
         fields = "__all__"
         extra_kwargs = {
-            'notes_internal': {'write_only': True},
+            "notes_internal": {"write_only": True},
         }
 
 
@@ -185,7 +185,7 @@ class SeasonSerializer(BaseSerializer):
         model = models.Season
         fields = "__all__"
         extra_kwargs = {
-            'notes_internal': {'write_only': True},
+            "notes_internal": {"write_only": True},
         }
 
 
@@ -203,7 +203,7 @@ class RepositorySerializer(BaseSerializer):
         model = models.Repository
         fields = "__all__"
         extra_kwargs = {
-            'notes_internal': {'write_only': True},
+            "notes_internal": {"write_only": True},
         }
 
 
@@ -217,7 +217,7 @@ class MeasurementRegionSerializer(BaseSerializer):
         model = models.MeasurementRegion
         fields = "__all__"
         extra_kwargs = {
-            'notes_internal': {'write_only': True},
+            "notes_internal": {"write_only": True},
         }
 
 
@@ -231,7 +231,7 @@ class GeographicalRegionSerializer(BaseSerializer):
         model = models.GeographicalRegion
         fields = "__all__"
         extra_kwargs = {
-            'notes_internal': {'write_only': True},
+            "notes_internal": {"write_only": True},
         }
 
 
@@ -245,7 +245,7 @@ class GeophysicalConceptSerializer(BaseSerializer):
         model = models.GeophysicalConcept
         fields = "__all__"
         extra_kwargs = {
-            'notes_internal': {'write_only': True},
+            "notes_internal": {"write_only": True},
         }
 
 
@@ -259,7 +259,7 @@ class WebsiteTypeSerializer(BaseSerializer):
         model = models.WebsiteType
         fields = "__all__"
         extra_kwargs = {
-            'notes_internal': {'write_only': True},
+            "notes_internal": {"write_only": True},
         }
 
 
@@ -273,7 +273,7 @@ class PartnerOrgSerializer(GetAliasSerializer):
         model = models.PartnerOrg
         fields = "__all__"
         extra_kwargs = {
-            'notes_internal': {'write_only': True},
+            "notes_internal": {"write_only": True},
         }
 
 
@@ -332,7 +332,7 @@ class WebsiteSerializer(BaseSerializer):
         model = models.Website
         fields = "__all__"
         extra_kwargs = {
-            'notes_internal': {'write_only': True},
+            "notes_internal": {"write_only": True},
         }
 
 
@@ -368,7 +368,7 @@ class DeploymentSerializer(GetAliasSerializer):
         model = models.Deployment
         fields = "__all__"
         extra_kwargs = {
-            'notes_internal': {'write_only': True},
+            "notes_internal": {"write_only": True},
         }
 
 
@@ -394,9 +394,9 @@ class CollectionPeriodSerializer(GetDoiSerializer):
         model = models.CollectionPeriod
         fields = "__all__"
         extra_kwargs = {
-            'platform_identifier': {'write_only': True},
-            'home_base': {'write_only': True},
-            'notes_internal': {'write_only': True},
+            "platform_identifier": {"write_only": True},
+            "home_base": {"write_only": True},
+            "notes_internal": {"write_only": True},
         }
 
 
@@ -413,7 +413,7 @@ class PlatformSerializer(GetAliasSerializer, GetDoiSerializer):
         model = models.Platform
         fields = "__all__"
         extra_kwargs = {
-            'notes_internal': {'write_only': True},
+            "notes_internal": {"write_only": True},
         }
 
 
@@ -429,7 +429,7 @@ class InstrumentSerializer(GetAliasSerializer, GetDoiSerializer):
         model = models.Instrument
         fields = "__all__"
         extra_kwargs = {
-            'notes_internal': {'write_only': True},
+            "notes_internal": {"write_only": True},
         }
 
 
@@ -463,6 +463,6 @@ class CampaignSerializer(GetAliasSerializer, GetDoiSerializer):
         model = models.Campaign
         fields = "__all__"
         extra_kwargs = {
-            'description_long': {'write_only': True},
-            'notes_internal': {'write_only': True},
+            "description_long": {"write_only": True},
+            "notes_internal": {"write_only": True},
         }

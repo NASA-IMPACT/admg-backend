@@ -64,9 +64,7 @@ class BoundingBoxWidget(widgets.OpenLayersWidget):
             geom = GEOSGeometry(self.get_json_representation(value))
             if geom.srid != self.map_srid:
                 geom.transform(
-                    CoordTransform(
-                        SpatialReference(geom.srid), SpatialReference(self.map_srid)
-                    )
+                    CoordTransform(SpatialReference(geom.srid), SpatialReference(self.map_srid))
                 )
             return geom.json
         except (GEOSException, GDALException, ValueError, TypeError) as err:
@@ -99,9 +97,7 @@ class AddAnotherChoiceFieldWidget(forms.Select):
         return super().__init__(*args, **kwargs)
 
     def render(self, name, value, *args, **kwargs):
-        create_form_url = reverse(
-            "change-add", kwargs={"model": self.model._meta.model_name}
-        )
+        create_form_url = reverse("change-add", kwargs={"model": self.model._meta.model_name})
 
         output = [
             super().render(name, value, *args, **kwargs),

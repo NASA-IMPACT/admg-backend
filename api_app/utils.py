@@ -14,9 +14,7 @@ ALL_STATUS_CODE = ["200", "201", "202", "203", "204"]
 
 
 class XcodeAutoSchema(SwaggerAutoSchema):
-    def __init__(
-        self, view, path, method, components, request, overrides, operation_keys=None
-    ):
+    def __init__(self, view, path, method, components, request, overrides, operation_keys=None):
         super().__init__(view, path, method, components, request, overrides)
 
     # used if redoc is used instead of swaggerui
@@ -80,9 +78,7 @@ class XcodeAutoSchema(SwaggerAutoSchema):
         for status_code in ALL_STATUS_CODE:
             if res.get(status_code):
                 if res[status_code].get("schema"):
-                    res[status_code]["schema"] = self._response_schema(
-                        res[status_code]["schema"]
-                    )
+                    res[status_code]["schema"] = self._response_schema(res[status_code]["schema"])
                 # this bit maps the description to the required format as well
                 elif res[status_code].get("description"):
                     res[status_code]["schema"] = self._response_schema(
