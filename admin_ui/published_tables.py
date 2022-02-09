@@ -447,15 +447,15 @@ class InstrumentPublishedTable(LimitedTableBase):
         model = Instrument
 
 
-class WebsitePublishedTable(LimitedTableBase):
+class WebsitePublishedTable(tables.Table):
     title = DraftLinkColumn(
-        viewname="{camel_to_snake('Website')}-detail-published",
+        viewname=f"{camel_to_snake('Website')}-detail-published",
         url_kwargs={"pk": "uuid"},
-        verbose_name="Short Name",
-        accessor="short_name",
+        verbose_name="Title",
+        accessor="title",
     )
     url = tables.Column(verbose_name="URL", accessor="url")
-    website_type = tables.Column(verbose_name="Website Type", accessor="website_type_name")
+    website_type = tables.Column(verbose_name="Website Type", accessor="website_type")
 
     class Meta(LimitedTableBase.Meta):
         fields = (
