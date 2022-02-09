@@ -6,23 +6,29 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('data_models', '0019_auto_20210209_1050'),
+        ("data_models", "0019_auto_20210209_1050"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='doi',
-            name='collection_periods',
-            field=models.ManyToManyField(blank=True, related_name='dois', to='data_models.CollectionPeriod'),
+            model_name="doi",
+            name="collection_periods",
+            field=models.ManyToManyField(
+                blank=True, related_name="dois", to="data_models.CollectionPeriod"
+            ),
         ),
         migrations.AlterField(
-            model_name='doi',
-            name='instruments',
-            field=models.ManyToManyField(blank=True, related_name='dois', to='data_models.Instrument'),
+            model_name="doi",
+            name="instruments",
+            field=models.ManyToManyField(
+                blank=True, related_name="dois", to="data_models.Instrument"
+            ),
         ),
         migrations.AlterField(
-            model_name='doi',
-            name='platforms',
-            field=models.ManyToManyField(blank=True, related_name='dois', to='data_models.Platform'),
+            model_name="doi",
+            name="platforms",
+            field=models.ManyToManyField(
+                blank=True, related_name="dois", to="data_models.Platform"
+            ),
         ),
     ]

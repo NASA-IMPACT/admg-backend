@@ -64,9 +64,7 @@ def get_draft_campaigns(search_string):
 
 
 def get_deployments(campaign_uuids):
-    deployments = Deployment.objects.filter(campaign__in=campaign_uuids).values_list(
-        "uuid"
-    )
+    deployments = Deployment.objects.filter(campaign__in=campaign_uuids).values_list("uuid")
 
     return deployments
 
@@ -107,8 +105,7 @@ def filter_draft_and_published(model_name):
         ).values_list("uuid")
 
         return queryset.filter(
-            Q(**field_name_in_draft_query)
-            | Q(model_instance_uuid__in=matching_model_instances)
+            Q(**field_name_in_draft_query) | Q(model_instance_uuid__in=matching_model_instances)
         )
 
     return filter_field_name
@@ -134,9 +131,7 @@ def second_level_campaign_name_filter(queryset, search_string, model):
     )
 
     model_instances = model.objects.filter(deployment__in=deployments)
-    unioned_deployments = deployments.union(
-        deployments_change_objects.values_list("uuid")
-    )
+    unioned_deployments = deployments.union(deployments_change_objects.values_list("uuid"))
     return queryset.filter(
         Q(model_instance_uuid__in=model_instances)
         | Q(update__deployment__in=(str(val[0]) for val in unioned_deployments))

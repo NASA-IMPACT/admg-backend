@@ -11,18 +11,12 @@ class ModelToBeChangedFilter(admin.SimpleListFilter):
     def lookups(self, request, model_admin):
         return [("all", "Show all")] + [
             (c.content_type_id, c.model_name)
-            for c in Change.objects.distinct("content_type").select_related(
-                "content_type"
-            )
+            for c in Change.objects.distinct("content_type").select_related("content_type")
         ]
 
     def queryset(self, request, queryset):
         content_type_id = self.value()
-        return (
-            queryset.filter(content_type_id=content_type_id)
-            if content_type_id
-            else queryset
-        )
+        return queryset.filter(content_type_id=content_type_id) if content_type_id else queryset
 
 
 def short_name(obj):

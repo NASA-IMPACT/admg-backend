@@ -19,9 +19,7 @@ class User(AbstractUser):
     user model for admg users
     """
 
-    id = models.UUIDField(
-        default=uuid.uuid4, primary_key=True, editable=False, unique=True
-    )
+    id = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False, unique=True)
 
     # First Name and Last Name do not cover name patterns
     # around the globe.
