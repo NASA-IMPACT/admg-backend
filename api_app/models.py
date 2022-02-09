@@ -96,19 +96,12 @@ class ApprovalLog(models.Model):
     change = models.ForeignKey("Change", on_delete=models.CASCADE, blank=True)
 
     user = models.ForeignKey(
-        User,
-        on_delete=models.SET_NULL,
-        related_name="user",
-        null=True,
-        blank=True,
+        User, on_delete=models.SET_NULL, related_name="user", null=True, blank=True
     )
 
     date = models.DateTimeField(auto_now_add=True)
 
-    action = models.IntegerField(
-        choices=Actions,
-        default=Actions.CREATE,
-    )
+    action = models.IntegerField(choices=Actions, default=Actions.CREATE)
     notes = models.TextField(blank=True, default="")
 
     def __str__(self):
@@ -148,11 +141,7 @@ class ChangeQuerySet(models.QuerySet):
         )
 
     def annotate_from_relationship(
-        self,
-        of_type: models.Model,
-        to_attr: str,
-        uuid_from: str,
-        identifier="short_name",
+        self, of_type: models.Model, to_attr: str, uuid_from: str, identifier="short_name"
     ):
         """
         Annotate queryset with an identifier obtained from a related model.
@@ -193,7 +182,7 @@ class ChangeQuerySet(models.QuerySet):
                     )
                     .values(f"update__{identifier}")[:1]
                 ),
-            },
+            }
         )
 
     def annotate_from_published(self, of_type, to_attr, identifier="short_name"):
@@ -265,9 +254,7 @@ class Change(models.Model):
 
     uuid = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     content_type = models.ForeignKey(
-        ContentType,
-        help_text="Model for which the draft pertains.",
-        on_delete=models.CASCADE,
+        ContentType, help_text="Model for which the draft pertains.", on_delete=models.CASCADE
     )
     model_instance_uuid = models.UUIDField(default=uuid4, blank=True, null=True)
     content_object = GenericForeignKey("content_type", "model_instance_uuid")
@@ -278,9 +265,7 @@ class Change(models.Model):
     previous = models.JSONField(default=dict)
 
     action = models.CharField(
-        max_length=10,
-        choices=((choice, choice) for choice in Actions),
-        default=Actions.UPDATE,
+        max_length=10, choices=((choice, choice) for choice in Actions), default=Actions.UPDATE
     )
     objects = ChangeQuerySet.as_manager()
 
@@ -415,9 +400,7 @@ class Change(models.Model):
         # attribute on each record.
         return (
             Change.objects.filter(uuid__in=uuids).annotate(
-                place=expressions.RawSQL(
-                    "select array_position(%s, uuid::text)", [uuids]
-                )
+                place=expressions.RawSQL("select array_position(%s, uuid::text)", [uuids])
             )
             # Reverse the order so that this change is last in list
             .order_by("-place")
@@ -484,20 +467,13 @@ class Change(models.Model):
         if self.action == Change.Actions.CREATE:
             validation_message = self._run_validator(partial=False)
 
-        elif (
-            self.action == Change.Actions.PATCH or self.action == Change.Actions.UPDATE
-        ):
+        elif self.action == Change.Actions.PATCH or self.action == Change.Actions.UPDATE:
             validation_message = self._run_validator(partial=True)
 
         elif self.action == Change.Actions.DELETE:
             validation_message = ""
 
-        return Response(
-            status=200,
-            data={
-                "message": validation_message,
-            },
-        )
+        return Response(status=200, data={"message": validation_message})
 
     def _get_model_instance(self):
         model = apps.get_model("data_models", self.model_name)
@@ -522,11 +498,7 @@ class Change(models.Model):
         if not self.model_instance_uuid:
             raise ValidationError({"uuid": "UUID for the model was not found"})
 
-        return self._save_serializer(
-            model_instance=model_instance,
-            data=self.update,
-            partial=True,
-        )
+        return self._save_serializer(model_instance=model_instance, data=self.update, partial=True)
 
     def _delete(self):
         model_instance = self._get_model_instance()
@@ -595,9 +567,7 @@ class Change(models.Model):
 
         if self.action == Change.Actions.CREATE:
             response = self._create()
-        elif (
-            self.action == Change.Actions.UPDATE or self.action == Change.Actions.PATCH
-        ):
+        elif self.action == Change.Actions.UPDATE or self.action == Change.Actions.PATCH:
             response = self._update_patch()
         elif self.action == Change.Actions.DELETE:
             response = self._delete()
@@ -679,9 +649,7 @@ class Change(models.Model):
         """
 
         self.status = self.Statuses.IN_PROGRESS
-        ApprovalLog.objects.create(
-            change=self, user=user, action=ApprovalLog.UNTRASH, notes=notes
-        )
+        ApprovalLog.objects.create(change=self, user=user, action=ApprovalLog.UNTRASH, notes=notes)
         self.save(post_save=True)
 
         return generate_success_response(
@@ -756,9 +724,7 @@ class Change(models.Model):
         self.save(post_save=True)
 
         return generate_success_response(
-            status_str=next(
-                status.label for status in Change.Statuses if status == self.status
-            ),
+            status_str=next(status.label for status in Change.Statuses if status == self.status),
             data={"uuid": self.uuid, "status": self.status},
         )
 
@@ -791,9 +757,7 @@ class Change(models.Model):
         self.save(post_save=True)
 
         return generate_success_response(
-            status_str=next(
-                status.label for status in Change.Statuses if status == self.status
-            ),
+            status_str=next(status.label for status in Change.Statuses if status == self.status),
             data={"uuid": self.uuid, "status": self.status},
         )
 
@@ -806,9 +770,7 @@ class Change(models.Model):
         # change object was freshly created and has no logs
         if not ApprovalLog.objects.filter(change=self).exists():
             ApprovalLog.objects.create(
-                change=self,
-                user=get_current_user(),
-                action=ApprovalLog.Actions.CREATE,
+                change=self, user=get_current_user(), action=ApprovalLog.Actions.CREATE
             )
 
         elif self.status in [self.Statuses.CREATED, self.Statuses.IN_PROGRESS]:
@@ -819,9 +781,7 @@ class Change(models.Model):
                 ApprovalLog.Actions.UNCLAIM,
             ]:
                 ApprovalLog.objects.create(
-                    change=self,
-                    user=get_current_user(),
-                    action=ApprovalLog.Actions.EDIT,
+                    change=self, user=get_current_user(), action=ApprovalLog.Actions.EDIT
                 )
 
 

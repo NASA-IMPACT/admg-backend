@@ -12,7 +12,6 @@ from cmr.cmr import query_and_process_cmr
 from cmr.utils import clean_table_name, purify_list
 
 
-
 class DoiMatcher:
     def __init__(self):
         self.uuid_to_aliases = {}
@@ -69,11 +68,8 @@ class DoiMatcher:
         """
 
         valid_objects = Change.objects.filter(
-            content_type__model=table_name,
-            action=Change.Actions.CREATE
-            ).exclude(
-                action=Change.Actions.DELETE,
-                status=Change.Statuses.PUBLISHED)
+            content_type__model=table_name, action=Change.Actions.CREATE
+        ).exclude(action=Change.Actions.DELETE, status=Change.Statuses.PUBLISHED)
 
         if query_parameter:
             query_parameter = "update__" + query_parameter
@@ -304,7 +300,7 @@ class DoiMatcher:
                 model_instance_uuid=None,
                 update=json.loads(json.dumps(doi)),
                 status=Change.Statuses.CREATED,
-                action=Change.Actions.CREATE
+                action=Change.Actions.CREATE,
             )
             doi_obj.save()
 
@@ -344,7 +340,7 @@ class DoiMatcher:
             model_instance_uuid=str(uuid),
             update=json.loads(json.dumps(doi)),
             status=Change.Statuses.CREATED,
-            action=Change.Actions.UPDATE
+            action=Change.Actions.UPDATE,
         )
 
         doi_obj.save()
