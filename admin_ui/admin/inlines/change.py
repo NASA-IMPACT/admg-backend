@@ -39,6 +39,4 @@ class InAdminReviewInline(BaseChangeInline):
     verbose_name_plural = "In Admin Review"
 
     def get_queryset(self, request):
-        return (
-            super().get_queryset(request).filter(status=Change.Statuses.IN_ADMIN_REVIEW)
-        )
+        return super().get_queryset(request).filter(status=Change.Statuses.IN_ADMIN_REVIEW)

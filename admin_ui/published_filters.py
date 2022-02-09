@@ -3,11 +3,7 @@ from data_models import models
 from data_models.models import DOI, Deployment
 
 from .filters import CampaignFilter
-from .filter_utils import (
-    default_filter_configs,
-    get_published_campaigns,
-    get_deployments,
-)
+from .filter_utils import default_filter_configs, get_published_campaigns, get_deployments
 
 # TODO: Look at .values with Cast function
 
@@ -27,23 +23,13 @@ def GenericPublishedListFilter(model_name, filter_configs=default_filter_configs
 
 
 class WebsiteFilter(django_filters.FilterSet):
-    title = django_filters.CharFilter(
-        label="Title",
-        field_name="title",
-        lookup_expr="icontains",
-    )
-    url = django_filters.CharFilter(
-        label="url",
-        field_name="url",
-        lookup_expr="icontains",
-    )
+    title = django_filters.CharFilter(label="Title", field_name="title", lookup_expr="icontains")
+    url = django_filters.CharFilter(label="url", field_name="url", lookup_expr="icontains")
 
 
 class DeploymentFilter(CampaignFilter):
     short_name = django_filters.CharFilter(
-        label="Short Name",
-        field_name="short_name",
-        lookup_expr="icontains",
+        label="Short Name", field_name="short_name", lookup_expr="icontains"
     )
 
     def filter_campaign_name(self, queryset, field_name, search_string):

@@ -92,8 +92,7 @@ class DoiApprovalView(SingleObjectMixin, MultipleObjectMixin, FormView):
                     if v.status == Change.Statuses.IN_TRASH
                     else (
                         None
-                        if v.status
-                        in [Change.Statuses.CREATED, Change.Statuses.IN_PROGRESS]
+                        if v.status in [Change.Statuses.CREATED, Change.Statuses.IN_PROGRESS]
                         else True
                     )
                 ),
@@ -181,8 +180,7 @@ class DoiApprovalView(SingleObjectMixin, MultipleObjectMixin, FormView):
         )
         if ignored_updates:
             messages.warning(
-                self.request,
-                f"Ignored changes to published {len(ignored_updates)} DOIs.",
+                self.request, f"Ignored changes to published {len(ignored_updates)} DOIs."
             )
         return super().form_valid(formset)
 
@@ -200,7 +198,9 @@ class ChangeCreateView(mixins.ChangeModelFormMixin, CreateView):
         # Get initial form values from URL
         return {
             "content_type": self.get_model_form_content_type(),
-            "action": Change.Actions.UPDATE if self.request.GET.get("uuid") else Change.Actions.CREATE,
+            "action": Change.Actions.UPDATE
+            if self.request.GET.get("uuid")
+            else Change.Actions.CREATE,
             "model_instance_uuid": self.request.GET.get("uuid"),
         }
 

@@ -10,12 +10,7 @@ from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.utils.safestring import mark_safe
 from django.views.generic import DetailView
-from django.views.generic.edit import (
-    CreateView,
-    FormMixin,
-    ProcessFormView,
-    UpdateView,
-)
+from django.views.generic.edit import CreateView, FormMixin, ProcessFormView, UpdateView
 from django_filters.views import FilterView
 from django_tables2.views import SingleTableMixin
 from rest_framework.serializers import ValidationError
@@ -64,8 +59,7 @@ class SummaryView(django_tables2.SingleTableView):
             Change.Statuses.PUBLISHED,
         ]
         status_translations = {
-            status_id: status_name.replace(" ", "_")
-            for status_id, status_name in Change.Statuses
+            status_id: status_name.replace(" ", "_") for status_id, status_name in Change.Statuses
         }
 
         # Setup dict with 0 counts
@@ -176,9 +170,7 @@ class ChangeCreateView(mixins.ChangeModelFormMixin, CreateView):
         return {
             "content_type": self.get_model_form_content_type(),
             "action": (
-                Change.Actions.UPDATE
-                if self.request.GET.get("uuid")
-                else Change.Actions.CREATE
+                Change.Actions.UPDATE if self.request.GET.get("uuid") else Change.Actions.CREATE
             ),
             "model_instance_uuid": self.request.GET.get("uuid"),
         }
@@ -249,12 +241,7 @@ class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
             "transition_form": (
                 forms.TransitionForm(change=context["object"], user=self.request.user)
             ),
-            "campaign_subitems": [
-                "Deployment",
-                "IOP",
-                "SignificantEvent",
-                "CollectionPeriod",
-            ],
+            "campaign_subitems": ["Deployment", "IOP", "SignificantEvent", "CollectionPeriod"],
             "related_fields": self.get_related_fields(),
             "back_button": self.get_back_button_url(),
             "ancestors": (context["object"].get_ancestors().select_related("content_type")),
@@ -267,27 +254,16 @@ class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
     def get_related_fields(self) -> Dict:
         related_fields = {}
         content_type = self.get_model_form_content_type().model_class().__name__
-        if content_type in [
-            "Campaign",
-            "Platform",
-            "Deployment",
-            "Instrument",
-            "PartnerOrg",
-        ]:
+        if content_type in ["Campaign", "Platform", "Deployment", "Instrument", "PartnerOrg"]:
             related_fields["alias"] = Change.objects.of_type(Alias).filter(
                 update__object_id=str(self.object.uuid)
             )
         if content_type == "Campaign":
             related_fields["website"] = (
                 Change.objects.of_type(Website)
-                .filter(
-                    action=Change.Actions.CREATE, update__campaign=str(self.object.uuid)
-                )
+                .filter(action=Change.Actions.CREATE, update__campaign=str(self.object.uuid))
                 .annotate_from_relationship(
-                    of_type=Website,
-                    to_attr="title",
-                    uuid_from="website",
-                    identifier="title",
+                    of_type=Website, to_attr="title", uuid_from="website", identifier="title"
                 )
             )
         return related_fields
@@ -351,8 +327,7 @@ class DiffView(ChangeUpdateView):
         destination_model_instance = context["object"].content_object
 
         published_form = self.destination_model_form(
-            instance=destination_model_instance,
-            auto_id="readonly_%s",
+            instance=destination_model_instance, auto_id="readonly_%s"
         )
         is_published_or_trashed = (
             context["object"].status == Change.Statuses.PUBLISHED
@@ -401,9 +376,7 @@ def generate_base_list_view(model_name):
 
             if self.linked_model == Platform:
                 return queryset.annotate_from_relationship(
-                    of_type=PlatformType,
-                    uuid_from="platform_type",
-                    to_attr="platform_type_name",
+                    of_type=PlatformType, uuid_from="platform_type", to_attr="platform_type_name"
                 )
             else:
                 return queryset
@@ -425,11 +398,7 @@ class ChangeTransition(FormMixin, ProcessFormView, DetailView):
     form_class = forms.TransitionForm
 
     def get_form_kwargs(self):
-        return {
-            **super().get_form_kwargs(),
-            "change": self.get_object(),
-            "user": self.request.user,
-        }
+        return {**super().get_form_kwargs(), "change": self.get_object(), "user": self.request.user}
 
     def form_valid(self, form):
         try:
@@ -437,9 +406,7 @@ class ChangeTransition(FormMixin, ProcessFormView, DetailView):
         except ValidationError as err:
             messages.error(
                 self.request,
-                mark_safe(
-                    f"<b>Unable to transition draft.</b> {format_validation_error(err)}"
-                ),
+                mark_safe(f"<b>Unable to transition draft.</b> {format_validation_error(err)}"),
             )
         else:
             obj = self.get_object()
@@ -461,11 +428,7 @@ def format_validation_error(err: ValidationError) -> str:
     return (
         '<ul class="list-unstyled">'
         + "".join(
-            (
-                f"<li>{field}"
-                "<ul>" + "".join(f"<li>{e}</li>" for e in errors) + "</ul>"
-                "</li>"
-            )
+            (f"<li>{field}" "<ul>" + "".join(f"<li>{e}</li>" for e in errors) + "</ul>" "</li>")
             for field, errors in err.detail.items()
         )
         + "</ul>"

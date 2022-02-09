@@ -97,10 +97,7 @@ def GenericEditView(model_name):
             # however, getting a form with initial and data only gives the required changed fields
             old_form = self._get_form_from_model_name(model_name, instance=self.object)
             new_form = self._get_form_from_model_name(
-                model_name,
-                data=request.POST,
-                initial=old_form.initial,
-                files=request.FILES,
+                model_name, data=request.POST, initial=old_form.initial, files=request.FILES
             )
 
             kwargs = {**kwargs, "object": self.object}

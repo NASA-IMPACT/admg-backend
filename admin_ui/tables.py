@@ -280,11 +280,7 @@ class CollectionPeriodChangeListTable(DraftTableBase):
     )
 
     class Meta(DraftTableBase.Meta):
-        all_fields = (
-            "deployment",
-            "platform",
-            "instruments",
-        ) + DraftTableBase.final_fields
+        all_fields = ("deployment", "platform", "instruments") + DraftTableBase.final_fields
         fields = list(all_fields)
         sequence = all_fields
 
@@ -356,11 +352,7 @@ class DeploymentChangeListTable(LimitedTableBase):
     class Meta(LimitedTableBase.Meta):
         all_fields = (
             LimitedTableBase.initial_fields
-            + (
-                "campaign",
-                "start_date",
-                "end_date",
-            )
+            + ("campaign", "start_date", "end_date")
             + LimitedTableBase.final_fields
         )
         fields = list(all_fields)
@@ -370,9 +362,7 @@ class DeploymentChangeListTable(LimitedTableBase):
 class PlatformTypeChangeListTable(LimitedTableBase):
 
     parent = ConditionalValueColumn(
-        verbose_name="Parent",
-        accessor="update__parent",
-        update_accessor="content_object.parent",
+        verbose_name="Parent", accessor="update__parent", update_accessor="content_object.parent"
     )
 
     class Meta(LimitedTableBase.Meta):
@@ -383,9 +373,7 @@ class PlatformTypeChangeListTable(LimitedTableBase):
 
 class MeasurementTypeChangeListTable(LimitedTableBase):
     parent = ConditionalValueColumn(
-        verbose_name="Parent",
-        accessor="update__parent",
-        update_accessor="content_object.parent",
+        verbose_name="Parent", accessor="update__parent", update_accessor="content_object.parent"
     )
 
     class Meta(LimitedTableBase.Meta):
@@ -396,9 +384,7 @@ class MeasurementTypeChangeListTable(LimitedTableBase):
 
 class MeasurementStyleChangeListTable(LimitedTableBase):
     parent = ConditionalValueColumn(
-        verbose_name="Parent",
-        accessor="update__parent",
-        update_accessor="content_object.parent",
+        verbose_name="Parent", accessor="update__parent", update_accessor="content_object.parent"
     )
 
     class Meta(LimitedTableBase.Meta):
@@ -455,9 +441,7 @@ class RepositoryChangeListTable(LimitedTableBase):
 
 class MeasurementRegionChangeListTable(LimitedTableBase):
     example = ConditionalValueColumn(
-        verbose_name="Example",
-        accessor="update__example",
-        update_accessor="content_object.example",
+        verbose_name="Example", accessor="update__example", update_accessor="content_object.example"
     )
 
     class Meta(LimitedTableBase.Meta):
@@ -468,9 +452,7 @@ class MeasurementRegionChangeListTable(LimitedTableBase):
 
 class GeographicalRegionChangeListTable(LimitedTableBase):
     example = ConditionalValueColumn(
-        verbose_name="Example",
-        accessor="update__example",
-        update_accessor="content_object.example",
+        verbose_name="Example", accessor="update__example", update_accessor="content_object.example"
     )
 
     class Meta(LimitedTableBase.Meta):
@@ -481,9 +463,7 @@ class GeographicalRegionChangeListTable(LimitedTableBase):
 
 class GeophysicalConceptChangeListTable(LimitedTableBase):
     example = ConditionalValueColumn(
-        verbose_name="Example",
-        accessor="update__example",
-        update_accessor="content_object.example",
+        verbose_name="Example", accessor="update__example", update_accessor="content_object.example"
     )
 
     class Meta(LimitedTableBase.Meta):
@@ -494,9 +474,7 @@ class GeophysicalConceptChangeListTable(LimitedTableBase):
 
 class PartnerOrgChangeListTable(LimitedTableBase):
     website = ConditionalValueColumn(
-        verbose_name="Website",
-        accessor="update__website",
-        update_accessor="content_object.website",
+        verbose_name="Website", accessor="update__website", update_accessor="content_object.website"
     )
 
     class Meta(LimitedTableBase.Meta):
@@ -575,10 +553,7 @@ class ChangeSummaryTable(DraftTableBase):
 
     class Meta:
         model = Change
-        attrs = {
-            "class": "table table-striped",
-            "thead": {"class": "table-primary"},
-        }
+        attrs = {"class": "table table-striped", "thead": {"class": "table-primary"}}
         fields = ["short_name", "content_type__model", "updated_at", "status"]
 
 
@@ -601,11 +576,7 @@ class WebsiteChangeListTable(DraftTableBase):
     )
 
     class Meta(DraftTableBase.Meta):
-        all_fields = (
-            "title",
-            "url",
-            "website_type",
-        ) + DraftTableBase.final_fields
+        all_fields = ("title", "url", "website_type") + DraftTableBase.final_fields
         fields = list(all_fields)
         sequence = all_fields
 
@@ -627,10 +598,7 @@ class AliasChangeListTable(DraftTableBase):
     )
 
     class Meta(DraftTableBase.Meta):
-        all_fields = (
-            "short_name",
-            "model_type",
-        ) + DraftTableBase.final_fields
+        all_fields = ("short_name", "model_type") + DraftTableBase.final_fields
         fields = list(all_fields)
         sequence = all_fields
 
@@ -650,17 +618,11 @@ class GcmdProjectChangeListTable(DraftTableBase):
         update_accessor="content_object.long_name",
     )
     bucket = ConditionalValueColumn(
-        verbose_name="Bucket",
-        accessor="update__bucket",
-        update_accessor="content_object.bucket",
+        verbose_name="Bucket", accessor="update__bucket", update_accessor="content_object.bucket"
     )
 
     class Meta(DraftTableBase.Meta):
-        all_fields = (
-            "short_name",
-            "long_name",
-            "bucket",
-        ) + DraftTableBase.final_fields
+        all_fields = ("short_name", "long_name", "bucket") + DraftTableBase.final_fields
         fields = list(all_fields)
         sequence = all_fields
 
@@ -734,11 +696,7 @@ class GcmdPlatformChangeListTable(DraftTableBase):
     )
 
     class Meta(DraftTableBase.Meta):
-        all_fields = (
-            "short_name",
-            "long_name",
-            "category",
-        ) + DraftTableBase.final_fields
+        all_fields = ("short_name", "long_name", "category") + DraftTableBase.final_fields
         fields = list(all_fields)
         sequence = all_fields
 
@@ -763,14 +721,10 @@ class GcmdPhenomenaChangeListTable(DraftTableBase):
         update_accessor="content_object.variable_1",
     )
     term = ConditionalValueColumn(
-        verbose_name="Term",
-        accessor="update__term",
-        update_accessor="content_object.term",
+        verbose_name="Term", accessor="update__term", update_accessor="content_object.term"
     )
     topic = ConditionalValueColumn(
-        verbose_name="Topic",
-        accessor="update__topic",
-        update_accessor="content_object.topic",
+        verbose_name="Topic", accessor="update__topic", update_accessor="content_object.topic"
     )
     category = ConditionalValueColumn(
         verbose_name="Category",

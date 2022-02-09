@@ -99,8 +99,7 @@ class ChangeModelFormMixin(ModelFormMixin):
         if "model_form" not in kwargs:
             # Ensure that the model_form is available in context for template
             kwargs["model_form"] = self.destination_model_form(
-                initial=self.get_model_form_intial(),
-                prefix=self.destination_model_prefix,
+                initial=self.get_model_form_intial(), prefix=self.destination_model_prefix
             )
 
         model_name = kwargs["model_form"]._meta.model.__name__
