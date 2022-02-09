@@ -18,18 +18,12 @@ class ModelToBeChangedFilter(admin.SimpleListFilter):
     def lookups(self, request, model_admin):
         return [("all", "Show all")] + [
             (c.content_type_id, c.model_name)
-            for c in Change.objects.distinct("content_type").select_related(
-                "content_type"
-            )
+            for c in Change.objects.distinct("content_type").select_related("content_type")
         ]
 
     def queryset(self, request, queryset):
         content_type_id = self.value()
-        return (
-            queryset.filter(content_type_id=content_type_id)
-            if content_type_id
-            else queryset
-        )
+        return queryset.filter(content_type_id=content_type_id) if content_type_id else queryset
 
 
 class ChangeAdmin(admin.ModelAdmin, EnforcedPermissionsMixin):
@@ -52,7 +46,7 @@ class ChangeAdmin(admin.ModelAdmin, EnforcedPermissionsMixin):
     )
 
     def has_change_permission(self, request, obj: Change = None):
-        """ Only allow changing objects if you're the author or superuser """
+        """Only allow changing objects if you're the author or superuser"""
         if obj:
             # Nobody can edit a published object
             if obj.status == PUBLISHED_CODE:
@@ -93,9 +87,7 @@ class ChangeAdmin(admin.ModelAdmin, EnforcedPermissionsMixin):
         }
 
         # Validate update
-        ModelForm = self._get_modelform_for_model_class(
-            request, obj.content_type.model_class()
-        )
+        ModelForm = self._get_modelform_for_model_class(request, obj.content_type.model_class())
         update_form = ModelForm(data=obj.update)
         update_form.full_clean()
 
@@ -138,9 +130,7 @@ class ChangeAdmin(admin.ModelAdmin, EnforcedPermissionsMixin):
                 try:
                     json.loads(model_form.data[field_name])
                 except TypeError:
-                    model_form.data[field_name] = json.dumps(
-                        model_form.data[field_name]
-                    )
+                    model_form.data[field_name] = json.dumps(model_form.data[field_name])
 
         readonly = not self.has_change_permission(request, obj)
         if readonly:
@@ -178,13 +168,9 @@ class ChangeAdmin(admin.ModelAdmin, EnforcedPermissionsMixin):
         # should render this extra context as a form)
         extra_context = extra_context or {}
         extra_context["modelform"] = admin_form
-        return super().change_view(
-            request, object_id, form_url, extra_context=extra_context
-        )
+        return super().change_view(request, object_id, form_url, extra_context=extra_context)
 
-    def _get_modelform_for_model_class(
-        self, request, ModelCls, **kwargs
-    ) -> ModelFormType:
+    def _get_modelform_for_model_class(self, request, ModelCls, **kwargs) -> ModelFormType:
         """
         Returns a ModelForm for provided model.
         """
@@ -193,9 +179,7 @@ class ChangeAdmin(admin.ModelAdmin, EnforcedPermissionsMixin):
             ModelCls,
             **{
                 "exclude": [],
-                "formfield_callback": partial(
-                    self.formfield_for_dbfield, request=request
-                ),
+                "formfield_callback": partial(self.formfield_for_dbfield, request=request),
                 **kwargs,
             },
         )

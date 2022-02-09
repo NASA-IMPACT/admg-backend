@@ -6,18 +6,18 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('data_models', '0004_doi_long_name'),
+        ("data_models", "0004_doi_long_name"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='doi',
-            name='doi',
+            model_name="doi",
+            name="doi",
         ),
         migrations.AddField(
-            model_name='doi',
-            name='short_name',
-            field=models.CharField(default='fake', max_length=128, unique=True),
+            model_name="doi",
+            name="short_name",
+            field=models.CharField(default="fake", max_length=128, unique=True),
             preserve_default=False,
         ),
     ]

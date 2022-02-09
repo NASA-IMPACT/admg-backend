@@ -20,9 +20,7 @@ def select_related_distinct_data(queryset, related_data_string):
         related_data_string (str): Django-formatted string of related data. E.g. instrument__uuid
     """
 
-    return (
-        queryset.select_related().values_list(related_data_string, flat=True).distinct()
-    )
+    return queryset.select_related().values_list(related_data_string, flat=True).distinct()
 
 
 def create_gcmd_str(categories):
@@ -41,9 +39,7 @@ def create_gcmd_str(categories):
 
 
 class BaseModel(models.Model):
-    uuid = models.UUIDField(
-        default=uuid.uuid4, primary_key=True, editable=False, unique=True
-    )
+    uuid = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False, unique=True)
 
     def __str__(self):
         return self.short_name
@@ -332,9 +328,7 @@ class GcmdPhenomena(BaseModel):
 
 class Website(BaseModel):
     campaign = models.ForeignKey("Campaign", related_name="websites", on_delete=models.CASCADE)
-    website_type = models.ForeignKey(
-        WebsiteType, on_delete=models.CASCADE, related_name="websites"
-    )
+    website_type = models.ForeignKey(WebsiteType, on_delete=models.CASCADE, related_name="websites")
     order_priority = models.PositiveIntegerField(null=True, blank=True)
 
     url = models.URLField(max_length=1024)
@@ -345,6 +339,7 @@ class Website(BaseModel):
         blank=True,
         help_text="Free text notes for ADMG staff - not visible to public.",
     )
+
     def __str__(self):
         return self.title
 
@@ -400,9 +395,7 @@ class Campaign(DataModel):
     aliases = GenericRelation(Alias)
 
     start_date = models.DateField(help_text="Start date of first deployment")
-    end_date = models.DateField(
-        blank=True, null=True, help_text="End date of last deployment"
-    )
+    end_date = models.DateField(blank=True, null=True, help_text="End date of last deployment")
 
     region_description = models.TextField(
         help_text="Free text words identifying the region/domain for the campaign"
@@ -483,12 +476,8 @@ class Campaign(DataModel):
         verbose_name="Campaign’s GCMD Project Keyword",
         help_text="GCMD Project Keyword corresponding to this field investigation/campaign",
     )
-    ongoing = models.BooleanField(
-        verbose_name="Is this field investigation currently ongoing?"
-    )
-    nasa_led = models.BooleanField(
-        verbose_name="Is this a NASA-led field investigation?"
-    )
+    ongoing = models.BooleanField(verbose_name="Is this field investigation currently ongoing?")
+    nasa_led = models.BooleanField(verbose_name="Is this a NASA-led field investigation?")
 
     platform_types = models.ManyToManyField(PlatformType, related_name="campaigns")
 
@@ -537,9 +526,7 @@ class Campaign(DataModel):
 
     @property
     def significant_events(self):
-        return select_related_distinct_data(
-            self.deployments, "significant_events__uuid"
-        )
+        return select_related_distinct_data(self.deployments, "significant_events__uuid")
 
     @property
     def iops(self):
@@ -570,9 +557,7 @@ class Campaign(DataModel):
 
     @property
     def platforms(self):
-        return select_related_distinct_data(
-            self.deployments, "collection_periods__platform__uuid"
-        )
+        return select_related_distinct_data(self.deployments, "collection_periods__platform__uuid")
 
     @staticmethod
     def search_fields():
@@ -651,9 +636,7 @@ class Platform(DataModel):
 
     @property
     def campaigns(self):
-        return select_related_distinct_data(
-            self.collection_periods, "deployment__campaign__uuid"
-        )
+        return select_related_distinct_data(self.collection_periods, "deployment__campaign__uuid")
 
     @property
     def instruments(self):
@@ -789,9 +772,7 @@ class Instrument(DataModel):
 
     @property
     def campaigns(self):
-        return select_related_distinct_data(
-            self.collection_periods, "deployment__campaign__uuid"
-        )
+        return select_related_distinct_data(self.collection_periods, "deployment__campaign__uuid")
 
     @property
     def platforms(self):
@@ -802,9 +783,7 @@ class Instrument(DataModel):
 
 
 class Deployment(DataModel):
-    campaign = models.ForeignKey(
-        Campaign, on_delete=models.CASCADE, related_name="deployments"
-    )
+    campaign = models.ForeignKey(Campaign, on_delete=models.CASCADE, related_name="deployments")
     aliases = GenericRelation(Alias)
 
     start_date = models.DateField(help_text="Start date of deployment")
@@ -1001,9 +980,7 @@ class CollectionPeriod(BaseModel):
     auto_generated = models.BooleanField()
 
     def __str__(self):
-        platform_id = (
-            f"({self.platform_identifier})" if self.platform_identifier else ""
-        )
+        platform_id = f"({self.platform_identifier})" if self.platform_identifier else ""
         campaign = str(self.deployment.campaign)
         deployment = str(self.deployment).replace(campaign + "_", "")
         return f"{campaign} | {deployment} | {self.platform} {platform_id}"
@@ -1025,14 +1002,10 @@ class DOI(BaseModel):
     campaigns = models.ManyToManyField(Campaign, related_name="dois")
     instruments = models.ManyToManyField(Instrument, blank=True, related_name="dois")
     platforms = models.ManyToManyField(Platform, blank=True, related_name="dois")
-    collection_periods = models.ManyToManyField(
-        CollectionPeriod, blank=True, related_name="dois"
-    )
+    collection_periods = models.ManyToManyField(CollectionPeriod, blank=True, related_name="dois")
 
     def __str__(self):
-        return (
-            self.cmr_entry_title or self.cmr_short_name or self.doi or self.concept_id
-        )
+        return self.cmr_entry_title or self.cmr_short_name or self.doi or self.concept_id
 
     def get_absolute_url(self):
         return urllib.parse.urljoin("https://doi.org", self.doi)

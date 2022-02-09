@@ -17,22 +17,27 @@ def requires_admin_approval(model_name, action=UPDATE):
         # unsed function variable because this adds request to the change model
         def inner_wrapper(self, request, *args, **kwargs):
 
-            content_type = ContentType.objects.get(app_label="data_models", model=model_name.lower())
+            content_type = ContentType.objects.get(
+                app_label="data_models", model=model_name.lower()
+            )
 
             change_object = Change(
                 content_type=content_type,
                 update=request.data,
                 model_instance_uuid=kwargs.get("uuid"),
-                action=action
+                action=action,
             )
             change_object.save()
 
-            return Response({
-                'uuid': change_object.uuid,
-                'message': f'Change request with uuid: {change_object.uuid} created for the given request'
-            })
+            return Response(
+                {
+                    "uuid": change_object.uuid,
+                    "message": f"Change request with uuid: {change_object.uuid} created for the given request",
+                }
+            )
 
         return inner_wrapper
+
     return outer_wrapper
 
 
@@ -53,17 +58,17 @@ def extract_response_details(original_data):
     # or because they are for a single UUID
     if isinstance(original_data, dict):
         # will execute when the response if for a single uuid
-        if original_data.get('uuid'):
+        if original_data.get("uuid"):
             data = original_data
         # will execute when the response gave a custom dictionary
         else:
-            data = original_data.get('data', [])
+            data = original_data.get("data", [])
 
-        message = original_data.get('message', '')
-        success = original_data.get('success', True)
+        message = original_data.get("message", "")
+        success = original_data.get("success", True)
     else:
         data = original_data
-        message = ''
+        message = ""
         success = True
 
     return success, message, data
@@ -84,7 +89,7 @@ def handle_exception(function):
             if 300 >= res.status_code >= 200:
                 original_data = res.data
                 success, message, data = extract_response_details(original_data)
-              
+
         except Exception as e:
             success = False
             try:
@@ -92,9 +97,6 @@ def handle_exception(function):
             except AttributeError:
                 message = str(e)
 
-        return JsonResponse({
-            "success": success,
-            "message": message,
-            "data": data
-        })
+        return JsonResponse({"success": success, "message": message, "data": data})
+
     return wrapper
