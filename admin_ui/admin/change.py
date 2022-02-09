@@ -1,5 +1,4 @@
 from django.contrib import admin
-from django.utils.translation import gettext as _
 
 from api_app.models import Change
 
