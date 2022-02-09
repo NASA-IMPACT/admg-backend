@@ -32,9 +32,7 @@ class ImageSerializer(serializers.ModelSerializer):
 
 
 class ValidationSerializer(serializers.Serializer):
-    model_name = serializers.CharField(
-        help_text="String of the model name: Season", min_length=128
-    )
+    model_name = serializers.CharField(help_text="String of the model name: Season", min_length=128)
     data = serializers.JSONField(
         help_text="""JSON containing model field names and values: {"short_name": "arctas"}"""
     )

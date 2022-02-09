@@ -7,19 +7,23 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('data_models', '0011_auto_20201029_2350'),
+        ("data_models", "0011_auto_20201029_2350"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='alias',
-            name='model_name',
-            field=models.CharField(default='partner_org', max_length=64),
+            model_name="alias",
+            name="model_name",
+            field=models.CharField(default="partner_org", max_length=64),
             preserve_default=False,
         ),
         migrations.AlterField(
-            model_name='alias',
-            name='content_type',
-            field=models.ForeignKey(blank=True, on_delete=django.db.models.deletion.CASCADE, to='contenttypes.ContentType'),
+            model_name="alias",
+            name="content_type",
+            field=models.ForeignKey(
+                blank=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                to="contenttypes.ContentType",
+            ),
         ),
     ]

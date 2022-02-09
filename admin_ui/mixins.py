@@ -11,7 +11,7 @@ from django.shortcuts import render
 from django.views.generic.edit import ModelFormMixin
 
 from data_models import models
-from . import fields, widgets
+from . import fields, widgets, config
 
 
 def formfield_callback(f, **kwargs):
@@ -23,9 +23,7 @@ def formfield_callback(f, **kwargs):
             kwargs.update(
                 {
                     # Render link to open new window for creating new record
-                    "widget": widgets.AddAnotherChoiceFieldWidget(
-                        model=f.remote_field.model
-                    ),
+                    "widget": widgets.AddAnotherChoiceFieldWidget(model=f.remote_field.model),
                     # Use field to handle drafts rather than published models
                     "form_class": partial(
                         fields.ChangeChoiceField, dest_model=f.remote_field.model
@@ -83,9 +81,7 @@ class ChangeModelFormMixin(ModelFormMixin):
         try:
             model_type = self.get_model_form_content_type().model_class()
             if not model_type:
-                raise Http404(
-                    f"Unsupported model type: {self.get_model_form_content_type()}"
-                )
+                raise Http404(f"Unsupported model type: {self.get_model_form_content_type()}")
         except NotImplementedError:
             if not self.model:
                 raise NotImplementedError("Subclass must implement this property")
@@ -106,6 +102,11 @@ class ChangeModelFormMixin(ModelFormMixin):
                 initial=self.get_model_form_intial(),
                 prefix=self.destination_model_prefix,
             )
+
+        model_name = kwargs["model_form"]._meta.model.__name__
+        model_config = config.MODEL_CONFIG_MAP.get(model_name, {})
+        for field in model_config.get("change_view_readonly_fields", []):
+            kwargs["model_form"].fields[field].disabled = True
         return super().get_context_data(**kwargs)
 
     @staticmethod
@@ -206,7 +207,29 @@ class ChangeModelFormMixin(ModelFormMixin):
         if not form.is_valid() or (validate_model_form and not model_form.is_valid()):
             return self.form_invalid(form=form, model_form=model_form)
 
-        form.instance.update = self.get_update_values(model_form)
+        model_config = config.MODEL_CONFIG_MAP.get(self.get_model_type().__name__, {})
+        readonly_fields = model_config.get("change_view_readonly_fields", [])
+
+        if form.instance._state.adding:
+            # If we're create a new Change instance, we want to populate any fields that
+            # are specified in the GET params. This is useful when we autopopulate a field
+            # but that field is marked "disabled" (eg creating a Deployment draft with the
+            # campaign field populated), this way we can retrieve the intended value of the
+            # field even though its prepopulated field's values are not submitted with the
+            # form.
+            form.instance.update.update(
+                {k: v for k, v in request.GET.items() if k in model_form.fields}
+            )
+
+        form.instance.update.update(
+            {
+                # Only update fields that can be altered by the form. Otherwise, retain
+                # original values from form.instance.update
+                k: v
+                for k, v in self.get_update_values(model_form).items()
+                if k not in readonly_fields
+            }
+        )
         return self.form_valid(form, model_form)
 
     def form_valid(self, form, model_form):
@@ -217,9 +240,7 @@ class ChangeModelFormMixin(ModelFormMixin):
         # If we're running validation...
         if "_validate" in self.request.POST:
             messages.success(self.request, f'Successfully validated "{self.object}".')
-            return self.render_to_response(
-                self.get_context_data(form=form, model_form=model_form)
-            )
+            return self.render_to_response(self.get_context_data(form=form, model_form=model_form))
 
         # If form was submitted from a popup window...
         if "_popup" in self.request.GET:
@@ -238,6 +259,4 @@ class ChangeModelFormMixin(ModelFormMixin):
         # destination model form
         if not form.is_valid():
             messages.error(self.request, f"Unable to save: {form.errors}")
-        return self.render_to_response(
-            self.get_context_data(form=form, model_form=model_form)
-        )
+        return self.render_to_response(self.get_context_data(form=form, model_form=model_form))

@@ -64,10 +64,7 @@ class ModelObjectView(ChangeModelFormMixin, DetailView):
 
     def _create_diff_dict(self, form):
         updated_values = self.get_update_values(form)
-        return {
-            changed_key: updated_values[changed_key]
-            for changed_key in form.changed_data
-        }
+        return {changed_key: updated_values[changed_key] for changed_key in form.changed_data}
 
 
 def GenericDetailView(model_name):
@@ -158,9 +155,7 @@ def GenericDeleteView(model_name):
             )
             change_object.save()
             return redirect(
-                reverse(
-                    f"{MODEL_CONFIG_MAP[model_name]['singular_snake_case']}-list-draft"
-                )
+                reverse(f"{MODEL_CONFIG_MAP[model_name]['singular_snake_case']}-list-draft")
             )
 
     return GenericDeletelViewClass

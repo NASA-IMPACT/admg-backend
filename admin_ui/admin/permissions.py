@@ -19,7 +19,7 @@ class EnforcedPermissionsMixin:
 
     @staticmethod
     def is_admin(request):
-        if not hasattr(request.user, 'role'):
+        if not hasattr(request.user, "role"):
             # AnonymousUsers won't have role property
             return False
         return request.user.role == ADMIN_CODE

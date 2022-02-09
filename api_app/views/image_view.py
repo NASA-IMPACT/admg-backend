@@ -11,7 +11,7 @@ from .generic_views import GetPermissionsMixin
 
 class ImageListCreateAPIView(GetPermissionsMixin, ListCreateAPIView):
     """
-        List images and create an image object
+    List images and create an image object
     """
 
     parser_class = (MultiPartParser,)
@@ -26,9 +26,10 @@ class ImageListCreateAPIView(GetPermissionsMixin, ListCreateAPIView):
     def post(self, request, *args, **kwargs):
         return self.create(request, *args, **kwargs)
 
+
 class ImageRetrieveDestroyAPIView(GetPermissionsMixin, RetrieveDestroyAPIView):
     """
-        Retrieve a single image and delete images
+    Retrieve a single image and delete images
     """
 
     parser_class = (MultiPartParser,)
@@ -37,6 +38,6 @@ class ImageRetrieveDestroyAPIView(GetPermissionsMixin, RetrieveDestroyAPIView):
     queryset = Image.objects.all()
 
     @handle_exception
-    @requires_admin_approval(model_name='Image', action=DELETE)
+    @requires_admin_approval(model_name="Image", action=DELETE)
     def delete(self, request, *args, **kwargs):
         return self.destroy(request, *args, **kwargs)
