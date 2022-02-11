@@ -30,7 +30,7 @@ def GenericCreateGetAllView(model_name):
         model_name (string) : model_name must be one from data_models/models.py
 
     Returns:
-        View(class) : view class for LIST and Change.Actions.CREATE API views
+        View(class) : view class for LIST and CREATE API views
     """
 
     class View(GetPermissionsMixin, ListCreateAPIView):
