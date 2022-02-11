@@ -6,12 +6,12 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api_app', '0012_merge_20210301_1801'),
+        ("api_app", "0012_merge_20210301_1801"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='approvallog',
-            options={'ordering': ['-date']},
+            name="approvallog",
+            options={"ordering": ["-date"]},
         ),
     ]

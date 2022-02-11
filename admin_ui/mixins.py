@@ -23,9 +23,7 @@ def formfield_callback(f, **kwargs):
             kwargs.update(
                 {
                     # Render link to open new window for creating new record
-                    "widget": widgets.AddAnotherChoiceFieldWidget(
-                        model=f.remote_field.model
-                    ),
+                    "widget": widgets.AddAnotherChoiceFieldWidget(model=f.remote_field.model),
                     # Use field to handle drafts rather than published models
                     "form_class": partial(
                         fields.ChangeChoiceField, dest_model=f.remote_field.model
@@ -83,9 +81,7 @@ class ChangeModelFormMixin(ModelFormMixin):
         try:
             model_type = self.get_model_form_content_type().model_class()
             if not model_type:
-                raise Http404(
-                    f"Unsupported model type: {self.get_model_form_content_type()}"
-                )
+                raise Http404(f"Unsupported model type: {self.get_model_form_content_type()}")
         except NotImplementedError:
             if not self.model:
                 raise NotImplementedError("Subclass must implement this property")
@@ -103,8 +99,7 @@ class ChangeModelFormMixin(ModelFormMixin):
         if "model_form" not in kwargs:
             # Ensure that the model_form is available in context for template
             kwargs["model_form"] = self.destination_model_form(
-                initial=self.get_model_form_intial(),
-                prefix=self.destination_model_prefix,
+                initial=self.get_model_form_intial(), prefix=self.destination_model_prefix
             )
 
         model_name = kwargs["model_form"]._meta.model.__name__
@@ -244,9 +239,7 @@ class ChangeModelFormMixin(ModelFormMixin):
         # If we're running validation...
         if "_validate" in self.request.POST:
             messages.success(self.request, f'Successfully validated "{self.object}".')
-            return self.render_to_response(
-                self.get_context_data(form=form, model_form=model_form)
-            )
+            return self.render_to_response(self.get_context_data(form=form, model_form=model_form))
 
         # If form was submitted from a popup window...
         if "_popup" in self.request.GET:
@@ -265,6 +258,4 @@ class ChangeModelFormMixin(ModelFormMixin):
         # destination model form
         if not form.is_valid():
             messages.error(self.request, f"Unable to save: {form.errors}")
-        return self.render_to_response(
-            self.get_context_data(form=form, model_form=model_form)
-        )
+        return self.render_to_response(self.get_context_data(form=form, model_form=model_form))

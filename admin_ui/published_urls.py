@@ -34,9 +34,5 @@ published_urls = [
             ),
         ]
     ],
-    path(
-        "published/<uuid:pk>/diff",
-        views.DiffView.as_view(),
-        name="change-diff",
-    ),
+    path("published/<uuid:pk>/diff", views.DiffView.as_view(), name="change-diff"),
 ]

@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('data_models', '0012_auto_20201202_1526'),
+        ("data_models", "0012_auto_20201202_1526"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='gcmdplatform',
-            name='short_name',
-            field=models.CharField(blank=True, default='', max_length=256),
+            model_name="gcmdplatform",
+            name="short_name",
+            field=models.CharField(blank=True, default="", max_length=256),
         ),
     ]

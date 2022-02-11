@@ -139,13 +139,9 @@ class CampaignFactory(LimitedInfoBaseFactory):
         create_m2m_records("platform_types", f"{__name__}.PlatformTypeFactory")
     )
     geophysical_concepts = factory.PostGeneration(
-        create_m2m_records(
-            "geophysical_concepts", f"{__name__}.GeophysicalConceptFactory"
-        )
+        create_m2m_records("geophysical_concepts", f"{__name__}.GeophysicalConceptFactory")
     )
-    seasons = factory.PostGeneration(
-        create_m2m_records("seasons", f"{__name__}.SeasonFactory")
-    )
+    seasons = factory.PostGeneration(create_m2m_records("seasons", f"{__name__}.SeasonFactory"))
     focus_areas = factory.PostGeneration(
         create_m2m_records("focus_areas", f"{__name__}.FocusAreaFactory")
     )
@@ -283,9 +279,7 @@ class InstrumentFactory(LimitedInfoBaseFactory):
         create_m2m_records("gcmd_phenomenas", f"{__name__}.GcmdPhenomenaFactory")
     )
     measurement_regions = factory.PostGeneration(
-        create_m2m_records(
-            "measurement_regions", f"{__name__}.MeasurementRegionFactory"
-        )
+        create_m2m_records("measurement_regions", f"{__name__}.MeasurementRegionFactory")
     )
 
     class Meta:

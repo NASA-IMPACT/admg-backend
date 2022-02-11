@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api_app', '0014_auto_20210421_1920'),
+        ("api_app", "0014_auto_20210421_1920"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='change',
-            name='field_status_tracking',
+            model_name="change",
+            name="field_status_tracking",
             field=models.JSONField(blank=True, default=dict),
         ),
     ]

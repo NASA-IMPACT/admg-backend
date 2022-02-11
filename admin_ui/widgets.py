@@ -1,8 +1,6 @@
 import json
 import logging
 
-from data_models.models import Image
-from data_models.serializers import get_geojson_from_bb
 from django import forms
 from django.conf import settings
 from django.contrib.gis import gdal
@@ -13,6 +11,9 @@ from django.contrib.gis.geos import GEOSException, GEOSGeometry, Polygon
 from django.urls import reverse
 from django.utils import translation
 from django.utils.safestring import mark_safe
+
+from data_models.models import Image
+from data_models.serializers import get_geojson_from_bb
 
 logger = logging.getLogger(__name__)
 
@@ -64,9 +65,7 @@ class BoundingBoxWidget(widgets.OpenLayersWidget):
             geom = GEOSGeometry(self.get_json_representation(value))
             if geom.srid != self.map_srid:
                 geom.transform(
-                    CoordTransform(
-                        SpatialReference(geom.srid), SpatialReference(self.map_srid)
-                    )
+                    CoordTransform(SpatialReference(geom.srid), SpatialReference(self.map_srid))
                 )
             return geom.json
         except (GEOSException, GDALException, ValueError, TypeError) as err:
@@ -99,17 +98,22 @@ class AddAnotherChoiceFieldWidget(forms.Select):
         return super().__init__(*args, **kwargs)
 
     def render(self, name, value, *args, **kwargs):
-        create_form_url = reverse(
-            "change-add", kwargs={"model": self.model._meta.model_name}
-        )
+        create_form_url = reverse("change-add", kwargs={"model": self.model._meta.model_name})
 
         output = [
             super().render(name, value, *args, **kwargs),
-            f"<small class='add-another cursor-pointer' data-select_id='id_{name}' data-form_url='{create_form_url}?_popup=1'>"
+            f"<a class='add-another small' data-select_id='id_{name}' data-form_url='{create_form_url}?_popup=1' href='#'>"
             f"&plus; Add new {self.model._meta.verbose_name.title()}"
-            "</small>",
+            "</a>",
         ]
-        return mark_safe("".join(output))
+        if value:
+            update_form_url = reverse("change-update", kwargs={"pk": value})
+            output.append(
+                f"<a class='link-to small' data-select_id='id_{name}' href='{update_form_url}' target='_blank'>"
+                f"&#x29c9; View selected {self.model._meta.verbose_name.title()}"
+                "</a>"
+            )
+        return mark_safe("<br>".join(output))
 
     class Media:
-        js = ("js/add-another-choice-field.js",)
+        js = ("js/add-another-choice-field.js", "js/link-to-choice-field.js")

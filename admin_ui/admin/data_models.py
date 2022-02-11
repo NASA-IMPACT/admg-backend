@@ -41,12 +41,7 @@ class CollectionPeriodAdmin(BasicAdmin):
 
 @admin.register(models.DOI)
 class DoiAdmin(BasicAdmin):
-    inlines = [
-        DoiCampaignInline,
-        DoiInstrumentInline,
-        DoiPlatformInline,
-        DoiCollectionPeriodInline,
-    ]
+    inlines = [DoiCampaignInline, DoiInstrumentInline, DoiPlatformInline, DoiCollectionPeriodInline]
 
 
 @admin.register(models.PlatformType)
