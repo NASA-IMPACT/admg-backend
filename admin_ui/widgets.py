@@ -8,11 +8,10 @@ from django.contrib.gis.forms import widgets
 from django.contrib.gis.gdal import CoordTransform, SpatialReference
 from django.contrib.gis.gdal.error import GDALException
 from django.contrib.gis.geos import GEOSException, GEOSGeometry, Polygon
-from django.urls import reverse, exceptions
+from django.urls import reverse
 from django.utils import translation
 from django.utils.safestring import mark_safe
 
-from api_app.models import Change
 from data_models.models import Image
 from data_models.serializers import get_geojson_from_bb
 
