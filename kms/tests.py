@@ -7,11 +7,52 @@ from copy import deepcopy
 
 from kms import gcmd, api, tasks
 from data_models import models
-from api_app.models import Change, CREATE, UPDATE, DELETE
+from api_app.models import CREATE, UPDATE, DELETE, CREATED_CODE, Change
 from kms.fixtures.gcmd_fixtures import mock_concepts_changes
+from django.contrib.contenttypes.models import ContentType
+from data_models.tests.factories import (
+    GcmdProjectFactory,
+    GcmdInstrumentFactory,
+    GcmdPlatformFactory,
+    GcmdPhenomenaFactory,
+)
 
 @pytest.mark.django_db
 class TestGCMD():
+    @staticmethod
+    def get_factory_content_type(factory):
+        return ContentType.objects.get_for_model(factory._meta.model)
+
+    @staticmethod
+    def make_change_object_from_dict(update, content_type, change_action=CREATE, model_instance_uuid=None):
+        if change_action is CREATE:
+            return Change.objects.create(
+                content_type=content_type,
+                status=CREATED_CODE,
+                action=change_action,
+                update=update
+            )
+        else:
+            return Change.objects.create(
+                content_type=content_type,
+                status=CREATED_CODE,
+                action=change_action,
+                update=update,
+                model_instance_uuid=model_instance_uuid
+            )
+
+    @staticmethod
+    def make_change_object(factory, change_action=CREATE) -> Change:
+        """make a CREATE change object to use during testing"""
+        content_type = TestGCMD.get_factory_content_type(factory)
+
+        return Change.objects.create(
+            content_type=content_type,
+            status=CREATED_CODE,
+            action=change_action,
+            update=factory.as_change_dict(_save=True),
+        )
+
     @pytest.mark.parametrize("concept_input,model_input,concept_output", [
         ({
             "Bucket": "A-C",
@@ -30,8 +71,14 @@ class TestGCMD():
     def test_convert_concept(self, concept_input, model_input, concept_output):
         assert gcmd.convert_concept(concept_input, model_input) == concept_output
 
-    def test_compare_record_with_concept(self, compare_record_with_concept_row, compare_record_with_concept_dict):
-        assert gcmd.compare_record_with_concept(compare_record_with_concept_row, compare_record_with_concept_dict)
+    @pytest.mark.parametrize("expected_result", [(True), (False)])
+    def test_compare_record_with_concept(self, gcmd_factory, expected_result):
+        gcmd_object = gcmd_factory.create()
+        gcmd_dict = model_to_dict(gcmd_object)
+        if not expected_result:
+            gcmd_dict["gcmd_uuid"] = "Fake"
+
+        assert gcmd.compare_record_with_concept(gcmd_object, gcmd_dict) == expected_result
 
     @pytest.mark.parametrize("delete_uuids,change_model_uuids", [
         (
@@ -45,23 +92,46 @@ class TestGCMD():
         for uuid in change_model_uuids:
             assert Change.objects.filter(model_instance_uuid=uuid, action=DELETE).exists()
 
-    @pytest.mark.parametrize("concept,model,action,model_uuid,row_exists", [
-        ({
-            "short_name": "instr-change",
-            "long_name": "instrument-change",
-            "instrument_category": "committee",
-            "gcmd_uuid": "690b684a-0857-4264-b9b3-d6c60f07ae02"
-        }, models.GcmdInstrument, CREATE, None, True),
-        ({
-            "short_name": "OLI/TIRS",
-            "long_name": "Landsat 8 OLI/TIRS",
-            "instrument_category": "Earth Remote Sensing Instruments",
-            "gcmd_uuid": "7e74257a-f59f-4591-8530-93bbaf39c7cd"
-        }, models.GcmdInstrument, CREATE, None, True)
+    # This test and its parameters are all ran once per gcmd keyword type.
+    # See gcmd_factory fixture for how the keywords are passed into this test.
+    @pytest.mark.parametrize("action,row_exists", [
+        (CREATE, True),
+        (UPDATE, True),
+        (DELETE, True),
+        (CREATE, False)
     ])
-    def test_get_change(self, concept, model, action, model_uuid, row_exists):
-        row_exists = gcmd.get_change(concept, model, action, model_uuid) is not None
-        assert row_exists == row_exists
+    def test_get_change(self, gcmd_factory, action, row_exists):
+        if row_exists:
+            if action is CREATE:
+                change = self.make_change_object(gcmd_factory)
+            else:
+                # To test a DELETE or UPDATE change record, we need to create an initial published record first. 
+                gcmd_object = gcmd_factory.create()
+                gcmd_dict = model_to_dict(gcmd_object)
+                if action is UPDATE:
+                    # Make small change for the update.
+                    gcmd_dict["short_name"] = "Test update record"
+                elif action is DELETE:
+                    # Delete change is just an empty dictionary for the "update" value in the database.
+                    gcmd_dict = {}
+
+                change = self.make_change_object_from_dict(
+                    gcmd_dict,
+                    self.get_factory_content_type(gcmd_factory),
+                    action,
+                    gcmd_object.uuid
+                )
+
+            change = gcmd.get_change(change.update, gcmd_factory._meta.model, action, gcmd_object.uuid if action is not CREATE else None)
+
+        else:
+            # Test trying to get a change that doesn't exist.
+            # To do this, create a gcmd record without a change.
+            gcmd_object = gcmd_factory.create()
+            gcmd_dict = model_to_dict(gcmd_object)
+            change = gcmd.get_change(gcmd_dict, gcmd_factory._meta.model, action, gcmd_object.uuid if action is not CREATE else None)
+
+        assert bool(change) is row_exists
 
     @pytest.mark.parametrize("concept,model,action,model_uuid,new_row", [
         ({

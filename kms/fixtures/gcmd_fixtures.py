@@ -5,25 +5,23 @@ import uuid
 
 from data_models import models
 from api_app.models import Change, CREATE, UPDATE, DELETE
+from data_models.tests.factories import (
+    GcmdProjectFactory,
+    GcmdInstrumentFactory,
+    GcmdPlatformFactory,
+    GcmdPhenomenaFactory,
+)
 
 
 @pytest.fixture
-def compare_record_with_concept_row():
+def instrument_row():
     pickle_string = b'\x80\x04\x95\x0c\x02\x00\x00\x00\x00\x00\x00\x8c\x15django.db.models.base\x94\x8c\x0emodel_unpickle\x94\x93\x94\x8c\x0bdata_models\x94\x8c\x0eGcmdInstrument\x94\x86\x94\x85\x94R\x94}\x94(\x8c\x06_state\x94h\x00\x8c\nModelState\x94\x93\x94)\x81\x94}\x94(\x8c\x06adding\x94\x89\x8c\x02db\x94\x8c\x07default\x94\x8c\x0cfields_cache\x94}\x94ub\x8c\x04uuid\x94h\x13\x8c\x04UUID\x94\x93\x94)\x81\x94}\x94\x8c\x03int\x94\x8a\x11\x9d\xccu\xfd\x055\xf1\xaf\xd7Be\xe0\xdc\x07N\xbe\x00sb\x8c\nshort_name\x94\x8c\x04LVIS\x94\x8c\tlong_name\x94\x8c Land, Vegetation, and Ice Sensor\x94\x8c\x13instrument_category\x94\x8c Earth Remote Sensing Instruments\x94\x8c\x10instrument_class\x94\x8c\x15Active Remote Sensing\x94\x8c\x0finstrument_type\x94\x8c\nAltimeters\x94\x8c\x12instrument_subtype\x94\x8c\x16Lidar/Laser Altimeters\x94\x8c\tgcmd_uuid\x94h\x15)\x81\x94}\x94h\x18\x8a\x11\x89&\x80\x81\xac\x0e\x1f\x82\xe2N\xe65)\x843\xaa\x00sb\x8c\x0f_django_version\x94\x8c\x053.1.3\x94ub.'
     return pickle.loads(pickle_string)
 
 
-@pytest.fixture
-def compare_record_with_concept_dict():
-    return {
-        "short_name": "LVIS",
-        "long_name": "Land, Vegetation, and Ice Sensor",
-        "instrument_category": "Earth Remote Sensing Instruments",
-        "instrument_class": "Active Remote Sensing",
-        "instrument_type": "Altimeters",
-        "instrument_subtype": "Lidar/Laser Altimeters",
-        "gcmd_uuid": "aa338429-35e6-4ee2-821f-0eac81802689"
-    }
+@pytest.fixture(params=[GcmdProjectFactory, GcmdInstrumentFactory, GcmdPlatformFactory, GcmdPhenomenaFactory])
+def gcmd_factory(request):
+    return request.param
 
 
 @pytest.fixture

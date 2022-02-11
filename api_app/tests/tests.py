@@ -20,7 +20,6 @@ from ..models import (
     Change,
 )
 
-
 @pytest.mark.django_db
 @pytest.mark.parametrize(
     "factory",
