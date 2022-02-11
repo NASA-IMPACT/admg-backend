@@ -33,7 +33,7 @@ def is_not_admin(user):
     the decorator or within the claim function.
 
     Args:
-        user (User): User being evalu  ated for admin status
+        user (User): User being evaluated for admin status
 
     Returns:
         [dict]: {success, message}

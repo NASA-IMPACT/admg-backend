@@ -24,7 +24,7 @@ class GetPermissionsMixin(GenericAPIView):
 
 def GenericCreateGetAllView(model_name):
     """
-    Creates a view for LIST and Change.Actions.CREATE for given model name
+    Creates a view for LIST and CREATE for given model name
 
     Args:
         model_name (string) : model_name must be one from data_models/models.py
