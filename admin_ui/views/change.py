@@ -58,14 +58,12 @@ class SummaryView(django_tables2.SingleTableView):
             Change.Statuses.IN_ADMIN_REVIEW,
             Change.Statuses.PUBLISHED,
         ]
-        status_translations = {
-            status_id: status_name.replace(" ", "_") for status_id, status_name in Change.Statuses
-        }
+        status_translations = {k: v.replace(" ", "_") for k, v in Change.Statuses.choices}
 
         # Setup dict with 0 counts
         review_counts = {
             model._meta.model_name: {
-                status.replace(" ", "_"): 0 for status in status_translations.values()
+                status.replace(" ", "_"): 0 for status in Change.Statuses.labels
             }
             for model in self.models
         }
