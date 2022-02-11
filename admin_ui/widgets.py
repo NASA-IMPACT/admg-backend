@@ -103,9 +103,9 @@ class AddAnotherChoiceFieldWidget(forms.Select):
 
         output = [
             super().render(name, value, *args, **kwargs),
-            f"<small class='add-another cursor-pointer' data-select_id='id_{name}' data-form_url='{create_form_url}?_popup=1'>"
+            f"<a class='add-another small' data-select_id='id_{name}' data-form_url='{create_form_url}?_popup=1' href='#'>"
             f"&plus; Add new {self.model._meta.verbose_name.title()}"
-            "</small>",
+            "</a>",
         ]
         if value:
             update_form_url = reverse("change-update", kwargs={"pk": value})
