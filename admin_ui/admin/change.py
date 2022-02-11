@@ -7,7 +7,7 @@ from django.utils.translation import gettext as _
 from django.forms import modelform_factory, Field
 from django.forms.models import ModelForm as ModelFormType
 
-from api_app.models import PUBLISHED_CODE, Change, CREATE
+from api_app.models import Change
 from .permissions import EnforcedPermissionsMixin
 
 
@@ -49,7 +49,7 @@ class ChangeAdmin(admin.ModelAdmin, EnforcedPermissionsMixin):
         """Only allow changing objects if you're the author or superuser"""
         if obj:
             # Nobody can edit a published object
-            if obj.status == PUBLISHED_CODE:
+            if obj.status == Change.Statuses.PUBLISHED:
                 return False
 
         return True
@@ -65,7 +65,7 @@ class ChangeAdmin(admin.ModelAdmin, EnforcedPermissionsMixin):
         )
 
     def get_changeform_initial_data(self, request):
-        return {"action": CREATE}
+        return {"action": Change.Actions.CREATE}
 
     def save_model(self, request, obj: Change, form, change: bool):
         """

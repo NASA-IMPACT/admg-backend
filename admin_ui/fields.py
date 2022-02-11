@@ -1,11 +1,6 @@
 from django.core.exceptions import ValidationError
 from django.contrib.gis.forms.fields import PolygonField
-from django.forms import (
-    MultipleChoiceField,
-    ModelChoiceField,
-    DateField,
-    DateInput,
-)
+from django.forms import MultipleChoiceField, ModelChoiceField, DateField, DateInput
 from django.utils.translation import gettext_lazy as _
 
 from api_app import models
@@ -55,16 +50,13 @@ class ChangeChoiceMixin:
         dest_model_name = dest_model._meta.model_name
 
         # Field to use for textual description of field
-        identifier_field = {
-            "image": "title",
-            "website": "title",
-        }.get(dest_model_name, "short_name")
+        identifier_field = {"image": "title", "website": "title"}.get(dest_model_name, "short_name")
 
         return (
             ChangeWithIdentifier("short_name")
             .objects
             # Only focus on Created drafts, so we can treat the `uuid` as the target model's uuid
-            .filter(action=models.CREATE, content_type__model=dest_model_name)
+            .filter(action=models.Change.Actions.CREATE, content_type__model=dest_model_name)
             # Remove any Changes that have been successfully deleted
             .exclude(
                 uuid__in=models.Change.objects.of_type(dest_model)
@@ -82,14 +74,11 @@ class ChangeChoiceMixin:
         """Helper to get QS of valid choices"""
         return (
             ChangeWithIdentifier(
-                "campaign",
-                "deployment",
-                "platform",
-                "update__platform_identifier",
+                "campaign", "deployment", "platform", "update__platform_identifier"
             )
             .objects.of_type(data_models.CollectionPeriod)
             # Only focus on Created drafts, so we can treat the `uuid` as the target model's uuid
-            .filter(action=models.CREATE)
+            .filter(action=models.Change.Actions.CREATE)
             # Remove any Changes that have been successfully deleted
             .exclude(
                 uuid__in=models.Change.objects.of_type(data_models.CollectionPeriod)
@@ -98,9 +87,7 @@ class ChangeChoiceMixin:
             )
             # Get Deployment short_name from related deployments
             .annotate_from_relationship(
-                of_type=data_models.Deployment,
-                to_attr="deployment",
-                uuid_from="deployment",
+                of_type=data_models.Deployment, to_attr="deployment", uuid_from="deployment"
             )
             # Get Campaign short_name from related campaigns
             .annotate_from_relationship(
@@ -115,9 +102,7 @@ class ChangeChoiceMixin:
             )
             # Get Platform short_name from related platforms
             .annotate_from_relationship(
-                of_type=data_models.Platform,
-                to_attr="platform",
-                uuid_from="platform",
+                of_type=data_models.Platform, to_attr="platform", uuid_from="platform"
             )
             .select_related("content_type")
             .order_by("deployment")

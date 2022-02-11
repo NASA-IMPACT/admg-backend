@@ -7,7 +7,7 @@ from oauth2_provider.contrib.rest_framework import TokenHasScope
 from data_models import serializers as sz
 from admg_webapp.users.models import STAFF
 from .view_utils import handle_exception, requires_admin_approval
-from ..models import CREATE, DELETE, PATCH
+from ..models import Change
 
 
 class GetPermissionsMixin(GenericAPIView):
@@ -49,7 +49,7 @@ def GenericCreateGetAllView(model_name):
             return res
 
         @handle_exception
-        @requires_admin_approval(model_name=model_name, action=CREATE)
+        @requires_admin_approval(model_name=model_name, action=Change.Actions.CREATE)
         def post(self, request, *args, **kwargs):
             return super().post(request, *args, **kwargs)
 
@@ -83,12 +83,12 @@ def GenericPutPatchDeleteView(model_name):
             return super().put(request, *args, **kwargs)
 
         @handle_exception
-        @requires_admin_approval(model_name=model_name, action=PATCH)
+        @requires_admin_approval(model_name=model_name, action=Change.Actions.PATCH)
         def patch(self, request, *args, **kwargs):
             return super().patch(request, *args, **kwargs)
 
         @handle_exception
-        @requires_admin_approval(model_name=model_name, action=DELETE)
+        @requires_admin_approval(model_name=model_name, action=Change.Actions.DELETE)
         def delete(self, request, *args, **kwargs):
             return super().delete(request, *args, **kwargs)
 

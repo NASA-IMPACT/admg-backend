@@ -10,28 +10,13 @@ from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.utils.safestring import mark_safe
 from django.views.generic import DetailView
-from django.views.generic.edit import (
-    CreateView,
-    FormMixin,
-    ProcessFormView,
-    UpdateView,
-)
+from django.views.generic.edit import CreateView, FormMixin, ProcessFormView, UpdateView
 from django_filters.views import FilterView
 from django_tables2.views import SingleTableMixin
 from rest_framework.serializers import ValidationError
 
 from admin_ui.config import MODEL_CONFIG_MAP
-from api_app.models import (
-    AVAILABLE_STATUSES,
-    CREATE,
-    IN_ADMIN_REVIEW_CODE,
-    IN_TRASH_CODE,
-    IN_REVIEW_CODE,
-    PUBLISHED_CODE,
-    UPDATE,
-    ApprovalLog,
-    Change,
-)
+from api_app.models import ApprovalLog, Change
 from data_models.models import (
     IOP,
     Alias,
@@ -68,10 +53,13 @@ class SummaryView(django_tables2.SingleTableView):
         )
 
     def get_draft_status_count(self):
-        status_ids = [IN_REVIEW_CODE, IN_ADMIN_REVIEW_CODE, PUBLISHED_CODE]
+        status_ids = [
+            Change.Statuses.IN_REVIEW,
+            Change.Statuses.IN_ADMIN_REVIEW,
+            Change.Statuses.PUBLISHED,
+        ]
         status_translations = {
-            status_id: status_name.replace(" ", "_")
-            for status_id, status_name in AVAILABLE_STATUSES
+            status_id: status_name.replace(" ", "_") for status_id, status_name in Change.Statuses
         }
 
         # Setup dict with 0 counts
@@ -85,7 +73,7 @@ class SummaryView(django_tables2.SingleTableView):
         # Populate with actual counts
         model_status_counts = (
             Change.objects.of_type(*self.models)
-            .filter(action=CREATE, status__in=status_ids)
+            .filter(action=Change.Actions.CREATE, status__in=status_ids)
             .values_list("content_type__model", "status")
             .annotate(aggregates.Count("content_type"))
         )
@@ -181,7 +169,9 @@ class ChangeCreateView(mixins.ChangeModelFormMixin, CreateView):
         # Get initial form values from URL
         return {
             "content_type": self.get_model_form_content_type(),
-            "action": UPDATE if self.request.GET.get("uuid") else CREATE,
+            "action": (
+                Change.Actions.UPDATE if self.request.GET.get("uuid") else Change.Actions.CREATE
+            ),
             "model_instance_uuid": self.request.GET.get("uuid"),
         }
 
@@ -237,7 +227,7 @@ class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
     def get_success_url(self):
         url = (
             reverse("change-diff", args=[self.object.pk])
-            if self.object.action == UPDATE
+            if self.object.action == Change.Actions.UPDATE
             else reverse("change-update", args=[self.object.pk])
         )
         if self.request.GET.get("back"):
@@ -251,12 +241,7 @@ class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
             "transition_form": (
                 forms.TransitionForm(change=context["object"], user=self.request.user)
             ),
-            "campaign_subitems": [
-                "Deployment",
-                "IOP",
-                "SignificantEvent",
-                "CollectionPeriod",
-            ],
+            "campaign_subitems": ["Deployment", "IOP", "SignificantEvent", "CollectionPeriod"],
             "related_fields": self.get_related_fields(),
             "back_button": self.get_back_button_url(),
             "ancestors": (context["object"].get_ancestors().select_related("content_type")),
@@ -269,25 +254,16 @@ class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
     def get_related_fields(self) -> Dict:
         related_fields = {}
         content_type = self.get_model_form_content_type().model_class().__name__
-        if content_type in [
-            "Campaign",
-            "Platform",
-            "Deployment",
-            "Instrument",
-            "PartnerOrg",
-        ]:
+        if content_type in ["Campaign", "Platform", "Deployment", "Instrument", "PartnerOrg"]:
             related_fields["alias"] = Change.objects.of_type(Alias).filter(
                 update__object_id=str(self.object.uuid)
             )
         if content_type == "Campaign":
             related_fields["website"] = (
                 Change.objects.of_type(Website)
-                .filter(action=CREATE, update__campaign=str(self.object.uuid))
+                .filter(action=Change.Actions.CREATE, update__campaign=str(self.object.uuid))
                 .annotate_from_relationship(
-                    of_type=Website,
-                    to_attr="title",
-                    uuid_from="website",
-                    identifier="title",
+                    of_type=Website, to_attr="title", uuid_from="website", identifier="title"
                 )
             )
         return related_fields
@@ -351,11 +327,11 @@ class DiffView(ChangeUpdateView):
         destination_model_instance = context["object"].content_object
 
         published_form = self.destination_model_form(
-            instance=destination_model_instance,
-            auto_id="readonly_%s",
+            instance=destination_model_instance, auto_id="readonly_%s"
         )
         is_published_or_trashed = (
-            context["object"].status == PUBLISHED_CODE or context["object"].status == IN_TRASH_CODE
+            context["object"].status == Change.Statuses.PUBLISHED
+            or context["object"].status == Change.Statuses.IN_TRASH
         )
 
         # if published or trashed then the old data doesn't need to be from the database, it
@@ -400,9 +376,7 @@ def generate_base_list_view(model_name):
 
             if self.linked_model == Platform:
                 return queryset.annotate_from_relationship(
-                    of_type=PlatformType,
-                    uuid_from="platform_type",
-                    to_attr="platform_type_name",
+                    of_type=PlatformType, uuid_from="platform_type", to_attr="platform_type_name"
                 )
             else:
                 return queryset
@@ -424,11 +398,7 @@ class ChangeTransition(FormMixin, ProcessFormView, DetailView):
     form_class = forms.TransitionForm
 
     def get_form_kwargs(self):
-        return {
-            **super().get_form_kwargs(),
-            "change": self.get_object(),
-            "user": self.request.user,
-        }
+        return {**super().get_form_kwargs(), "change": self.get_object(), "user": self.request.user}
 
     def form_valid(self, form):
         try:

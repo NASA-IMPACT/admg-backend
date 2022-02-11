@@ -14,49 +14,6 @@ from django.dispatch import receiver
 from rest_framework.response import Response
 from rest_framework.serializers import ValidationError
 
-CREATE = "Create"
-UPDATE = "Update"
-DELETE = "Delete"
-PATCH = "Patch"
-
-
-# The change has been freshly ingested, but no one has made edits using the admin interface
-CREATED, CREATED_CODE = "Created", 0
-
-# The change is in progress, can not be approved, but the user can update the change request
-IN_PROGRESS, IN_PROGRESS_CODE = "In Progress", 1
-
-# The change has been added to the review pile, but hasn't been claimed
-AWAITING_REVIEW, AWAITING_REVIEW_CODE = "Awaiting Review", 2
-
-# The change as been claimed, and can now be can now be reviewed or rejected. Rejection sends it back to the in_progress state
-IN_REVIEW, IN_REVIEW_CODE = "In Review", 3
-
-# The change has been added to the admin review pile, but hasn't been claimed
-AWAITING_ADMIN_REVIEW, AWAITING_ADMIN_REVIEW_CODE = "Awaiting Admin Review", 4
-
-# Can be published or rejected. Rejection sends it back to the in_progress state
-IN_ADMIN_REVIEW, IN_ADMIN_REVIEW_CODE = "In Admin Review", 5
-
-# Once approved the changes in the change table is refected to the model
-# The state of the change object can not be changed from this state.
-PUBLISHED, PUBLISHED_CODE = "Published", 6
-
-# The change has been moved to the trash
-IN_TRASH, IN_TRASH_CODE = "In Trash", 7
-
-
-AVAILABLE_STATUSES = (
-    (CREATED_CODE, CREATED),
-    (IN_PROGRESS_CODE, IN_PROGRESS),
-    (AWAITING_REVIEW_CODE, AWAITING_REVIEW),
-    (IN_REVIEW_CODE, IN_REVIEW),
-    (AWAITING_ADMIN_REVIEW_CODE, AWAITING_ADMIN_REVIEW),
-    (IN_ADMIN_REVIEW_CODE, IN_ADMIN_REVIEW),
-    (PUBLISHED_CODE, PUBLISHED),
-    (IN_TRASH_CODE, IN_TRASH),
-)
-
 
 def generate_failure_response(message):
     return {"success": False, "message": message}
@@ -105,9 +62,7 @@ def is_status(accepted_statuses_list):
         def wrapper(self, user, notes=""):
 
             if self.status not in accepted_statuses_list:
-                status_strings = [
-                    AVAILABLE_STATUSES[status][1] for status in accepted_statuses_list
-                ]
+                status_strings = [status.label for status in accepted_statuses_list]
                 return generate_failure_response(
                     f"action failed because status was not one of {status_strings}"
                 )
@@ -124,48 +79,29 @@ def is_status(accepted_statuses_list):
 class ApprovalLog(models.Model):
     """Keeps a log of the changes (publish, reject, etc) made to a particular draft"""
 
-    TRASH = -1
-    UNTRASH = 0
-    CREATE = 1
-    EDIT = 2
-    SUBMIT = 3
-    REVIEW = 4
-    PUBLISH = 5
-    REJECT = 6
-    CLAIM = 7
-    UNCLAIM = 8
-
-    ACTION_CHOICES = [
-        (TRASH, "trash"),
-        (UNTRASH, "untrash"),
-        (CREATE, "create"),
-        (EDIT, "edit"),
-        (SUBMIT, "submit"),
-        (REVIEW, "review"),
-        (PUBLISH, "publish"),
-        (REJECT, "reject"),
-        (CLAIM, "claim"),
-        (UNCLAIM, "unclaim"),
-    ]
+    class Actions(models.IntegerChoices):
+        TRASH = -1, "trash"
+        UNTRASH = 0, "untrash"
+        CREATE = 1, "create"
+        EDIT = 2, "edit"
+        SUBMIT = 3, "submit"
+        REVIEW = 4, "review"
+        PUBLISH = 5, "publish"
+        REJECT = 6, "reject"
+        CLAIM = 7, "claim"
+        UNCLAIM = 8, "unclaim"
 
     uuid = models.UUIDField(primary_key=True, default=uuid4, editable=False)
 
     change = models.ForeignKey("Change", on_delete=models.CASCADE, blank=True)
 
     user = models.ForeignKey(
-        User,
-        on_delete=models.SET_NULL,
-        related_name="user",
-        null=True,
-        blank=True,
+        User, on_delete=models.SET_NULL, related_name="user", null=True, blank=True
     )
 
     date = models.DateTimeField(auto_now_add=True)
 
-    action = models.IntegerField(
-        choices=ACTION_CHOICES,
-        default=CREATE,
-    )
+    action = models.IntegerField(choices=Actions, default=Actions.CREATE)
     notes = models.TextField(blank=True, default="")
 
     def __str__(self):
@@ -205,11 +141,7 @@ class ChangeQuerySet(models.QuerySet):
         )
 
     def annotate_from_relationship(
-        self,
-        of_type: models.Model,
-        to_attr: str,
-        uuid_from: str,
-        identifier="short_name",
+        self, of_type: models.Model, to_attr: str, uuid_from: str, identifier="short_name"
     ):
         """
         Annotate queryset with an identifier obtained from a related model.
@@ -245,12 +177,12 @@ class ChangeQuerySet(models.QuerySet):
                     Change.objects.of_type(of_type)
                     .filter(
                         # NOTE: This only shows the first created short_name, but doesn't reflect updated short_names
-                        action=CREATE,
+                        action=Change.Actions.CREATE,
                         uuid=expressions.OuterRef(uuid_dest_attr),
                     )
                     .values(f"update__{identifier}")[:1]
                 ),
-            },
+            }
         )
 
     def annotate_from_published(self, of_type, to_attr, identifier="short_name"):
@@ -295,24 +227,45 @@ class Change(models.Model):
         FIELD_CORRECT: "correct",
     }
 
+    class Statuses(models.IntegerChoices):
+        # The change has been freshly ingested, but no one has made edits using the admin interface
+        CREATED = 0, "Created"
+        # The change is in progress, can not be approved, but the user can update the change request
+        IN_PROGRESS = 1, "In Progress"
+        # The change has been added to the review pile, but hasn't been claimed
+        AWAITING_REVIEW = 2, "Awaiting Review"
+        # The change as been claimed, and can now be can now be reviewed or rejected. Rejection sends it back to the in_progress state
+        IN_REVIEW = 3, "In Review"
+        # The change has been added to the admin review pile, but hasn't been claimed
+        AWAITING_ADMIN_REVIEW = 4, "Awaiting Admin Review"
+        # Can be published or rejected. Rejection sends it back to the in_progress state
+        IN_ADMIN_REVIEW = 5, "In Admin Review"
+        # Once approved the changes in the change table is refected to the model
+        # The state of the change object can not be changed from this state.
+        PUBLISHED = 6, "Published"
+        # The change has been moved to the trash
+        IN_TRASH = 7, "In Trash"
+
+    class Actions(models.TextChoices):
+        CREATE = "Create"
+        UPDATE = "Update"
+        DELETE = "Delete"
+        PATCH = "Patch"
+
     uuid = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     content_type = models.ForeignKey(
-        ContentType,
-        help_text="Model for which the draft pertains.",
-        on_delete=models.CASCADE,
+        ContentType, help_text="Model for which the draft pertains.", on_delete=models.CASCADE
     )
     model_instance_uuid = models.UUIDField(default=uuid4, blank=True, null=True)
     content_object = GenericForeignKey("content_type", "model_instance_uuid")
 
-    status = models.IntegerField(choices=AVAILABLE_STATUSES, default=IN_PROGRESS_CODE)
+    status = models.IntegerField(choices=Statuses.choices, default=Statuses.IN_PROGRESS)
     update = models.JSONField(default=dict, blank=True)
     field_status_tracking = models.JSONField(default=dict, blank=True)
     previous = models.JSONField(default=dict)
 
     action = models.CharField(
-        max_length=10,
-        choices=((choice, choice) for choice in [CREATE, UPDATE, DELETE, PATCH]),
-        default=UPDATE,
+        max_length=10, choices=((choice, choice) for choice in Actions), default=Actions.UPDATE
     )
     objects = ChangeQuerySet.as_manager()
 
@@ -380,10 +333,10 @@ class Change(models.Model):
         or the uuid deosn't exist in case of edit/delete change
         """
         model = apps.get_model("data_models", self.model_name)
-        if self.action != CREATE:
+        if self.action != Change.Actions.CREATE:
             serializer_class = getattr(serializers, f"{self.model_name}Serializer")
             instance = model.objects.get(uuid=self.model_instance_uuid)
-            if self.action == UPDATE:
+            if self.action == Change.Actions.UPDATE:
                 serializer = serializer_class(instance)
                 self.previous = {
                     key: Change._get_processed_value(serializer.data.get(key))
@@ -471,11 +424,11 @@ class Change(models.Model):
 
         # change object was freshly created and has no logs
         if not ApprovalLog.objects.filter(change=self).exists():
-            self.status = CREATED_CODE
+            self.status = self.Statuses.CREATED
             # the post_save function handles the creation of the approval log
         # should only log changes made to the draft while in progress
-        elif self.status == CREATED_CODE:
-            self.status = IN_PROGRESS_CODE
+        elif self.status == self.Statuses.CREATED:
+            self.status = self.Statuses.IN_PROGRESS
 
         if not self.field_status_tracking:
             self.generate_field_status_tracking_dict()
@@ -511,21 +464,16 @@ class Change(models.Model):
             pass. Otherwise, the error handler will print out each validation error string
             and error code.
         """
-        if self.action == CREATE:
+        if self.action == Change.Actions.CREATE:
             validation_message = self._run_validator(partial=False)
 
-        elif self.action == PATCH or self.action == UPDATE:
+        elif self.action == Change.Actions.PATCH or self.action == Change.Actions.UPDATE:
             validation_message = self._run_validator(partial=True)
 
-        elif self.action == DELETE:
+        elif self.action == Change.Actions.DELETE:
             validation_message = ""
 
-        return Response(
-            status=200,
-            data={
-                "message": validation_message,
-            },
-        )
+        return Response(status=200, data={"message": validation_message})
 
     def _get_model_instance(self):
         model = apps.get_model("data_models", self.model_name)
@@ -537,7 +485,7 @@ class Change(models.Model):
 
         if serializer.is_valid(raise_exception=True):
             new_model_instance = serializer.save()
-            return {"uuid": new_model_instance.uuid, "status": PUBLISHED_CODE}
+            return {"uuid": new_model_instance.uuid, "status": self.Statuses.PUBLISHED}
 
     def _create(self):
         # set the db uuid == change request uuid
@@ -550,11 +498,7 @@ class Change(models.Model):
         if not self.model_instance_uuid:
             raise ValidationError({"uuid": "UUID for the model was not found"})
 
-        return self._save_serializer(
-            model_instance=model_instance,
-            data=self.update,
-            partial=True,
-        )
+        return self._save_serializer(model_instance=model_instance, data=self.update, partial=True)
 
     def _delete(self):
         model_instance = self._get_model_instance()
@@ -569,30 +513,34 @@ class Change(models.Model):
         self.save(post_save=True)
         model_instance.delete()
 
-        return {"uuid": self.model_instance_uuid, "status": PUBLISHED_CODE}
+        return {"uuid": self.model_instance_uuid, "status": self.Statuses.PUBLISHED}
 
-    @is_status([CREATED_CODE, IN_PROGRESS_CODE])
+    @is_status([Statuses.CREATED, Statuses.IN_PROGRESS])
     def submit(self, user, notes=""):
-        self.status = AWAITING_REVIEW_CODE
+        self.status = self.Statuses.AWAITING_REVIEW
 
-        ApprovalLog.objects.create(change=self, user=user, action=ApprovalLog.SUBMIT, notes=notes)
-
-        self.save(post_save=True)
-
-        return generate_success_response(
-            status_str=AWAITING_REVIEW,
-            data={"uuid": self.uuid, "status": AWAITING_REVIEW_CODE},
+        ApprovalLog.objects.create(
+            change=self, user=user, action=ApprovalLog.Actions.SUBMIT, notes=notes
         )
 
-    @is_status([IN_REVIEW_CODE])
-    def review(self, user, notes=""):
-        self.status = AWAITING_ADMIN_REVIEW_CODE
-        ApprovalLog.objects.create(change=self, user=user, action=ApprovalLog.REVIEW, notes=notes)
         self.save(post_save=True)
 
         return generate_success_response(
-            status_str=AWAITING_ADMIN_REVIEW,
-            data={"uuid": self.uuid, "status": AWAITING_ADMIN_REVIEW_CODE},
+            status_str=self.Statuses.AWAITING_REVIEW.label,
+            data={"uuid": self.uuid, "status": self.Statuses.AWAITING_REVIEW},
+        )
+
+    @is_status([Statuses.IN_REVIEW])
+    def review(self, user, notes=""):
+        self.status = self.Statuses.AWAITING_ADMIN_REVIEW
+        ApprovalLog.objects.create(
+            change=self, user=user, action=ApprovalLog.Actions.REVIEW, notes=notes
+        )
+        self.save(post_save=True)
+
+        return generate_success_response(
+            status_str=self.Statuses.AWAITING_ADMIN_REVIEW.label,
+            data={"uuid": self.uuid, "status": self.Statuses.AWAITING_ADMIN_REVIEW},
         )
 
     @is_admin
@@ -617,50 +565,50 @@ class Change(models.Model):
             }
         """
 
-        if self.action == CREATE:
+        if self.action == Change.Actions.CREATE:
             response = self._create()
-        elif self.action == UPDATE or self.action == PATCH:
+        elif self.action == Change.Actions.UPDATE or self.action == Change.Actions.PATCH:
             response = self._update_patch()
-        elif self.action == DELETE:
+        elif self.action == Change.Actions.DELETE:
             response = self._delete()
 
         # links co to the new db instance
         # this is not what syncs the UUIDs
-        if self.action == CREATE:
+        if self.action == Change.Actions.CREATE:
             self.model_instance_uuid = response["uuid"]
 
-        if self.status != IN_ADMIN_REVIEW_CODE:
+        if self.status != self.Statuses.IN_ADMIN_REVIEW:
             ApprovalLog.objects.create(
-                change=self, user=admin_user, action=ApprovalLog.REVIEW, notes=notes
+                change=self, user=admin_user, action=ApprovalLog.Actions.REVIEW, notes=notes
             )
 
         ApprovalLog.objects.create(
-            change=self, user=admin_user, action=ApprovalLog.PUBLISH, notes=notes
+            change=self, user=admin_user, action=ApprovalLog.Actions.PUBLISH, notes=notes
         )
 
-        self.status = PUBLISHED_CODE
+        self.status = self.Statuses.PUBLISHED
 
         self.save(post_save=True)
 
         return generate_success_response(
-            status_str=PUBLISHED,
+            status_str=self.Statuses.PUBLISHED.label,
             data={
                 "updated_model": self.model_name,
                 "action": self.action,
                 "uuid_changed": response["uuid"],
-                "status": PUBLISHED_CODE,
+                "status": self.Statuses.PUBLISHED,
             },
         )
 
     @is_admin
     @is_status(
         [
-            CREATED_CODE,
-            IN_PROGRESS_CODE,
-            AWAITING_REVIEW_CODE,
-            IN_REVIEW_CODE,
-            AWAITING_ADMIN_REVIEW_CODE,
-            IN_ADMIN_REVIEW_CODE,
+            Statuses.CREATED,
+            Statuses.IN_PROGRESS,
+            Statuses.AWAITING_REVIEW,
+            Statuses.IN_REVIEW,
+            Statuses.AWAITING_ADMIN_REVIEW,
+            Statuses.IN_ADMIN_REVIEW,
         ]
     )
     def trash(self, user, notes="", doi=False):
@@ -676,16 +624,19 @@ class Change(models.Model):
             [dict]: {"success", "message", "data": {"uuid", "status"}}
         """
 
-        self.status = IN_TRASH_CODE
-        ApprovalLog.objects.create(change=self, user=user, action=ApprovalLog.TRASH, notes=notes)
+        self.status = self.Statuses.IN_TRASH
+        ApprovalLog.objects.create(
+            change=self, user=user, action=ApprovalLog.Actions.TRASH, notes=notes
+        )
         self.save(post_save=True)
 
         return generate_success_response(
-            status_str=IN_TRASH, data={"uuid": self.uuid, "status": IN_TRASH_CODE}
+            status_str=self.Statuses.IN_TRASH.label,
+            data={"uuid": self.uuid, "status": self.Statuses.IN_TRASH},
         )
 
     @is_admin
-    @is_status([IN_TRASH_CODE])
+    @is_status([Statuses.IN_TRASH])
     def untrash(self, user, notes="", doi=False):
         """Moves a change object from trash to the in progress stage.
 
@@ -697,15 +648,16 @@ class Change(models.Model):
             [dict]: {"success", "message", "data": {"uuid", "status"}}
         """
 
-        self.status = IN_PROGRESS_CODE
+        self.status = self.Statuses.IN_PROGRESS
         ApprovalLog.objects.create(change=self, user=user, action=ApprovalLog.UNTRASH, notes=notes)
         self.save(post_save=True)
 
         return generate_success_response(
-            status_str=IN_PROGRESS, data={"uuid": self.uuid, "status": IN_PROGRESS_CODE}
+            status_str=self.Statuses.IN_PROGRESS.label,
+            data={"uuid": self.uuid, "status": self.Statuses.IN_PROGRESS},
         )
 
-    @is_status([IN_REVIEW_CODE, IN_ADMIN_REVIEW_CODE])
+    @is_status([Statuses.IN_REVIEW, Statuses.IN_ADMIN_REVIEW])
     def reject(self, user, notes):
         """
         Rejects a change. The change is not reflected in the model.
@@ -726,12 +678,15 @@ class Change(models.Model):
             }
         """
 
-        self.status = IN_PROGRESS_CODE
-        ApprovalLog.objects.create(change=self, user=user, action=ApprovalLog.REJECT, notes=notes)
+        self.status = self.Statuses.IN_PROGRESS
+        ApprovalLog.objects.create(
+            change=self, user=user, action=ApprovalLog.Actions.REJECT, notes=notes
+        )
         self.save(post_save=True)
 
         return generate_success_response(
-            status_str=IN_PROGRESS, data={"uuid": self.uuid, "status": IN_PROGRESS_CODE}
+            status_str=self.Statuses.IN_PROGRESS.label,
+            data={"uuid": self.uuid, "status": self.Statuses.IN_PROGRESS},
         )
 
     def _goto_next_approval_stage(self):
@@ -742,7 +697,7 @@ class Change(models.Model):
         """Do not call this, it is an internal function"""
         self.status -= 1
 
-    @is_status([AWAITING_REVIEW_CODE, AWAITING_ADMIN_REVIEW_CODE])
+    @is_status([Statuses.AWAITING_REVIEW, Statuses.AWAITING_ADMIN_REVIEW])
     def claim(self, user, notes=""):
         """Claims a change object for review or admin review for the given user
         and updates the log.
@@ -757,21 +712,23 @@ class Change(models.Model):
 
         # cannot use is_admin decorator for this check, because claim doesn't universally
         # require admin, only for one of the two statuses
-        if self.status == AWAITING_ADMIN_REVIEW_CODE:
+        if self.status == self.Statuses.AWAITING_ADMIN_REVIEW:
             if not_admin := is_not_admin(user):
                 return not_admin
 
         self._goto_next_approval_stage()
 
-        ApprovalLog.objects.create(change=self, user=user, action=ApprovalLog.CLAIM, notes=notes)
+        ApprovalLog.objects.create(
+            change=self, user=user, action=ApprovalLog.Actions.CLAIM, notes=notes
+        )
         self.save(post_save=True)
 
         return generate_success_response(
-            status_str=AVAILABLE_STATUSES[self.status][1],
-            data={"uuid": self.uuid, "status": AVAILABLE_STATUSES[self.status][0]},
+            status_str=next(status.label for status in Change.Statuses if status == self.status),
+            data={"uuid": self.uuid, "status": self.status},
         )
 
-    @is_status([IN_REVIEW_CODE, IN_ADMIN_REVIEW_CODE])
+    @is_status([Statuses.IN_REVIEW, Statuses.IN_ADMIN_REVIEW])
     def unclaim(self, user, notes=""):
         """Unclaims a change object for review or admin review for the given user
         and updates the log. Will move the change back to the previous approval step.
@@ -794,39 +751,37 @@ class Change(models.Model):
 
         self._goto_previous_approval_stage()
 
-        ApprovalLog.objects.create(change=self, user=user, action=ApprovalLog.UNCLAIM, notes=notes)
+        ApprovalLog.objects.create(
+            change=self, user=user, action=ApprovalLog.Actions.UNCLAIM, notes=notes
+        )
         self.save(post_save=True)
 
         return generate_success_response(
-            status_str=AVAILABLE_STATUSES[self.status][1],
-            data={"uuid": self.uuid, "status": AVAILABLE_STATUSES[self.status][0]},
+            status_str=next(status.label for status in Change.Statuses if status == self.status),
+            data={"uuid": self.uuid, "status": self.status},
         )
 
     def _add_create_edit_approval_log(self):
         """
-        Adds a CREATE or EDIT approval log to the change object
+        Adds a Change.Actions.CREATE or EDIT approval log to the change object
         based on conditions
         """
 
         # change object was freshly created and has no logs
         if not ApprovalLog.objects.filter(change=self).exists():
             ApprovalLog.objects.create(
-                change=self,
-                user=get_current_user(),
-                action=ApprovalLog.CREATE,
+                change=self, user=get_current_user(), action=ApprovalLog.Actions.CREATE
             )
 
-        elif self.status in [CREATED_CODE, IN_PROGRESS_CODE]:
+        elif self.status in [self.Statuses.CREATED, self.Statuses.IN_PROGRESS]:
             # don't create an EDIT ApprovalLog for a rejection, claim, or unclaim
             if self.get_latest_log().action not in [
-                ApprovalLog.REJECT,
-                ApprovalLog.CLAIM,
-                ApprovalLog.UNCLAIM,
+                ApprovalLog.Actions.REJECT,
+                ApprovalLog.Actions.CLAIM,
+                ApprovalLog.Actions.UNCLAIM,
             ]:
                 ApprovalLog.objects.create(
-                    change=self,
-                    user=get_current_user(),
-                    action=ApprovalLog.EDIT,
+                    change=self, user=get_current_user(), action=ApprovalLog.Actions.EDIT
                 )
 
 

@@ -1,6 +1,6 @@
 from django.contrib.contenttypes.admin import GenericTabularInline
 
-from api_app.models import Change, IN_PROGRESS_CODE, IN_REVIEW_CODE, IN_ADMIN_REVIEW_CODE
+from api_app.models import Change
 
 
 class BaseChangeInline(GenericTabularInline):
@@ -25,18 +25,18 @@ class InProgressInline(BaseChangeInline):
     verbose_name_plural = "In Progress"
 
     def get_queryset(self, request):
-        return super().get_queryset(request).filter(status=IN_PROGRESS_CODE)
+        return super().get_queryset(request).filter(status=Change.Statuses.IN_PROGRESS)
 
 
 class InReviewInline(BaseChangeInline):
     verbose_name_plural = "In Review"
 
     def get_queryset(self, request):
-        return super().get_queryset(request).filter(status=IN_REVIEW_CODE)
+        return super().get_queryset(request).filter(status=Change.Statuses.IN_REVIEW)
 
 
 class InAdminReviewInline(BaseChangeInline):
     verbose_name_plural = "In Admin Review"
 
     def get_queryset(self, request):
-        return super().get_queryset(request).filter(status=IN_ADMIN_REVIEW_CODE)
+        return super().get_queryset(request).filter(status=Change.Statuses.IN_ADMIN_REVIEW)

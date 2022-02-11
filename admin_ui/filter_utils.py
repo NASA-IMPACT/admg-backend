@@ -12,9 +12,7 @@ default_filter_configs = [{"field_name": "short_name", "label": "Short Name"}]
 class CampaignFilter(django_filters.FilterSet):
     # make sure to include a filter_campaign_name method in the inherited classes
     campaign_name = django_filters.CharFilter(
-        label="Campaign Name",
-        field_name="",
-        method="filter_campaign_name",
+        label="Campaign Name", field_name="", method="filter_campaign_name"
     )
 
 

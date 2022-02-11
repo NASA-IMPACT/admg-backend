@@ -6,15 +6,7 @@ from django.utils.safestring import mark_safe
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit
 
-from api_app.models import (
-    Change,
-    CREATED_CODE,
-    IN_REVIEW_CODE,
-    IN_ADMIN_REVIEW_CODE,
-    IN_PROGRESS_CODE,
-    AWAITING_REVIEW_CODE,
-    AWAITING_ADMIN_REVIEW_CODE,
-)
+from api_app.models import Change
 from admg_webapp.users.models import User, ADMIN_CODE
 from data_models import models as data_models
 from .widgets import IconBooleanWidget
@@ -55,31 +47,31 @@ class TransitionForm(forms.Form):
     def get_supported_actions(change: Change, user: User):
         actions = OrderedDict()
 
-        if change.status in [CREATED_CODE, IN_PROGRESS_CODE]:
+        if change.status in [Change.Statuses.CREATED, Change.Statuses.IN_PROGRESS]:
             actions["submit"] = "Ready for Staff Review"
 
-        if change.status in [AWAITING_REVIEW_CODE]:
+        if change.status in [Change.Statuses.AWAITING_REVIEW]:
             actions["claim"] = "Claim for Staff Review"
 
-        if change.status in [IN_REVIEW_CODE]:
+        if change.status in [Change.Statuses.IN_REVIEW]:
             actions["reject"] = "Requires adjustments"
 
-        if change.status in [IN_REVIEW_CODE]:
+        if change.status in [Change.Statuses.IN_REVIEW]:
             actions["unclaim"] = "Unassign Staff Reviewer"
 
-        if change.status in [IN_REVIEW_CODE]:
+        if change.status in [Change.Statuses.IN_REVIEW]:
             actions["review"] = "Ready for Admin Review"
 
         if user.role == ADMIN_CODE:
-            if change.status in [IN_ADMIN_REVIEW_CODE]:
+            if change.status in [Change.Statuses.IN_ADMIN_REVIEW]:
                 actions["reject"] = "Requires adjustments"
 
-            if change.status in [AWAITING_ADMIN_REVIEW_CODE]:
+            if change.status in [Change.Statuses.AWAITING_ADMIN_REVIEW]:
                 actions["claim"] = "Claim for Admin Review"
 
             # Admin can publish at any step
             actions["publish"] = "Publish to production"
-            if change.status != IN_ADMIN_REVIEW_CODE:
+            if change.status != Change.Statuses.IN_ADMIN_REVIEW:
                 actions["publish"] = mark_safe(
                     '<span class="text-danger font-italic">Danger:</span>  ' + actions["publish"]
                 )

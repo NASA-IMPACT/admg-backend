@@ -1,14 +1,4 @@
-from api_app.models import (
-    AWAITING_REVIEW_CODE,
-    CREATE,
-    CREATED_CODE,
-    IN_PROGRESS_CODE,
-    IN_TRASH_CODE,
-    PUBLISHED_CODE,
-    UPDATE,
-    ApprovalLog,
-    Change,
-)
+from api_app.models import ApprovalLog, Change
 from cmr import tasks
 from data_models.models import DOI, Campaign
 from django.contrib import messages
@@ -99,11 +89,15 @@ class DoiApprovalView(SingleObjectMixin, MultipleObjectMixin, FormView):
                 "uuid": v.uuid,
                 "keep": (
                     False
-                    if v.status == IN_TRASH_CODE
-                    else (None if v.status in [CREATED_CODE, IN_PROGRESS_CODE] else True)
+                    if v.status == Change.Statuses.IN_TRASH
+                    else (
+                        None
+                        if v.status in [Change.Statuses.CREATED, Change.Statuses.IN_PROGRESS]
+                        else True
+                    )
                 ),
                 "status": v.get_status_display(),
-                "readonly": v.status == PUBLISHED_CODE,
+                "readonly": v.status == Change.Statuses.PUBLISHED,
                 **v.update,
             }
             for v in paginated_queryset.only("uuid", "update", "status")
@@ -134,7 +128,7 @@ class DoiApprovalView(SingleObjectMixin, MultipleObjectMixin, FormView):
             for doi in to_update:
                 stored_doi = stored_dois[doi["uuid"]]
 
-                if stored_doi.status == PUBLISHED_CODE:
+                if stored_doi.status == Change.Statuses.PUBLISHED:
                     ignored_updates.append(doi)
                     continue
 
@@ -144,14 +138,14 @@ class DoiApprovalView(SingleObjectMixin, MultipleObjectMixin, FormView):
                         continue
                     stored_doi.update[field] = value
                 # never been previously edited and checkmark and trash haven't been selected
-                if stored_doi.status == CREATED_CODE and doi["keep"] is None:
-                    stored_doi.status = IN_PROGRESS_CODE
+                if stored_doi.status == Change.Statuses.CREATED and doi["keep"] is None:
+                    stored_doi.status = Change.Statuses.IN_PROGRESS
                     change_status_to_edit.append(stored_doi)
                 # checkmark was selected
-                elif doi["keep"]:
-                    if stored_doi.status == IN_TRASH_CODE:
+                elif doi["keep"] is True:
+                    if stored_doi.status == Change.Statuses.IN_TRASH:
                         stored_doi.untrash(user=self.request.user, doi=True)
-                    stored_doi.status = AWAITING_REVIEW_CODE
+                    stored_doi.status = Change.Statuses.AWAITING_REVIEW
                     change_status_to_review.append(stored_doi)
 
             Change.objects.bulk_update(stored_dois.values(), ["update", "status"], batch_size=100)
@@ -161,7 +155,7 @@ class DoiApprovalView(SingleObjectMixin, MultipleObjectMixin, FormView):
                     ApprovalLog(
                         change=doi,
                         user=self.request.user,
-                        action=ApprovalLog.EDIT,
+                        action=ApprovalLog.Actions.EDIT,
                         notes="Transitioned via the DOI Approval form",
                     )
                     for doi in change_status_to_edit
@@ -173,7 +167,7 @@ class DoiApprovalView(SingleObjectMixin, MultipleObjectMixin, FormView):
                     ApprovalLog(
                         change=doi,
                         user=self.request.user,
-                        action=ApprovalLog.SUBMIT,
+                        action=ApprovalLog.Actions.SUBMIT,
                         notes="Transitioned via the DOI Approval form",
                     )
                     for doi in change_status_to_review
@@ -186,8 +180,7 @@ class DoiApprovalView(SingleObjectMixin, MultipleObjectMixin, FormView):
         )
         if ignored_updates:
             messages.warning(
-                self.request,
-                f"Ignored changes to published {len(ignored_updates)} DOIs.",
+                self.request, f"Ignored changes to published {len(ignored_updates)} DOIs."
             )
         return super().form_valid(formset)
 
@@ -205,7 +198,9 @@ class ChangeCreateView(mixins.ChangeModelFormMixin, CreateView):
         # Get initial form values from URL
         return {
             "content_type": self.get_model_form_content_type(),
-            "action": UPDATE if self.request.GET.get("uuid") else CREATE,
+            "action": Change.Actions.UPDATE
+            if self.request.GET.get("uuid")
+            else Change.Actions.CREATE,
             "model_instance_uuid": self.request.GET.get("uuid"),
         }
 

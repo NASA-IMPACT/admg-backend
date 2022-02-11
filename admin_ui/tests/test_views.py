@@ -4,7 +4,7 @@ from django.urls import reverse
 
 
 from data_models.models import Campaign
-from api_app.models import CREATE
+from api_app.models import Change
 
 from . import factories
 
@@ -12,7 +12,7 @@ from . import factories
 class TestChangeUpdateView(TestCase):
     def setUp(self):
         self.change = factories.ChangeFactory.create(
-            content_type=ContentType.objects.get_for_model(Campaign), action=CREATE
+            content_type=ContentType.objects.get_for_model(Campaign), action=Change.Actions.CREATE
         )
         self.user = factories.UserFactor.create()
         self.url = reverse("change-update", args=(self.change.uuid,))
