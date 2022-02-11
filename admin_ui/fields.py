@@ -60,7 +60,7 @@ class ChangeChoiceMixin:
             # Remove any Changes that have been successfully deleted
             .exclude(
                 uuid__in=models.Change.objects.of_type(dest_model)
-                .filter(action="Delete", status=models.PUBLISHED_CODE)
+                .filter(action="Delete", status=models.Change.Statuses.PUBLISHED)
                 .values("model_instance_uuid")
             )
             # Add identifier from published record (if available) or models.change.update.short_name
@@ -82,7 +82,7 @@ class ChangeChoiceMixin:
             # Remove any Changes that have been successfully deleted
             .exclude(
                 uuid__in=models.Change.objects.of_type(data_models.CollectionPeriod)
-                .filter(action="Delete", status=models.PUBLISHED_CODE)
+                .filter(action="Delete", status=models.Change.Statuses.PUBLISHED)
                 .values("model_instance_uuid")
             )
             # Get Deployment short_name from related deployments

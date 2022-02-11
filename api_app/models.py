@@ -101,7 +101,7 @@ class ApprovalLog(models.Model):
 
     date = models.DateTimeField(auto_now_add=True)
 
-    action = models.IntegerField(choices=Actions, default=Actions.CREATE)
+    action = models.IntegerField(choices=Actions.choices, default=Actions.CREATE)
     notes = models.TextField(blank=True, default="")
 
     def __str__(self):
