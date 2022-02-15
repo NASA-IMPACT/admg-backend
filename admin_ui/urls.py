@@ -6,7 +6,7 @@ from django.views.generic.base import RedirectView, TemplateView
 
 from admin_ui.config import MODEL_CONFIG_MAP
 
-from . import views
+from . import views, tables
 from .published_urls import published_urls
 
 urlpatterns = [
@@ -39,6 +39,11 @@ urlpatterns = [
         "drafts/edit/<uuid:pk>/transition",
         views.ChangeTransition.as_view(),
         name="change-transition",
+    ),
+    path(
+        "gcmd_keywords/draft",
+        tables.GcmdKeywordsView,
+        name="review_changes-list-draft",
     ),
     path(
         "tbd",

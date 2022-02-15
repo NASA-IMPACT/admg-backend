@@ -18,7 +18,7 @@ def GenericPublishedListFilter(model_name, filter_configs=default_filter_configs
         class Meta:
             model = getattr(models, model_name)
             fields = []
-    
+
     for config in filter_configs:
         GenericFilterClass.base_filters[config["field_name"]] = django_filters.CharFilter(
             label=config["label"], field_name=config["field_name"], lookup_expr="icontains"

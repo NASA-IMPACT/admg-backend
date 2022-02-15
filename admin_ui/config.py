@@ -42,6 +42,9 @@ CUSTOM_MODEL_VALUES = {
     "GcmdPhenomena": {
         "display_name": "GCMD Phenomena",
     },
+    # "GcmdKeyword": {
+    #     "display_name": "GCMD Keywords",
+    # },
     "DOI": {
         "admin_required_to_view": False,
         "draft_filter": filters.DoiFilter,
