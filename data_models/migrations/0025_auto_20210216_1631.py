@@ -8,49 +8,95 @@ import uuid
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('data_models', '0024_auto_20210216_1628'),
+        ("data_models", "0024_auto_20210216_1628"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='WebsiteType',
+            name="WebsiteType",
             fields=[
-                ('uuid', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False, unique=True)),
-                ('long_name', models.TextField()),
-                ('description', models.TextField()),
+                (
+                    "uuid",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                        unique=True,
+                    ),
+                ),
+                ("long_name", models.TextField()),
+                ("description", models.TextField()),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
         ),
         migrations.CreateModel(
-            name='Website',
+            name="Website",
             fields=[
-                ('uuid', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False, unique=True)),
-                ('url', models.TextField()),
-                ('title', models.TextField()),
-                ('description', models.TextField(blank=True, default='')),
-                ('website_type', models.ManyToManyField(related_name='websites', to='data_models.WebsiteType')),
+                (
+                    "uuid",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                        unique=True,
+                    ),
+                ),
+                ("url", models.TextField()),
+                ("title", models.TextField()),
+                ("description", models.TextField(blank=True, default="")),
+                (
+                    "website_type",
+                    models.ManyToManyField(related_name="websites", to="data_models.WebsiteType"),
+                ),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
         ),
         migrations.CreateModel(
-            name='CampaignWebsite',
+            name="CampaignWebsite",
             fields=[
-                ('uuid', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False, unique=True)),
-                ('priority', models.IntegerField()),
-                ('campaign', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='data_models.campaign')),
-                ('website', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='data_models.website')),
+                (
+                    "uuid",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                        unique=True,
+                    ),
+                ),
+                ("priority", models.IntegerField()),
+                (
+                    "campaign",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, to="data_models.campaign"
+                    ),
+                ),
+                (
+                    "website",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, to="data_models.website"
+                    ),
+                ),
             ],
             options={
-                'unique_together': {('campaign', 'priority'), ('campaign', 'website')},
+                "unique_together": {("campaign", "priority"), ("campaign", "website")},
             },
         ),
         migrations.AddField(
-            model_name='campaign',
-            name='websites',
-            field=models.ManyToManyField(blank=True, default='', related_name='campaigns', through='data_models.CampaignWebsite', to='data_models.Website'),
+            model_name="campaign",
+            name="websites",
+            field=models.ManyToManyField(
+                blank=True,
+                default="",
+                related_name="campaigns",
+                through="data_models.CampaignWebsite",
+                to="data_models.Website",
+            ),
         ),
     ]

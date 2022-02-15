@@ -24,41 +24,20 @@ CUSTOM_MODEL_VALUES = {
     "MeasurementRegion": {},
     "GeographicalRegion": {},
     "GeophysicalConcept": {},
-    "PartnerOrg": {
-        "admin_required_to_view": False,
-    },
-    "Alias": {
-        "admin_required_to_view": False,
-    },
-    "GcmdProject": {
-        "display_name": "GCMD Project",
-    },
-    "GcmdInstrument": {
-        "display_name": "GCMD Instrument",
-    },
-    "GcmdPlatform": {
-        "display_name": "GCMD Platform",
-    },
-    "GcmdPhenomena": {
-        "display_name": "GCMD Phenomena",
-    },
-    # "GcmdKeyword": {
-    #     "display_name": "GCMD Keywords",
-    # },
+    "PartnerOrg": {"admin_required_to_view": False},
+    "Alias": {"admin_required_to_view": False},
+    "GcmdProject": {"display_name": "GCMD Project"},
+    "GcmdInstrument": {"display_name": "GCMD Instrument"},
+    "GcmdPlatform": {"display_name": "GCMD Platform"},
+    "GcmdPhenomena": {"display_name": "GCMD Phenomena"},
     "DOI": {
         "admin_required_to_view": False,
         "draft_filter": filters.DoiFilter,
         "published_filter": published_filters.DoiFilter,
     },
-    "Campaign": {
-        "admin_required_to_view": False,
-    },
-    "Platform": {
-        "admin_required_to_view": False,
-    },
-    "Instrument": {
-        "admin_required_to_view": False,
-    },
+    "Campaign": {"admin_required_to_view": False},
+    "Platform": {"admin_required_to_view": False},
+    "Instrument": {"admin_required_to_view": False},
     "Deployment": {
         "admin_required_to_view": False,
         "draft_filter": filters.DeploymentFilter,
@@ -95,12 +74,10 @@ CUSTOM_MODEL_VALUES = {
 # defaults are assigned to each model in this comprehension, and then overwritten by the above dictionary
 MODEL_CONFIG_MAP = {
     model_name: {
-        "draft_filter": overrides.get("filter_generator", filters.GenericDraftFilter)(
-            model_name
-        ),
-        "published_filter": overrides.get("published_filter_generator", published_filters.GenericPublishedListFilter)(
-            model_name
-        ),
+        "draft_filter": overrides.get("filter_generator", filters.GenericDraftFilter)(model_name),
+        "published_filter": overrides.get(
+            "published_filter_generator", published_filters.GenericPublishedListFilter
+        )(model_name),
         "model": getattr(models, model_name),
         "published_table": getattr(published_tables, f"{model_name}PublishedTable"),
         "change_list_table": getattr(tables, f"{model_name}ChangeListTable"),

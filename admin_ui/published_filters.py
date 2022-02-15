@@ -1,14 +1,9 @@
 import django_filters
 from data_models import models
-from data_models.models import DOI, Campaign, Deployment
-from django.db.models.query_utils import Q
+from data_models.models import DOI, Deployment
 
 from .filters import CampaignFilter
-from .filter_utils import (
-    default_filter_configs,
-    get_published_campaigns,
-    get_deployments,
-)
+from .filter_utils import default_filter_configs, get_published_campaigns, get_deployments
 
 # TODO: Look at .values with Cast function
 
@@ -28,23 +23,13 @@ def GenericPublishedListFilter(model_name, filter_configs=default_filter_configs
 
 
 class WebsiteFilter(django_filters.FilterSet):
-    title = django_filters.CharFilter(
-        label="Title",
-        field_name="title",
-        lookup_expr="icontains",
-    )
-    url = django_filters.CharFilter(
-        label="url",
-        field_name="url",
-        lookup_expr="icontains",
-    )
+    title = django_filters.CharFilter(label="Title", field_name="title", lookup_expr="icontains")
+    url = django_filters.CharFilter(label="url", field_name="url", lookup_expr="icontains")
 
 
 class DeploymentFilter(CampaignFilter):
     short_name = django_filters.CharFilter(
-        label="Short Name",
-        field_name="short_name",
-        lookup_expr="icontains",
+        label="Short Name", field_name="short_name", lookup_expr="icontains"
     )
 
     def filter_campaign_name(self, queryset, field_name, search_string):
@@ -57,15 +42,15 @@ class DeploymentFilter(CampaignFilter):
 
 
 def second_level_campaign_filter(model_name):
-    
-    Model = getattr(models, model_name)
-    class FilterForDeploymentToCampaign(DeploymentFilter):
 
+    Model = getattr(models, model_name)
+
+    class FilterForDeploymentToCampaign(DeploymentFilter):
         def filter_campaign_name(self, queryset, field_name, search_string):
             campaigns = get_published_campaigns(search_string)
             deployments = get_deployments(campaigns)
             return queryset.filter(deployment__in=deployments)
-        
+
         class Meta:
             model = Model
             fields = ["short_name"]
@@ -88,7 +73,6 @@ class DoiFilter(CampaignFilter):
 
 
 class CollectionPeriodFilter(CampaignFilter):
-
     def filter_campaign_name(self, queryset, field_name, search_string):
         campaigns = get_published_campaigns(search_string)
         deployments = get_deployments(campaigns)

@@ -14,9 +14,7 @@ class EmailAddressInline(TabularInline):
 
 @admin.register(User)
 class UserAdmin(auth_admin.UserAdmin):
-    fieldsets = (
-        ("User", {"fields": ("name", "role")}),
-    ) + auth_admin.UserAdmin.fieldsets
+    fieldsets = (("User", {"fields": ("name", "role")}),) + auth_admin.UserAdmin.fieldsets
     list_display = ["username", "name", "is_superuser", "role"]
     search_fields = ["name"]
     inlines = [EmailAddressInline]

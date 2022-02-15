@@ -132,12 +132,13 @@ python manage.py sass admin_ui/static/scss admin_ui/static/css --watch
 
 5.  Start postgres
 
+    To get a path that you can use to start Postgres:
+    
     ```
-    brew info posgresql` should give a path that you can use to start it
+    brew info posgresql 
     ```
 
-    ``(It will probably look something like `pg_ctl -D /usr/local/var
-    ```postgres start`)
+    (It will probably look something like `pg_ctl -D /usr/local/var postgres start`)
 
 6.  Check that postgres is working
     If `psql -l` gives you a list of tables then all is well.

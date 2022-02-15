@@ -8,8 +8,9 @@ https://usefulangle.com/post/4/javascript-communication-parent-child-window
 */
 
 document.querySelectorAll(".add-another").forEach(function (elem) {
-    return elem.addEventListener('click', function () {
+    return elem.addEventListener('click', function (e) {
         window.open(this.dataset.form_url, id_to_windowname(this.dataset.select_id));
+        e.preventDefault();
     });
 });
 

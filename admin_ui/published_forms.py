@@ -5,18 +5,11 @@ from .mixins import formfield_callback
 
 
 def GenericFormClass(model_name):
-
     class MyFormClass(ModelForm):
         formfield_callback = formfield_callback
 
         def is_valid(self) -> bool:
-            unique_fields = [
-                "short_name",
-                "order_priority",
-                "gcmd_uuid",
-                "url",
-                "concept_id",
-            ]
+            unique_fields = ["short_name", "order_priority", "gcmd_uuid", "url", "concept_id"]
             unique_error_message = "with this {} already exists."
             # unique_together = [("campaign", "website"), ("campaign", "order_priority")]
 

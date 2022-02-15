@@ -1,6 +1,5 @@
 # to run this test file, use 'pytest -k api_app'
 
-from typing import Dict
 import json
 
 import pytest
@@ -8,17 +7,7 @@ from django.contrib.contenttypes.models import ContentType
 
 from admg_webapp.users.models import ADMIN_CODE, STAFF_CODE, User
 from data_models.tests import factories
-from ..models import (
-    AWAITING_ADMIN_REVIEW_CODE,
-    AWAITING_REVIEW_CODE,
-    CREATED_CODE,
-    IN_ADMIN_REVIEW_CODE,
-    IN_PROGRESS_CODE,
-    IN_REVIEW_CODE,
-    PUBLISHED_CODE,
-    ApprovalLog,
-    Change,
-)
+from ..models import ApprovalLog, Change
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
@@ -43,12 +32,12 @@ class TestChange:
 
     @staticmethod
     def make_create_change_object(factory):
-        """make a CREATE change object to use during testing"""
+        """make a Change.Actions.CREATE change object to use during testing"""
         content_type = ContentType.objects.get_for_model(factory._meta.model)
 
         return Change.objects.create(
             content_type=content_type,
-            status=CREATED_CODE,
+            status=Change.Statuses.CREATED,
             action="Create",
             update=factory.as_change_dict(),
         )
@@ -64,7 +53,7 @@ class TestChange:
         """test that a freshly created object has the correct code"""
         change = self.make_create_change_object(factory)
 
-        assert change.status == CREATED_CODE
+        assert change.status == Change.Statuses.CREATED
         assert change.action == "Create"
 
     def test_approval_log_for_newly_created_change(self, factory):
@@ -73,8 +62,8 @@ class TestChange:
         approval_log = ApprovalLog.objects.get(change=change)
 
         assert approval_log.change == change
-        assert approval_log.change.status == CREATED_CODE
-        assert approval_log.action == ApprovalLog.CREATE
+        assert approval_log.change.status == Change.Statuses.CREATED
+        assert approval_log.action == ApprovalLog.Actions.CREATE
 
     def test_normal_workflow(self, factory):
         admin_user, _, staff_user, staff_user_2 = self.create_users()
@@ -82,8 +71,8 @@ class TestChange:
         # create
         change = self.make_create_change_object(factory)
         approval_log = change.get_latest_log()
-        assert change.status == CREATED_CODE
-        assert approval_log.action == ApprovalLog.CREATE
+        assert change.status == Change.Statuses.CREATED
+        assert approval_log.action == ApprovalLog.Actions.CREATE
         # a user will be assigned if this action is made in the admin
         # however no user is assigned when this action is taken from the tests
         assert approval_log.user is None
@@ -92,67 +81,67 @@ class TestChange:
         change.update["short_name"] = "test_short_name"
         change.save()
         approval_log = change.get_latest_log()
-        assert approval_log.action == ApprovalLog.EDIT
+        assert approval_log.action == ApprovalLog.Actions.EDIT
         assert approval_log.user is None
-        assert change.status == IN_PROGRESS_CODE
+        assert change.status == Change.Statuses.IN_PROGRESS
 
         # submit
         change.submit(staff_user)
         approval_log = change.get_latest_log()
-        assert approval_log.action == ApprovalLog.SUBMIT
+        assert approval_log.action == ApprovalLog.Actions.SUBMIT
         assert approval_log.user == staff_user
-        assert change.status == AWAITING_REVIEW_CODE
+        assert change.status == Change.Statuses.AWAITING_REVIEW
 
         # claim
         change.claim(staff_user_2)
         approval_log = change.get_latest_log()
-        assert approval_log.action == ApprovalLog.CLAIM
+        assert approval_log.action == ApprovalLog.Actions.CLAIM
         assert approval_log.user == staff_user_2
-        assert change.status == IN_REVIEW_CODE
+        assert change.status == Change.Statuses.IN_REVIEW
 
         # reject
         notes = "rejection notes"
         change.reject(staff_user_2, notes=notes)
         approval_log = change.get_latest_log()
-        assert approval_log.action == ApprovalLog.REJECT
+        assert approval_log.action == ApprovalLog.Actions.REJECT
         assert approval_log.notes == notes
         assert approval_log.user == staff_user_2
-        assert change.status == IN_PROGRESS_CODE
+        assert change.status == Change.Statuses.IN_PROGRESS
 
         # submit
         change.submit(staff_user)
         approval_log = change.get_latest_log()
-        assert approval_log.action == ApprovalLog.SUBMIT
+        assert approval_log.action == ApprovalLog.Actions.SUBMIT
         assert approval_log.user == staff_user
-        assert change.status == AWAITING_REVIEW_CODE
+        assert change.status == Change.Statuses.AWAITING_REVIEW
 
         # claim
         change.claim(staff_user_2)
         approval_log = change.get_latest_log()
-        assert approval_log.action == ApprovalLog.CLAIM
+        assert approval_log.action == ApprovalLog.Actions.CLAIM
         assert approval_log.user == staff_user_2
-        assert change.status == IN_REVIEW_CODE
+        assert change.status == Change.Statuses.IN_REVIEW
 
         # review
         change.review(staff_user_2)
         approval_log = change.get_latest_log()
-        assert approval_log.action == ApprovalLog.REVIEW
+        assert approval_log.action == ApprovalLog.Actions.REVIEW
         assert approval_log.user == staff_user_2
-        assert change.status == AWAITING_ADMIN_REVIEW_CODE
+        assert change.status == Change.Statuses.AWAITING_ADMIN_REVIEW
 
         # claim
         change.claim(admin_user)
         approval_log = change.get_latest_log()
-        assert approval_log.action == ApprovalLog.CLAIM
+        assert approval_log.action == ApprovalLog.Actions.CLAIM
         assert approval_log.user == admin_user
-        assert change.status == IN_ADMIN_REVIEW_CODE
+        assert change.status == Change.Statuses.IN_ADMIN_REVIEW
 
         # publish
         change.publish(admin_user)
         approval_log = change.get_latest_log()
-        assert approval_log.action == ApprovalLog.PUBLISH
+        assert approval_log.action == ApprovalLog.Actions.PUBLISH
         assert approval_log.user == admin_user
-        assert change.status == PUBLISHED_CODE
+        assert change.status == Change.Statuses.PUBLISHED
 
     def test_staff_cant_trash_untrash(self, factory):
         """check that error is thrown when staff member tries to trash or untrash an object"""
@@ -164,17 +153,13 @@ class TestChange:
 
         response = change.trash(staff_user, notes="trash")
         assert response["success"] is False
-        assert (
-            response["message"] == "action failed because initiating user was not admin"
-        )
+        assert response["message"] == "action failed because initiating user was not admin"
 
         change.trash(admin_user, notes="trash")
 
         response = change.untrash(staff_user)
         assert response["success"] is False
-        assert (
-            response["message"] == "action failed because initiating user was not admin"
-        )
+        assert response["message"] == "action failed because initiating user was not admin"
 
     def test_published_cant_be_trash(self, factory):
         """check that error is thrown when admin tries to trash a published item"""
@@ -205,15 +190,11 @@ class TestChange:
 
         response = change.claim(staff_user)
         assert response["success"] is False
-        assert (
-            response["message"] == "action failed because initiating user was not admin"
-        )
+        assert response["message"] == "action failed because initiating user was not admin"
         change.claim(admin_user)
         response = change.publish(staff_user)
         assert response["success"] is False
-        assert (
-            response["message"] == "action failed because initiating user was not admin"
-        )
+        assert response["message"] == "action failed because initiating user was not admin"
 
     def test_only_claim_awaiting(self, factory):
         """test that the claim function throws errors if not used on AWAITING objects"""
@@ -301,8 +282,8 @@ class TestChange:
         response = change.unclaim(admin_user)
         approval_log = change.get_latest_log()
         assert response["success"] is True
-        assert change.status == AWAITING_REVIEW_CODE
-        assert approval_log.action == ApprovalLog.UNCLAIM
+        assert change.status == Change.Statuses.AWAITING_REVIEW
+        assert approval_log.action == ApprovalLog.Actions.UNCLAIM
 
         change.claim(staff_user_2)
         change.review(staff_user_2)
@@ -312,8 +293,8 @@ class TestChange:
         response = change.unclaim(admin_user_2)
         approval_log = change.get_latest_log()
         assert response["success"] is True
-        assert change.status == AWAITING_ADMIN_REVIEW_CODE
-        assert approval_log.action == ApprovalLog.UNCLAIM
+        assert change.status == Change.Statuses.AWAITING_ADMIN_REVIEW
+        assert approval_log.action == ApprovalLog.Actions.UNCLAIM
 
     def test_staff_cant_unclaim_unowned(self, factory):
         """test that staff can't unclaim items they didn't claim"""
@@ -329,8 +310,8 @@ class TestChange:
         response = change.unclaim(staff_user)
         approval_log = change.get_latest_log()
         assert response["success"] is False
-        assert change.status == IN_REVIEW_CODE
-        assert approval_log.action == ApprovalLog.CLAIM
+        assert change.status == Change.Statuses.IN_REVIEW
+        assert approval_log.action == ApprovalLog.Actions.CLAIM
 
         change.claim(staff_user_2)
         change.review(staff_user_2)
@@ -340,8 +321,8 @@ class TestChange:
         response = change.unclaim(staff_user)
         approval_log = change.get_latest_log()
         assert response["success"] is False
-        assert change.status == IN_ADMIN_REVIEW_CODE
-        assert approval_log.action == ApprovalLog.CLAIM
+        assert change.status == Change.Statuses.IN_ADMIN_REVIEW
+        assert approval_log.action == ApprovalLog.Actions.CLAIM
 
 
 @pytest.mark.django_db
@@ -391,6 +372,4 @@ class TestApi:
         )
         assert response.status_code == 401
         response_dict = response.json()
-        assert response_dict == {
-            "detail": "Authentication credentials were not provided."
-        }
+        assert response_dict == {"detail": "Authentication credentials were not provided."}

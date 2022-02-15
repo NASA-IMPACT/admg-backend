@@ -6,7 +6,6 @@ import django.db.models.deletion
 
 def populate_website_campaign(apps, schema_editor):
     CampaignWebsite = apps.get_model("data_models", "CampaignWebsite")
-    Website = apps.get_model("data_models", "Website")
     Change = apps.get_model("api_app", "Change")
 
     # Update published
@@ -16,9 +15,7 @@ def populate_website_campaign(apps, schema_editor):
         campaign_website.website.save()
 
     # Update drafts
-    campaign_website_drafts = Change.objects.filter(
-        content_type__model="campaignwebsite"
-    )
+    campaign_website_drafts = Change.objects.filter(content_type__model="campaignwebsite")
     for draft_campaignwebsite in campaign_website_drafts:
         for draft_website in Change.objects.filter(
             content_type__model="website",
@@ -52,9 +49,7 @@ class Migration(migrations.Migration):
             name="order_priority",
             field=models.PositiveIntegerField(blank=True, null=True),
         ),
-        migrations.RunPython(
-            populate_website_campaign, reverse_code=migrations.RunPython.noop
-        ),
+        migrations.RunPython(populate_website_campaign, reverse_code=migrations.RunPython.noop),
         migrations.RemoveField(
             model_name="campaign",
             name="websites",

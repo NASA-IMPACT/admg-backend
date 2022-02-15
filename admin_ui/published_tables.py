@@ -27,20 +27,12 @@ from data_models.models import (
     Website,
     WebsiteType,
 )
-from django_tables2 import A
 
-from .tables import (
-    DraftLinkColumn,
-    ShortNamefromUUIDColumn,
-    ShortNamefromUUIDLinkColumn,
-)
+from .tables import DraftLinkColumn, ShortNamefromUUIDColumn, ShortNamefromUUIDLinkColumn
 
 
 class LimitedTableBase(tables.Table):
-    long_name = tables.Column(
-        verbose_name="Long name",
-        accessor="long_name",
-    )
+    long_name = tables.Column(verbose_name="Long name", accessor="long_name")
 
     initial_fields = ("short_name", "long_name")
 
@@ -60,18 +52,10 @@ class IOPPublishedTable(tables.Table):
         accessor="short_name",
     )
     deployment = ShortNamefromUUIDColumn(
-        verbose_name="Deployment",
-        model=Deployment,
-        accessor="deployment",
+        verbose_name="Deployment", model=Deployment, accessor="deployment"
     )
-    start_date = tables.Column(
-        verbose_name="Start Date",
-        accessor="start_date",
-    )
-    end_date = tables.Column(
-        verbose_name="End Date",
-        accessor="end_date",
-    )
+    start_date = tables.Column(verbose_name="Start Date", accessor="start_date")
+    end_date = tables.Column(verbose_name="End Date", accessor="end_date")
 
     class Meta(LimitedTableBase.Meta):
         fields = ["short_name", "deployment", "start_date", "end_date"]
@@ -87,27 +71,14 @@ class SignificantEventPublishedTable(tables.Table):
         accessor="short_name",
     )
     deployment = ShortNamefromUUIDColumn(
-        verbose_name="Deployment",
-        model=Deployment,
-        accessor="deployment",
+        verbose_name="Deployment", model=Deployment, accessor="deployment"
     )
-    start_date = tables.Column(
-        verbose_name="Start Date",
-        accessor="start_date",
-    )
-    end_date = tables.Column(
-        verbose_name="End Date",
-        accessor="end_date",
-    )
+    start_date = tables.Column(verbose_name="Start Date", accessor="start_date")
+    end_date = tables.Column(verbose_name="End Date", accessor="end_date")
 
     class Meta(LimitedTableBase.Meta):
         model = SignificantEvent
-        fields = (
-            "short_name",
-            "deployment",
-            "start_date",
-            "end_date",
-        )
+        fields = ("short_name", "deployment", "start_date", "end_date")
         sequence = fields
 
 
@@ -120,24 +91,14 @@ class CollectionPeriodPublishedTable(tables.Table):
         accessor="deployment",
     )
 
-    platform = ShortNamefromUUIDColumn(
-        verbose_name="Platform",
-        model=Platform,
-        accessor="platform",
-    )
+    platform = ShortNamefromUUIDColumn(verbose_name="Platform", model=Platform, accessor="platform")
     instruments = ShortNamefromUUIDColumn(
-        verbose_name="Instruments",
-        model=Instrument,
-        accessor="instruments",
+        verbose_name="Instruments", model=Instrument, accessor="instruments"
     )
 
     class Meta(LimitedTableBase.Meta):
         model = CollectionPeriod
-        fields = (
-            "deployment",
-            "platform",
-            "instruments",
-        )
+        fields = ("deployment", "platform", "instruments")
         sequence = fields
 
 
@@ -148,35 +109,20 @@ class DOIPublishedTable(tables.Table):
         verbose_name="Concept ID",
         accessor="concept_id",
     )
-    long_name = tables.Column(
-        verbose_name="Long name",
-        accessor="long_name",
-    )
+    long_name = tables.Column(verbose_name="Long name", accessor="long_name")
     campaigns = ShortNamefromUUIDColumn(
-        verbose_name="Campaigns",
-        model=Campaign,
-        accessor="campaigns",
+        verbose_name="Campaigns", model=Campaign, accessor="campaigns"
     )
     platforms = ShortNamefromUUIDColumn(
-        verbose_name="Platforms",
-        model=Platform,
-        accessor="platforms",
+        verbose_name="Platforms", model=Platform, accessor="platforms"
     )
     instruments = ShortNamefromUUIDColumn(
-        verbose_name="Instruments",
-        model=Instrument,
-        accessor="instruments",
+        verbose_name="Instruments", model=Instrument, accessor="instruments"
     )
 
     class Meta(LimitedTableBase.Meta):
         model = DOI
-        fields = (
-            "concept_id",
-            "long_name",
-            "campaigns",
-            "platforms",
-            "instruments",
-        )
+        fields = ("concept_id", "long_name", "campaigns", "platforms", "instruments")
         sequence = fields
 
 
@@ -187,26 +133,12 @@ class DeploymentPublishedTable(LimitedTableBase):
         verbose_name="Short Name",
         accessor="short_name",
     )
-    campaign = ShortNamefromUUIDColumn(
-        verbose_name="Campaign",
-        model=Campaign,
-        accessor="campaign",
-    )
-    start_date = tables.Column(
-        verbose_name="Start Date",
-        accessor="start_date",
-    )
-    end_date = tables.Column(
-        verbose_name="End Date",
-        accessor="end_date",
-    )
+    campaign = ShortNamefromUUIDColumn(verbose_name="Campaign", model=Campaign, accessor="campaign")
+    start_date = tables.Column(verbose_name="Start Date", accessor="start_date")
+    end_date = tables.Column(verbose_name="End Date", accessor="end_date")
 
     class Meta(LimitedTableBase.Meta):
-        fields = LimitedTableBase.initial_fields + (
-            "campaign",
-            "start_date",
-            "end_date",
-        )
+        fields = LimitedTableBase.initial_fields + ("campaign", "start_date", "end_date")
         sequence = fields
         model = Deployment
 
@@ -218,10 +150,7 @@ class PlatformTypePublishedTable(LimitedTableBase):
         verbose_name="Short Name",
         accessor="short_name",
     )
-    parent = tables.Column(
-        verbose_name="Parent",
-        accessor="parent",
-    )
+    parent = tables.Column(verbose_name="Parent", accessor="parent")
 
     class Meta(LimitedTableBase.Meta):
         fields = LimitedTableBase.initial_fields + ("parent",)
@@ -236,10 +165,7 @@ class MeasurementTypePublishedTable(LimitedTableBase):
         verbose_name="Short Name",
         accessor="short_name",
     )
-    parent = tables.Column(
-        verbose_name="Parent",
-        accessor="parent",
-    )
+    parent = tables.Column(verbose_name="Parent", accessor="parent")
 
     class Meta(LimitedTableBase.Meta):
         fields = LimitedTableBase.initial_fields + ("parent",)
@@ -254,10 +180,7 @@ class MeasurementStylePublishedTable(LimitedTableBase):
         verbose_name="Short Name",
         accessor="short_name",
     )
-    parent = tables.Column(
-        verbose_name="Parent",
-        accessor="parent",
-    )
+    parent = tables.Column(verbose_name="Parent", accessor="parent")
 
     class Meta(LimitedTableBase.Meta):
         fields = LimitedTableBase.initial_fields + ("parent",)
@@ -275,10 +198,7 @@ class HomeBasePublishedTable(LimitedTableBase):
     location = tables.Column(verbose_name="Location", accessor="location")
 
     class Meta(LimitedTableBase.Meta):
-        fields = (
-            LimitedTableBase.initial_fields
-            + ("location",)
-        )
+        fields = LimitedTableBase.initial_fields + ("location",)
         sequence = fields
         model = HomeBase
 
@@ -293,9 +213,7 @@ class FocusAreaPublishedTable(LimitedTableBase):
     url = tables.Column(verbose_name="Url", accessor="url")
 
     class Meta(LimitedTableBase.Meta):
-        fields = (
-            LimitedTableBase.initial_fields + ("url",)
-        )
+        fields = LimitedTableBase.initial_fields + ("url",)
         sequence = fields
         model = FocusArea
 
@@ -325,10 +243,7 @@ class RepositoryPublishedTable(LimitedTableBase):
     gcmd_uuid = tables.Column(verbose_name="GCMD UUID", accessor="gcmd_uuid")
 
     class Meta(LimitedTableBase.Meta):
-        fields = (
-            LimitedTableBase.initial_fields
-            + ("gcmd_uuid",)
-        )
+        fields = LimitedTableBase.initial_fields + ("gcmd_uuid",)
         sequence = fields
         model = Repository
 
@@ -340,17 +255,11 @@ class MeasurementRegionPublishedTable(LimitedTableBase):
         verbose_name="Short Name",
         accessor="short_name",
     )
-    example = tables.Column(
-        verbose_name="Example",
-        accessor="example"
-    )
+    example = tables.Column(verbose_name="Example", accessor="example")
     example = tables.Column(verbose_name="Example", accessor="example")
 
     class Meta(LimitedTableBase.Meta):
-        fields = (
-            LimitedTableBase.initial_fields
-            + ("example",)
-        )
+        fields = LimitedTableBase.initial_fields + ("example",)
         sequence = fields
         model = MeasurementRegion
 
@@ -362,17 +271,11 @@ class GeographicalRegionPublishedTable(LimitedTableBase):
         verbose_name="Short Name",
         accessor="short_name",
     )
-    example = tables.Column(
-        verbose_name="Example",
-        accessor="example"
-    )
+    example = tables.Column(verbose_name="Example", accessor="example")
     example = tables.Column(verbose_name="Example", accessor="example")
 
     class Meta(LimitedTableBase.Meta):
-        fields = (
-            LimitedTableBase.initial_fields
-            + ("example",)
-        )
+        fields = LimitedTableBase.initial_fields + ("example",)
         sequence = fields
         model = GeographicalRegion
 
@@ -384,17 +287,11 @@ class GeophysicalConceptPublishedTable(LimitedTableBase):
         verbose_name="Short Name",
         accessor="short_name",
     )
-    example = tables.Column(
-        verbose_name="Example",
-        accessor="example"
-    )
+    example = tables.Column(verbose_name="Example", accessor="example")
     example = tables.Column(verbose_name="Example", accessor="example")
 
     class Meta(LimitedTableBase.Meta):
-        fields = (
-            LimitedTableBase.initial_fields +
-            ("example",)
-        )
+        fields = LimitedTableBase.initial_fields + ("example",)
         sequence = fields
         model = GeophysicalConcept
 
@@ -409,10 +306,7 @@ class PartnerOrgPublishedTable(LimitedTableBase):
     website = tables.Column(verbose_name="Website", accessor="website")
 
     class Meta(LimitedTableBase.Meta):
-        fields = (
-            LimitedTableBase.initial_fields
-            + ("website",)
-        )
+        fields = LimitedTableBase.initial_fields + ("website",)
         sequence = fields
         model = PartnerOrg
 
@@ -439,15 +333,10 @@ class CampaignPublishedTable(LimitedTableBase):
         verbose_name="Short Name",
         accessor="short_name",
     )
-    funding_agency = tables.Column(
-        verbose_name="Funding Agency", accessor="funding_agency"
-    )
+    funding_agency = tables.Column(verbose_name="Funding Agency", accessor="funding_agency")
 
     class Meta(LimitedTableBase.Meta):
-        fields = (
-            LimitedTableBase.initial_fields
-            + ("funding_agency",)
-        )
+        fields = LimitedTableBase.initial_fields + ("funding_agency",)
         sequence = fields
         model = Campaign
 
@@ -459,16 +348,10 @@ class PlatformPublishedTable(LimitedTableBase):
         verbose_name="Short Name",
         accessor="short_name",
     )
-    platform_type = tables.Column(
-        verbose_name="Platform Type",
-        accessor="platform_type"
-    )
+    platform_type = tables.Column(verbose_name="Platform Type", accessor="platform_type")
 
     class Meta(LimitedTableBase.Meta):
-        fields = (
-            LimitedTableBase.initial_fields
-            + ("platform_type",)
-        )
+        fields = LimitedTableBase.initial_fields + ("platform_type",)
         sequence = fields
         model = Platform
 
@@ -488,24 +371,18 @@ class InstrumentPublishedTable(LimitedTableBase):
         model = Instrument
 
 
-class WebsitePublishedTable(LimitedTableBase):
+class WebsitePublishedTable(tables.Table):
     title = DraftLinkColumn(
-        viewname="{camel_to_snake('Website')}-detail-published",
+        viewname=f"{camel_to_snake('Website')}-detail-published",
         url_kwargs={"pk": "uuid"},
-        verbose_name="Short Name",
-        accessor="short_name",
+        verbose_name="Title",
+        accessor="title",
     )
     url = tables.Column(verbose_name="URL", accessor="url")
-    website_type = tables.Column(
-        verbose_name="Website Type", accessor="website_type_name"
-    )
+    website_type = tables.Column(verbose_name="Website Type", accessor="website_type")
 
     class Meta(LimitedTableBase.Meta):
-        fields = (
-            "title",
-            "url",
-            "website_type",
-        )
+        fields = ("title", "url", "website_type")
         sequence = fields
         model_name = Website
 
@@ -521,10 +398,7 @@ class AliasPublishedTable(LimitedTableBase):
     model_type = tables.Column(verbose_name="Item Type", accessor="model_name")
 
     class Meta(LimitedTableBase.Meta):
-        fields = (
-            "short_name",
-            "model_type",
-        )
+        fields = ("short_name", "model_type")
         sequence = fields
         model = Alias
 
@@ -539,11 +413,7 @@ class GcmdProjectPublishedTable(LimitedTableBase):
     bucket = tables.Column(verbose_name="Bucket", accessor="bucket")
 
     class Meta(LimitedTableBase.Meta):
-        fields = (
-            "short_name",
-            "long_name",
-            "bucket",
-        )
+        fields = ("short_name", "long_name", "bucket")
         sequence = fields
         model = GcmdProject
 
@@ -558,12 +428,8 @@ class GcmdInstrumentPublishedTable(LimitedTableBase):
     instrument_category = tables.Column(
         verbose_name="Instrument Category", accessor="instrument_category"
     )
-    instrument_class = tables.Column(
-        verbose_name="Instrument Class", accessor="instrument_class"
-    )
-    instrument_type = tables.Column(
-        verbose_name="Instrument Type", accessor="instrument_type"
-    )
+    instrument_class = tables.Column(verbose_name="Instrument Class", accessor="instrument_class")
+    instrument_type = tables.Column(verbose_name="Instrument Type", accessor="instrument_type")
     instrument_subtype = tables.Column(
         verbose_name="Instrument Subtype", accessor="instrument_subtype"
     )
@@ -591,11 +457,7 @@ class GcmdPlatformPublishedTable(LimitedTableBase):
     category = tables.Column(verbose_name="Category", accessor="category")
 
     class Meta(LimitedTableBase.Meta):
-        fields = (
-            "short_name",
-            "long_name",
-            "category",
-        )
+        fields = ("short_name", "long_name", "category")
         sequence = fields
         model = GcmdPlatform
 
@@ -614,13 +476,6 @@ class GcmdPhenomenaPublishedTable(tables.Table):
     category = tables.Column(verbose_name="Category", accessor="category")
 
     class Meta(LimitedTableBase.Meta):
-        fields = (
-            "variable_3",
-            "variable_2",
-            "variable_1",
-            "term",
-            "topic",
-            "category",
-        )
+        fields = ("variable_3", "variable_2", "variable_1", "term", "topic", "category")
         sequence = fields
         model = GcmdPhenomena

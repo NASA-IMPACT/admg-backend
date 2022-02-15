@@ -1,10 +1,10 @@
-from data_models.models import PlatformType
 from django.conf import settings
 from django.contrib import admin
 from django.urls import path
-from django.views.generic.base import RedirectView, TemplateView
+from django.views.generic.base import TemplateView
 
 from admin_ui.config import MODEL_CONFIG_MAP
+from admin_ui.views import generate_base_list_view
 
 from . import views, tables
 from .published_urls import published_urls
@@ -14,27 +14,11 @@ urlpatterns = [
     # Actions
     path("actions/deploy-admin", views.trigger_deploy, name="trigger-deploy"),
     path("", views.SummaryView.as_view(), name="summary"),
-    path(
-        "campaigns/<uuid:pk>",
-        views.CampaignDetailView.as_view(),
-        name="campaign-detail",
-    ),
-    path(
-        "campaigns/<uuid:pk>/doi-fetch",
-        views.DoiFetchView.as_view(),
-        name="doi-fetch",
-    ),
-    path(
-        "campaigns/<uuid:pk>/doi-approval",
-        views.DoiApprovalView.as_view(),
-        name="doi-approval",
-    ),
+    path("campaigns/<uuid:pk>", views.CampaignDetailView.as_view(), name="campaign-detail"),
+    path("campaigns/<uuid:pk>/doi-fetch", views.DoiFetchView.as_view(), name="doi-fetch"),
+    path("campaigns/<uuid:pk>/doi-approval", views.DoiApprovalView.as_view(), name="doi-approval"),
     path("drafts/add/<str:model>", views.ChangeCreateView.as_view(), name="change-add"),
-    path(
-        "drafts/edit/<uuid:pk>",
-        views.ChangeUpdateView.as_view(),
-        name="change-update",
-    ),
+    path("drafts/edit/<uuid:pk>", views.ChangeUpdateView.as_view(), name="change-update"),
     path(
         "drafts/edit/<uuid:pk>/transition",
         views.ChangeTransition.as_view(),
@@ -52,7 +36,6 @@ urlpatterns = [
     ),
 ]
 
-from admin_ui.views import generate_base_list_view
 
 # limited has short, long
 
