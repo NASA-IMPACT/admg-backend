@@ -754,52 +754,49 @@ class GcmdKeywordsView(DraftTableBase):
         update_viewname="change-diff",
         viewname="change-update",
         url_kwargs={"pk": "uuid"},
-        verbose_name="Variable 3",
-        accessor="update__variable_3",
-        update_accessor="content_object.variable_3",
+        verbose_name="Short Name",
+        accessor="update__short_name",
+        update_accessor="content_object.short_name",
     )
-    variable_3 = DraftLinkColumn(
-        update_viewname="change-diff",
-        viewname="change-update",
-        url_kwargs={"pk": "uuid"},
-        verbose_name="Variable 3",
-        accessor="update__variable_3",
-        update_accessor="content_object.variable_3",
-    )
-    variable_2 = ConditionalValueColumn(
-        verbose_name="Variable 2",
-        accessor="update__variable_2",
-        update_accessor="content_object.variable_2",
-    )
-    variable_1 = ConditionalValueColumn(
-        verbose_name="Variable 1",
-        accessor="update__variable_1",
-        update_accessor="content_object.variable_1",
-    )
-    term = ConditionalValueColumn(
-        verbose_name="Term",
-        accessor="update__term",
-        update_accessor="content_object.term",
-    )
-    topic = ConditionalValueColumn(
-        verbose_name="Topic",
-        accessor="update__topic",
-        update_accessor="content_object.topic",
-    )
-    category = ConditionalValueColumn(
-        verbose_name="Category",
-        accessor="update__category",
-        update_accessor="content_object.category",
-    )
+
+    # Copied class below:
+    # variable_3 = DraftLinkColumn(
+    #     update_viewname="change-diff",
+    #     viewname="change-update",
+    #     url_kwargs={"pk": "uuid"},
+    #     verbose_name="Variable 3",
+    #     accessor="update__variable_3",
+    #     update_accessor="content_object.variable_3",
+    # )
+    # variable_2 = ConditionalValueColumn(
+    #     verbose_name="Variable 2",
+    #     accessor="update__variable_2",
+    #     update_accessor="content_object.variable_2",
+    # )
+    # variable_1 = ConditionalValueColumn(
+    #     verbose_name="Variable 1",
+    #     accessor="update__variable_1",
+    #     update_accessor="content_object.variable_1",
+    # )
+    # term = ConditionalValueColumn(
+    #     verbose_name="Term",
+    #     accessor="update__term",
+    #     update_accessor="content_object.term",
+    # )
+    # topic = ConditionalValueColumn(
+    #     verbose_name="Topic",
+    #     accessor="update__topic",
+    #     update_accessor="content_object.topic",
+    # )
+    # category = ConditionalValueColumn(
+    #     verbose_name="Category",
+    #     accessor="update__category",
+    #     update_accessor="content_object.category",
+    # )
 
     class Meta(DraftTableBase.Meta):
         all_fields = (
-            "variable_3",
-            "variable_2",
-            "variable_1",
-            "term",
-            "topic",
-            "category",
+            "short_name", 
         ) + DraftTableBase.final_fields
         fields = list(all_fields)
         sequence = all_fields

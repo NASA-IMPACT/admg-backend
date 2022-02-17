@@ -36,7 +36,7 @@ from data_models.models import (
     Website,
 )
 
-from .. import forms, mixins, tables, utils
+from .. import forms, mixins, tables, utils, filters
 
 
 @method_decorator(login_required, name="dispatch")
@@ -437,93 +437,31 @@ def format_validation_error(err: ValidationError) -> str:
     )
 
 
+# TODO: Take out!
 #################################
 ### Start of jhedman changes  ###
 #################################
-@method_decorator(login_required, name="dispatch")
-class GcmdKeywordsView(django_tables2.SingleTableView):
-    model = Change
-    models = (GcmdProject, GcmdInstrument, GcmdPlatform, GcmdPhenomena)
-    table_class = tables.ChangeSummaryTable
-    paginate_by = 10
-    template_name = "api_app/summary.html"
-
-    def get_queryset(self):
-        return (
-            Change.objects.of_type(*self.models)
-            # Prefetch related ContentType (used when displaying output model type)
-            .select_related("content_type")
-            .add_updated_at()
-            .order_by("-updated_at")
-        )
-
-    def get_draft_status_count(self):
-        status_ids = [IN_REVIEW_CODE, IN_ADMIN_REVIEW_CODE, PUBLISHED_CODE]
-        status_translations = {
-            status_id: status_name.replace(" ", "_")
-            for status_id, status_name in AVAILABLE_STATUSES
-        }
-
-        # Setup dict with 0 counts
-        review_counts = {
-            model._meta.model_name: {
-                status.replace(" ", "_"): 0 for status in status_translations.values()
-            }
-            for model in self.models
-        }
-
-        # Populate with actual counts
-        model_status_counts = (
-            Change.objects.of_type(*self.models)
-            .filter(action=CREATE, status__in=status_ids)
-            .values_list("content_type__model", "status")
-            .annotate(aggregates.Count("content_type"))
-        )
-        for (model, status_id, count) in model_status_counts:
-            review_counts.setdefault(model, {})[status_translations[status_id]] = count
-
-        return review_counts
-
-    def get_context_data(self, **kwargs):
-        return {
-            **super().get_context_data(**kwargs),
-            # These values for total_counts will be given to us by ADMG
-            "total_counts": {"campaign": None, "platform": None, "instrument": None},
-            "draft_status_counts": self.get_draft_status_count(),
-            "activity_list": ApprovalLog.objects.prefetch_related(
-                "change__content_type", "user"
-            ).order_by("-date")[: self.paginate_by / 2],
-        }
-
-## FIXME: Changes below
 @method_decorator(user_passes_test(lambda user: user.is_admg_admin()), name="dispatch")
 class GcmdSyncListView(SingleTableMixin, FilterView):
     model = Change
     template_name = "api_app/change_list.html"
-    filterset_class = MODEL_CONFIG_MAP[model_name]["draft_filter"]
-    table_class = MODEL_CONFIG_MAP[model_name]["change_list_table"]
-    linked_model = MODEL_CONFIG_MAP[model_name]["model"]
+    filterset_class = filters.GcmdSyncFilter
+    table_class = tables.GcmdKeywordsView
+    # linked_model = MODEL_CONFIG_MAP[model_name]["model"]
 
     def get_queryset(self):
         queryset = (
-            Change.objects.of_type(self.linked_model)
+            # TODO: Add GcmdPhenomena back
+            Change.objects.of_type(GcmdInstrument, GcmdPlatform, GcmdProject)
             .add_updated_at()
             .order_by("-updated_at")
         )
+        return queryset
 
-        if self.linked_model == Platform:
-            return queryset.annotate_from_relationship(
-                of_type=PlatformType,
-                uuid_from="platform_type",
-                to_attr="platform_type_name",
-            )
-        else:
-            return queryset
-
-    def get_context_data(self, **kwargs):
-        return {
-            **super().get_context_data(**kwargs),
-            "url_name": MODEL_CONFIG_MAP[model_name]["singular_snake_case"],
-            "model": self.linked_model._meta.model_name,
-            "display_name": MODEL_CONFIG_MAP[model_name]["display_name"],
-        }
+    # def get_context_data(self, **kwargs):
+    #     return {
+    #         **super().get_context_data(**kwargs),
+    #         "url_name": MODEL_CONFIG_MAP[model_name]["singular_snake_case"],
+    #         "model": self.linked_model._meta.model_name,
+    #         "display_name": MODEL_CONFIG_MAP[model_name]["display_name"],
+    #     }

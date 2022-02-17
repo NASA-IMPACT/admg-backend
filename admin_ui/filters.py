@@ -118,3 +118,10 @@ class CollectionPeriodFilter(CampaignFilter):
     class Meta:
         model = Change
         fields = ["status"]
+
+class GcmdSyncFilter(django_filters.FilterSet):
+    # make sure to include a filter_campaign_name method in the inherited classes
+    status = django_filters.ChoiceFilter(
+        choices=Change.Statuses.choices,
+        label="Status",
+    )
