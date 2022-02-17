@@ -7,7 +7,6 @@ register = template.Library()
 
 
 def build_draft_view(view):
-    print(f"In build_draft_view, view: {view}")
     return f"{view}-list-draft"
 
 
@@ -56,7 +55,6 @@ def collapsable_menu(parser, token):
 
     nodelist = parser.parse(("endcollapsable_menu",))
     parser.delete_first_token()
-    print(f"In collapsable_menu, model_names: {model_names}")
     return FoldingNavNode(
         nodelist,
         # Trim quotes
@@ -70,7 +68,6 @@ class FoldingNavNode(template.Node):
         self.nodelist = nodelist
         self.title = title
         self.model_names = model_names
-        print(f"In FoldingNavNode, self.model_name: {self.model_names}")
 
     def render(self, context):
         t = get_template("snippets/sidebar/collapsable_navgroup.html")
