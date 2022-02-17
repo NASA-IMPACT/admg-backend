@@ -5,6 +5,7 @@
   {# Tabs #}
   <div class="col pb-3">
     <ul class="nav nav-tabs" role="tablist">
+      {% if url_name %}
       <li class="nav-item">
         {% with tab_url=url_name|add:"-list-draft" %}
           <a class="nav-link {% if 'draft' in request.path %} active {% endif %}" href="{% url tab_url %}" role="tab" aria-controls="details" aria-selected="true">
@@ -19,6 +20,7 @@
           </a>
         {% endwith %}
       </li>
+      {% endif %}
     </ul>
   </div>
 {% endblock maintabs %}

@@ -10,9 +10,11 @@
 </div>
 
 <div class="col-auto">
+  {% if model %}
   <a class="btn btn-primary" href="{% url 'change-add' model %}">
     Add New {{ display_name }} +
   </a>
+  {% endif %}
 </div>
 
 {% endblock header %}
