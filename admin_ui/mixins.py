@@ -232,14 +232,13 @@ class ChangeModelFormMixin(ModelFormMixin):
         return self.form_valid(form, model_form)
 
     def form_valid(self, form, model_form):
+        # If we're running validation...
+        if "_validate" in self.request.POST:
+            messages.success(self.request, "Successfully validated.")
+            return self.render_to_response(self.get_context_data(form=form, model_form=model_form))
 
         # Important to run super first to set self.object
         redirect = super().form_valid(form)
-
-        # If we're running validation...
-        if "_validate" in self.request.POST:
-            messages.success(self.request, f'Successfully validated "{self.object}".')
-            return self.render_to_response(self.get_context_data(form=form, model_form=model_form))
 
         # If form was submitted from a popup window...
         if "_popup" in self.request.GET:

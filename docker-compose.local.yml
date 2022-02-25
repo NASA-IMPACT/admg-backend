@@ -17,18 +17,18 @@ services:
       - db
 
   db:
-    image: postgis
+    image: postgis/postgis
     volumes:
       - postgres_data:/var/lib/postgresql/data
     environment:
-      - POSTGRES_USER=alukach
-      - POSTGRES_PASSWORD=lukach
-      - POSTGRES_DB=postgres
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=admg_webapp
 
   rabbitmq:
     container_name: rabbitmq
     hostname: rabbitmq
-    image: amd64/rabbitmq:latest
+    image: rabbitmq:latest
     ports:
       - "5672:5672"
     restart: on-failure

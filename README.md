@@ -85,8 +85,14 @@ axios(config)
 ## Local Setup
 
 - Install docker and docker-compose
+- Copy `.env.sample_local` to `.env`
 - Run docker-compose with docker-compose.local.yml instead of docker-compose.yml
   - `docker-compose -f docker-compose.local.yml up`
+
+
+## Running Tests
+
+`docker-compose -f docker-compose.local.yml run web python manage.py test`
 
 ## Sass
 
@@ -177,7 +183,7 @@ python manage.py sass admin_ui/static/scss admin_ui/static/css --watch
    python manage.py runserver_plus
    ```
 
-2. Open the webiste
+2. Open the website
    http://localhost:8000/
 
 ### Understanding `python manage.py`
