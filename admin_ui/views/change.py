@@ -222,6 +222,28 @@ class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
         )
     )
 
+    back_button_mapping = {
+        "Platform": "platform-list-draft",
+        "Instrument": "instrument-list-draft",
+        "PartnerOrg": "partner_org-list-draft",
+        "GcmdProject": "gcmd_project-list-draft",
+        "GcmdInstrument": "gcmd_instrument-list-draft",
+        "GcmdPlatform": "gcmd_platform-list-draft",
+        "GcmdPhenomena": "gcmd_phenomena-list-draft",
+        "FocusArea": "focus_area-list-draft",
+        "GeophysicalConcept": "geophysical_concept-list-draft",
+        "MeasurementRegion": "measurement_region-list-draft",
+        "MeasurementStyle": "measurement_style-list-draft",
+        "MeasurementType": "measurement_type-list-draft",
+        "HomeBase": "home_base-list-draft",
+        "PlatformType": "platform_type-list-draft",
+        "GeographicalRegion": "geographical_region-list-draft",
+        "Season": "season-list-draft",
+        "Website": "website-list-draft",
+        "WebsiteType": "website_type-list-draft",
+        "Repository": "repository-list-draft",
+    }
+
     def get_success_url(self):
         url = (
             reverse("change-diff", args=[self.object.pk])
@@ -275,28 +297,7 @@ class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
         which table view the user should be redirected to.
         """
         content_type = self.get_model_form_content_type().model_class().__name__
-        button_mapping = {
-            "Platform": "platform-list-draft",
-            "Instrument": "instrument-list-draft",
-            "PartnerOrg": "partner_org-list-draft",
-            "GcmdProject": "gcmd_project-list-draft",
-            "GcmdInstrument": "gcmd_instrument-list-draft",
-            "GcmdPlatform": "gcmd_platform-list-draft",
-            "GcmdPhenomena": "gcmd_phenomena-list-draft",
-            "FocusArea": "focus_area-list-draft",
-            "GeophysicalConcept": "geophysical_concept-list-draft",
-            "MeasurementRegion": "measurement_region-list-draft",
-            "MeasurementStyle": "measurement_style-list-draft",
-            "MeasurementType": "measurement_type-list-draft",
-            "HomeBase": "home_base-list-draft",
-            "PlatformType": "platform_type-list-draft",
-            "GeographicalRegion": "geographical_region-season-list-draft",
-            "Season": "season-season-list-draft",
-            "Website": "website-list-draft",
-            "WebsiteType": "website_type-list-draft",
-            "Repository": "repository-list-draft",
-        }
-        return button_mapping.get(content_type, "summary")
+        return self.back_button_mapping.get(content_type, "summary")
 
     def post(self, *args, **kwargs):
         """
