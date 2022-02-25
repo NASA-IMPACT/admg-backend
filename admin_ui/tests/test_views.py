@@ -52,12 +52,12 @@ class TestCreateView(TestCase):
 
     def test_validate_does_not_create_instance(self):
         self.assertEqual(Change.objects.filter(content_type=self.content_type).count(), 0)
-        contenttype = self.content_type.id
+        content_type = self.content_type.id
         self.client.force_login(user=self.user)
         self.client.post(
             self.url,
             {
-                "content_type": contenttype,
+                "content_type": content_type,
                 "action": Change.Actions.CREATE,
                 "model_form-short_name": "something",
                 "_validate": "",
