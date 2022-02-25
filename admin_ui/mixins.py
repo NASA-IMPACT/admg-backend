@@ -234,7 +234,7 @@ class ChangeModelFormMixin(ModelFormMixin):
     def form_valid(self, form, model_form):
         # If we're running validation...
         if "_validate" in self.request.POST:
-            messages.success(self.request, f'Successfully validated.')
+            messages.success(self.request, "Successfully validated.")
             return self.render_to_response(self.get_context_data(form=form, model_form=model_form))
 
         # Important to run super first to set self.object

@@ -1,8 +1,6 @@
-import json
 from django.contrib.contenttypes.models import ContentType
 from django.test import TestCase
 from django.urls import reverse
-
 
 from data_models.models import Campaign, Season
 from api_app.models import Change
