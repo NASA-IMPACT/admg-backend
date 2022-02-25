@@ -23,6 +23,7 @@ class TestChangeUpdateView(TestCase):
         self.assertEqual(302, response.status_code)
         self.assertEqual(f"{reverse('account_login')}?next={self.url}", response.url)
 
+
 class TestCreateView(TestCase):
     def setUp(self):
         self.user = factories.UserFactory.create()
@@ -33,18 +34,21 @@ class TestCreateView(TestCase):
         self.assertEqual(Change.objects.filter(content_type=self.content_type).count(), 0)
         contenttype = self.content_type.id
         self.client.force_login(user=self.user)
-        self.client.post(self.url, {
-            "content_type": contenttype,
-            "action": Change.Actions.CREATE,
-            "model_form-short_name": "something",
-            "update": "{}",
-            "model_form-long_name": "",
-            "model_form-notes_internal": "",
-            "model_form-notes_public": "",
-            "model_form-order_priority": "",
-            "model_instance_uuid": "",
-
-        }, follow=True)
+        self.client.post(
+            self.url,
+            {
+                "content_type": contenttype,
+                "action": Change.Actions.CREATE,
+                "model_form-short_name": "something",
+                "update": "{}",
+                "model_form-long_name": "",
+                "model_form-notes_internal": "",
+                "model_form-notes_public": "",
+                "model_form-order_priority": "",
+                "model_instance_uuid": "",
+            },
+            follow=True,
+        )
         seasons = Change.objects.filter(content_type=self.content_type)
         self.assertEqual(len(seasons), 1)
 
@@ -52,18 +56,21 @@ class TestCreateView(TestCase):
         self.assertEqual(Change.objects.filter(content_type=self.content_type).count(), 0)
         contenttype = self.content_type.id
         self.client.force_login(user=self.user)
-        self.client.post(self.url, {
-            "content_type": contenttype,
-            "action": Change.Actions.CREATE,
-            "model_form-short_name": "something",
-            "_validate": "",
-            "update": "{}",
-            "model_form-long_name": "",
-            "model_form-notes_internal": "",
-            "model_form-notes_public": "",
-            "model_form-order_priority": "",
-            "model_instance_uuid": "",
-
-        }, follow=True)
+        self.client.post(
+            self.url,
+            {
+                "content_type": contenttype,
+                "action": Change.Actions.CREATE,
+                "model_form-short_name": "something",
+                "_validate": "",
+                "update": "{}",
+                "model_form-long_name": "",
+                "model_form-notes_internal": "",
+                "model_form-notes_public": "",
+                "model_form-order_priority": "",
+                "model_instance_uuid": "",
+            },
+            follow=True,
+        )
         seasons = Change.objects.filter(content_type=self.content_type)
         self.assertEqual(len(seasons), 0)

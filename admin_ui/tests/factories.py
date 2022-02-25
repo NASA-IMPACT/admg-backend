@@ -15,5 +15,6 @@ class UserFactory(factory.django.DjangoModelFactory):
     username = factory.Sequence(lambda n: "blah{0}".format(n))
     email = factory.Sequence(lambda n: "someone{0}@localhost".format(n))
     password = make_password("password")
+
     class Meta:
         model = get_user_model()
