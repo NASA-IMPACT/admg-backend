@@ -1,6 +1,8 @@
 import re
 import requests
 
+from django.contrib.contenttypes.models import ContentType
+
 from data_models import models
 
 FIELDS_TO_VALIDATE = {
@@ -126,6 +128,7 @@ def compile_urls_list(fields_to_search=FIELDS_TO_VALIDATE):
                         {
                             'uuid': object.uuid,
                             'model_name': model_name,
+                            'content_type': ContentType.objects.get_for_model(model),
                             'field_name': field_name,
                             'url': add_url_scheme(url),
                         }
@@ -152,6 +155,17 @@ def validate_urls(url_list):
 
 
 def run_validator_and_store():
+
     url_list = compile_urls_list(FIELDS_TO_VALIDATE)
     validation_data = validate_urls(url_list)
-    print(validation_data)
+
+    for url_data in validation_data:
+        models.UrlValidation.objects.create(
+            url_content_type=url_data['content_type'],
+            url_object_id=url_data['uuid'],
+            url_source_field=url_data['field_name'],
+            url=url_data['url'],
+            is_active=url_data['valid'],
+        )
+
+    return validation_data
