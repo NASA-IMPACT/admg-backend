@@ -93,11 +93,16 @@ def validate_url(url):
 
     try:
         request = requests.head(url)
+        details = ""
+        valid = request.status_code != 404
     except Exception as e:
-        # TODO this seems like a bad way to do this
-        return f'error: {e}'
+        details = f'validator encountered an error of: {e}'
+        valid = False
 
-    return request.status_code != 404
+    return {
+        'valid': valid,
+        'details': details,
+    }
 
 
 def compile_urls_list(fields_to_search=FIELDS_TO_VALIDATE):
@@ -148,8 +153,10 @@ def validate_urls(url_list):
         list[dict]: list of dictionaries, [{uuid, model_name, field_name, url, valid}, ..]
     """
 
-    for url_data in url_list[:10]:
-        url_data['valid'] = validate_url(url_data['url'])
+    for url_data in url_list:
+        validation_results = validate_url(url_data['url'])
+        url_data['valid'] = validation_results['valid']
+        url_data['details'] = validation_results['details']
 
     return url_list
 
@@ -157,7 +164,7 @@ def validate_urls(url_list):
 def run_validator_and_store():
 
     url_list = compile_urls_list(FIELDS_TO_VALIDATE)
-    validation_data = validate_urls(url_list)
+    validation_data = validate_urls(url_list[:10])
 
     for url_data in validation_data:
         models.UrlValidation.objects.create(
@@ -166,6 +173,7 @@ def run_validator_and_store():
             url_source_field=url_data['field_name'],
             url=url_data['url'],
             is_active=url_data['valid'],
+            details=url_data['details'],
         )
 
     return validation_data
