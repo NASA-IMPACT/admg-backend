@@ -1,6 +1,7 @@
 import os
-import uuid
 import urllib.parse
+import uuid
+from datetime import datetime
 
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
@@ -56,6 +57,28 @@ class BaseModel(models.Model):
 def get_file_path(instance, path):
     ext = os.path.splitext(urllib.parse.urlparse(path).path)[1]
     return f"{instance.uuid}.{ext}"
+
+
+class UrlValidation(BaseModel):
+    url_content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, blank=True)
+    url_object_id = models.UUIDField()
+    url_source_model = GenericForeignKey("url_content_type", "url_object_id")
+    url_source_field = models.TextField()
+
+    url = models.URLField(max_length=1024)
+    last_validated = models.DateTimeField(default=datetime.now, blank=True)
+    is_active = models.BooleanField(blank=True, null=True)
+    details = models.TextField(default="", blank=True)
+
+    class Meta:
+        verbose_name_plural = "UrlValidations"
+
+    def __str__(self):
+        return self.url
+
+    @property
+    def model_name(self):
+        return self.content_type.model_class
 
 
 class Image(BaseModel):
