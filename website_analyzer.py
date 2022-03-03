@@ -3,7 +3,7 @@ import requests
 
 from data_models import models
 
-fields_to_validate = {
+FIELDS_TO_VALIDATE = {
     "PartnerOrg": {
         "website",
     },
@@ -38,7 +38,7 @@ fields_to_validate = {
 }
 
 
-def extract_urls(text):
+def extract_urls(text_with_urls):
     """URLs might be written amongst other words in a body of text. This
     function takes in a text string and returns a list of identified urls.
 
@@ -52,7 +52,7 @@ def extract_urls(text):
     # https://stackoverflow.com/a/48769624
     url_regex = '(?:(?:https?|ftp):\/\/)?[\w/\-?=%.]+\.[\w/\-&?=%.]+'
 
-    return re.findall(url_regex, potential_url_field)
+    return re.findall(url_regex, text_with_urls)
 
 
 def add_url_scheme(url):
@@ -83,7 +83,7 @@ def validate_url(url):
         url (str): url to be validated
 
     Returns:
-        bool/text: bool if check was successful, otherwise an error code # TODO this seems like a bad way to do this
+        bool/text: bool if check was successful, otherwise an error code
     """
 
     # providing a header is required to prevent some sites, like http://www.ipy.org/ from throwing a ConnectionError
@@ -92,34 +92,66 @@ def validate_url(url):
     try:
         request = requests.head(url)
     except Exception as e:
+        # TODO this seems like a bad way to do this
         return f'error: {e}'
 
     return request.status_code != 404
 
 
-done = 0
-validation_results = []
-for model_name, field_names in fields_to_validate.items():
-    model = getattr(models, model_name)
-    objects = model.objects.all()
-    for object in objects:
-        for field_name in field_names:
-            potential_url_field = getattr(object, field_name)
-            urls = extract_urls(potential_url_field)
-            for url in urls:
-                print('trying', url)
-                url = add_url_scheme(url)
-                is_valid = validate_url(url)
-                validation_results.append(
-                    {
-                        'model_name': model_name,
-                        'field_name': field_name,
-                        'url': url,
-                        'uuid': object.uuid,
-                        'valid': is_valid,
-                    }
-                )
+def compile_urls_list(fields_to_search=FIELDS_TO_VALIDATE):
+    """The MI contains many fields which may or may not contain one or more urls.
+    This function takes a dictionary of models and fields and extracts urls from
+    each field.
 
-                print(is_valid)
-                done += 1
-                print(done)
+    Args:
+        fields_to_search (dict, optional): dictionary of fields which may contain
+        urls. Defaults to FIELDS_TO_VALIDATE.
+
+    Returns:
+        list of dicts: list of dictionaries, [{uuid, model_name, field_name, url}, ..]
+    """
+
+    urls_to_validate = []
+    for model_name, field_names in fields_to_search.items():
+        model = getattr(models, model_name)
+        objects = model.objects.all()
+
+        for object in objects:
+
+            for field_name in field_names:
+                potential_url_field = getattr(object, field_name)
+
+                for url in extract_urls(potential_url_field):
+                    urls_to_validate.append(
+                        {
+                            'uuid': object.uuid,
+                            'model_name': model_name,
+                            'field_name': field_name,
+                            'url': add_url_scheme(url),
+                        }
+                    )
+    return urls_to_validate
+
+
+def validate_urls(url_list):
+    """Takes a list of dictionaries, where the dictionary contains a url and the
+    source model/field/uuid and validates each entry. The original dictionary is
+    supplemented with the validation results.
+
+    Args:
+        url_list (list): list of urls output from compile_urls_list
+
+    Returns:
+        list[dict]: list of dictionaries, [{uuid, model_name, field_name, url, valid}, ..]
+    """
+
+    for url_data in url_list[:10]:
+        url_data['valid'] = validate_url(url_data['url'])
+
+    return url_list
+
+
+def run_validator_and_store():
+    url_list = compile_urls_list(FIELDS_TO_VALIDATE)
+    validation_data = validate_urls(url_list)
+    print(validation_data)
