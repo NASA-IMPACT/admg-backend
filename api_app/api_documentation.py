@@ -30,7 +30,7 @@ So, if you want a particular campaign instead of all the campaigns, you can quer
 As you can see from the above example, some fields return a human readable value, while others such as `aliases` return a UUID. If you see a human readable value, then this is all the information contained in that field. However, if a UUID is listed, then the field is linked to an object with additional metadata.<br>
 This object and its metadata can be retrieved by sending its UUID to the appropriate endpoint, as in the following example with aliases:
 `/alias/927479e5-b0c7-4aef-9d31-4a6850dea804`<br>
-Here, you can see that the field was named `aliases` however the endpoint queried was called `alias`. If you are ever trying to figure out which field corresponds with which endpoint, there is a full guide to every endpoint and field further in this document.<br>
+Here, you can see that the field was named `aliases` however the endpoint queried was called `alias`. If you are ever trying to figure out which field corresponds with which endpoint, there is a <a href="#full_guide">full guide</a> to every endpoint and field further in this document.<br>
 However, there is an underlying logic based on the English language. Endpoint names are always singular, `season`, `repository`, `instrument`, etc. However a field might hold more than one item from an endpoint. If the field just holds one item, the field name will be singular too. But if it is a one/many to many field, and holds a list of items, then it will be plural. So you might have a field named `repositories` which points to the `repository` endpoint.<br>
 <h2>Using short_name Searches</h2>The API also supports limited search functionality. Specifically, many endpoints allow<br>
 `/endpoint?short_name=value`<br>
@@ -52,7 +52,7 @@ Specifically, the following endpoints and fields are searchable<br>
         </ul>
 </ul>
 <h2>Permissions: POST vs GET</h2>Every endpoint is publicly accessible via the GET method, although some fields, such as `notes_internal` are for internal use only and will not be returned. The POST method is not publically accessible, and requires an authenticated user with a properly scoped token. If you have a need to use the POST method, please contact the ADMG team.<br>
-<h2>API Content and Field Names</h2>Below this section, there is a listing of every API endpoint and the available methods. If you are trying to figure out what data is available from the api, this is the place to look. If you click on an endpoint, it will enlarge and you will be able to see all the fields that are available.<br>
+<h2 id="full_guide">API Content and Field Names</h2>Below this section, there is a listing of every API endpoint and the available methods. If you are trying to figure out what data is available from the api, this is the place to look. If you click on an endpoint, it will enlarge and you will be able to see all the fields that are available.<br>
 Each field has several values listed:<br>
 <ul>
     <li>field name: the field name returned by the api</li>
