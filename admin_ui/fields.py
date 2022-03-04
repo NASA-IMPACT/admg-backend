@@ -2,6 +2,7 @@ from django.core.exceptions import ValidationError
 from django.contrib.gis.forms.fields import PolygonField
 from django.forms import MultipleChoiceField, ModelChoiceField, DateField, DateInput
 from django.utils.translation import gettext_lazy as _
+from admin_ui.config import MODEL_CONFIG_MAP
 
 from api_app import models
 from data_models import models as data_models
@@ -48,9 +49,9 @@ class ChangeChoiceMixin:
             return cls.get_queryset_for_collection_period()
 
         dest_model_name = dest_model._meta.model_name
-
+        dest_model_class_name = dest_model._meta.object_name
         # Field to use for textual description of field
-        identifier_field = {"image": "title", "website": "title"}.get(dest_model_name, "short_name")
+        identifier_field = MODEL_CONFIG_MAP[dest_model_class_name]['identifier_field']
 
         return (
             ChangeWithIdentifier("short_name")
