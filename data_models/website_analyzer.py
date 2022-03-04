@@ -164,7 +164,7 @@ def validate_urls(url_list):
 def run_validator_and_store():
 
     url_list = compile_urls_list(FIELDS_TO_VALIDATE)
-    validation_data = validate_urls(url_list[:10])
+    validation_data = validate_urls(url_list)
 
     for url_data in validation_data:
         models.UrlValidation.objects.create(
