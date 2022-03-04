@@ -30,8 +30,8 @@ So, if you want a particular campaign instead of all the campaigns, you can quer
 As you can see from the above example, some fields return a human readable value, while others such as `aliases` return a UUID. If you see a human readable value, then this is all the information contained in that field. However, if a UUID is listed, then the field is linked to an object with additional metadata.<br>
 This object and its metadata can be retrieved by sending its UUID to the appropriate endpoint, as in the following example with aliases:
 `/alias/927479e5-b0c7-4aef-9d31-4a6850dea804`<br>
-Here, you can see that the field was named `aliases` however the endpoint queried was called `alias`. It is generally the case that if a linked field is singular, it will correspond perfectly with it's table, because this represents a one to one relationship. Meanwhile if the field is plural then it has a one/many to many relationship, and it will need to be singularized to obtain the table name. So 'repositories' becomes 'repository' and 'seasons' becomes 'season', while 'deployment' remains 'deployment'.<br>
-If you are ever in doubt, there is a full guide to every endpoint and field further in this document.<br>
+Here, you can see that the field was named `aliases` however the endpoint queried was called `alias`. If you are ever trying to figure out which field corresponds with which endpoint, there is a full guide to every endpoint and field further in this document.<br>
+However, there is an underlying logic based on the English language. Endpoint names are always singular, `season`, `repository`, `instrument`, etc. However a field might hold more than one item from an endpoint. If the field just holds one item, the field name will be singular too. But if it is a one/many to many field, and holds a list of items, then it will be plural. So you might have a field named `repositories` which points to the `repository` endpoint.<br>
 <h2>Using short_name Searches</h2>The API also supports limited search functionality. Specifically, many endpoints allow<br>
 `/endpoint?short_name=value`<br>
 for example<br>
