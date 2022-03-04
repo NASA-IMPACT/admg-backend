@@ -52,7 +52,7 @@ def extract_urls(text_with_urls):
     """
 
     # https://stackoverflow.com/a/48769624
-    url_regex = '(?:(?:https?|ftp):\/\/)?[\w/\-?=%.]+\.[\w/\-&?=%.]+'
+    url_regex = r'(?:(?:https?|ftp):\/\/)?[\w/\-?=%.]+\.[\w/\-&?=%.]+'
 
     return re.findall(url_regex, text_with_urls)
 
