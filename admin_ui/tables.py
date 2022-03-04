@@ -180,6 +180,10 @@ class LimitedTableBase(DraftTableBase):
         sequence = ("short_name", "long_name")
 
 
+class ImageChangeListTable:
+    pass
+
+
 class IOPChangeListTable(DraftTableBase):
     short_name = DraftLinkColumn(
         update_viewname="change-diff",
