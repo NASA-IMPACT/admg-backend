@@ -17,14 +17,30 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='UrlValidation',
             fields=[
-                ('uuid', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False, unique=True)),
+                (
+                    'uuid',
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                        unique=True,
+                    ),
+                ),
                 ('url_object_id', models.UUIDField()),
                 ('url_source_field', models.TextField()),
                 ('url', models.URLField(max_length=1024)),
                 ('last_validated', models.DateTimeField(blank=True, default=datetime.datetime.now)),
                 ('is_active', models.BooleanField(blank=True, null=True)),
                 ('details', models.TextField(blank=True, default='')),
-                ('url_content_type', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.CASCADE, to='contenttypes.contenttype')),
+                (
+                    'url_content_type',
+                    models.ForeignKey(
+                        blank=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to='contenttypes.contenttype',
+                    ),
+                ),
             ],
             options={
                 'verbose_name_plural': 'UrlValidations',
