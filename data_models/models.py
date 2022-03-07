@@ -249,7 +249,13 @@ class PartnerOrg(LimitedInfoPriority):
         pass
 
 
-class GcmdProject(BaseModel):
+class GcmdKeyword(BaseModel):
+    @property
+    def get_keyword(self):
+        raise NotImplemented
+
+
+class GcmdProject(GcmdKeyword):
     short_name = models.CharField(max_length=256, blank=True, default="")
     long_name = models.CharField(max_length=512, blank=True, default="")
     bucket = models.CharField(max_length=256)
@@ -259,11 +265,15 @@ class GcmdProject(BaseModel):
         categories = (self.short_name, self.long_name)
         return create_gcmd_str(categories)
 
+    @property
+    def get_keyword(self):
+        raise self.short_name
+
     class Meta:
         ordering = ("short_name",)
 
 
-class GcmdInstrument(BaseModel):
+class GcmdInstrument(GcmdKeyword):
     short_name = models.CharField(max_length=256, blank=True, default="")
     long_name = models.CharField(max_length=512, blank=True, default="")
     # these make more sense without 'instrument', however class and type are
@@ -285,11 +295,15 @@ class GcmdInstrument(BaseModel):
         )
         return create_gcmd_str(categories)
 
+    @property
+    def get_keyword(self):
+        raise self.short_name
+
     class Meta:
         ordering = ("short_name",)
 
 
-class GcmdPlatform(BaseModel):
+class GcmdPlatform(GcmdKeyword):
     short_name = models.CharField(max_length=256, blank=True, default="")
     long_name = models.CharField(max_length=512, blank=True, default="")
     category = models.CharField(max_length=256)
@@ -301,11 +315,15 @@ class GcmdPlatform(BaseModel):
         categories = (self.category, self.long_name, self.short_name)
         return create_gcmd_str(categories)
 
+    @property
+    def get_keyword(self):
+        raise self.short_name
+
     class Meta:
         ordering = ("short_name",)
 
 
-class GcmdPhenomena(BaseModel):
+class GcmdPhenomena(GcmdKeyword):
     category = models.CharField(max_length=256)
     topic = models.CharField(max_length=256, blank=True, default="")
     term = models.CharField(max_length=256, blank=True, default="")
@@ -324,6 +342,15 @@ class GcmdPhenomena(BaseModel):
             self.variable_3,
         )
         return create_gcmd_str(categories)
+
+    @property
+    def get_keyword(self):
+        if self.variable_3:
+            return self.variable_3
+        if self.variable_2:
+            return self.variable_2
+        if self.variable_1:
+            return self.variable_1
 
 
 class Website(BaseModel):

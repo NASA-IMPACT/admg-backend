@@ -437,10 +437,6 @@ def format_validation_error(err: ValidationError) -> str:
     )
 
 
-# TODO: Take out!
-#################################
-### Start of jhedman changes  ###
-#################################
 @method_decorator(user_passes_test(lambda user: user.is_admg_admin()), name="dispatch")
 class GcmdSyncListView(SingleTableMixin, FilterView):
     model = Change
@@ -450,18 +446,116 @@ class GcmdSyncListView(SingleTableMixin, FilterView):
     # linked_model = MODEL_CONFIG_MAP[model_name]["model"]
 
     def get_queryset(self):
+        # ph = list(Change.objects.of_type(GcmdPhenomena))
         queryset = (
             # TODO: Add GcmdPhenomena back
-            Change.objects.of_type(GcmdInstrument, GcmdPlatform, GcmdProject)
+            Change.objects.of_type(GcmdInstrument, GcmdPlatform, GcmdProject, GcmdPhenomena)
             .add_updated_at()
             .order_by("-updated_at")
+            # .values('uuid', 'update', 'action', 'status', 'content_type__model')
         )
+
         return queryset
 
     # def get_context_data(self, **kwargs):
-    #     return {
-    #         **super().get_context_data(**kwargs),
-    #         "url_name": MODEL_CONFIG_MAP[model_name]["singular_snake_case"],
-    #         "model": self.linked_model._meta.model_name,
-    #         "display_name": MODEL_CONFIG_MAP[model_name]["display_name"],
-    #     }
+    #     context = super().get_context_data(**kwargs)
+    #     keyword_type = Change.objects.
+    #     return context
+
+
+# @method_decorator(user_passes_test(lambda user: user.is_admg_admin()), name="dispatch")
+# class ChangeKeywordUpdateView(mixins.ChangeModelFormMixin, UpdateView):
+#     fields = ["content_type", "model_instance_uuid", "action", "update", "status"]
+#     prefix = "change"
+#     template_name = "api_app/change_update.html"
+#     queryset = (
+#         Change.objects.select_related("content_type")
+#         .prefetch_approvals()
+#         .annotate_from_relationship(
+#             of_type=Image, to_attr="logo_path", uuid_from="logo", identifier="image"
+#         )
+#     )
+
+#     def get_success_url(self):
+#         url = (
+#             reverse("change-diff", args=[self.object.pk])
+#             if self.object.action == Change.Actions.UPDATE
+#             else reverse("change-update", args=[self.object.pk])
+#         )
+#         if self.request.GET.get("back"):
+#             return f'{url}?back={self.request.GET["back"]}'
+#         return url
+
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+#         return {
+#             **context,
+#             "transition_form": (
+#                 forms.TransitionForm(change=context["object"], user=self.request.user)
+#             ),
+#             "campaign_subitems": ["Deployment", "IOP", "SignificantEvent", "CollectionPeriod"],
+#             "related_fields": self.get_related_fields(),
+#             "back_button": self.get_back_button_url(),
+#             "ancestors": (context["object"].get_ancestors().select_related("content_type")),
+#             "descendents": (context["object"].get_descendents().select_related("content_type")),
+#         }
+
+#     def get_model_form_content_type(self) -> ContentType:
+#         return self.object.content_type
+
+#     def get_related_fields(self) -> Dict:
+#         related_fields = {}
+#         content_type = self.get_model_form_content_type().model_class().__name__
+#         if content_type in ["Campaign", "Platform", "Deployment", "Instrument", "PartnerOrg"]:
+#             related_fields["alias"] = Change.objects.of_type(Alias).filter(
+#                 update__object_id=str(self.object.uuid)
+#             )
+#         if content_type == "Campaign":
+#             related_fields["website"] = (
+#                 Change.objects.of_type(Website)
+#                 .filter(action=Change.Actions.CREATE, update__campaign=str(self.object.uuid))
+#                 .annotate_from_relationship(
+#                     of_type=Website, to_attr="title", uuid_from="website", identifier="title"
+#                 )
+#             )
+#         return related_fields
+
+#     def get_model_form_intial(self):
+#         return self.object.update
+
+#     def get_back_button_url(self):
+#         """
+#         In the case where the back button returns the user to the table view for that model type, specify
+#         which table view the user should be redirected to.
+#         """
+#         content_type = self.get_model_form_content_type().model_class().__name__
+#         button_mapping = {
+#             "Platform": "platform-list-draft",
+#             "Instrument": "instrument-list-draft",
+#             "PartnerOrg": "partner_org-list-draft",
+#             "GcmdProject": "gcmd_project-list-draft",
+#             "GcmdInstrument": "gcmd_instrument-list-draft",
+#             "GcmdPlatform": "gcmd_platform-list-draft",
+#             "GcmdPhenomena": "gcmd_phenomena-list-draft",
+#             "FocusArea": "focus_area-list-draft",
+#             "GeophysicalConcept": "geophysical_concept-list-draft",
+#             "MeasurementRegion": "measurement_region-list-draft",
+#             "MeasurementStyle": "measurement_style-list-draft",
+#             "MeasurementType": "measurement_type-list-draft",
+#             "HomeBase": "home_base-list-draft",
+#             "PlatformType": "platform_type-list-draft",
+#             "GeographicalRegion": "geographical_region-season-list-draft",
+#             "Season": "season-season-list-draft",
+#             "Website": "website-list-draft",
+#             "WebsiteType": "website_type-list-draft",
+#             "Repository": "repository-list-draft",
+#         }
+#         return button_mapping.get(content_type, "summary")
+
+#     def post(self, *args, **kwargs):
+#         """
+#         Handle POST requests: instantiate a form instance with the passed
+#         POST variables and then check if it's valid.
+#         """
+#         self.object = self.get_object()
+#         return super().post(*args, **kwargs)

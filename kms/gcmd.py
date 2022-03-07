@@ -2,6 +2,7 @@ import logging
 import uuid
 
 from typing import Dict, Optional, Set, Union, Type
+# TODO: Take out actions 
 from api_app.models import Change, CREATE, UPDATE, DELETE, PATCH, IN_ADMIN_REVIEW_CODE 
 from django.contrib.contenttypes.models import ContentType
 from django.forms.models import model_to_dict

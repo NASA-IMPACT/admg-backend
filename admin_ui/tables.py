@@ -754,10 +754,16 @@ class GcmdKeywordsView(DraftTableBase):
         update_viewname="change-diff",
         viewname="change-update",
         url_kwargs={"pk": "uuid"},
-        verbose_name="Short Name",
-        accessor="update__short_name",
+        verbose_name="GCMD Keyword",
+        accessor="get_keyword",
         update_accessor="content_object.short_name",
     )
+    category = ConditionalValueColumn(
+        verbose_name="Category",
+        accessor="content_type__model",
+        update_accessor="content_type__model", # TODO: Figure out the real value this should be
+    )
+
 
     # Copied class below:
     # variable_3 = DraftLinkColumn(
@@ -796,7 +802,8 @@ class GcmdKeywordsView(DraftTableBase):
 
     class Meta(DraftTableBase.Meta):
         all_fields = (
-            "short_name", 
+            "keyword",
+            "category"
         ) + DraftTableBase.final_fields
         fields = list(all_fields)
         sequence = all_fields
