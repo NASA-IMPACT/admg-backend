@@ -10,6 +10,7 @@ from django.http.response import Http404
 from django.shortcuts import render
 from django.views.generic.edit import ModelFormMixin
 
+from admin_ui.utils import disable_form_fields
 from data_models import models
 from . import fields, widgets, config
 
@@ -108,11 +109,12 @@ class ChangeModelFormMixin(ModelFormMixin):
             kwargs["model_form"].fields[field].disabled = True
 
         # Disable save on published or trashed
-        is_published_or_trashed = (
+        kwargs["disable_save"] = (
             self.object.status == self.object.Statuses.PUBLISHED
             or self.object.status == self.object.Statuses.IN_TRASH
         )
-        kwargs["disable_save"] = is_published_or_trashed
+        if kwargs["disable_save"]:
+            disable_form_fields(kwargs['model_form'])
 
         return super().get_context_data(**kwargs)
 
