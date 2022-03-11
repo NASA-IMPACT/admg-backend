@@ -106,6 +106,14 @@ class ChangeModelFormMixin(ModelFormMixin):
         model_config = config.MODEL_CONFIG_MAP.get(model_name, {})
         for field in model_config.get("change_view_readonly_fields", []):
             kwargs["model_form"].fields[field].disabled = True
+
+        # Disable save on published or trashed
+        is_published_or_trashed = (
+            self.object.status == self.object.Statuses.PUBLISHED
+            or self.object.status == self.object.Statuses.IN_TRASH
+        )
+        kwargs["disable_save"] = is_published_or_trashed
+
         return super().get_context_data(**kwargs)
 
     @staticmethod

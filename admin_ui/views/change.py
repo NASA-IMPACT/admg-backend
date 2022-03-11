@@ -328,14 +328,10 @@ class DiffView(ChangeUpdateView):
         published_form = self.destination_model_form(
             instance=destination_model_instance, auto_id="readonly_%s"
         )
-        is_published_or_trashed = (
-            context["object"].status == Change.Statuses.PUBLISHED
-            or context["object"].status == Change.Statuses.IN_TRASH
-        )
 
         # if published or trashed then the old data doesn't need to be from the database, it
         # needs to be from the previous field of the change_object
-        if is_published_or_trashed:
+        if context['disable_save']:
             for key, val in context["object"].previous.items():
                 published_form.initial[key] = val
 
@@ -347,11 +343,7 @@ class DiffView(ChangeUpdateView):
                 context["model_form"], published_form, context["object"].update
             )
 
-        return {
-            **context,
-            "noneditable_published_form": utils.disable_form_fields(published_form),
-            "disable_save": is_published_or_trashed,
-        }
+        return {**context, "noneditable_published_form": utils.disable_form_fields(published_form)}
 
 
 def generate_base_list_view(model_name):

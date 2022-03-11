@@ -24,6 +24,7 @@
 {% endblock header %}
 
 {% block actions %}
+  {% if not disable_save %}
   <div class="px-1">
     {% include "snippets/approval_dropdown.html" %}
   </div>
@@ -33,7 +34,6 @@
       class="btn btn-primary" 
       form="model-form" 
       formnovalidate
-      {% if disable_save %}disabled{% endif %}
     >
       Save
     </button>
@@ -45,6 +45,7 @@
       Validate
     </button>
   </div>
+  {% endif %}
 {% endblock actions %}
 
 {% block main %}
