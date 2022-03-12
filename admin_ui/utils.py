@@ -1,3 +1,5 @@
+from django.forms import FileField, ModelForm
+
 def compare_values(old_item, new_item):
     """
     Compare old item with new item
@@ -27,3 +29,30 @@ def disable_form_fields(form):
     for fieldname in form.fields:
         form.fields[fieldname].disabled = True
     return form
+
+
+def serialize_mode_form(model_form: ModelForm):
+    """
+    Given a model form, serialize and export the data to a format
+    usable as a change.update field
+    """
+    update = {}
+    for name, field in model_form.fields.items():
+        if isinstance(field, FileField):
+            # Save any uploaded files to disk, then overwrite their values with their name
+            model_field = getattr(model_form.instance, name)
+            if not model_field._file:
+                continue
+            model_field.save(model_field.url, model_form.cleaned_data[name])
+            update[name] = model_field.name
+
+        else:
+            # Populate Change's form with values from destination model's form.
+            # We're not saving the cleaned_data because we want the raw text, not
+            # the processed values (e.g. we don't want Polygon objects for bounding
+            # boxes, rather we want the raw polygon text). This may or may not be
+            # the best way to achieve this.
+            update[name] = field.widget.value_from_datadict(
+                model_form.data, model_form.files, model_form.add_prefix(name)
+            )
+    return update

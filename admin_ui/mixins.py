@@ -5,15 +5,14 @@ from django.contrib import messages
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.gis.db.models.fields import PolygonField
 from django.db import models as model_fields
-from django.forms import modelform_factory, FileField, HiddenInput
+from django.forms import modelform_factory, HiddenInput
 from django.http import HttpResponseBadRequest
 from django.http.response import Http404
 from django.shortcuts import render
 from django.views.generic.edit import ModelFormMixin
 
-from admin_ui.utils import disable_form_fields
 from data_models import models
-from . import fields, widgets, config
+from . import fields, widgets, config, utils
 
 
 def formfield_callback(f, **kwargs):
@@ -111,7 +110,7 @@ class ChangeModelFormMixin(ModelFormMixin):
 
         # Disable save on published or trashed
         if not self.object.can_edit:
-            disable_form_fields(kwargs['model_form'])
+            utils.disable_form_fields(kwargs['model_form'])
 
         return super().get_context_data(**kwargs)
 
@@ -174,27 +173,6 @@ class ChangeModelFormMixin(ModelFormMixin):
         else:
             return []
 
-    def get_update_values(self, model_form):
-        update = {}
-        for name, field in model_form.fields.items():
-            if isinstance(field, FileField):
-                # Save any uploaded files to disk, then overwrite their values with their name
-                model_field = getattr(model_form.instance, name)
-                if not model_field._file:
-                    continue
-                model_field.save(model_field.url, model_form.cleaned_data[name])
-                update[name] = model_field.name
-
-            else:
-                # Populate Change's form with values from destination model's form.
-                # We're not saving the cleaned_data because we want the raw text, not
-                # the processed values (e.g. we don't want Polygon objects for bounding
-                # boxes, rather we want the raw polygon text). This may or may not be
-                # the best way to achieve this.
-                update[name] = field.widget.value_from_datadict(
-                    model_form.data, model_form.files, model_form.add_prefix(name)
-                )
-        return update
 
     def post(self, request, *args, **kwargs):
         """
@@ -235,7 +213,7 @@ class ChangeModelFormMixin(ModelFormMixin):
                 # Only update fields that can be altered by the form. Otherwise, retain
                 # original values from form.instance.update
                 k: v
-                for k, v in self.get_update_values(model_form).items()
+                for k, v in utils.serialize_mode_form(model_form).items()
                 if k not in readonly_fields
             }
         )
