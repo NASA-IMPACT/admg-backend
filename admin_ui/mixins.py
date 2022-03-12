@@ -6,6 +6,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.gis.db.models.fields import PolygonField
 from django.db import models as model_fields
 from django.forms import modelform_factory, FileField, HiddenInput
+from django.http import HttpResponseBadRequest
 from django.http.response import Http404
 from django.shortcuts import render
 from django.views.generic.edit import ModelFormMixin
@@ -211,6 +212,9 @@ class ChangeModelFormMixin(ModelFormMixin):
         validate_model_form = "_validate" in request.POST
         if not form.is_valid() or (validate_model_form and not model_form.is_valid()):
             return self.form_invalid(form=form, model_form=model_form)
+
+        if not self.object.can_edit:
+            return HttpResponseBadRequest("Object no longer available for edit")
 
         model_config = config.MODEL_CONFIG_MAP.get(self.get_model_type().__name__, {})
         readonly_fields = model_config.get("change_view_readonly_fields", [])
