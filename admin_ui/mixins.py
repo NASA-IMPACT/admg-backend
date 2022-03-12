@@ -109,11 +109,7 @@ class ChangeModelFormMixin(ModelFormMixin):
             kwargs["model_form"].fields[field].disabled = True
 
         # Disable save on published or trashed
-        kwargs["disable_save"] = (
-            self.object.status == self.object.Statuses.PUBLISHED
-            or self.object.status == self.object.Statuses.IN_TRASH
-        )
-        if kwargs["disable_save"]:
+        if not self.object.can_edit:
             disable_form_fields(kwargs['model_form'])
 
         return super().get_context_data(**kwargs)

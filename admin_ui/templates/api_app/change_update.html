@@ -3,6 +3,7 @@
 {% load crispy_forms_tags %}
 {% load model_helpers %}
 {% load humanize %}
+{% load template_extras %}
 
 {% block header %}
   <div class="col">
@@ -24,7 +25,7 @@
 {% endblock header %}
 
 {% block actions %}
-  {% if not disable_save %}
+  {% if object.can_edit %}
   <div class="px-1">
     {% include "snippets/approval_dropdown.html" %}
   </div>
@@ -37,6 +38,7 @@
     >
       Save
     </button>
+    {% if object.action == 'Create' %}
     <button 
       class="btn btn-secondary" 
       form="model-form" 
@@ -44,6 +46,7 @@
     >
       Validate
     </button>
+    {% endif %}
   </div>
   {% endif %}
 {% endblock actions %}
@@ -93,3 +96,29 @@
 
   </aside>
 {% endblock main%}
+
+{% block form_body %}
+{% if comparison_form %}
+<div class="row">
+    <div class="col-lg-6 col-sm-4 lead font-weight-bold">
+      New Version
+    </div>
+    <div class="col-lg-6 col-sm-4 lead font-weight-bold">
+      Old Version
+    </div>
+  </div>
+  {% for field1, field2 in model_form|zip:comparison_form %}
+    <div class="row">
+      <div class="col-lg-6 col-sm-4">
+        {{ field1 | as_crispy_field }}
+      </div>
+      <div class="col-lg-6 col-sm-4">
+        {{ field2 | as_crispy_field }}
+      </div>
+    </div>
+  {% endfor %}
+</div>
+{% else %}
+{{ block.super }}
+{% endif %}
+{% endblock form_body %}

@@ -315,6 +315,13 @@ class Change(models.Model):
         cls = self.content_type.model_class()
         return cls.__name__ if cls else "UNKNOWN"
 
+    @property
+    def can_edit(self):
+        """
+        Helper to specify when an object should be locked (ie no longer can be edited)
+        """
+        return self.status not in [self.Statuses.PUBLISHED, self.Statuses.IN_TRASH]
+
     def __str__(self):
         return f"{self.model_name} >> {self.uuid}"
 
