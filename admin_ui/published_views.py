@@ -12,7 +12,6 @@ from api_app.models import Change
 
 from .config import MODEL_CONFIG_MAP
 from .published_forms import GenericFormClass
-from .mixins import ChangeModelFormMixin
 
 
 def GenericListView(model_name):
@@ -34,7 +33,7 @@ def GenericListView(model_name):
     return GenericListViewClass
 
 
-class ModelObjectView(ChangeModelFormMixin, DetailView):
+class ModelObjectView(DetailView):
     fields = "__all__"
 
     def _initialize_form(self, form_class, disable_all=False, **kwargs):
