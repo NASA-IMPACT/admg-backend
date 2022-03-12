@@ -3,7 +3,6 @@ from uuid import UUID
 import django_tables2 as tables
 from api_app.models import Change
 from data_models.models import Campaign, Deployment, Instrument, Platform
-from django.urls import reverse
 from django_tables2 import A
 
 
@@ -110,11 +109,6 @@ class ShortNamefromUUIDColumn(ConditionalValueColumn):
             return ", ".join(self.get_short_name(potential_uuid) for potential_uuid in value)
         else:
             return self.get_short_name(value)
-
-
-class ShortNamefromUUIDLinkColumn(ShortNamefromUUIDColumn):
-    def __init__(self, model=None, **kwargs):
-        self.model = model
 
 
 class DraftTableBase(tables.Table):
@@ -227,7 +221,7 @@ class SignificantEventChangeListTable(DraftTableBase):
 
 class CollectionPeriodChangeListTable(DraftTableBase):
     # TODO: have a calculated short_name field?
-    deployment = ShortNamefromUUIDLinkColumn(
+    deployment = ShortNamefromUUIDColumn(
         linkify=("change-update", [A('uuid')]),
         model=Deployment,
         verbose_name="Deployment",

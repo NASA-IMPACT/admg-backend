@@ -31,7 +31,6 @@ from data_models.models import (
 from .tables import (
     ConditionalValueColumn,
     ShortNamefromUUIDColumn,
-    ShortNamefromUUIDLinkColumn,
 )
 
 
@@ -85,9 +84,9 @@ class SignificantEventPublishedTable(tables.Table):
 
 
 class CollectionPeriodPublishedTable(tables.Table):
-    deployment = ShortNamefromUUIDLinkColumn(
-        viewname=f"{camel_to_snake('CollectionPeriod')}-detail-published",
-        url_kwargs={"pk": "uuid"},
+    deployment = ShortNamefromUUIDColumn(
+        linkify=(f"{camel_to_snake('CollectionPeriod')}-detail-published", [tables.A('uuid')]),
+        # url_kwargs={"pk": "uuid"},
         model=Deployment,
         verbose_name="Deployment",
         accessor="deployment",
