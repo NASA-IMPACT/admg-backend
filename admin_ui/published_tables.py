@@ -28,10 +28,7 @@ from data_models.models import (
     WebsiteType,
 )
 
-from .tables import (
-    ConditionalValueColumn,
-    ShortNamefromUUIDColumn,
-)
+from .tables import ConditionalValueColumn, ShortNamefromUUIDColumn
 
 
 class LimitedTableBase(tables.Table):

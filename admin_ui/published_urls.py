@@ -1,6 +1,6 @@
 from django.urls import path
 
-from . import views, published_views
+from . import published_views
 from .config import MODEL_CONFIG_MAP
 
 published_urls = [
@@ -33,5 +33,5 @@ published_urls = [
                 name=f"{MODEL_CONFIG_MAP[model]['singular_snake_case']}-delete-published",
             ),
         ]
-    ],
+    ]
 ]

@@ -173,7 +173,6 @@ class ChangeModelFormMixin(ModelFormMixin):
         else:
             return []
 
-
     def post(self, request, *args, **kwargs):
         """
         Handle POST requests: instantiate a form instance with the passed

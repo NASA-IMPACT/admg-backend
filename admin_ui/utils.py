@@ -1,5 +1,6 @@
 from django.forms import FileField, ModelForm
 
+
 def compare_values(old_item, new_item):
     """
     Compare old item with new item
