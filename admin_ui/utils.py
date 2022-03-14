@@ -31,7 +31,7 @@ def disable_form_fields(form):
     return form
 
 
-def serialize_mode_form(model_form: ModelForm):
+def serialize_model_form(model_form: ModelForm):
     """
     Given a model form, serialize and export the data to a format
     usable as a change.update field

@@ -213,7 +213,7 @@ class ChangeModelFormMixin(ModelFormMixin):
                 # Only update fields that can be altered by the form. Otherwise, retain
                 # original values from form.instance.update
                 k: v
-                for k, v in utils.serialize_mode_form(model_form).items()
+                for k, v in utils.serialize_model_form(model_form).items()
                 if k not in readonly_fields
             }
         )

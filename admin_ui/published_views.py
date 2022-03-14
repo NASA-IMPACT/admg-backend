@@ -57,7 +57,7 @@ class ModelObjectView(DetailView):
         }
 
     def _create_diff_dict(self, form):
-        updated_values = utils.serialize_mode_form(form)
+        updated_values = utils.serialize_model_form(form)
         return {changed_key: updated_values[changed_key] for changed_key in form.changed_data}
 
 
