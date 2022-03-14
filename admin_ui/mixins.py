@@ -109,7 +109,7 @@ class ChangeModelFormMixin(ModelFormMixin):
             kwargs["model_form"].fields[field].disabled = True
 
         # Disable save on published or trashed
-        if not self.object.can_edit:
+        if self.object.is_locked:
             utils.disable_form_fields(kwargs['model_form'])
 
         return super().get_context_data(**kwargs)
@@ -191,7 +191,7 @@ class ChangeModelFormMixin(ModelFormMixin):
         if not form.is_valid() or (validate_model_form and not model_form.is_valid()):
             return self.form_invalid(form=form, model_form=model_form)
 
-        if not self.object.can_edit:
+        if self.object.is_locked:
             return HttpResponseBadRequest("Object no longer available for edit")
 
         model_config = config.MODEL_CONFIG_MAP.get(self.get_model_type().__name__, {})

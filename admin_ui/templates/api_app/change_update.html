@@ -25,7 +25,7 @@
 {% endblock header %}
 
 {% block actions %}
-  {% if object.can_edit %}
+  {% if not object.is_locked %}
   <div class="px-1">
     {% include "snippets/approval_dropdown.html" %}
   </div>

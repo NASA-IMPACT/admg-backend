@@ -262,9 +262,7 @@ class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
             "back_button": self._get_back_button_url(),
             "ancestors": context["object"].get_ancestors().select_related("content_type"),
             "descendents": context["object"].get_descendents().select_related("content_type"),
-            "comparison_form": self._get_comparison_form(
-                context['model_form']
-            ),
+            "comparison_form": self._get_comparison_form(context['model_form']),
         }
 
     def _get_comparison_form(self, model_form):
@@ -281,10 +279,10 @@ class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
 
         # if published or trashed then the old data doesn't need to be from the database, it
         # needs to be from the previous field of the change_object
-        if not self.object.can_edit:
+        if self.object.is_locked:
             for key, val in self.object.previous.items():
                 published_form.initial[key] = val
-        comparison_obj = self.object.update if self.object.can_edit else self.object.previous
+        comparison_obj = self.object.previous if self.object.is_locked else self.object.update
 
         for field_name in comparison_obj:
             if not utils.compare_values(
