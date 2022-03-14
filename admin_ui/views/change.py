@@ -269,7 +269,8 @@ class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
 
     def _get_comparison_form(self, model_form):
         """ 
-        
+        Generates a disabled form for the published model, used for generating
+        a diff view.
         """
         if self.object.action != self.object.Actions.UPDATE:
             return None
