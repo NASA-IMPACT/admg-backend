@@ -1,6 +1,6 @@
 import re
-import requests
 
+import requests
 from django.contrib.contenttypes.models import ContentType
 
 from data_models import models
@@ -167,7 +167,7 @@ def run_validator_and_store():
     validation_data = validate_urls(url_list)
 
     for url_data in validation_data:
-        models.UrlValidation.objects.create(
+        url_validation = models.UrlValidation.objects.create(
             url_content_type=url_data['content_type'],
             url_object_id=url_data['uuid'],
             url_source_field=url_data['field_name'],
@@ -175,5 +175,6 @@ def run_validator_and_store():
             is_active=url_data['valid'],
             details=url_data['details'],
         )
+        url_validation.save()
 
     return validation_data
