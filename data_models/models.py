@@ -78,7 +78,7 @@ class UrlValidation(BaseModel):
 
     @property
     def model_name(self):
-        return self.content_type.model_class
+        return self.url_content_type.model_class
 
 
 class Image(BaseModel):
