@@ -1,10 +1,12 @@
 from uuid import UUID
 
+from django.urls import reverse
+from django.utils.html import format_html
+from django_tables2 import A
 import django_tables2 as tables
+
 from api_app.models import Change
 from data_models.models import Campaign, Deployment, Instrument, Platform
-from django.urls import reverse
-from django_tables2 import A
 
 
 class ConditionalValueColumn(tables.Column):
@@ -511,6 +513,14 @@ class CampaignChangeListTable(LimitedTableBase):
         )
         fields = all_fields
         sequence = all_fields
+
+    def render_short_name(self, value, record):
+        return format_html(
+            '<a href="{form_url}">{label}</a> <a href="{dashboard_url}" class="font-italic small">(dashboard)</a>',
+            form_url=reverse('change-update', args=[record.uuid]),
+            label=record.update.get('short_name') or '---',
+            dashboard_url=reverse('campaign-detail', args=[record.uuid]),
+        )
 
 
 class PlatformChangeListTable(LimitedTableBase):
