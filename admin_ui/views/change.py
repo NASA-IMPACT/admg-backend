@@ -282,13 +282,13 @@ class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
         if self.object.is_locked:
             for key, val in self.object.previous.items():
                 published_form.initial[key] = val
-        comparison_obj = self.object.previous if self.object.is_locked else self.object.update
 
+        comparison_obj = self.object.previous if self.object.is_locked else self.object.update
         for field_name in comparison_obj:
             if not utils.compare_values(
                 published_form[field_name].value(), model_form[field_name].value()
             ):
-                attrs = published_form.fields[field_name].widget.attrs
+                attrs = model_form.fields[field_name].widget.attrs
                 attrs["class"] = f"{attrs.get('class', '')} changed-item".strip()
 
         return utils.disable_form_fields(published_form)

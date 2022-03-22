@@ -83,7 +83,6 @@ class SignificantEventPublishedTable(tables.Table):
 class CollectionPeriodPublishedTable(tables.Table):
     deployment = ShortNamefromUUIDColumn(
         linkify=(f"{camel_to_snake('CollectionPeriod')}-detail-published", [tables.A('uuid')]),
-        # url_kwargs={"pk": "uuid"},
         model=Deployment,
         verbose_name="Deployment",
         accessor="deployment",
