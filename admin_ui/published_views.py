@@ -10,31 +10,29 @@ from django_tables2.views import SingleTableMixin
 
 from api_app.models import Change
 
-from .config import MODEL_CONFIG_MAP
-from .published_forms import GenericFormClass
-from .mixins import ChangeModelFormMixin
+from . import utils, config, published_forms
 
 
 def GenericListView(model_name):
     @method_decorator(login_required, name="dispatch")
     class GenericListViewClass(SingleTableMixin, FilterView):
-        model = MODEL_CONFIG_MAP[model_name]["model"]
+        model = config.MODEL_CONFIG_MAP[model_name]["model"]
         template_name = "api_app/published_list.html"
-        table_class = MODEL_CONFIG_MAP[model_name]["published_table"]
-        filterset_class = MODEL_CONFIG_MAP[model_name]["published_filter"]
+        table_class = config.MODEL_CONFIG_MAP[model_name]["published_table"]
+        filterset_class = config.MODEL_CONFIG_MAP[model_name]["published_filter"]
 
         def get_context_data(self, **kwargs):
             return {
                 **super().get_context_data(**kwargs),
-                "display_name": MODEL_CONFIG_MAP[model_name]["display_name"],
-                "model": MODEL_CONFIG_MAP[model_name]["singular_snake_case"],
-                "url_name": MODEL_CONFIG_MAP[model_name]["singular_snake_case"],
+                "display_name": config.MODEL_CONFIG_MAP[model_name]["display_name"],
+                "model": config.MODEL_CONFIG_MAP[model_name]["singular_snake_case"],
+                "url_name": config.MODEL_CONFIG_MAP[model_name]["singular_snake_case"],
             }
 
     return GenericListViewClass
 
 
-class ModelObjectView(ChangeModelFormMixin, DetailView):
+class ModelObjectView(DetailView):
     fields = "__all__"
 
     def _initialize_form(self, form_class, disable_all=False, **kwargs):
@@ -48,7 +46,7 @@ class ModelObjectView(ChangeModelFormMixin, DetailView):
         return form_instance
 
     def _get_form_from_model_name(self, model_name, disable_all=False, **kwargs):
-        form_class = GenericFormClass(model_name)
+        form_class = published_forms.GenericFormClass(model_name)
         return self._initialize_form(form_class, disable_all, **kwargs)
 
     def get_context_data(self, **kwargs):
@@ -59,14 +57,14 @@ class ModelObjectView(ChangeModelFormMixin, DetailView):
         }
 
     def _create_diff_dict(self, form):
-        updated_values = self.get_update_values(form)
+        updated_values = utils.serialize_model_form(form)
         return {changed_key: updated_values[changed_key] for changed_key in form.changed_data}
 
 
 def GenericDetailView(model_name):
     @method_decorator(login_required, name="dispatch")
     class GenericDetailViewClass(ModelObjectView):
-        model = MODEL_CONFIG_MAP[model_name]["model"]
+        model = config.MODEL_CONFIG_MAP[model_name]["model"]
         template_name = "api_app/published_detail.html"
 
         def get_context_data(self, **kwargs):
@@ -76,8 +74,8 @@ def GenericDetailView(model_name):
                     model_name, instance=kwargs.get("object"), disable_all=True
                 ),
                 "model_name": model_name,
-                "display_name": MODEL_CONFIG_MAP[model_name]["display_name"],
-                "url_name": MODEL_CONFIG_MAP[model_name]["singular_snake_case"],
+                "display_name": config.MODEL_CONFIG_MAP[model_name]["display_name"],
+                "url_name": config.MODEL_CONFIG_MAP[model_name]["singular_snake_case"],
             }
 
     return GenericDetailViewClass
@@ -86,7 +84,7 @@ def GenericDetailView(model_name):
 def GenericEditView(model_name):
     @method_decorator(login_required, name="dispatch")
     class GenericEditViewClass(ModelObjectView):
-        model = MODEL_CONFIG_MAP[model_name]["model"]
+        model = config.MODEL_CONFIG_MAP[model_name]["model"]
         template_name = "api_app/published_edit.html"
 
         def post(self, request, **kwargs):
@@ -108,7 +106,7 @@ def GenericEditView(model_name):
                 return render(request, self.template_name, context)
 
             diff_dict = self._create_diff_dict(new_form)
-            model_to_query = MODEL_CONFIG_MAP[model_name]["model"]
+            model_to_query = config.MODEL_CONFIG_MAP[model_name]["model"]
             content_type = ContentType.objects.get_for_model(model_to_query)
             change_object = Change.objects.create(
                 content_type=content_type,
@@ -126,8 +124,8 @@ def GenericEditView(model_name):
                     model_name, instance=kwargs.get("object")
                 ),
                 "model_name": model_name,
-                "display_name": MODEL_CONFIG_MAP[model_name]["display_name"],
-                "url_name": MODEL_CONFIG_MAP[model_name]["singular_snake_case"],
+                "display_name": config.MODEL_CONFIG_MAP[model_name]["display_name"],
+                "url_name": config.MODEL_CONFIG_MAP[model_name]["singular_snake_case"],
             }
 
     return GenericEditViewClass
@@ -137,7 +135,7 @@ def GenericDeleteView(model_name):
     @method_decorator(login_required, name="dispatch")
     class GenericDeletelViewClass(View):
         def dispatch(self, *args, **kwargs):
-            model_to_query = MODEL_CONFIG_MAP[model_name]["model"]
+            model_to_query = config.MODEL_CONFIG_MAP[model_name]["model"]
             content_type = ContentType.objects.get_for_model(model_to_query)
             change_object = Change.objects.create(
                 content_type=content_type,
@@ -148,7 +146,7 @@ def GenericDeleteView(model_name):
             )
             change_object.save()
             return redirect(
-                reverse(f"{MODEL_CONFIG_MAP[model_name]['singular_snake_case']}-list-draft")
+                reverse(f"{config.MODEL_CONFIG_MAP[model_name]['singular_snake_case']}-list-draft")
             )
 
     return GenericDeletelViewClass
