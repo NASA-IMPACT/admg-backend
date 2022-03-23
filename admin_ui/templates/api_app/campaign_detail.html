@@ -15,7 +15,7 @@
 
   <div class="px-1">
     <a href="{% url 'change-update' object.uuid %}?back={{ request.path }}" class="btn btn-outline-secondary ml-3">
-      Edit campaign details
+      {% if object.is_locked %}View{% else %}Edit{% endif %} campaign details
     </a>
   </div>
 {% endblock actions %}
