@@ -241,7 +241,7 @@ class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
         "Season": "season-list-draft",
         "Website": "website-list-draft",
         "WebsiteType": "website_type-list-draft",
-        "UrlValidation": "url-list-draft",
+        "UrlValidation": "url_validation-list-draft",
         "Repository": "repository-list-draft",
     }
 
