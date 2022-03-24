@@ -28,7 +28,7 @@ from data_models.models import (
     WebsiteType,
 )
 
-from .tables import DraftLinkColumn, ShortNamefromUUIDColumn, ShortNamefromUUIDLinkColumn
+from .tables import ConditionalValueColumn, ShortNamefromUUIDColumn
 
 
 class LimitedTableBase(tables.Table):
@@ -45,9 +45,8 @@ class LimitedTableBase(tables.Table):
 
 
 class IOPPublishedTable(tables.Table):
-    short_name = DraftLinkColumn(
-        viewname=f"{camel_to_snake('IOP')}-detail-published",
-        url_kwargs={"pk": "uuid"},
+    short_name = ConditionalValueColumn(
+        linkify=(f"{camel_to_snake('IOP')}-detail-published", [tables.A("uuid")]),
         verbose_name="Short Name",
         accessor="short_name",
     )
@@ -64,9 +63,8 @@ class IOPPublishedTable(tables.Table):
 
 
 class SignificantEventPublishedTable(tables.Table):
-    short_name = DraftLinkColumn(
-        viewname=f"{camel_to_snake('SignificantEvent')}-detail-published",
-        url_kwargs={"pk": "uuid"},
+    short_name = ConditionalValueColumn(
+        linkify=(f"{camel_to_snake('SignificantEvent')}-detail-published", [tables.A("uuid")]),
         verbose_name="Short Name",
         accessor="short_name",
     )
@@ -83,9 +81,8 @@ class SignificantEventPublishedTable(tables.Table):
 
 
 class CollectionPeriodPublishedTable(tables.Table):
-    deployment = ShortNamefromUUIDLinkColumn(
-        viewname=f"{camel_to_snake('CollectionPeriod')}-detail-published",
-        url_kwargs={"pk": "uuid"},
+    deployment = ShortNamefromUUIDColumn(
+        linkify=(f"{camel_to_snake('CollectionPeriod')}-detail-published", [tables.A('uuid')]),
         model=Deployment,
         verbose_name="Deployment",
         accessor="deployment",
@@ -103,9 +100,8 @@ class CollectionPeriodPublishedTable(tables.Table):
 
 
 class DOIPublishedTable(tables.Table):
-    concept_id = DraftLinkColumn(
-        viewname=f"{camel_to_snake('DOI')}-detail-published",
-        url_kwargs={"pk": "uuid"},
+    concept_id = ConditionalValueColumn(
+        linkify=(f"{camel_to_snake('DOI')}-detail-published", [tables.A("uuid")]),
         verbose_name="Concept ID",
         accessor="concept_id",
     )
@@ -127,9 +123,8 @@ class DOIPublishedTable(tables.Table):
 
 
 class DeploymentPublishedTable(LimitedTableBase):
-    short_name = DraftLinkColumn(
-        viewname=f"{camel_to_snake('Deployment')}-detail-published",
-        url_kwargs={"pk": "uuid"},
+    short_name = ConditionalValueColumn(
+        linkify=(f"{camel_to_snake('Deployment')}-detail-published", [tables.A("uuid")]),
         verbose_name="Short Name",
         accessor="short_name",
     )
@@ -144,9 +139,8 @@ class DeploymentPublishedTable(LimitedTableBase):
 
 
 class PlatformTypePublishedTable(LimitedTableBase):
-    short_name = DraftLinkColumn(
-        viewname=f"{camel_to_snake('PlatformType')}-detail-published",
-        url_kwargs={"pk": "uuid"},
+    short_name = ConditionalValueColumn(
+        linkify=(f"{camel_to_snake('PlatformType')}-detail-published", [tables.A("uuid")]),
         verbose_name="Short Name",
         accessor="short_name",
     )
@@ -159,9 +153,8 @@ class PlatformTypePublishedTable(LimitedTableBase):
 
 
 class MeasurementTypePublishedTable(LimitedTableBase):
-    short_name = DraftLinkColumn(
-        viewname=f"{camel_to_snake('MeasurementType')}-detail-published",
-        url_kwargs={"pk": "uuid"},
+    short_name = ConditionalValueColumn(
+        linkify=(f"{camel_to_snake('MeasurementType')}-detail-published", [tables.A("uuid")]),
         verbose_name="Short Name",
         accessor="short_name",
     )
@@ -174,9 +167,8 @@ class MeasurementTypePublishedTable(LimitedTableBase):
 
 
 class MeasurementStylePublishedTable(LimitedTableBase):
-    short_name = DraftLinkColumn(
-        viewname=f"{camel_to_snake('MeasurementStyle')}-detail-published",
-        url_kwargs={"pk": "uuid"},
+    short_name = ConditionalValueColumn(
+        linkify=(f"{camel_to_snake('MeasurementStyle')}-detail-published", [tables.A("uuid")]),
         verbose_name="Short Name",
         accessor="short_name",
     )
@@ -189,9 +181,8 @@ class MeasurementStylePublishedTable(LimitedTableBase):
 
 
 class HomeBasePublishedTable(LimitedTableBase):
-    short_name = DraftLinkColumn(
-        viewname=f"{camel_to_snake('HomeBase')}-detail-published",
-        url_kwargs={"pk": "uuid"},
+    short_name = ConditionalValueColumn(
+        linkify=(f"{camel_to_snake('HomeBase')}-detail-published", [tables.A("uuid")]),
         verbose_name="Short Name",
         accessor="short_name",
     )
@@ -204,9 +195,8 @@ class HomeBasePublishedTable(LimitedTableBase):
 
 
 class FocusAreaPublishedTable(LimitedTableBase):
-    short_name = DraftLinkColumn(
-        viewname=f"{camel_to_snake('FocusArea')}-detail-published",
-        url_kwargs={"pk": "uuid"},
+    short_name = ConditionalValueColumn(
+        linkify=(f"{camel_to_snake('FocusArea')}-detail-published", [tables.A("uuid")]),
         verbose_name="Short Name",
         accessor="short_name",
     )
@@ -219,9 +209,8 @@ class FocusAreaPublishedTable(LimitedTableBase):
 
 
 class SeasonPublishedTable(LimitedTableBase):
-    short_name = DraftLinkColumn(
-        viewname=f"{camel_to_snake('Season')}-detail-published",
-        url_kwargs={"pk": "uuid"},
+    short_name = ConditionalValueColumn(
+        linkify=(f"{camel_to_snake('Season')}-detail-published", [tables.A("uuid")]),
         verbose_name="Short Name",
         accessor="short_name",
     )
@@ -234,9 +223,8 @@ class SeasonPublishedTable(LimitedTableBase):
 
 
 class RepositoryPublishedTable(LimitedTableBase):
-    short_name = DraftLinkColumn(
-        viewname=f"{camel_to_snake('Repository')}-detail-published",
-        url_kwargs={"pk": "uuid"},
+    short_name = ConditionalValueColumn(
+        linkify=(f"{camel_to_snake('Repository')}-detail-published", [tables.A("uuid")]),
         verbose_name="Short Name",
         accessor="short_name",
     )
@@ -249,9 +237,8 @@ class RepositoryPublishedTable(LimitedTableBase):
 
 
 class MeasurementRegionPublishedTable(LimitedTableBase):
-    short_name = DraftLinkColumn(
-        viewname=f"{camel_to_snake('MeasurementRegion')}-detail-published",
-        url_kwargs={"pk": "uuid"},
+    short_name = ConditionalValueColumn(
+        linkify=(f"{camel_to_snake('MeasurementRegion')}-detail-published", [tables.A("uuid")]),
         verbose_name="Short Name",
         accessor="short_name",
     )
@@ -265,9 +252,8 @@ class MeasurementRegionPublishedTable(LimitedTableBase):
 
 
 class GeographicalRegionPublishedTable(LimitedTableBase):
-    short_name = DraftLinkColumn(
-        viewname=f"{camel_to_snake('GeographicalRegion')}-detail-published",
-        url_kwargs={"pk": "uuid"},
+    short_name = ConditionalValueColumn(
+        linkify=(f"{camel_to_snake('GeographicalRegion')}-detail-published", [tables.A("uuid")]),
         verbose_name="Short Name",
         accessor="short_name",
     )
@@ -281,9 +267,8 @@ class GeographicalRegionPublishedTable(LimitedTableBase):
 
 
 class GeophysicalConceptPublishedTable(LimitedTableBase):
-    short_name = DraftLinkColumn(
-        viewname=f"{camel_to_snake('GeophysicalConcept')}-detail-published",
-        url_kwargs={"pk": "uuid"},
+    short_name = ConditionalValueColumn(
+        linkify=(f"{camel_to_snake('GeophysicalConcept')}-detail-published", [tables.A("uuid")]),
         verbose_name="Short Name",
         accessor="short_name",
     )
@@ -297,9 +282,8 @@ class GeophysicalConceptPublishedTable(LimitedTableBase):
 
 
 class PartnerOrgPublishedTable(LimitedTableBase):
-    short_name = DraftLinkColumn(
-        viewname=f"{camel_to_snake('PartnerOrg')}-detail-published",
-        url_kwargs={"pk": "uuid"},
+    short_name = ConditionalValueColumn(
+        linkify=(f"{camel_to_snake('PartnerOrg')}-detail-published", [tables.A("uuid")]),
         verbose_name="Short Name",
         accessor="short_name",
     )
@@ -312,9 +296,8 @@ class PartnerOrgPublishedTable(LimitedTableBase):
 
 
 class WebsiteTypePublishedTable(LimitedTableBase):
-    short_name = DraftLinkColumn(
-        viewname=f"{camel_to_snake('WebsiteType')}-detail-published",
-        url_kwargs={"pk": "uuid"},
+    short_name = ConditionalValueColumn(
+        linkify=(f"{camel_to_snake('WebsiteType')}-detail-published", [tables.A("uuid")]),
         verbose_name="Short Name",
         accessor="short_name",
     )
@@ -327,9 +310,8 @@ class WebsiteTypePublishedTable(LimitedTableBase):
 
 
 class CampaignPublishedTable(LimitedTableBase):
-    short_name = DraftLinkColumn(
-        viewname=f"{camel_to_snake('Campaign')}-detail-published",
-        url_kwargs={"pk": "uuid"},
+    short_name = ConditionalValueColumn(
+        linkify=(f"{camel_to_snake('Campaign')}-detail-published", [tables.A("uuid")]),
         verbose_name="Short Name",
         accessor="short_name",
     )
@@ -342,9 +324,8 @@ class CampaignPublishedTable(LimitedTableBase):
 
 
 class PlatformPublishedTable(LimitedTableBase):
-    short_name = DraftLinkColumn(
-        viewname=f"{camel_to_snake('Platform')}-detail-published",
-        url_kwargs={"pk": "uuid"},
+    short_name = ConditionalValueColumn(
+        linkify=(f"{camel_to_snake('Platform')}-detail-published", [tables.A("uuid")]),
         verbose_name="Short Name",
         accessor="short_name",
     )
@@ -357,9 +338,8 @@ class PlatformPublishedTable(LimitedTableBase):
 
 
 class InstrumentPublishedTable(LimitedTableBase):
-    short_name = DraftLinkColumn(
-        viewname=f"{camel_to_snake('Instrument')}-detail-published",
-        url_kwargs={"pk": "uuid"},
+    short_name = ConditionalValueColumn(
+        linkify=(f"{camel_to_snake('Instrument')}-detail-published", [tables.A("uuid")]),
         verbose_name="Short Name",
         accessor="short_name",
     )
@@ -372,9 +352,8 @@ class InstrumentPublishedTable(LimitedTableBase):
 
 
 class WebsitePublishedTable(tables.Table):
-    title = DraftLinkColumn(
-        viewname=f"{camel_to_snake('Website')}-detail-published",
-        url_kwargs={"pk": "uuid"},
+    title = ConditionalValueColumn(
+        linkify=(f"{camel_to_snake('Website')}-detail-published", [tables.A("uuid")]),
         verbose_name="Title",
         accessor="title",
     )
@@ -388,9 +367,8 @@ class WebsitePublishedTable(tables.Table):
 
 
 class AliasPublishedTable(LimitedTableBase):
-    short_name = DraftLinkColumn(
-        viewname=f"{camel_to_snake('Alias')}-detail-published",
-        url_kwargs={"pk": "uuid"},
+    short_name = ConditionalValueColumn(
+        linkify=(f"{camel_to_snake('Alias')}-detail-published", [tables.A("uuid")]),
         verbose_name="Short Name",
         accessor="short_name",
     )
@@ -404,9 +382,8 @@ class AliasPublishedTable(LimitedTableBase):
 
 
 class GcmdProjectPublishedTable(LimitedTableBase):
-    short_name = DraftLinkColumn(
-        viewname=f"{camel_to_snake('GcmdProject')}-detail-published",
-        url_kwargs={"pk": "uuid"},
+    short_name = ConditionalValueColumn(
+        linkify=(f"{camel_to_snake('GcmdProject')}-detail-published", [tables.A("uuid")]),
         verbose_name="Short Name",
         accessor="short_name",
     )
@@ -419,9 +396,8 @@ class GcmdProjectPublishedTable(LimitedTableBase):
 
 
 class GcmdInstrumentPublishedTable(LimitedTableBase):
-    short_name = DraftLinkColumn(
-        viewname=f"{camel_to_snake('GcmdInstrument')}-detail-published",
-        url_kwargs={"pk": "uuid"},
+    short_name = ConditionalValueColumn(
+        linkify=(f"{camel_to_snake('GcmdInstrument')}-detail-published", [tables.A("uuid")]),
         verbose_name="Short Name",
         accessor="short_name",
     )
@@ -448,9 +424,8 @@ class GcmdInstrumentPublishedTable(LimitedTableBase):
 
 
 class GcmdPlatformPublishedTable(LimitedTableBase):
-    short_name = DraftLinkColumn(
-        viewname=f"{camel_to_snake('GcmdPlatform')}-detail-published",
-        url_kwargs={"pk": "uuid"},
+    short_name = ConditionalValueColumn(
+        linkify=(f"{camel_to_snake('GcmdPlatform')}-detail-published", [tables.A("uuid")]),
         verbose_name="Short Name",
         accessor="short_name",
     )
@@ -463,9 +438,8 @@ class GcmdPlatformPublishedTable(LimitedTableBase):
 
 
 class GcmdPhenomenaPublishedTable(tables.Table):
-    variable_3 = DraftLinkColumn(
-        viewname=f"{camel_to_snake('GcmdPhenomena')}-detail-published",
-        url_kwargs={"pk": "uuid"},
+    variable_3 = ConditionalValueColumn(
+        linkify=(f"{camel_to_snake('GcmdPhenomena')}-detail-published", [tables.A("uuid")]),
         verbose_name="Variable 3",
         accessor="short_name",
     )

@@ -1,10 +1,12 @@
 from uuid import UUID
 
+from django.urls import reverse
+from django.utils.html import format_html
+from django_tables2 import A
 import django_tables2 as tables
+
 from api_app.models import Change
 from data_models.models import Campaign, Deployment, Instrument, Platform
-from django.urls import reverse
-from django_tables2 import A
 
 
 class ConditionalValueColumn(tables.Column):
@@ -56,28 +58,6 @@ class ConditionalValueColumn(tables.Column):
         value = self.get_backup_value(**kwargs)
 
         return value or "---"
-
-
-class DraftLinkColumn(ConditionalValueColumn):
-    def __init__(self, *args, **kwargs):
-        self.update_viewname = kwargs.pop("update_viewname", None)
-        self.viewname = kwargs.pop("viewname")
-        self.url_kwargs = kwargs.pop("url_kwargs")
-
-        super().__init__(*args, **kwargs)
-
-    def get_url(self, **kwargs):
-        record = kwargs.get("record")
-
-        url_kwargs = {item: getattr(record, self.url_kwargs[item]) for item in self.url_kwargs}
-
-        # records from published item do not have action
-        if getattr(record, "action", None) == Change.Actions.UPDATE:
-            view_name = self.update_viewname
-        else:
-            view_name = self.viewname
-
-        return reverse(view_name, kwargs=url_kwargs)
 
 
 class ShortNamefromUUIDColumn(ConditionalValueColumn):
@@ -134,12 +114,6 @@ class ShortNamefromUUIDColumn(ConditionalValueColumn):
             return self.get_short_name(value)
 
 
-class ShortNamefromUUIDLinkColumn(ShortNamefromUUIDColumn, DraftLinkColumn):
-    def __init__(self, model=None, **kwargs):
-        DraftLinkColumn.__init__(self, **kwargs)
-        self.model = model
-
-
 class DraftTableBase(tables.Table):
     draft_action = tables.Column(verbose_name="Draft Action", accessor="action")
     status = tables.Column(verbose_name="Status", accessor="status")
@@ -159,13 +133,11 @@ class DraftTableBase(tables.Table):
 
 
 class LimitedTableBase(DraftTableBase):
-    short_name = DraftLinkColumn(
-        update_viewname="change-diff",
-        viewname="change-update",
-        url_kwargs={"pk": "uuid"},
+    short_name = ConditionalValueColumn(
         verbose_name="Short Name",
         accessor="update__short_name",
         update_accessor="content_object.short_name",
+        linkify=("change-update", [tables.A("uuid")]),
     )
     long_name = ConditionalValueColumn(
         verbose_name="Long name",
@@ -181,13 +153,11 @@ class LimitedTableBase(DraftTableBase):
 
 
 class IOPChangeListTable(DraftTableBase):
-    short_name = DraftLinkColumn(
-        update_viewname="change-diff",
-        viewname="change-update",
-        url_kwargs={"pk": "uuid"},
+    short_name = ConditionalValueColumn(
         verbose_name="Short Name",
         accessor="update__short_name",
         update_accessor="content_object.short_name",
+        linkify=("change-update", [tables.A("uuid")]),
     )
     deployment = ShortNamefromUUIDColumn(
         verbose_name="Deployment",
@@ -218,13 +188,11 @@ class IOPChangeListTable(DraftTableBase):
 
 
 class SignificantEventChangeListTable(DraftTableBase):
-    short_name = DraftLinkColumn(
-        update_viewname="change-diff",
-        viewname="change-update",
-        url_kwargs={"pk": "uuid"},
+    short_name = ConditionalValueColumn(
         verbose_name="Short Name",
         accessor="update__short_name",
         update_accessor="content_object.short_name",
+        linkify=("change-update", [tables.A("uuid")]),
     )
     deployment = ShortNamefromUUIDColumn(
         verbose_name="Deployment",
@@ -256,10 +224,8 @@ class SignificantEventChangeListTable(DraftTableBase):
 
 class CollectionPeriodChangeListTable(DraftTableBase):
     # TODO: have a calculated short_name field?
-    deployment = ShortNamefromUUIDLinkColumn(
-        update_viewname="change-diff",
-        viewname="change-update",
-        url_kwargs={"pk": "uuid"},
+    deployment = ShortNamefromUUIDColumn(
+        linkify=("change-update", [A('uuid')]),
         model=Deployment,
         verbose_name="Deployment",
         accessor="update__deployment",
@@ -286,13 +252,11 @@ class CollectionPeriodChangeListTable(DraftTableBase):
 
 
 class DOIChangeListTable(DraftTableBase):
-    concept_id = DraftLinkColumn(
-        update_viewname="change-diff",
-        viewname="change-update",
-        url_kwargs={"pk": "uuid"},
+    concept_id = ConditionalValueColumn(
         verbose_name="Concept ID",
         accessor="update__concept_id",
         update_accessor="content_object.concept_id",
+        linkify=("change-update", [tables.A("uuid")]),
     )
     long_name = ConditionalValueColumn(
         verbose_name="Long Name",
@@ -491,13 +455,11 @@ class WebsiteTypeChangeListTable(LimitedTableBase):
 
 
 class CampaignChangeListTable(LimitedTableBase):
-    short_name = DraftLinkColumn(
-        update_viewname="change-diff",
-        viewname="campaign-detail",
-        url_kwargs={"pk": "uuid"},
+    short_name = ConditionalValueColumn(
         verbose_name="Short Name",
         accessor="update__short_name",
         update_accessor="content_object.short_name",
+        linkify=("change-update", [tables.A("uuid")]),
     )
     funding_agency = ConditionalValueColumn(
         verbose_name="Funding Agency",
@@ -511,6 +473,14 @@ class CampaignChangeListTable(LimitedTableBase):
         )
         fields = all_fields
         sequence = all_fields
+
+    def render_short_name(self, value, record):
+        return format_html(
+            '<a href="{form_url}">{label}</a> <a href="{dashboard_url}" class="font-italic small">(dashboard)</a>',
+            form_url=reverse('change-update', args=[record.uuid]),
+            label=record.update.get('short_name') or '---',
+            dashboard_url=reverse('campaign-detail', args=[record.uuid]),
+        )
 
 
 class PlatformChangeListTable(LimitedTableBase):
@@ -537,13 +507,11 @@ class InstrumentChangeListTable(LimitedTableBase):
 
 # TODO: does this actually need to link to the campaign detail page?
 class ChangeSummaryTable(DraftTableBase):
-    short_name = DraftLinkColumn(
-        update_viewname="change-diff",
-        viewname="change-update",
-        url_kwargs={"pk": "uuid"},
+    short_name = ConditionalValueColumn(
         verbose_name="Short Name",
         accessor="update__short_name",
         update_accessor="content_object.short_name",
+        linkify=("change-update", [tables.A("uuid")]),
     )
     content_type__model = tables.Column(
         verbose_name="Model Type", accessor="model_name", order_by="content_type__model"
@@ -558,13 +526,11 @@ class ChangeSummaryTable(DraftTableBase):
 
 
 class WebsiteChangeListTable(DraftTableBase):
-    title = DraftLinkColumn(
-        update_viewname="change-diff",
-        viewname="change-update",
-        url_kwargs={"pk": "uuid"},
+    title = ConditionalValueColumn(
         verbose_name="Title",
         accessor="update__title",
         update_accessor="content_object.title",
+        linkify=("change-update", [tables.A("uuid")]),
     )
     url = ConditionalValueColumn(
         verbose_name="URL", accessor="update__url", update_accessor="content_object.url"
@@ -582,13 +548,11 @@ class WebsiteChangeListTable(DraftTableBase):
 
 
 class AliasChangeListTable(DraftTableBase):
-    short_name = DraftLinkColumn(
-        update_viewname="change-diff",
-        viewname="change-update",
-        url_kwargs={"pk": "uuid"},
+    short_name = ConditionalValueColumn(
         verbose_name="Short Name",
         accessor="update__short_name",
         update_accessor="content_object.short_name",
+        linkify=("change-update", [tables.A("uuid")]),
     )
     # TODO replace model_type which short_name of related object
     model_type = ConditionalValueColumn(
@@ -604,13 +568,11 @@ class AliasChangeListTable(DraftTableBase):
 
 
 class GcmdProjectChangeListTable(DraftTableBase):
-    short_name = DraftLinkColumn(
-        update_viewname="change-diff",
-        viewname="change-update",
-        url_kwargs={"pk": "uuid"},
+    short_name = ConditionalValueColumn(
         verbose_name="Short Name",
         accessor="update__short_name",
         update_accessor="content_object.short_name",
+        linkify=("change-update", [tables.A("uuid")]),
     )
     long_name = ConditionalValueColumn(
         verbose_name="Long Name",
@@ -628,13 +590,11 @@ class GcmdProjectChangeListTable(DraftTableBase):
 
 
 class GcmdInstrumentChangeListTable(DraftTableBase):
-    short_name = DraftLinkColumn(
-        update_viewname="change-diff",
-        viewname="change-update",
-        url_kwargs={"pk": "uuid"},
+    short_name = ConditionalValueColumn(
         verbose_name="Short Name",
         accessor="update__short_name",
         update_accessor="content_object.short_name",
+        linkify=("change-update", [tables.A("uuid")]),
     )
     long_name = ConditionalValueColumn(
         verbose_name="Long Name",
@@ -676,13 +636,11 @@ class GcmdInstrumentChangeListTable(DraftTableBase):
 
 
 class GcmdPlatformChangeListTable(DraftTableBase):
-    short_name = DraftLinkColumn(
-        update_viewname="change-diff",
-        viewname="change-update",
-        url_kwargs={"pk": "uuid"},
+    short_name = ConditionalValueColumn(
         verbose_name="Short Name",
         accessor="update__short_name",
         update_accessor="content_object.short_name",
+        linkify=("change-update", [tables.A("uuid")]),
     )
     long_name = ConditionalValueColumn(
         verbose_name="Long Name",
@@ -702,13 +660,11 @@ class GcmdPlatformChangeListTable(DraftTableBase):
 
 
 class GcmdPhenomenaChangeListTable(DraftTableBase):
-    variable_3 = DraftLinkColumn(
-        update_viewname="change-diff",
-        viewname="change-update",
-        url_kwargs={"pk": "uuid"},
+    variable_3 = ConditionalValueColumn(
         verbose_name="Variable 3",
         accessor="update__variable_3",
         update_accessor="content_object.variable_3",
+        linkify=("change-update", [tables.A("uuid")]),
     )
     variable_2 = ConditionalValueColumn(
         verbose_name="Variable 2",
