@@ -5,6 +5,7 @@ from drf_yasg.views import get_schema_view
 from rest_framework import permissions
 
 from .api_documentation import api_info
+from .config import MODEL_CONFIG_MAP
 from .views.change_view import (
     ApprovalLogListView,
     ChangeClaimView,
@@ -28,55 +29,25 @@ schema_view = get_schema_view(
     permission_classes=(permissions.AllowAny,),
 )
 
-urls = [
-    "PlatformType",
-    "MeasurementType",
-    "MeasurementStyle",
-    "HomeBase",
-    "FocusArea",
-    "Season",
-    "Repository",
-    "MeasurementRegion",
-    "GeographicalRegion",
-    "GeophysicalConcept",
-    "PartnerOrg",
-    "Alias",
-    "GcmdProject",
-    "GcmdInstrument",
-    "GcmdPlatform",
-    "GcmdPhenomena",
-    "DOI",
-    "Campaign",
-    "Platform",
-    "Instrument",
-    "Deployment",
-    "IOP",
-    "SignificantEvent",
-    "CollectionPeriod",
-    "Website",
-    "WebsiteType",
+
+urlpatterns = [
+    *[
+        route
+        for model_name, model_config in MODEL_CONFIG_MAP.items()
+        for route in [
+            path(
+                model_config['singular_snake_case'],
+                GenericCreateGetAllView(model_name),
+                name=f"{model_name}_create_getall",
+            ),
+            path(
+                f"{model_config['singular_snake_case']}/<str:uuid>",
+                GenericPutPatchDeleteView(model_name),
+                name=f"{model_name}_put_delete",
+            ),
+        ]
+    ]
 ]
-
-urlpatterns = []
-
-
-def camel_to_snake(name):
-    name = re.sub("(.)([A-Z][a-z]+)", r"\1_\2", name)
-    return re.sub("([a-z0-9])([A-Z])", r"\1_\2", name).lower()
-
-
-for url in urls:
-    snake_case_url = camel_to_snake(url)
-    urlpatterns.append(
-        path(snake_case_url, GenericCreateGetAllView(url), name=f"{url}_create_getall"),
-    )
-    urlpatterns.append(
-        path(
-            f"{snake_case_url}/<str:uuid>",
-            GenericPutPatchDeleteView(url),
-            name=f"{url}_put_delete",
-        ),
-    )
 
 
 urlpatterns += [

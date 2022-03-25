@@ -31,47 +31,18 @@ urlpatterns = [
     ),
 ]
 
-
-# limited has short, long
-
-
-auto_url_keys = [
-    "PlatformType",
-    "MeasurementType",
-    "MeasurementStyle",
-    "HomeBase",
-    "FocusArea",
-    "Season",
-    "Repository",
-    "MeasurementRegion",
-    "GeographicalRegion",
-    "GeophysicalConcept",
-    "PartnerOrg",
-    "Alias",
-    "GcmdProject",
-    "GcmdInstrument",
-    "GcmdPlatform",
-    "GcmdPhenomena",
-    "DOI",
-    "Campaign",
-    "Platform",
-    "Instrument",
-    "Deployment",
-    "IOP",
-    "SignificantEvent",
-    "CollectionPeriod",
-    "Website",
-    "WebsiteType",
-]
-
 draft_list_urls = [
-    path(
-        f"{MODEL_CONFIG_MAP[model]['plural_snake_case']}/draft",
-        generate_base_list_view(model),
-        name=f"{MODEL_CONFIG_MAP[model]['singular_snake_case']}-list-draft",
-    )
-    for model in auto_url_keys
+    *[
+        route
+        for model_name, model_config in MODEL_CONFIG_MAP.items()
+        for route in [
+            path(
+                f"{model_config['plural_snake_case']}/draft",
+                generate_base_list_view(model_name),
+                name=f"{model_config['singular_snake_case']}-list-draft",
+            ),
+        ]
+    ]
 ]
-
 
 urlpatterns = urlpatterns + published_urls + draft_list_urls
