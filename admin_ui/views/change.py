@@ -252,6 +252,10 @@ class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context["comparison_form"] = self._get_comparison_form(context['model_form'])
+        if context["comparison_form"]:
+            context["new_change_form"] = self._get_comparison_form1(context['model_form'])
+
         return {
             **context,
             "transition_form": (
@@ -262,8 +266,33 @@ class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
             "back_button": self._get_back_button_url(),
             "ancestors": context["object"].get_ancestors().select_related("content_type"),
             "descendents": context["object"].get_descendents().select_related("content_type"),
-            "comparison_form": self._get_comparison_form(context['model_form']),
         }
+
+    def _get_comparison_form1(self, model_form):
+        """
+        Generates a disabled form for the published model, used for generating
+        a diff view.
+        """
+        if self.object.action != self.object.Actions.UPDATE:
+            return None
+
+        print("\n", model_form.initial, self.object.content_object)
+        published_form = self.destination_model_form(
+            instance=self.object.content_object, auto_id="readonly_%s"
+        )
+        comparison_form = self.destination_model_form(
+            initial=model_form.initial, instance=self.object.content_object, auto_id="readonly_%s"
+        )
+
+        comparison_obj = self.object.previous if self.object.is_locked else self.object.update
+        for field_name in comparison_obj:
+            if not utils.compare_values(
+                published_form[field_name].value(), model_form[field_name].value()
+            ):
+                attrs = comparison_form.fields[field_name].widget.attrs
+                attrs["class"] = f"{attrs.get('class', '')} changed-item".strip()
+
+        return comparison_form
 
     def _get_comparison_form(self, model_form):
         """
@@ -273,6 +302,7 @@ class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
         if self.object.action != self.object.Actions.UPDATE:
             return None
 
+        print("\n", model_form.initial, self.object.content_object)
         published_form = self.destination_model_form(
             instance=self.object.content_object, auto_id="readonly_%s"
         )

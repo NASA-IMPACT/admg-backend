@@ -107,7 +107,7 @@
       Old Version
     </div>
   </div>
-  {% for field1, field2 in model_form|zip:comparison_form %}
+  {% for field1, field2 in new_change_form|zip:comparison_form %}
     <div class="row">
       <div class="col-sm-6">
         {{ field1 | as_crispy_field }}
