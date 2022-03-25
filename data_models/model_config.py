@@ -1,17 +1,15 @@
-from api_app.urls import camel_to_snake
+from admin_ui import filters, published_filters, published_tables, tables
+
 from data_models import models
 
-from . import tables
-from . import filters, published_filters
-
-from admin_ui import published_tables
-
+from .utils import camel_to_snake
 
 # any custom values for each model are added to this dictionary
 # all models must be defined at a minimum with an empty dictionary
 
 # to set the filter, you can either do it directly with the `filter` keyword, or
 # you can set a `filter_generator` which takes in a `model_name` in the comprehension
+
 
 CUSTOM_MODEL_VALUES = {
     "PlatformType": {},
@@ -69,6 +67,7 @@ CUSTOM_MODEL_VALUES = {
         "published_filter": published_filters.WebsiteFilter,
     },
     "WebsiteType": {},
+    # "UrlValidation": {},
 }
 
 # defaults are assigned to each model in this comprehension, and then overwritten by the above dictionary

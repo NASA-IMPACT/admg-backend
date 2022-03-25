@@ -1,6 +1,6 @@
 from django.forms import ModelForm
 
-from .config import MODEL_CONFIG_MAP
+from data_models.model_config import MODEL_CONFIG_MAP
 from .mixins import formfield_callback
 
 

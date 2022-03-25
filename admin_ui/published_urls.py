@@ -1,7 +1,7 @@
 from django.urls import path
 
 from . import published_views
-from .config import MODEL_CONFIG_MAP
+from data_models.model_config import MODEL_CONFIG_MAP
 
 published_urls = [
     *[

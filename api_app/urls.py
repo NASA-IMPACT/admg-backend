@@ -1,11 +1,9 @@
-import re
-
+from data_models.model_config import MODEL_CONFIG_MAP
 from django.urls import path
 from drf_yasg.views import get_schema_view
 from rest_framework import permissions
 
 from .api_documentation import api_info
-from .config import MODEL_CONFIG_MAP
 from .views.change_view import (
     ApprovalLogListView,
     ChangeClaimView,
@@ -28,7 +26,6 @@ schema_view = get_schema_view(
     public=True,
     permission_classes=(permissions.AllowAny,),
 )
-
 
 urlpatterns = [
     *[

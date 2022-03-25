@@ -15,8 +15,8 @@ from django_filters.views import FilterView
 from django_tables2.views import SingleTableMixin
 from rest_framework.serializers import ValidationError
 
-from admin_ui.config import MODEL_CONFIG_MAP
 from api_app.models import ApprovalLog, Change
+from data_models.model_config import MODEL_CONFIG_MAP
 from data_models.models import (
     IOP,
     Alias,

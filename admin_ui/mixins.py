@@ -1,18 +1,19 @@
 from functools import partial
 from typing import Dict, List
 
+from data_models.model_config import MODEL_CONFIG_MAP
+from data_models import models
 from django.contrib import messages
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.gis.db.models.fields import PolygonField
 from django.db import models as model_fields
-from django.forms import modelform_factory, HiddenInput
+from django.forms import HiddenInput, modelform_factory
 from django.http import HttpResponseBadRequest
 from django.http.response import Http404
 from django.shortcuts import render
 from django.views.generic.edit import ModelFormMixin
 
-from data_models import models
-from . import fields, widgets, config, utils
+from . import fields, utils, widgets
 
 
 def formfield_callback(f, **kwargs):
@@ -104,7 +105,7 @@ class ChangeModelFormMixin(ModelFormMixin):
             )
 
         model_name = kwargs["model_form"]._meta.model.__name__
-        model_config = config.MODEL_CONFIG_MAP.get(model_name, {})
+        model_config = MODEL_CONFIG_MAP.get(model_name, {})
         for field in model_config.get("change_view_readonly_fields", []):
             kwargs["model_form"].fields[field].disabled = True
 
@@ -193,7 +194,7 @@ class ChangeModelFormMixin(ModelFormMixin):
         if self.object and self.object.is_locked:
             return HttpResponseBadRequest("Object no longer available for edit")
 
-        model_config = config.MODEL_CONFIG_MAP.get(self.get_model_type().__name__, {})
+        model_config = MODEL_CONFIG_MAP.get(self.get_model_type().__name__, {})
         readonly_fields = model_config.get("change_view_readonly_fields", [])
 
         if form.instance._state.adding:

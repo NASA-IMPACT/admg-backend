@@ -1,6 +1,6 @@
 from django import template
 
-from admin_ui.config import MODEL_CONFIG_MAP
+from data_models.model_config import MODEL_CONFIG_MAP
 
 register = template.Library()
 
