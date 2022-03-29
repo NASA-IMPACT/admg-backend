@@ -107,13 +107,13 @@
       Old Version
     </div>
   </div>
-  {% for field1, field2 in new_change_form|zip:comparison_form %}
+  {% for new_field, comparison_field in new_change_form|zip:comparison_form %}
     <div class="row">
       <div class="col-sm-6">
-        {{ field1 | as_crispy_field }}
+        {{ new_field | as_crispy_field }}
       </div>
       <div class="col-sm-6">
-        {{ field2 | as_crispy_field }}
+        {{ comparison_field | as_crispy_field }}
       </div>
     </div>
   {% endfor %}
