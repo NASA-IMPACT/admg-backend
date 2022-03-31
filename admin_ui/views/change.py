@@ -252,9 +252,11 @@ class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["comparison_form"] = self._get_comparison_form(context['model_form'])
-        if context["comparison_form"]:
-            context["new_change_form"] = self._get_comparison_form1(context['model_form'])
+
+        if self.object.action == self.object.Actions.UPDATE:
+            context["comparison_form"] = self._get_comparison_form(context['model_form'])
+            context["new_change_form"] = self._get_new_change_form(context['model_form'])
+            self._add_diff_highlighting(context['new_change_form'], context['comparison_form'])
 
         return {
             **context,
@@ -268,60 +270,49 @@ class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
             "descendents": context["object"].get_descendents().select_related("content_type"),
         }
 
-    def _get_comparison_form1(self, model_form):
+    def _get_new_change_form(self, model_form):
         """
         Generates a disabled form for the published model, used for generating
         a diff view.
         """
-        if self.object.action != self.object.Actions.UPDATE:
-            return None
 
-        print("\n", model_form.initial, self.object.content_object)
-        published_form = self.destination_model_form(
-            instance=self.object.content_object, auto_id="readonly_%s"
-        )
-        comparison_form = self.destination_model_form(
+        new_change_form = self.destination_model_form(
             initial=model_form.initial, instance=self.object.content_object, auto_id="readonly_%s"
         )
 
-        comparison_obj = self.object.previous if self.object.is_locked else self.object.update
-        for field_name in comparison_obj:
-            if not utils.compare_values(
-                published_form[field_name].value(), model_form[field_name].value()
-            ):
-                attrs = comparison_form.fields[field_name].widget.attrs
-                attrs["class"] = f"{attrs.get('class', '')} changed-item".strip()
-
-        return comparison_form
+        return new_change_form
 
     def _get_comparison_form(self, model_form):
         """
         Generates a disabled form for the published model, used for generating
         a diff view.
         """
-        if self.object.action != self.object.Actions.UPDATE:
-            return None
 
-        print("\n", model_form.initial, self.object.content_object)
-        published_form = self.destination_model_form(
+        # if self.object is actively being worked on and might be approved, ie object.is_locked == False
+        # then it should show what will be modified by approval, therefore what's in the published database
+        #
+        # if the item .is_locked (published or in trash) it should show what the change was at the time of
+        # editing, therefore object.previous
+
+        comparison_form = self.destination_model_form(
             instance=self.object.content_object, auto_id="readonly_%s"
         )
-
-        # if published or trashed then the old data doesn't need to be from the database, it
-        # needs to be from the previous field of the change_object
         if self.object.is_locked:
             for key, val in self.object.previous.items():
-                published_form.initial[key] = val
+                comparison_form.initial[key] = val
 
+        return utils.disable_form_fields(comparison_form)
+
+    def _add_diff_highlighting(self, new_change_form, comparison_form):
+
+        # is_locked means Published or Trash
         comparison_obj = self.object.previous if self.object.is_locked else self.object.update
         for field_name in comparison_obj:
             if not utils.compare_values(
-                published_form[field_name].value(), model_form[field_name].value()
+                new_change_form[field_name].value(), comparison_form[field_name].value()
             ):
-                attrs = model_form.fields[field_name].widget.attrs
+                attrs = new_change_form.fields[field_name].widget.attrs
                 attrs["class"] = f"{attrs.get('class', '')} changed-item".strip()
-
-        return utils.disable_form_fields(published_form)
 
     def get_model_form_content_type(self) -> ContentType:
         return self.object.content_type
