@@ -19,6 +19,8 @@ urlpatterns = [
     path("campaigns/<uuid:pk>/doi-approval", views.DoiApprovalView.as_view(), name="doi-approval"),
     path("drafts/add/<str:model>", views.ChangeCreateView.as_view(), name="change-add"),
     path("drafts/edit/<uuid:pk>", views.ChangeUpdateView.as_view(), name="change-update"),
+    # TODO: Take out if we end up not using.
+    # path("drafts/edit/keyword/<uuid:pk>", views.ChangeKeywordUpdateView.as_view(), name="change-keyword-update"),
     path(
         "drafts/edit/<uuid:pk>/transition",
         views.ChangeTransition.as_view(),

@@ -2,6 +2,7 @@ import django_filters
 from api_app.models import Change
 from data_models import models
 from data_models.models import DOI, CollectionPeriod
+from django.contrib.contenttypes.models import ContentType
 from django.db.models.query_utils import Q
 
 from .filter_utils import (
@@ -119,9 +120,24 @@ class CollectionPeriodFilter(CampaignFilter):
         model = Change
         fields = ["status"]
 
+
+def filter_keyword(keyword):
+    queryset = None
+
+
 class GcmdSyncFilter(django_filters.FilterSet):
     # make sure to include a filter_campaign_name method in the inherited classes
     status = django_filters.ChoiceFilter(
         choices=Change.Statuses.choices,
         label="Status",
+    )
+    gcmd_type = django_filters.ModelMultipleChoiceFilter(
+        field_name='content_type',
+        # to_field_name='model',
+        # lookup_type='in',
+        queryset=ContentType.objects.filter(model__startswith="gcmd"),
+    )
+    # TODO: Make sure this is the best way to filter on keyword.
+    short_name = django_filters.CharFilter(
+        label="Keyword", field_name="short_name", lookup_expr='icontains'
     )

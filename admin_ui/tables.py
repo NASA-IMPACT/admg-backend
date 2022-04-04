@@ -745,65 +745,52 @@ class GcmdPhenomenaChangeListTable(DraftTableBase):
         sequence = all_fields
 
 
-#################################
-### Start of jhedman changes  ###
-#################################
-class GcmdKeywordsView(DraftTableBase):
-    # model = Change
-    keyword = DraftLinkColumn(
+class MarkReviewedButton(tables.Column):
+    empty_values = []
+
+    def render(self, value, record):
+        from django.utils.safestring import mark_safe
+        from django.utils.html import escape
+
+        return mark_safe(
+            f'<button id="{escape(record.uuid)}" class="review-button">Mark Reviewed</button>'
+        )
+
+
+class GcmdKeywordsListTable(DraftTableBase):
+    short_name = DraftLinkColumn(
         update_viewname="change-diff",
         viewname="change-update",
         url_kwargs={"pk": "uuid"},
         verbose_name="GCMD Keyword",
-        accessor="get_keyword",
-        update_accessor="content_object.short_name",
+        accessor="short_name",
+        # update_accessor="content_object.short_name",
     )
     category = ConditionalValueColumn(
         verbose_name="Category",
         accessor="content_type__model",
-        update_accessor="content_type__model", # TODO: Figure out the real value this should be
+        update_accessor="content_type__model",  # TODO: Figure out the real value of this should be
     )
-
-
-    # Copied class below:
-    # variable_3 = DraftLinkColumn(
-    #     update_viewname="change-diff",
-    #     viewname="change-update",
-    #     url_kwargs={"pk": "uuid"},
-    #     verbose_name="Variable 3",
-    #     accessor="update__variable_3",
-    #     update_accessor="content_object.variable_3",
-    # )
-    # variable_2 = ConditionalValueColumn(
-    #     verbose_name="Variable 2",
-    #     accessor="update__variable_2",
-    #     update_accessor="content_object.variable_2",
-    # )
-    # variable_1 = ConditionalValueColumn(
-    #     verbose_name="Variable 1",
-    #     accessor="update__variable_1",
-    #     update_accessor="content_object.variable_1",
-    # )
-    # term = ConditionalValueColumn(
-    #     verbose_name="Term",
-    #     accessor="update__term",
-    #     update_accessor="content_object.term",
-    # )
-    # topic = ConditionalValueColumn(
-    #     verbose_name="Topic",
-    #     accessor="update__topic",
-    #     update_accessor="content_object.topic",
-    # )
-    # category = ConditionalValueColumn(
-    #     verbose_name="Category",
-    #     accessor="update__category",
-    #     update_accessor="content_object.category",
-    # )
+    draft_action = ConditionalValueColumn(
+        verbose_name="Type of Change",
+        accessor="action",
+        update_accessor="action",
+    )
+    status = ConditionalValueColumn(
+        verbose_name="Status",
+        accessor="status",
+        update_accessor="status",
+    )
+    reviewed = MarkReviewedButton()
 
     class Meta(DraftTableBase.Meta):
         all_fields = (
-            "keyword",
-            "category"
-        ) + DraftTableBase.final_fields
+            "short_name",
+            "category",
+            "draft_action",
+            "status",
+            "affected_records",
+            "reviewed",
+        )
         fields = list(all_fields)
         sequence = all_fields

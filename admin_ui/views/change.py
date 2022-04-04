@@ -4,7 +4,8 @@ import django_tables2
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.contenttypes.models import ContentType
-from django.db.models import aggregates
+from django.db.models import aggregates, functions, Count, OuterRef, Case, When, CharField, Value
+from django.db.models.fields.json import KeyTextTransform
 from django.http import Http404
 from django.urls import reverse
 from django.utils.decorators import method_decorator
@@ -14,6 +15,7 @@ from django.views.generic.edit import CreateView, FormMixin, ProcessFormView, Up
 from django_filters.views import FilterView
 from django_tables2.views import SingleTableMixin
 from rest_framework.serializers import ValidationError
+
 
 from admin_ui.config import MODEL_CONFIG_MAP
 from api_app.models import ApprovalLog, Change
@@ -245,6 +247,7 @@ class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
             ),
             "campaign_subitems": ["Deployment", "IOP", "SignificantEvent", "CollectionPeriod"],
             "related_fields": self.get_related_fields(),
+            "affected_records": self.get_affected_records(),
             "back_button": self.get_back_button_url(),
             "ancestors": (context["object"].get_ancestors().select_related("content_type")),
             "descendents": (context["object"].get_descendents().select_related("content_type")),
@@ -252,6 +255,67 @@ class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
 
     def get_model_form_content_type(self) -> ContentType:
         return self.object.content_type
+
+    def get_affected_type(self):
+        content_type = self.get_model_form_content_type().model_class().__name__
+        if content_type == "GcmdPlatform":
+            return "Platform"
+        elif content_type == "GcmdProject":
+            return "Campaign"
+        elif content_type in ["GcmdInstrument", "GcmdPhenomena"]:
+            return "Instrument"
+
+    def get_affected_url(self, uuid):
+        content_type = self.get_model_form_content_type().model_class().__name__
+        if content_type == "GcmdPlatform":
+            return f"platforms/published/{uuid}"
+        elif content_type == "GcmdProject":
+            return f"campaigns/published/{uuid}"
+        elif content_type in ["GcmdInstrument", "GcmdPhenomena"]:
+            return f"instruments/published/{uuid}"
+
+    # TODO: Clean up this method:
+    # * Take out imports & prints
+    # * The Platform, Campaign, and Instrument queries are similair enough to combine into one.
+    def get_affected_records(self) -> Dict:
+        # TODO: Get rid of this
+        from django.forms.models import model_to_dict
+
+        affected_records = []
+
+        content_type = self.get_model_form_content_type().model_class().__name__
+        if content_type == "GcmdPlatform":
+            queryset = Platform.objects.filter(
+                uuid__in=Alias.objects.filter(short_name=self.object.update["short_name"]).values(
+                    'object_id'
+                )
+            )
+        elif content_type == "GcmdProject":
+            queryset = Campaign.objects.filter(
+                uuid__in=Alias.objects.filter(short_name=self.object.update["short_name"]).values(
+                    'object_id'
+                )
+            )
+        elif content_type in ["GcmdInstrument", "GcmdPhenomena"]:
+            queryset = Instrument.objects.filter(
+                uuid__in=Alias.objects.filter(short_name=self.object.update["short_name"]).values(
+                    'object_id'
+                )
+            )
+        print(f"Query Set: {queryset}")
+        category = self.get_affected_type()
+        for row in queryset:
+            affected_records.append(
+                {
+                    "row": row,
+                    "status": "Published",
+                    "category": category,
+                    "link": self.get_affected_url(row.uuid),
+                }
+            )
+
+        print(f"Alias #1: {model_to_dict(queryset[0])}")
+        return affected_records
 
     def get_related_fields(self) -> Dict:
         related_fields = {}
@@ -442,38 +506,67 @@ class GcmdSyncListView(SingleTableMixin, FilterView):
     model = Change
     template_name = "api_app/change_list.html"
     filterset_class = filters.GcmdSyncFilter
-    table_class = tables.GcmdKeywordsView
+    table_class = tables.GcmdKeywordsListTable
     # linked_model = MODEL_CONFIG_MAP[model_name]["model"]
 
     def get_queryset(self):
-        # ph = list(Change.objects.of_type(GcmdPhenomena))
+        affected_campaigns = (
+            Campaign.objects.filter(aliases__short_name=OuterRef("short_name"))
+            .annotate(count=Count("*"))
+            .values("count")
+        )
+        affected_instruments = (
+            Instrument.objects.filter(aliases__short_name=OuterRef("short_name"))
+            .annotate(count=Count("*"))
+            .values("count")
+        )
+        affected_platforms = (
+            Platform.objects.filter(aliases__short_name=OuterRef("short_name"))
+            .annotate(count=Count("*"))
+            .values("count")
+        )
+        # TODO: Add migration to create index on content_type.model field and aliases.short_name
         queryset = (
-            # TODO: Add GcmdPhenomena back
             Change.objects.of_type(GcmdInstrument, GcmdPlatform, GcmdProject, GcmdPhenomena)
+            .select_related("content_type")
+            .annotate(
+                short_name=functions.Coalesce(
+                    functions.NullIf(KeyTextTransform('short_name', 'update'), Value("")),
+                    functions.NullIf(KeyTextTransform('variable_3', 'update'), Value("")),
+                    functions.NullIf(KeyTextTransform('variable_2', 'update'), Value("")),
+                    functions.NullIf(KeyTextTransform('variable_1', 'update'), Value("")),
+                    functions.NullIf(KeyTextTransform('term', 'update'), Value("")),
+                ),
+                affected_campaigns=affected_campaigns,
+                affected_instruments=affected_instruments,
+                affected_platforms=affected_platforms,
+                affected_records=functions.Coalesce(
+                    "affected_campaigns", "affected_instruments", "affected_platforms", 0
+                ),
+            )
             .add_updated_at()
             .order_by("-updated_at")
-            # .values('uuid', 'update', 'action', 'status', 'content_type__model')
         )
 
         return queryset
 
-    # def get_context_data(self, **kwargs):
-    #     context = super().get_context_data(**kwargs)
-    #     keyword_type = Change.objects.
-    #     return context
+    def get_context_data(self, **kwargs):
+        return {
+            **super().get_context_data(**kwargs),
+            "display_name": "GCMD Keyword",
+        }
 
 
 # @method_decorator(user_passes_test(lambda user: user.is_admg_admin()), name="dispatch")
 # class ChangeKeywordUpdateView(mixins.ChangeModelFormMixin, UpdateView):
 #     fields = ["content_type", "model_instance_uuid", "action", "update", "status"]
 #     prefix = "change"
-#     template_name = "api_app/change_update.html"
+#     template_name = "api_app/change_gcmd.html"
 #     queryset = (
-#         Change.objects.select_related("content_type")
-#         .prefetch_approvals()
-#         .annotate_from_relationship(
-#             of_type=Image, to_attr="logo_path", uuid_from="logo", identifier="image"
-#         )
+#         Change.objects.select_related("content_type").prefetch_approvals()
+#         # .annotate_from_relationship(
+#         #     of_type=Image, to_attr="logo_path", uuid_from="logo", identifier="image"
+#         # )
 #     )
 
 #     def get_success_url(self):
@@ -488,28 +581,94 @@ class GcmdSyncListView(SingleTableMixin, FilterView):
 
 #     def get_context_data(self, **kwargs):
 #         context = super().get_context_data(**kwargs)
-#         return {
+#         context = {
 #             **context,
 #             "transition_form": (
-#                 forms.TransitionForm(change=context["object"], user=self.request.user)
+#                 forms.KeywordTransitionForm(change=context["object"], user=self.request.user)
 #             ),
-#             "campaign_subitems": ["Deployment", "IOP", "SignificantEvent", "CollectionPeriod"],
+#             # "campaign_subitems": ["Deployment", "IOP", "SignificantEvent", "CollectionPeriod"],
 #             "related_fields": self.get_related_fields(),
+#             "affected_records": self.get_affected_records(),
 #             "back_button": self.get_back_button_url(),
 #             "ancestors": (context["object"].get_ancestors().select_related("content_type")),
 #             "descendents": (context["object"].get_descendents().select_related("content_type")),
 #         }
+#         print(f"Context Data: {context}")
+#         return context
 
 #     def get_model_form_content_type(self) -> ContentType:
 #         return self.object.content_type
 
+#     def get_affected_type(self):
+#         content_type = self.get_model_form_content_type().model_class().__name__
+#         if content_type == "GcmdPlatform":
+#             return "Platform"
+#         elif content_type == "GcmdProject":
+#             return "Campaign"
+#         elif content_type in ["GcmdInstrument", "GcmdPhenomena"]:
+#             return "Instrument"
+
+#     def get_affected_url(self, uuid):
+#         content_type = self.get_model_form_content_type().model_class().__name__
+#         if content_type == "GcmdPlatform":
+#             return f"platforms/published/{uuid}"
+#         elif content_type == "GcmdProject":
+#             return f"campaigns/published/{uuid}"
+#         elif content_type in ["GcmdInstrument", "GcmdPhenomena"]:
+#             return f"instruments/published/{uuid}"
+
+#     def get_affected_records(self) -> Dict:
+#         # TODO: Get rid of this
+#         from django.forms.models import model_to_dict
+
+#         affected_records = []
+
+#         content_type = self.get_model_form_content_type().model_class().__name__
+#         if content_type == "GcmdPlatform":
+#             queryset = Platform.objects.filter(
+#                 uuid__in=Alias.objects.filter(short_name=self.object.update["short_name"]).values(
+#                     'object_id'
+#                 )
+#             )
+#         elif content_type == "GcmdProject":
+#             queryset = Campaign.objects.filter(
+#                 uuid__in=Alias.objects.filter(short_name=self.object.update["short_name"]).values(
+#                     'object_id'
+#                 )
+#             )
+#         elif content_type in ["GcmdInstrument", "GcmdPhenomena"]:
+#             queryset = Instrument.objects.filter(
+#                 uuid__in=Alias.objects.filter(short_name=self.object.update["short_name"]).values(
+#                     'object_id'
+#                 )
+#             )
+#         print(f"Query Set: {queryset}")
+#         category = self.get_affected_type()
+#         for row in queryset:
+#             affected_records.append(
+#                 {
+#                     "row": row,
+#                     "status": "Published",
+#                     "category": category,
+#                     "link": self.get_affected_url(row.uuid),
+#                 }
+#             )
+
+#         print(f"Alias #1: {model_to_dict(queryset[0])}")
+#         return affected_records
+
 #     def get_related_fields(self) -> Dict:
 #         related_fields = {}
 #         content_type = self.get_model_form_content_type().model_class().__name__
-#         if content_type in ["Campaign", "Platform", "Deployment", "Instrument", "PartnerOrg"]:
-#             related_fields["alias"] = Change.objects.of_type(Alias).filter(
-#                 update__object_id=str(self.object.uuid)
-#             )
+#         # if content_type in ["Campaign", "Platform", "Deployment", "Instrument", "PartnerOrg"]:
+#         print(f"Content Type: {content_type}")
+#         if content_type in [
+#             "GcmdPlatform",
+#             "GcmdProject",
+#             "GcmdInstrument",
+#             "GcmdPhenomena",
+#         ]:
+#             pass
 #         if content_type == "Campaign":
 #             related_fields["website"] = (
 #                 Change.objects.of_type(Website)
@@ -530,25 +689,10 @@ class GcmdSyncListView(SingleTableMixin, FilterView):
 #         """
 #         content_type = self.get_model_form_content_type().model_class().__name__
 #         button_mapping = {
-#             "Platform": "platform-list-draft",
-#             "Instrument": "instrument-list-draft",
-#             "PartnerOrg": "partner_org-list-draft",
-#             "GcmdProject": "gcmd_project-list-draft",
-#             "GcmdInstrument": "gcmd_instrument-list-draft",
-#             "GcmdPlatform": "gcmd_platform-list-draft",
-#             "GcmdPhenomena": "gcmd_phenomena-list-draft",
-#             "FocusArea": "focus_area-list-draft",
-#             "GeophysicalConcept": "geophysical_concept-list-draft",
-#             "MeasurementRegion": "measurement_region-list-draft",
-#             "MeasurementStyle": "measurement_style-list-draft",
-#             "MeasurementType": "measurement_type-list-draft",
-#             "HomeBase": "home_base-list-draft",
-#             "PlatformType": "platform_type-list-draft",
-#             "GeographicalRegion": "geographical_region-season-list-draft",
-#             "Season": "season-season-list-draft",
-#             "Website": "website-list-draft",
-#             "WebsiteType": "website_type-list-draft",
-#             "Repository": "repository-list-draft",
+#             "GcmdProject": "review_changes-list-draft",
+#             "GcmdInstrument": "review_changes-list-draft",
+#             "GcmdPlatform": "review_changes-list-draft",
+#             "GcmdPhenomena": "review_changes-list-draft",
 #         }
 #         return button_mapping.get(content_type, "summary")
 

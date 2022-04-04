@@ -310,28 +310,6 @@ class Change(models.Model):
         }
 
     @property
-    def get_keyword(self):
-        from data_models import models
-
-        source_model = self.content_type.model_class()
-        if source_model in [models.GcmdInstrument, models.GcmdPlatform, models.GcmdProject]:
-            return self.update["short_name"]
-        elif source_model is models.GcmdPhenomena:
-            if self.update.get("variable_3"):
-                return self.update["variable_3"]
-            elif self.update.get("variable_2"):
-                return self.update["variable_2"]
-            elif self.update.get("variable_1"):
-                return self.update["variable_1"]
-            else:
-                # TODO: Add exception
-                pass
-        else:
-                # TODO: Add exception
-                pass
-
-
-    @property
     def model_name(self):
         # TODO: Verify that this works with API
         cls = self.content_type.model_class()

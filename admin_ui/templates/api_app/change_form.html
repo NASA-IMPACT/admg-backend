@@ -1,5 +1,7 @@
 {% extends "api_app/base_read.html" %}
 {% load crispy_forms_tags %}
+{% load active_link_tags %}
+{% load static %}
 
 {% block form %}
 {{ form.errors }}
@@ -10,4 +12,35 @@
     {% endblock form_body %}
     {% for field in form %} {{ field.as_hidden }} {% endfor %}
 </form>
+
+<!-- TODO: Put this in a snippet -->
+{% if affected_records %}
+    <hr style="height:2px;border-width:0;color:gray;background-color:gray">
+    <h2 class="blue-heading">Recommended GCMD Keyword Changes</h2>
+    <p>We have found {{affected_records | length }} potentially affected record(s)</p>
+    <ol>
+        <li>First, make sure this GCMD keyword is published before reviewing affected records.</li>
+        <li>Adding this GCMD keyword to an affected record will automatically remove it from the table below.</li>
+        <li>If no changes are required, you can manually "Mark as Reviewed" to remove the item from the list below.</li>
+    </ol>
+    <table class="affected-table">
+        <tr>
+            <th>Affected Record</th>
+            <th>Category</th>
+            <th>Status</th>
+            <th>Mark Reviewed</th>
+        </tr>
+        {% for record in affected_records %}
+            <tr>
+                <!-- TODO: href should follow {% url 'some-url-name' arg arg2 as the_url %} -->
+                    <td><a href="/drafts/edit/{{record.row.uuid}}">{{record.row.short_name}}</a></td>
+                </a>
+                <td>{{record.category}}</td>
+                <td>{{record.status}}</td>
+                <td><button class="review-button">Mark Reviewed</button></td>
+            </tr>
+            <p></p>
+        {% endfor %}
+    </table>
+{% endif %}
 {% endblock form %}
