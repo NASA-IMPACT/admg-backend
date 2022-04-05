@@ -2,6 +2,7 @@ from drf_yasg import openapi
 
 description = """
 <h2>Overview</h2>Welcome to the Airborne Data Management's Catalog of Archived Suborbital Earth Science Investigations API Documentation (ADMG CASEI). This page gives an overview of how to use the CASEI API as well as specific details for every endpoint and API method.
+<h2>Contact</h2>Questions and/or other feedback on CASEI or the CASEI API are welcome and may be sent directly to the ADMG team via email to [admg@uah.edu](mailto:admg@uah.edu). ADMG is a project within the Interagency Implementation and Advanced Concepts Team ([IMPACT](https://impact.earthdata.nasa.gov/)); IMPACT is supported by the NASA Earth Science Data System (ESDS) and is jointly managed by Marshall Space Flight Center's Earth Science Division and the University of Alabama in Huntsville's Earth System Science Center.
 <h2>Basic Structure</h2>CASEI is built on top of an SQL database with multiple tables that each contain fields and foriegn keys. Each endpoint in the API will point to a different table. 
 Requesting a bare endpoint, such as `/campaign/` will return a list of all the metadata for every campaign in the inventory.<br>
 Below is a contrived example of the results from a campaign query, with ... indicating the continuation of additional metadata and additional campaigns.<br>
