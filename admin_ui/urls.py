@@ -3,11 +3,8 @@ from django.contrib import admin
 from django.urls import path
 from django.views.generic.base import TemplateView
 
-from admin_ui.config import MODEL_CONFIG_MAP
-from admin_ui.views import generate_base_list_view
 
-from . import views
-from .published_urls import published_urls
+from . import views, published_views
 
 urlpatterns = [
     path(settings.ADMIN_URL, admin.site.urls),
@@ -17,7 +14,10 @@ urlpatterns = [
     path("campaigns/<uuid:pk>", views.CampaignDetailView.as_view(), name="campaign-detail"),
     path("campaigns/<uuid:pk>/doi-fetch", views.DoiFetchView.as_view(), name="doi-fetch"),
     path("campaigns/<uuid:pk>/doi-approval", views.DoiApprovalView.as_view(), name="doi-approval"),
-    path("drafts/add/<str:model>", views.ChangeCreateView.as_view(), name="change-add"),
+    
+    # NOTE: For 'model' arg of URL, snake_case of model class name is expected
+    path("drafts/<str:model>", views.ChangeListView.as_view(), name="change-list"),
+    path("drafts/<str:model>/add", views.ChangeCreateView.as_view(), name="change-add"),
     path("drafts/edit/<uuid:pk>", views.ChangeUpdateView.as_view(), name="change-update"),
     path(
         "drafts/edit/<uuid:pk>/transition",
@@ -29,49 +29,22 @@ urlpatterns = [
         TemplateView.as_view(template_name="api_app/to_be_developed.html"),
         name="to-be-developed",
     ),
-]
-
-
-# limited has short, long
-
-
-auto_url_keys = [
-    "PlatformType",
-    "MeasurementType",
-    "MeasurementStyle",
-    "HomeBase",
-    "FocusArea",
-    "Season",
-    "Repository",
-    "MeasurementRegion",
-    "GeographicalRegion",
-    "GeophysicalConcept",
-    "PartnerOrg",
-    "Alias",
-    "GcmdProject",
-    "GcmdInstrument",
-    "GcmdPlatform",
-    "GcmdPhenomena",
-    "DOI",
-    "Campaign",
-    "Platform",
-    "Instrument",
-    "Deployment",
-    "IOP",
-    "SignificantEvent",
-    "CollectionPeriod",
-    "Website",
-    "WebsiteType",
-]
-
-draft_list_urls = [
     path(
-        f"{MODEL_CONFIG_MAP[model]['plural_snake_case']}/draft",
-        generate_base_list_view(model),
-        name=f"{MODEL_CONFIG_MAP[model]['singular_snake_case']}-list-draft",
-    )
-    for model in auto_url_keys
+        f"published/<str:model>", published_views.GenericListView.as_view(), name="published-list"
+    ),
+    path(
+        f"published/<str:model>/<uuid:pk>",
+        published_views.GenericDetailView.as_view(),
+        name="published-detail",
+    ),
+    path(
+        f"published/<str:model>/<uuid:pk>/edit",
+        published_views.GenericEditView.as_view(),
+        name="published-edit",
+    ),
+    path(
+        f"published/<str:model>/<uuid:pk>/delete",
+        published_views.GenericDeleteView.as_view(),
+        name="published-delete",
+    ),
 ]
-
-
-urlpatterns = urlpatterns + published_urls + draft_list_urls

@@ -6,18 +6,14 @@
   <div class="col pb-3">
     <ul class="nav nav-tabs" role="tablist">
       <li class="nav-item">
-        {% with tab_url=url_name|add:"-list-draft" %}
-          <a class="nav-link {% if 'draft' in request.path %} active {% endif %}" href="{% url tab_url %}" role="tab" aria-controls="details" aria-selected="true">
-            Drafts
-          </a>
-        {% endwith %}
+        <a class="nav-link {% if 'draft' in request.path %} active {% endif %}" href="{% url 'change-list' model_name %}" role="tab" aria-controls="details" aria-selected="true">
+          Drafts
+        </a>
       </li>
       <li class="nav-item">
-        {% with tab_url=url_name|add:"-list-published" %}
-          <a class="nav-link {% if 'published' in request.path %} active {% endif %}" href="{% url tab_url %}" role="tab" aria-controls="details" aria-selected="true">
-            Published Content
-          </a>
-        {% endwith %}
+        <a class="nav-link {% if 'published' in request.path %} active {% endif %}" href="{% url 'published-list' model_name %}" role="tab" aria-controls="details" aria-selected="true">
+          Published Content
+        </a>
       </li>
     </ul>
   </div>

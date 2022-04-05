@@ -245,3 +245,20 @@ class ChangeModelFormMixin(ModelFormMixin):
         if not form.is_valid():
             messages.error(self.request, f"Unable to save: {form.errors}")
         return self.render_to_response(self.get_context_data(form=form, model_form=model_form))
+
+
+class DynamicModelMixin:
+    """ 
+    Helper model to retrieve model config based on model arg in URL
+    """
+
+    @property
+    def _model_name(self):
+        return self.kwargs['model']
+
+    @property
+    def _model_config(self):
+        try:
+            return config.MODEL_CONFIG_MAP[self._model_name]
+        except KeyError:
+            raise Http404(f"Bad model name: {self._model_name}")

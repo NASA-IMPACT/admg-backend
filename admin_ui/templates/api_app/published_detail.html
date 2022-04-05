@@ -8,15 +8,13 @@
   <div class="col">
     <h1>{{ model_name }} Details</h1>
   </div>
-  {% with tab_url=url_name|add:"-list-published" %}
-    <a href="{% spaceless %}
-      {% if "back" in request.GET %} {{ request.GET.back }}
-      {% else %}{% url tab_url %}
-      {% endif %}
-      {% endspaceless %}">
-      &larr; Back
-    </a>
-  {% endwith %}
+  <a href="{% spaceless %}
+    {% if "back" in request.GET %} {{ request.GET.back }}
+    {% else %}{% url 'published-list' model_name %}
+    {% endif %}
+    {% endspaceless %}">
+    &larr; Back
+  </a>
 {% endblock header %}
 
 {% block object_details %}
@@ -24,11 +22,9 @@
 
 {% block actions %}
   <div class="px-1">
-    {% with tab_url=url_name|add:"-edit-published" %}
-        <a href="{% url tab_url object.uuid %}?back={{ request.path }}" class="btn btn-primary ml-3">
-            Create Edit Draft
-        </a>
-    {% endwith %}
+    <a href="{% url 'published-edit' model_name object.uuid %}?back={{ request.path }}" class="btn btn-primary ml-3">
+        Create Edit Draft
+    </a>
     <button class="btn btn-secondary" data-toggle="modal" data-target="#deletePopup">
       Create Delete Draft
     </button>
@@ -70,11 +66,9 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-          {% with tab_url=url_name|add:"-delete-published" %}
-            <a href="{% url tab_url object.uuid %}?back={{ request.path }}" class="btn btn-danger">
-                Create Delete Draft
-            </a>
-          {% endwith %}
+          <a href="{% url 'published-delete' model_name object.uuid %}?back={{ request.path }}" class="btn btn-danger">
+              Create Delete Draft
+          </a>
         </div>
       </div>
     </div>

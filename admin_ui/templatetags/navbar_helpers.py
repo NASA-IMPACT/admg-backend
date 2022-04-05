@@ -6,26 +6,16 @@ from django.template.loader import get_template
 register = template.Library()
 
 
-def build_draft_view(view):
-    return f"{view}-list-draft"
-
-
-def build_published_view(view):
-    return f"{view}-list-published"
+LINKS = "published-list || change-list"
 
 
 def is_quoted(text: str):
     return text[0] == text[-1] and text[0] in ('"', "'")
 
 
-@register.inclusion_tag("snippets/sidebar/activelink_navitem.html", takes_context=True)
-def nav_link(context, title, view):
-    return {
-        **context.flatten(),
-        "title": title,
-        "view": build_draft_view(view),
-        "links": " || ".join(f(view) for f in [build_draft_view, build_published_view]),
-    }
+@register.inclusion_tag("snippets/sidebar/activelink_navitem.html")
+def nav_link(title, model_name):
+    return {"title": title, "view": "change-list", "model_name": model_name, "links": LINKS}
 
 
 @register.tag
@@ -37,8 +27,8 @@ def collapsable_menu(parser, token):
 
     The first argument must be a unique title for the menu entry, wrapped within quotes. All
     subsequent arguments represent models for which list views are linked.  E.g. if "doi" is
-    presented, the menu will be shown as active if the user is viewing either a "doi-list-draft"
-    or "doi-list-published" routes.
+    presented, the menu will be shown as active if the user is viewing either a "list-draft"
+    or "list-published" routes.
 
     https://getbootstrap.com/docs/4.0/components/collapse/
     """
@@ -76,11 +66,7 @@ class FoldingNavNode(template.Node):
                 **context.flatten(),
                 "title": self.title,
                 "identifier": self.title.lower().replace(" ", "-"),
-                "active_views": " || ".join(
-                    func(model_name)
-                    for model_name in self.model_names
-                    for func in [build_draft_view, build_published_view]
-                ),
+                "active_views": LINKS,
                 "children": self.nodelist.render(context),
             }
         )

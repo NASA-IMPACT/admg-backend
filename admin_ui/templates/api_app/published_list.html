@@ -8,13 +8,6 @@
 <div class="col">
   <h1> Published {{ display_name }} Items</h1>
 </div>
-
-<div class="col-auto">
-  <a class="btn btn-primary" href="{% url 'change-add' model %}">
-    Add New {{ display_name }} +
-  </a>
-</div>
-
 {% endblock header %}
 
 {% block main %}
@@ -25,14 +18,8 @@
         <button class="btn btn-secondary btn-sm">Filter</button>
         <a 
           class="btn btn-light btn-sm" 
-          href="{% spaceless %}
-            {% if model == "campaign" %}{% url 'campaign-list-draft' %}
-            {% elif model == "platform" %}{% url 'platform-list-draft' %}
-            {% elif model == "instrument" %}{% url 'instrument-list-draft' %}
-            {% elif model == "partnerorg" %}{% url 'partner_org-list-draft' %}
-            {% else %}{% url 'summary' %}
-            {% endif %}
-          {% endspaceless %}">
+          href="{% url 'published-list' model_name %}"
+        >
           Clear filters
         </a>
       </form>

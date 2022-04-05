@@ -73,7 +73,7 @@ CUSTOM_MODEL_VALUES = {
 
 # defaults are assigned to each model in this comprehension, and then overwritten by the above dictionary
 MODEL_CONFIG_MAP = {
-    model_name: {
+    camel_to_snake(model_name): {
         "draft_filter": overrides.get("filter_generator", filters.GenericDraftFilter)(model_name),
         "published_filter": overrides.get(
             "published_filter_generator", published_filters.GenericPublishedListFilter
