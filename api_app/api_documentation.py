@@ -1,7 +1,8 @@
 from drf_yasg import openapi
 
 description = """
-<h2>Overview</h2>Welcome to the ADMG CASEI API Documentation. This page gives an overview of how to use the CASEI API as well as specific details for every endpoint and API method.
+<h2>Overview</h2>Welcome to the Airborne Data Management's Catalog of Archived Suborbital Earth Science Investigations API Documentation (ADMG CASEI). This page gives an overview of how to use the CASEI API as well as specific details for every endpoint and API method.
+<h2>Contact</h2>Questions and/or other feedback on CASEI or the CASEI API are welcome and may be sent directly to the ADMG team via email to [admg@uah.edu](mailto:admg@uah.edu). ADMG is a project within the Interagency Implementation and Advanced Concepts Team ([IMPACT](https://impact.earthdata.nasa.gov/)); IMPACT is supported by the NASA Earth Science Data System (ESDS) and is jointly managed by Marshall Space Flight Center's Earth Science Division and the University of Alabama in Huntsville's Earth System Science Center.
 <h2>Basic Structure</h2>CASEI is built on top of an SQL database with multiple tables that each contain fields and foriegn keys. Each endpoint in the API will point to a different table. 
 Requesting a bare endpoint, such as `/campaign/` will return a list of all the metadata for every campaign in the inventory.<br>
 Below is a contrived example of the results from a campaign query, with ... indicating the continuation of additional metadata and additional campaigns.<br>
@@ -30,8 +31,8 @@ So, if you want a particular campaign instead of all the campaigns, you can quer
 As you can see from the above example, some fields return a human readable value, while others such as `aliases` return a UUID. If you see a human readable value, then this is all the information contained in that field. However, if a UUID is listed, then the field is linked to an object with additional metadata.<br>
 This object and its metadata can be retrieved by sending its UUID to the appropriate endpoint, as in the following example with aliases:
 `/alias/927479e5-b0c7-4aef-9d31-4a6850dea804`<br>
-Here, you can see that the field was named `aliases` however the endpoint queried was called `alias`. It is generally the case that if a linked field is singular, it will correspond perfectly with it's table, because this represents a one to one relationship. Meanwhile if the field is plural then it has a one/many to many relationship, and it will need to be singularized to obtain the table name. So 'repositories' becomes 'repository' and 'seasons' becomes 'season', while 'deployment' remains 'deployment'.<br>
-If you are ever in doubt, there is a full guide to every endpoint and field further in this document.<br>
+Here, you can see that the field was named `aliases` however the endpoint queried was called `alias`. If you are ever trying to figure out which field corresponds with which endpoint, there is a <a href="#full_guide">full guide</a> to every endpoint and field further in this document.<br>
+However, there is an underlying logic based on the English language. Endpoint names are always singular, `season`, `repository`, `instrument`, etc. However a field might hold more than one item from an endpoint. If the field just holds one item, the field name will be singular too. But if it is a one/many to many field, and holds a list of items, then it will be plural. So you might have a field named `repositories` which points to the `repository` endpoint.<br>
 <h2>Using short_name Searches</h2>The API also supports limited search functionality. Specifically, many endpoints allow<br>
 `/endpoint?short_name=value`<br>
 for example<br>
@@ -52,7 +53,7 @@ Specifically, the following endpoints and fields are searchable<br>
         </ul>
 </ul>
 <h2>Permissions: POST vs GET</h2>Every endpoint is publicly accessible via the GET method, although some fields, such as `notes_internal` are for internal use only and will not be returned. The POST method is not publically accessible, and requires an authenticated user with a properly scoped token. If you have a need to use the POST method, please contact the ADMG team.<br>
-<h2>API Content and Field Names</h2>Below this section, there is a listing of every API endpoint and the available methods. If you are trying to figure out what data is available from the api, this is the place to look. If you click on an endpoint, it will enlarge and you will be able to see all the fields that are available.<br>
+<h2 id="full_guide">API Content and Field Names</h2>Below this section, there is a listing of every API endpoint and the available methods. If you are trying to figure out what data is available from the api, this is the place to look. If you click on an endpoint, it will enlarge and you will be able to see all the fields that are available.<br>
 Each field has several values listed:<br>
 <ul>
     <li>field name: the field name returned by the api</li>
