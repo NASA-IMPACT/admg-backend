@@ -14,7 +14,6 @@ urlpatterns = [
     path("campaigns/<uuid:pk>", views.CampaignDetailView.as_view(), name="campaign-detail"),
     path("campaigns/<uuid:pk>/doi-fetch", views.DoiFetchView.as_view(), name="doi-fetch"),
     path("campaigns/<uuid:pk>/doi-approval", views.DoiApprovalView.as_view(), name="doi-approval"),
-    
     # NOTE: For 'model' arg of URL, snake_case of model class name is expected
     path("drafts/<str:model>", views.ChangeListView.as_view(), name="change-list"),
     path("drafts/<str:model>/add", views.ChangeCreateView.as_view(), name="change-add"),

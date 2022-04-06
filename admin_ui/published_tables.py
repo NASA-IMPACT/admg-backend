@@ -64,7 +64,10 @@ class IOPPublishedTable(tables.Table):
 
 class SignificantEventPublishedTable(tables.Table):
     short_name = ConditionalValueColumn(
-        linkify=("published-detail", dict(pk=tables.A("uuid"), model=camel_to_snake('SignificantEvent'))),
+        linkify=(
+            "published-detail",
+            dict(pk=tables.A("uuid"), model=camel_to_snake('SignificantEvent')),
+        ),
         verbose_name="Short Name",
         accessor="short_name",
     )
@@ -82,7 +85,10 @@ class SignificantEventPublishedTable(tables.Table):
 
 class CollectionPeriodPublishedTable(tables.Table):
     deployment = ShortNamefromUUIDColumn(
-        linkify=("published-detail", dict(pk=tables.A('uuid'), model=camel_to_snake('CollectionPeriod'))),
+        linkify=(
+            "published-detail",
+            dict(pk=tables.A('uuid'), model=camel_to_snake('CollectionPeriod')),
+        ),
         model=Deployment,
         verbose_name="Deployment",
         accessor="deployment",
@@ -140,7 +146,10 @@ class DeploymentPublishedTable(LimitedTableBase):
 
 class PlatformTypePublishedTable(LimitedTableBase):
     short_name = ConditionalValueColumn(
-        linkify=("published-detail", dict(pk=tables.A("uuid"), model=camel_to_snake('PlatformType'))),
+        linkify=(
+            "published-detail",
+            dict(pk=tables.A("uuid"), model=camel_to_snake('PlatformType')),
+        ),
         verbose_name="Short Name",
         accessor="short_name",
     )
@@ -154,7 +163,10 @@ class PlatformTypePublishedTable(LimitedTableBase):
 
 class MeasurementTypePublishedTable(LimitedTableBase):
     short_name = ConditionalValueColumn(
-        linkify=("published-detail", dict(pk=tables.A("uuid"), model=camel_to_snake('MeasurementType'))),
+        linkify=(
+            "published-detail",
+            dict(pk=tables.A("uuid"), model=camel_to_snake('MeasurementType')),
+        ),
         verbose_name="Short Name",
         accessor="short_name",
     )
@@ -168,7 +180,10 @@ class MeasurementTypePublishedTable(LimitedTableBase):
 
 class MeasurementStylePublishedTable(LimitedTableBase):
     short_name = ConditionalValueColumn(
-        linkify=("published-detail", dict(pk=tables.A("uuid"), model=camel_to_snake('MeasurementStyle'))),
+        linkify=(
+            "published-detail",
+            dict(pk=tables.A("uuid"), model=camel_to_snake('MeasurementStyle')),
+        ),
         verbose_name="Short Name",
         accessor="short_name",
     )
@@ -238,7 +253,10 @@ class RepositoryPublishedTable(LimitedTableBase):
 
 class MeasurementRegionPublishedTable(LimitedTableBase):
     short_name = ConditionalValueColumn(
-        linkify=("published-detail", dict(pk=tables.A("uuid"), model=camel_to_snake('MeasurementRegion'))),
+        linkify=(
+            "published-detail",
+            dict(pk=tables.A("uuid"), model=camel_to_snake('MeasurementRegion')),
+        ),
         verbose_name="Short Name",
         accessor="short_name",
     )
@@ -253,7 +271,10 @@ class MeasurementRegionPublishedTable(LimitedTableBase):
 
 class GeographicalRegionPublishedTable(LimitedTableBase):
     short_name = ConditionalValueColumn(
-        linkify=("published-detail", dict(pk=tables.A("uuid"), model=camel_to_snake('GeographicalRegion'))),
+        linkify=(
+            "published-detail",
+            dict(pk=tables.A("uuid"), model=camel_to_snake('GeographicalRegion')),
+        ),
         verbose_name="Short Name",
         accessor="short_name",
     )
@@ -268,7 +289,10 @@ class GeographicalRegionPublishedTable(LimitedTableBase):
 
 class GeophysicalConceptPublishedTable(LimitedTableBase):
     short_name = ConditionalValueColumn(
-        linkify=("published-detail", dict(pk=tables.A("uuid"), model=camel_to_snake('GeophysicalConcept'))),
+        linkify=(
+            "published-detail",
+            dict(pk=tables.A("uuid"), model=camel_to_snake('GeophysicalConcept')),
+        ),
         verbose_name="Short Name",
         accessor="short_name",
     )
@@ -297,7 +321,10 @@ class PartnerOrgPublishedTable(LimitedTableBase):
 
 class WebsiteTypePublishedTable(LimitedTableBase):
     short_name = ConditionalValueColumn(
-        linkify=("published-detail", dict(pk=tables.A("uuid"), model=camel_to_snake('WebsiteType'))),
+        linkify=(
+            "published-detail",
+            dict(pk=tables.A("uuid"), model=camel_to_snake('WebsiteType')),
+        ),
         verbose_name="Short Name",
         accessor="short_name",
     )
@@ -383,7 +410,10 @@ class AliasPublishedTable(LimitedTableBase):
 
 class GcmdProjectPublishedTable(LimitedTableBase):
     short_name = ConditionalValueColumn(
-        linkify=("published-detail", dict(pk=tables.A("uuid"), model=camel_to_snake('GcmdProject'))),
+        linkify=(
+            "published-detail",
+            dict(pk=tables.A("uuid"), model=camel_to_snake('GcmdProject')),
+        ),
         verbose_name="Short Name",
         accessor="short_name",
     )
@@ -397,7 +427,10 @@ class GcmdProjectPublishedTable(LimitedTableBase):
 
 class GcmdInstrumentPublishedTable(LimitedTableBase):
     short_name = ConditionalValueColumn(
-        linkify=("published-detail", dict(pk=tables.A("uuid"), model=camel_to_snake('GcmdInstrument'))),
+        linkify=(
+            "published-detail",
+            dict(pk=tables.A("uuid"), model=camel_to_snake('GcmdInstrument')),
+        ),
         verbose_name="Short Name",
         accessor="short_name",
     )
@@ -425,7 +458,10 @@ class GcmdInstrumentPublishedTable(LimitedTableBase):
 
 class GcmdPlatformPublishedTable(LimitedTableBase):
     short_name = ConditionalValueColumn(
-        linkify=("published-detail", dict(pk=tables.A("uuid"), model=camel_to_snake('GcmdPlatform'))),
+        linkify=(
+            "published-detail",
+            dict(pk=tables.A("uuid"), model=camel_to_snake('GcmdPlatform')),
+        ),
         verbose_name="Short Name",
         accessor="short_name",
     )
@@ -439,7 +475,10 @@ class GcmdPlatformPublishedTable(LimitedTableBase):
 
 class GcmdPhenomenaPublishedTable(tables.Table):
     variable_3 = ConditionalValueColumn(
-        linkify=("published-detail", dict(pk=tables.A("uuid"), model=camel_to_snake('GcmdPhenomena'))),
+        linkify=(
+            "published-detail",
+            dict(pk=tables.A("uuid"), model=camel_to_snake('GcmdPhenomena')),
+        ),
         verbose_name="Variable 3",
         accessor="short_name",
     )

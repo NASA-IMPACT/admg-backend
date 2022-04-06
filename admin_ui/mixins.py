@@ -249,7 +249,7 @@ class ChangeModelFormMixin(ModelFormMixin):
 
 
 class DynamicModelMixin:
-    """ 
+    """
     Helper model to retrieve model config based on model arg in URL
     """
 
