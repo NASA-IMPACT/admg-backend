@@ -3,17 +3,16 @@ from cmr import tasks
 from data_models.models import DOI, Campaign
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.contrib.contenttypes.models import ContentType
 from django.http import Http404, HttpResponseRedirect
 from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.generic.detail import SingleObjectMixin
-from django.views.generic.edit import CreateView, FormView
+from django.views.generic.edit import FormView
 from django.views.generic.list import MultipleObjectMixin
 from django_celery_results.models import TaskResult
 
-from .. import forms, mixins
+from .. import forms
 
 
 @method_decorator(login_required, name="dispatch")
