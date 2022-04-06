@@ -25,16 +25,7 @@
 {% endblock header %}
 
 {% block actions %}
-  {% if  object.is_locked %}
-  <div class="px-1">
-    <a 
-      class="btn btn-primary" 
-      href="{{ object.content_type.model }}" TODO
-    >
-      View published record
-    </a>
-  </div>
-  {% else %}
+  {% if not object.is_locked %}
   <div class="px-1">
     {% include "snippets/approval_dropdown.html" %}
   </div>
