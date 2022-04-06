@@ -306,18 +306,17 @@ class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
         return super().post(*args, **kwargs)
 
 
-# TODO: Add this logic to the ChangeListView
-# def generate_base_list_view(model_name):
-#     if MODEL_CONFIG_MAP[model_name]["admin_required_to_view"]:
-#         authorization_level = user_passes_test(lambda user: user.is_admg_admin())
-#     else:
-#         authorization_level = login_required
-
-
 @method_decorator(login_required, name="dispatch")
 class ChangeListView(mixins.DynamicModelMixin, SingleTableMixin, FilterView):
     model = Change
     template_name = "api_app/change_list.html"
+
+    def dispatch(self, *args, **kwargs):
+        if self._model_config["admin_required_to_view"]:
+            authorization_level = user_passes_test(lambda user: user.is_admg_admin())
+        else:
+            authorization_level = login_required
+        return authorization_level(super().dispatch)(*args, **kwargs)
 
     def get_table_class(self):
         return self._model_config["change_list_table"]
