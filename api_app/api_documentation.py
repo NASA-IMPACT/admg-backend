@@ -53,6 +53,7 @@ Specifically, the following endpoints and fields are searchable<br>
         </ul>
 </ul>
 <h2>Permissions: POST vs GET</h2>Every endpoint is publicly accessible via the GET method, although some fields, such as `notes_internal` are for internal use only and will not be returned. The POST method is not publically accessible, and requires an authenticated user with a properly scoped token. If you have a need to use the POST method, please contact the ADMG team.<br>
+<h3>Generating a Token</h2>If you have an account on the ADMG Maintenance Interface and permission to create content, you can generate a token to use during POST requests by navigating to `/authenticate/applications/register/` and using Client type: confidential and Authorization grant type: password-based.
 <h2 id="full_guide">API Content and Field Names</h2>Below this section, there is a listing of every API endpoint and the available methods. If you are trying to figure out what data is available from the api, this is the place to look. If you click on an endpoint, it will enlarge and you will be able to see all the fields that are available.<br>
 Each field has several values listed:<br>
 <ul>
