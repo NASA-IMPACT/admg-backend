@@ -6,7 +6,7 @@
 
 {% block header %}
   <div class="col">
-    <h1>{{ model_name }} Details</h1>
+    <h1>{{ display_name }} Details</h1>
   </div>
   <a href="{% spaceless %}
     {% if "back" in request.GET %} {{ request.GET.back }}
