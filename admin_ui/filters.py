@@ -24,9 +24,7 @@ def GenericDraftFilter(model_name, filter_configs=default_filter_configs):
     class GenericFilterClass(django_filters.FilterSet):
         class Meta:
             model = Change
-            fields = [
-                "status",
-            ]
+            fields = ["action", "status"]
 
     for config in filter_configs:
         GenericFilterClass.base_filters[config["field_name"]] = django_filters.CharFilter(
@@ -42,14 +40,10 @@ def GenericDraftFilter(model_name, filter_configs=default_filter_configs):
 
 class WebsiteFilter(django_filters.FilterSet):
     title = django_filters.CharFilter(
-        label="Title",
-        field_name="update__title",
-        method=filter_draft_and_published("Website"),
+        label="Title", field_name="update__title", method=filter_draft_and_published("Website")
     )
     url = django_filters.CharFilter(
-        label="url",
-        field_name="update__url",
-        method=filter_draft_and_published("Website"),
+        label="url", field_name="update__url", method=filter_draft_and_published("Website")
     )
 
 

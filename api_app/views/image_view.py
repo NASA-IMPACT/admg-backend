@@ -4,7 +4,7 @@ from rest_framework.parsers import MultiPartParser
 from api_app.serializers import ImageSerializer
 from data_models.models import Image
 
-from ..models import DELETE
+from ..models import Change
 from .view_utils import handle_exception, requires_admin_approval
 from .generic_views import GetPermissionsMixin
 
@@ -38,6 +38,6 @@ class ImageRetrieveDestroyAPIView(GetPermissionsMixin, RetrieveDestroyAPIView):
     queryset = Image.objects.all()
 
     @handle_exception
-    @requires_admin_approval(model_name="Image", action=DELETE)
+    @requires_admin_approval(model_name="Image", action=Change.Actions.DELETE)
     def delete(self, request, *args, **kwargs):
         return self.destroy(request, *args, **kwargs)

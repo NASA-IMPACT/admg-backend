@@ -1,4 +1,5 @@
 # Contents of this readme
+
 1. `admg_webapp` backend documentation
 2. `admin_ui` frontend setup
 
@@ -31,16 +32,18 @@ in the notebook, import your models file
 - Use Client Type: confidential, Authorization Grant Type: Resource owner password-based
 - get the `client_id` and `client_secret`
 - `curl -X POST -d "grant_type=password&username=<user_name>&password=<password>" -u"<client_id>:<client_secret>" http://domain/authenticate/token/`
-- You will get something like
-  - ```javascript
-    {
+- You will get something like:
+
+  ```javascript
+  {
       "access_token": "access_token",
       "expires_in": 36000,
       "token_type": "Bearer",
       "scope": "read write",
       "refresh_token": "refresh_token"
-    }
-    ```
+  }
+  ```
+
 - Use this `access_token` to hit on APIs
   - `curl -H "Authorization: Bearer <your_access_token>" http://localhost:8000/your_end_point_here`
 - To refresh your token
@@ -82,8 +85,14 @@ axios(config)
 ## Local Setup
 
 - Install docker and docker-compose
+- Copy `.env.sample_local` to `.env`
 - Run docker-compose with docker-compose.local.yml instead of docker-compose.yml
   - `docker-compose -f docker-compose.local.yml up`
+
+
+## Running Tests
+
+`docker-compose -f docker-compose.local.yml run web python manage.py test`
 
 ## Sass
 
@@ -93,86 +102,132 @@ To build Sass files for the project:
 python manage.py sass admin_ui/static/scss admin_ui/static/css --watch
 ```
 
-# `admin_ui` frontend setup
+# `admin_ui` setup
 
 ## Installation
-1. Install prerequisite technologies (for example, with `brew` on a mac): postgres, postgis
 
-2. Create a virtual environment
+1.  Install prerequisite technologies (for example, using `brew` on a mac): postgres, postgis
 
-Set up the env (only need to do once)
-> `python3 -m venv .venv`
+2.  Create a virtual environment
 
-To activate the env (do this every time you start the project)
-> `source .venv/bin/activate`
+    Set up the env (only need to do once)
 
-3. Install requirements
+    ```
+    python3 -m venv .venv
+    ```
 
-Part 1 - general requirements
-> `pip install -r requirements/base.txt`
+3.  Activate the virtual environment (do this every time you start the project)
 
-Part 2 - local requirements
-> `pip install -r local.txt`
+    ```
+    source .venv/bin/activate
+    ```
 
-4. Start postgres
+4.  Install requirements
 
-`brew info posgresql` should give a path that you can use to start it (It will probably look something like `pg_ctl -D /usr/local/var/postgres start`)
+    1. general requirements
 
-5. Check that postgres is working
-If `psql -l` gives you a list of tables then all is well.
+       ```
+       pip install -r requirements/base.txt
+       ```
 
-6. Create a database
-> `createdb admg_prod`
+    2. local requirements
 
-7. Load a dump of the database
-- download the latest zip file of example data (get this from one of the database maintainers)
-For example:
-> `cat ./production_dump-2020.01.28.sql | psql admg_prod` 
+       ```
+       pip install -r local.txt
+       ```
 
-(change the filename to match your local db data)
+5.  Start postgres
 
-## Start service
+    To get a path that you can use to start Postgres:
+    
+    ```
+    brew info posgresql 
+    ```
 
-1. Activate your environment
-> `source .venv/bin/activate`
+    (It will probably look something like `pg_ctl -D /usr/local/var postgres start`)
+
+6.  Check that postgres is working
+    If `psql -l` gives you a list of tables then all is well.
+
+7.  Create a database
+
+    ```
+    createdb admg_prod
+    ```
+
+8.  Load a dump of the database
+
+    Download the latest zip file of example data (get this from one of the database maintainers) & load into the database. For example:
+
+    ```
+    cat ./production_dump-2020.01.28.sql | psql admg_prod
+    ```
+
+9.  Run migrations
+
+    ```
+    python manage.py migrate
+    ```
+
+10. Create yourself a user
+
+    ```
+    python manage.py creatersuperuser
+    ```
+
+## Running the application
+
+1. With the virual environment activated, run the server
+
+   ```
+   python manage.py runserver_plus
+   ```
+
+2. Open the website
+   http://localhost:8000/
 
 ### Understanding `python manage.py`
+
 `python manage.py <command>`
 
 - `manage.py` is your entry point into the django app. It has several commands, including:
-    - `test` `migrate` `makemigrations` `runserver_plus` `shell_plus`
-    - django extensions — third party modules
+  - `test`
+  - `migrate`
+  - `makemigrations`
+  - `runserver_plus`
+  - `shell_plus`
+  - django extensions — third party modules
 
-### Set up your database
-1. Create the migrations
-> `python manage.py migrate`
+### Optional additional tools
 
-2. (varies depending on how the data model develops)
-You first have to delete all the problematic tables `psql admg_prod -c "delete from data_models_doi";`) also `data_models_instrument_dois`; `data_models_platform_dois`; `data_models_collectionperiod_dois`;
-
-3. Create yourself a user
-
-> `python manage.py creatersuperuser`
-
-4. Run the server
-
-`python manage.py runserver_plus`
-
-5. Open the webiste 
-http://localhost:8000/
-
-### Optional additional tool
 interactive way to interact with the database and the database models.
 
-> `python manage.py shell_plus`
+`python manage.py shell_plus`
 
 ### Running the infrastructure for DOI fetching
+
 DOI fetching uses rabbitmq and celery.
 
-Installation
-install `rabbitmq` (probs using `brew` if you’re on a Mac)
+#### Installation
 
-Starting the service
-1. start rabbitmq with `rabbitmq-server` 
-2. start the celery worker with
-`celery -A config.celery_app worker -l INFO`
+Install `rabbitmq` (probably using `brew` if you’re on a Mac)
+
+#### Starting the service
+
+1. start rabbitmq:
+
+   ```
+   rabbitmq-server
+   ```
+
+2. start the celery worker:
+
+   ```
+   celery -A config.celery_app worker --beat --scheduler django -l DEBUG
+   ```
+
+   _Note: If running locally (ie not in Docker), you may need to overwrite the `CELERY_BROKER_URL` setting:_
+
+   ```
+   CELERY_BROKER_URL=amqp://guest:guest@localhost:5672 celery -A config celery_app worker --beat --scheduler django -l DEBUG`
+   ```

@@ -14,27 +14,11 @@ urlpatterns = [
     # Actions
     path("actions/deploy-admin", views.trigger_deploy, name="trigger-deploy"),
     path("", views.SummaryView.as_view(), name="summary"),
-    path(
-        "campaigns/<uuid:pk>",
-        views.CampaignDetailView.as_view(),
-        name="campaign-detail",
-    ),
-    path(
-        "campaigns/<uuid:pk>/doi-fetch",
-        views.DoiFetchView.as_view(),
-        name="doi-fetch",
-    ),
-    path(
-        "campaigns/<uuid:pk>/doi-approval",
-        views.DoiApprovalView.as_view(),
-        name="doi-approval",
-    ),
+    path("campaigns/<uuid:pk>", views.CampaignDetailView.as_view(), name="campaign-detail"),
+    path("campaigns/<uuid:pk>/doi-fetch", views.DoiFetchView.as_view(), name="doi-fetch"),
+    path("campaigns/<uuid:pk>/doi-approval", views.DoiApprovalView.as_view(), name="doi-approval"),
     path("drafts/add/<str:model>", views.ChangeCreateView.as_view(), name="change-add"),
-    path(
-        "drafts/edit/<uuid:pk>",
-        views.ChangeUpdateView.as_view(),
-        name="change-update",
-    ),
+    path("drafts/edit/<uuid:pk>", views.ChangeUpdateView.as_view(), name="change-update"),
     path(
         "drafts/edit/<uuid:pk>/transition",
         views.ChangeTransition.as_view(),

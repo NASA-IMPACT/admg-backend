@@ -5,13 +5,14 @@ from django.contrib import messages
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.gis.db.models.fields import PolygonField
 from django.db import models as model_fields
-from django.forms import modelform_factory, FileField, HiddenInput
+from django.forms import modelform_factory, HiddenInput
+from django.http import HttpResponseBadRequest
 from django.http.response import Http404
 from django.shortcuts import render
 from django.views.generic.edit import ModelFormMixin
 
 from data_models import models
-from . import fields, widgets, config
+from . import fields, widgets, config, utils
 
 
 def formfield_callback(f, **kwargs):
@@ -99,14 +100,18 @@ class ChangeModelFormMixin(ModelFormMixin):
         if "model_form" not in kwargs:
             # Ensure that the model_form is available in context for template
             kwargs["model_form"] = self.destination_model_form(
-                initial=self.get_model_form_intial(),
-                prefix=self.destination_model_prefix,
+                initial=self.get_model_form_intial(), prefix=self.destination_model_prefix
             )
 
         model_name = kwargs["model_form"]._meta.model.__name__
         model_config = config.MODEL_CONFIG_MAP.get(model_name, {})
         for field in model_config.get("change_view_readonly_fields", []):
             kwargs["model_form"].fields[field].disabled = True
+
+        # Disable save on published or trashed
+        if self.object and self.object.is_locked:
+            utils.disable_form_fields(kwargs['model_form'])
+
         return super().get_context_data(**kwargs)
 
     @staticmethod
@@ -168,28 +173,6 @@ class ChangeModelFormMixin(ModelFormMixin):
         else:
             return []
 
-    def get_update_values(self, model_form):
-        update = {}
-        for name, field in model_form.fields.items():
-            if isinstance(field, FileField):
-                # Save any uploaded files to disk, then overwrite their values with their name
-                model_field = getattr(model_form.instance, name)
-                if not model_field._file:
-                    continue
-                model_field.save(model_field.url, model_form.cleaned_data[name])
-                update[name] = model_field.name
-
-            else:
-                # Populate Change's form with values from destination model's form.
-                # We're not saving the cleaned_data because we want the raw text, not
-                # the processed values (e.g. we don't want Polygon objects for bounding
-                # boxes, rather we want the raw polygon text). This may or may not be
-                # the best way to achieve this.
-                update[name] = field.widget.value_from_datadict(
-                    model_form.data, model_form.files, model_form.add_prefix(name)
-                )
-        return update
-
     def post(self, request, *args, **kwargs):
         """
         Handle POST requests: instantiate a form instance with the passed
@@ -206,6 +189,9 @@ class ChangeModelFormMixin(ModelFormMixin):
         validate_model_form = "_validate" in request.POST
         if not form.is_valid() or (validate_model_form and not model_form.is_valid()):
             return self.form_invalid(form=form, model_form=model_form)
+
+        if self.object and self.object.is_locked:
+            return HttpResponseBadRequest("Object no longer available for edit")
 
         model_config = config.MODEL_CONFIG_MAP.get(self.get_model_type().__name__, {})
         readonly_fields = model_config.get("change_view_readonly_fields", [])
@@ -226,21 +212,20 @@ class ChangeModelFormMixin(ModelFormMixin):
                 # Only update fields that can be altered by the form. Otherwise, retain
                 # original values from form.instance.update
                 k: v
-                for k, v in self.get_update_values(model_form).items()
+                for k, v in utils.serialize_model_form(model_form).items()
                 if k not in readonly_fields
             }
         )
         return self.form_valid(form, model_form)
 
     def form_valid(self, form, model_form):
+        # If we're running validation...
+        if "_validate" in self.request.POST:
+            messages.success(self.request, "Successfully validated.")
+            return self.render_to_response(self.get_context_data(form=form, model_form=model_form))
 
         # Important to run super first to set self.object
         redirect = super().form_valid(form)
-
-        # If we're running validation...
-        if "_validate" in self.request.POST:
-            messages.success(self.request, f'Successfully validated "{self.object}".')
-            return self.render_to_response(self.get_context_data(form=form, model_form=model_form))
 
         # If form was submitted from a popup window...
         if "_popup" in self.request.GET:

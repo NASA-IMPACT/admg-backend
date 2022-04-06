@@ -24,38 +24,20 @@ CUSTOM_MODEL_VALUES = {
     "MeasurementRegion": {},
     "GeographicalRegion": {},
     "GeophysicalConcept": {},
-    "PartnerOrg": {
-        "admin_required_to_view": False,
-    },
-    "Alias": {
-        "admin_required_to_view": False,
-    },
-    "GcmdProject": {
-        "display_name": "GCMD Project",
-    },
-    "GcmdInstrument": {
-        "display_name": "GCMD Instrument",
-    },
-    "GcmdPlatform": {
-        "display_name": "GCMD Platform",
-    },
-    "GcmdPhenomena": {
-        "display_name": "GCMD Phenomena",
-    },
+    "PartnerOrg": {"admin_required_to_view": False},
+    "Alias": {"admin_required_to_view": False},
+    "GcmdProject": {"display_name": "GCMD Project"},
+    "GcmdInstrument": {"display_name": "GCMD Instrument"},
+    "GcmdPlatform": {"display_name": "GCMD Platform"},
+    "GcmdPhenomena": {"display_name": "GCMD Phenomena"},
     "DOI": {
         "admin_required_to_view": False,
         "draft_filter": filters.DoiFilter,
         "published_filter": published_filters.DoiFilter,
     },
-    "Campaign": {
-        "admin_required_to_view": False,
-    },
-    "Platform": {
-        "admin_required_to_view": False,
-    },
-    "Instrument": {
-        "admin_required_to_view": False,
-    },
+    "Campaign": {"admin_required_to_view": False},
+    "Platform": {"admin_required_to_view": False},
+    "Instrument": {"admin_required_to_view": False},
     "Deployment": {
         "admin_required_to_view": False,
         "draft_filter": filters.DeploymentFilter,

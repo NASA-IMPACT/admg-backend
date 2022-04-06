@@ -4,7 +4,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.http import JsonResponse
 from rest_framework.response import Response
 
-from ..models import UPDATE, Change
+from ..models import Change
 
 """
     Always use requires_admin_approval after handle_exception as it will catch the
@@ -12,7 +12,7 @@ from ..models import UPDATE, Change
 """
 
 
-def requires_admin_approval(model_name, action=UPDATE):
+def requires_admin_approval(model_name, action=Change.Actions.UPDATE):
     def outer_wrapper(function):
         # unsed function variable because this adds request to the change model
         def inner_wrapper(self, request, *args, **kwargs):
