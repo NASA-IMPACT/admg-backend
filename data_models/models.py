@@ -386,7 +386,7 @@ class DataModel(LimitedInfo):
                 search=SearchQuery(search, search_type=params.pop("search_type", "plain"))
             )
 
-        return queryset.filter(**params)
+        return queryset.filter(**{k + '__icontains': v for k, v in params.items()})
 
 
 class Campaign(DataModel):
