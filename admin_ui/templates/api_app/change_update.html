@@ -25,7 +25,17 @@
 {% endblock header %}
 
 {% block actions %}
-  {% if not object.is_locked %}
+  {% if object.is_locked %}
+  <div class="px-1">
+    <a 
+      class="btn btn-primary" 
+      href="{% url 'published-detail' pk=object.model_instance_uuid model=model_name %}"
+    >
+      View published version
+    </a>
+  </div>
+
+  {% else %}
   <div class="px-1">
     {% include "snippets/approval_dropdown.html" %}
   </div>
