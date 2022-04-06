@@ -6,7 +6,7 @@ from django.template.loader import get_template
 register = template.Library()
 
 
-LINKS = "published-list || change-list"
+LINKS = "published-list || change-list || change-add"
 
 
 def is_quoted(text: str):
@@ -32,9 +32,9 @@ def collapsable_menu(parser, token):
     a collapsable menu that is un-collapsed when you are on a view linked from the menu.
 
     The first argument must be a unique title for the menu entry, wrapped within quotes. All
-    subsequent arguments represent models for which list views are linked.  E.g. if "doi" is
+    subsequent arguments represent models for which list views are linked. E.g. if "doi" is
     presented, the menu will be shown as active if the user is viewing either a "list-draft"
-    or "list-published" routes.
+    or "list-published" routes for the "doi" model.
 
     https://getbootstrap.com/docs/4.0/components/collapse/
     """
@@ -73,6 +73,7 @@ class FoldingNavNode(template.Node):
                 "title": self.title,
                 "identifier": self.title.lower().replace(" ", "-"),
                 "active_views": LINKS,
+                "model_names": self.model_names,
                 "children": self.nodelist.render(context),
             }
         )

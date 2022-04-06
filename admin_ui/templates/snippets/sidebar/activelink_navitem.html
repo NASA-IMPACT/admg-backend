@@ -1,7 +1,7 @@
 {% load active_link_tags %}
 
 <a
-  class="nav-link text-truncate {% active_link links 'active' model=link_model %}"
+  class="nav-link text-truncate {% active_link links 'active' model=link_model %} {% if model_name == link_model %}active{% endif %}"
   href="{% url view link_model %}"
 >
   {{ title }}

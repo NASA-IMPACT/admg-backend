@@ -10,6 +10,7 @@ from django.http import HttpResponseBadRequest
 from django.http.response import Http404
 from django.shortcuts import render
 from django.views.generic.edit import ModelFormMixin
+from api_app.urls import camel_to_snake
 
 from data_models import models
 from . import fields, widgets, config, utils
@@ -103,7 +104,7 @@ class ChangeModelFormMixin(ModelFormMixin):
                 initial=self.get_model_form_intial(), prefix=self.destination_model_prefix
             )
 
-        model_name = kwargs["model_form"]._meta.model.__name__
+        model_name = camel_to_snake(kwargs["model_form"]._meta.model.__name__)
         model_config = config.MODEL_CONFIG_MAP.get(model_name, {})
         for field in model_config.get("change_view_readonly_fields", []):
             kwargs["model_form"].fields[field].disabled = True
