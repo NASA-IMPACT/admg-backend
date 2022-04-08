@@ -101,7 +101,11 @@ class CampaignDetailView(DetailView):
         context = super().get_context_data(**kwargs)
         deployments = (
             Change.objects.of_type(Deployment)
-            .filter(update__campaign=str(self.kwargs[self.pk_url_kwarg]))
+            .filter(
+                update__campaign=str(
+                    context['object'].model_instance_uuid or self.kwargs[self.pk_url_kwarg]
+                )
+            )
             .prefetch_approvals()
             .order_by(self.get_ordering())
         )
