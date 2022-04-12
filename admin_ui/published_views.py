@@ -52,15 +52,11 @@ class ModelObjectView(mixins.DynamicModelMixin, DetailView):
     def get_object(self):
         return self._model_config['model'].objects.get(uuid=self.kwargs['pk'])
 
-
     def get_queryset(self):
         return self._model_config['model'].objects.all()
 
     def get_context_data(self, **kwargs):
-        return {
-            **super().get_context_data(**kwargs),
-            "request": self.request,
-        }
+        return {**super().get_context_data(**kwargs), "request": self.request}
 
 
 @method_decorator(login_required, name="dispatch")
@@ -95,14 +91,12 @@ class GenericEditView(ModelObjectView):
             context["message"] = "Nothing changed"
             return render(request, self.template_name, context)
 
-        diff_dict = self._create_diff_dict(new_form)
         change_object = Change.objects.create(
             content_object=self.object,
             status=Change.Statuses.CREATED,
             action=Change.Actions.UPDATE,
-            model_instance_uuid=kwargs.get("pk"),
-            update=diff_dict,
-            previous=old_form.data
+            update=utils.serialize_model_form(new_form),
+            previous=utils.serialize_model_form(old_form),
         )
         return redirect(reverse("change-update", kwargs={"pk": change_object.uuid}))
 
@@ -114,10 +108,6 @@ class GenericEditView(ModelObjectView):
             "display_name": self._model_config["display_name"],
             "url_name": self._model_config["singular_snake_case"],
         }
-
-    def _create_diff_dict(self, form):
-        updated_values = utils.serialize_model_form(form)
-        return {changed_key: updated_values[changed_key] for changed_key in form.changed_data}
 
 
 @method_decorator(login_required, name="dispatch")
