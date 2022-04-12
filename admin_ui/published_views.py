@@ -80,7 +80,8 @@ class GenericEditView(ModelObjectView):
 
     def post(self, request, **kwargs):
         # do this here because the super().get_context_data looks for a self.object
-        self.object = self.model.objects.get(uuid=kwargs.get("pk"))
+        model = self._model_config['model']
+        self.object = model.objects.get(uuid=kwargs.get("pk"))
 
         # getting form with instance and data gives a lot of changed fields
         # however, getting a form with initial and data only gives the required changed fields
