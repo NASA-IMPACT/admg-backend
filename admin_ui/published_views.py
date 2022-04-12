@@ -49,13 +49,16 @@ class ModelObjectView(mixins.DynamicModelMixin, DetailView):
         form_class = published_forms.GenericFormClass(self._model_name)
         return self._initialize_form(form_class, disable_all, **kwargs)
 
+    def get_object(self):
+        return self._model_config['model'].objects.get(uuid=self.kwargs['pk'])
+
+
     def get_queryset(self):
         return self._model_config['model'].objects.all()
 
     def get_context_data(self, **kwargs):
         return {
             **super().get_context_data(**kwargs),
-            "object": self.get_object(),
             "request": self.request,
         }
 
@@ -79,31 +82,27 @@ class GenericEditView(ModelObjectView):
     template_name = "api_app/published_edit.html"
 
     def post(self, request, **kwargs):
-        # do this here because the super().get_context_data looks for a self.object
-        model = self._model_config['model']
-        self.object = model.objects.get(uuid=kwargs.get("pk"))
+        # set object because the super().get_context_data looks for a self.object
+        self.object = self.get_object()
 
         # getting form with instance and data gives a lot of changed fields
         # however, getting a form with initial and data only gives the required changed fields
         old_form = self._get_form(instance=self.object)
         new_form = self._get_form(data=request.POST, initial=old_form.initial, files=request.FILES)
 
-        kwargs = {**kwargs, "object": self.object}
-        context = self.get_context_data(**kwargs)
-
         if not len(new_form.changed_data):
+            context = self.get_context_data(**kwargs)
             context["message"] = "Nothing changed"
             return render(request, self.template_name, context)
 
         diff_dict = self._create_diff_dict(new_form)
-        model_to_query = self._model_config["model"]
-        content_type = ContentType.objects.get_for_model(model_to_query)
         change_object = Change.objects.create(
-            content_type=content_type,
+            content_object=self.object,
             status=Change.Statuses.CREATED,
             action=Change.Actions.UPDATE,
             model_instance_uuid=kwargs.get("pk"),
             update=diff_dict,
+            previous=old_form.data
         )
         return redirect(reverse("change-update", kwargs={"pk": change_object.uuid}))
 
