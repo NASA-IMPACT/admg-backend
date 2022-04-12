@@ -135,6 +135,8 @@ class CampaignDetailView(DetailView):
 
         return {
             **context,
+            # By setting the model name, our nav sidebar knows to highlight the link for campaigns
+            'model_name': 'campaign',
             "deployments": deployments,
             "transition_form": forms.TransitionForm(
                 change=context["object"], user=self.request.user
