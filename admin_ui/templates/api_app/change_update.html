@@ -11,7 +11,7 @@
 
     <a href="{% spaceless %}
         {% if "back" in request.GET %} {{ request.GET.back }}
-        {% else %}{% url 'change-list' model_name %}
+        {% else %}{% url 'change-list' view_model %}
         {% endif %}
         {% endspaceless %}">
       &larr; Back

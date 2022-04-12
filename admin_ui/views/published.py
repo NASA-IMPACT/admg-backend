@@ -28,7 +28,7 @@ class PublishedListView(mixins.DynamicModelMixin, SingleTableMixin, FilterView):
         return {
             **super().get_context_data(**kwargs),
             "display_name": conf["display_name"],
-            "model_name": self._model_name,
+            "view_model": self._model_name,
             "url_name": conf["singular_snake_case"],
         }
 
@@ -68,7 +68,7 @@ class PublishedDetailView(ModelObjectView):
         return {
             **super().get_context_data(**kwargs),
             "model_form": self._get_form(instance=kwargs.get("object"), disable_all=True),
-            "model_name": self._model_name,
+            "view_model": self._model_name,
             "display_name": self._model_config["display_name"],
             "url_name": self._model_config["singular_snake_case"],
         }
@@ -105,7 +105,7 @@ class PublishedEditView(ModelObjectView):
         return {
             **super().get_context_data(**kwargs),
             "model_form": self._get_form(instance=kwargs.get("object")),
-            "model_name": self._model_name,
+            "view_model": self._model_name,
             "display_name": self._model_config["display_name"],
             "url_name": self._model_config["singular_snake_case"],
         }

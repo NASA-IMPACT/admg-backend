@@ -11,10 +11,10 @@
     {% active_link active_views 'active' model=link_model %}
 
     {% comment %}
-      If the current view's model (available via the model_name context variable) is in this 
+      If the current view's model (available via the view_model context variable) is in this 
       nav group's model list, then we want to bold the header.
     {% endcomment %}
-    {% if model_name == link_model %}active{% endif %}
+    {% if view_model == link_model %}active{% endif %}
   {% endfor%}
       
   
@@ -38,10 +38,10 @@
       {% active_link active_views 'show' model=link_model %}
       
       {% comment %}
-        If the current view's model (available via the model_name context variable) is in this 
+        If the current view's model (available via the view_model context variable) is in this 
         nav group's model list, then we want to unfold the children.
       {% endcomment %}
-      {% if model_name == link_model %}show{% endif %}
+      {% if view_model == link_model %}show{% endif %}
 
     {% endfor%}
     

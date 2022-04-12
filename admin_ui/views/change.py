@@ -240,7 +240,7 @@ class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
             ),
             "campaign_subitems": ["Deployment", "IOP", "SignificantEvent", "CollectionPeriod"],
             "related_fields": self._get_related_fields(),
-            "model_name": camel_to_snake(self.get_model_form_content_type().model_class().__name__),
+            "view_model": camel_to_snake(self.get_model_form_content_type().model_class().__name__),
             "ancestors": context["object"].get_ancestors().select_related("content_type"),
             "descendents": context["object"].get_descendents().select_related("content_type"),
             "comparison_form": self._get_comparison_form(context['model_form']),
@@ -344,7 +344,7 @@ class ChangeListView(mixins.DynamicModelMixin, SingleTableMixin, FilterView):
         return {
             **super().get_context_data(**kwargs),
             "url_name": self._model_config["singular_snake_case"],
-            "model_name": self._model_name,
+            "view_model": self._model_name,
             "display_name": self._model_config["display_name"],
         }
 

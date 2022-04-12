@@ -71,6 +71,8 @@ class DoiApprovalView(SingleObjectMixin, MultipleObjectMixin, FormView):
             doi_tasks.update(TaskResult.objects.in_bulk(relevant_doi_fetches, field_name="task_id"))
         return super().get_context_data(
             **{
+                # By setting the view model, our nav sidebar knows to highlight the link for campaigns
+                'view_model': 'campaign',
                 "object_list": self.get_queryset(),
                 "form": None,
                 "formset": self.get_form(),
