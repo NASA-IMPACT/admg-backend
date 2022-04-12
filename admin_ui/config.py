@@ -2,9 +2,7 @@ from api_app.urls import camel_to_snake
 from data_models import models
 
 from . import tables
-from . import filters, published_filters
-
-from admin_ui import published_tables
+from .filters import filters, published as published_filters
 
 
 # any custom values for each model are added to this dictionary
@@ -79,7 +77,7 @@ MODEL_CONFIG_MAP = {
             "published_filter_generator", published_filters.GenericPublishedListFilter
         )(model_name),
         "model": getattr(models, model_name),
-        "published_table": getattr(published_tables, f"{model_name}PublishedTable"),
+        "published_table": getattr(tables, f"{model_name}PublishedTable"),
         "change_list_table": getattr(tables, f"{model_name}ChangeListTable"),
         "display_name": getattr(models, model_name)._meta.verbose_name.title(),
         "singular_snake_case": camel_to_snake(model_name),

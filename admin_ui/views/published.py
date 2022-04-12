@@ -1,5 +1,6 @@
 from django.contrib.auth.decorators import login_required
 from django.contrib.contenttypes.models import ContentType
+from django.forms import modelform_factory
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils.decorators import method_decorator
@@ -10,10 +11,10 @@ from django_tables2.views import SingleTableMixin
 
 from api_app.models import Change
 
-from . import utils, published_forms, mixins
+from .. import utils, forms, mixins
 
 
-class GenericListView(mixins.DynamicModelMixin, SingleTableMixin, FilterView):
+class PublishedListView(mixins.DynamicModelMixin, SingleTableMixin, FilterView):
     template_name = "api_app/published_list.html"
 
     def get_table_class(self):
@@ -46,7 +47,7 @@ class ModelObjectView(mixins.DynamicModelMixin, DetailView):
         return form_instance
 
     def _get_form(self, disable_all=False, **kwargs):
-        form_class = published_forms.GenericFormClass(self._model_name)
+        form_class = forms.published_modelform_factory(self._model_name)
         return self._initialize_form(form_class, disable_all, **kwargs)
 
     def get_object(self):
@@ -60,7 +61,7 @@ class ModelObjectView(mixins.DynamicModelMixin, DetailView):
 
 
 @method_decorator(login_required, name="dispatch")
-class GenericDetailView(ModelObjectView):
+class PublishedDetailView(ModelObjectView):
     template_name = "api_app/published_detail.html"
 
     def get_context_data(self, **kwargs):
@@ -74,7 +75,7 @@ class GenericDetailView(ModelObjectView):
 
 
 @method_decorator(login_required, name="dispatch")
-class GenericEditView(ModelObjectView):
+class PublishedEditView(ModelObjectView):
     template_name = "api_app/published_edit.html"
 
     def post(self, request, **kwargs):
@@ -111,7 +112,7 @@ class GenericEditView(ModelObjectView):
 
 
 @method_decorator(login_required, name="dispatch")
-class GenericDeleteView(View):
+class PublishedDeleteView(View):
     def dispatch(self, *args, **kwargs):
         model_to_query = self._model_config["model"]
         content_type = ContentType.objects.get_for_model(model_to_query)

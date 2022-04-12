@@ -9,8 +9,8 @@ from crispy_forms.layout import Submit
 from api_app.models import Change
 from admg_webapp.users.models import User, ADMIN_CODE
 from data_models import models as data_models
-from .widgets import IconBooleanWidget
-from .fields import ChangeMultipleChoiceField
+from ..widgets import IconBooleanWidget
+from ..fields import ChangeMultipleChoiceField
 
 
 class TransitionForm(forms.Form):

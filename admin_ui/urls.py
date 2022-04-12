@@ -3,8 +3,7 @@ from django.contrib import admin
 from django.urls import path
 from django.views.generic.base import TemplateView
 
-
-from . import views, published_views
+from . import views
 
 urlpatterns = [
     path(settings.ADMIN_URL, admin.site.urls),
@@ -28,20 +27,20 @@ urlpatterns = [
         TemplateView.as_view(template_name="api_app/to_be_developed.html"),
         name="to-be-developed",
     ),
-    path("published/<str:model>", published_views.GenericListView.as_view(), name="published-list"),
+    path("published/<str:model>", views.PublishedListView.as_view(), name="published-list"),
     path(
         "published/<str:model>/<uuid:pk>",
-        published_views.GenericDetailView.as_view(),
+        views.PublishedDetailView.as_view(),
         name="published-detail",
     ),
     path(
         "published/<str:model>/<uuid:pk>/edit",
-        published_views.GenericEditView.as_view(),
+        views.PublishedEditView.as_view(),
         name="published-edit",
     ),
     path(
         "published/<str:model>/<uuid:pk>/delete",
-        published_views.GenericDeleteView.as_view(),
+        views.PublishedDeleteView.as_view(),
         name="published-delete",
     ),
 ]

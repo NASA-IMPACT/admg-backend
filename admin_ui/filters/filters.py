@@ -4,7 +4,7 @@ from data_models import models
 from data_models.models import DOI, CollectionPeriod
 from django.db.models.query_utils import Q
 
-from .filter_utils import (
+from .utils import (
     CampaignFilter,
     default_filter_configs,
     get_draft_campaigns,
