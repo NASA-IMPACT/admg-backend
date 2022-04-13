@@ -61,7 +61,7 @@ dt {
 }
 
 .changed-item,
-:disabled.changed-item,
+.changed-item:disabled,
 .changed-item + span span.select2-container--default,
 .changed-item + span span.select2-container--disabled,
 .changed-item + span span.select2-selection--single,
