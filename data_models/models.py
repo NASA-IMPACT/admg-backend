@@ -358,25 +358,35 @@ class DataModel(LimitedInfo):
         return ["short_name", "long_name"]
 
     @classmethod
+    def _parse_custom_search_fields(cls, params):
+        """Takes params, typically from a API request, and checks to see if custom
+        search_fields have been defined. They are spilt and used if present, otherwise
+        the default search_fields of the class are used.
+
+        Args:
+            params (dict): {'search_fields': 'short_name,long_name'}. This would
+            have been enterd in the API request as '?search_fields=short_name,long_name'
+
+        Returns:
+            list: list of field names to search
+        """
+
+        search_fields = cls.search_fields()
+        if search_fields_string := params.pop("search_fields", False):
+            search_fields = search_fields_string.split(",")
+
+        return search_fields
+
+    @classmethod
     def search(cls, params):
-        search_type = params.pop("search_type", "plain")
-        search = params.pop("search", None)
-        search_fields_param = params.pop("search_fields", None)
-        if search_fields_param:
-            search_fields = search_fields_param.split(",")
-        else:
-            search_fields = cls.search_fields()
-
         queryset = cls.objects.all()
-
-        if search:
-            vector = SearchVector(*search_fields)
-
+        if search := params.pop("search", None):
+            vector = SearchVector(*cls._parse_custom_search_fields(params))
             queryset = queryset.annotate(search=vector).filter(
-                search=SearchQuery(search, search_type=search_type)
+                search=SearchQuery(search, search_type=params.pop("search_type", "plain"))
             )
 
-        return queryset.filter(**params)
+        return queryset.filter(**{k + '__icontains': v for k, v in params.items()})
 
 
 class Campaign(DataModel):
