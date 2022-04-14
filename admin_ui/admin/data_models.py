@@ -22,6 +22,7 @@ LIMITED_INFO_LIST_FIELDS = ("short_name", "long_name")
 CHANGABLE_INLINES = (InProgressInline, InReviewInline, InAdminReviewInline)
 
 
+@admin.register(models.UrlValidation)
 @admin.register(models.Alias)
 @admin.register(models.Image)
 @admin.register(models.GcmdProject)

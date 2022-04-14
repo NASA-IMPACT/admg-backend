@@ -1,5 +1,11 @@
 from celery import shared_task
 from cmr.doi_matching import DoiMatcher
+from data_models.website_analyzer import run_validator_and_store
+
+
+@shared_task
+def validate_websites_and_store():
+    return run_validator_and_store()
 
 
 @shared_task
