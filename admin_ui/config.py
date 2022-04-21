@@ -26,7 +26,10 @@ CUSTOM_MODEL_VALUES = {
     "GeophysicalConcept": {},
     "PartnerOrg": {"admin_required_to_view": False},
     "Alias": {"admin_required_to_view": False},
-    "GcmdProject": {"display_name": "GCMD Project"},
+    "GcmdProject": {
+        "display_name": "GCMD Project",
+        "change_view_readonly_fields": ["short_name", "long_name", "bucket"],
+    },
     "GcmdInstrument": {"display_name": "GCMD Instrument"},
     "GcmdPlatform": {"display_name": "GCMD Platform"},
     "GcmdPhenomena": {"display_name": "GCMD Phenomena"},

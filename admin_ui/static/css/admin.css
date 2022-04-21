@@ -168,3 +168,30 @@ tr.affected-row {
   border: solid;
   border-width: 1px 0;
 }
+
+.gcmd-label {
+  font-weight: 700;
+  font-size: 20px;
+  line-height: 24px;
+}
+
+.gcmd-path {
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 24px;
+  text-indent: 15px;
+  background: #FFFFFF;
+  border: 1px solid gray;
+  box-sizing: border-box;
+  box-shadow: inset 0px 2px 4px rgba(0, 0, 0, 0.08);
+  border-radius: 4px;
+  padding: 2px;
+}
+
+.gcmd-footer {
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 20px;
+  color: rgba(68, 63, 63, 0.64);
+  text-indent: 15px;
+}

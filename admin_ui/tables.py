@@ -745,22 +745,31 @@ class GcmdPhenomenaChangeListTable(DraftTableBase):
         sequence = all_fields
 
 
-class MarkReviewedButton(tables.Column):
-    empty_values = []
+# class MarkReviewedButton(tables.Column):
+#     empty_values = []
 
-    def render(self, value, record):
-        from django.utils.safestring import mark_safe
-        from django.utils.html import escape
+#     def render(self, value, record):
+#         from django.utils.safestring import mark_safe
+#         from django.utils.html import escape
 
-        return mark_safe(
-            f'<button id="{escape(record.uuid)}" class="review-button">Mark Reviewed</button>'
-        )
+#         return mark_safe(
+#             f'<button id="{escape(record.uuid)}" class="review-button">Mark Reviewed</button>'
+#         )
+
+# TODO: Add functionality to
+class AffectedRecordValueColumn(tables.Column):
+    def render(self, **kwargs):
+        print(f"GCMD kwargs: {kwargs}")
+        # value = self.get_backup_value(**kwargs)
+        value = kwargs.get("value")
+
+        return f"0 of {value} resolved"
 
 
 class GcmdKeywordsListTable(DraftTableBase):
     short_name = DraftLinkColumn(
-        update_viewname="change-diff",
-        viewname="change-update",
+        update_viewname="change-gcmd",
+        viewname="change-gcmd",
         url_kwargs={"pk": "uuid"},
         verbose_name="GCMD Keyword",
         accessor="short_name",
@@ -781,7 +790,9 @@ class GcmdKeywordsListTable(DraftTableBase):
         accessor="status",
         update_accessor="status",
     )
-    reviewed = MarkReviewedButton()
+    affected_records = AffectedRecordValueColumn(
+        verbose_name="Affected Records", accessor="affected_records"
+    )
 
     class Meta(DraftTableBase.Meta):
         all_fields = (
@@ -790,7 +801,6 @@ class GcmdKeywordsListTable(DraftTableBase):
             "draft_action",
             "status",
             "affected_records",
-            "reviewed",
         )
         fields = list(all_fields)
         sequence = all_fields

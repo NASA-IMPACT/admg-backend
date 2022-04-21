@@ -1,6 +1,144 @@
-{% extends "api_app/change_update.html" %}
+{% extends "api_app/base_read.html" %}
 {% load static %}
-{% load crispy_forms_tags %}
 {% load model_helpers %}
 {% load humanize %}
 
+{% block header %}
+  <div class="col">
+    {% include 'snippets/breadcrumbs.html' with ancestors=ancestors %}
+
+    <a href="{% spaceless %}
+        {% if "back" in request.GET %} {{ request.GET.back }}
+        {% else %}{% url back_button %}
+        {% endif %}
+        {% endspaceless %}">
+      &larr; Back
+    </a>
+    {% if object.content_type.model == 'website' %}
+    <h1>{{ object.update.title | default:object.uuid }}</h1>
+    {% else %}
+    <h1>{{ object.update.short_name | default:object.uuid }}</h1>
+    {% endif %}
+  </div>
+{% endblock header %}
+
+{% block actions %}
+  <div class="px-1">
+    {% include "snippets/approval_dropdown.html" %}
+  </div>
+
+  <div class="px-1">
+    <button 
+      class="btn btn-primary" 
+      form="model-form" 
+      formnovalidate
+      {% if disable_save %}disabled{% endif %}
+    >
+      Save
+    </button>
+    <button 
+      class="btn btn-secondary" 
+      form="model-form" 
+      name="_validate"
+    >
+      Validate
+    </button>
+  </div>
+{% endblock actions %}
+
+{% block main %}
+  {% with main_class="col-lg-8" %}
+    {{ block.super }}
+  {% endwith %}
+  
+  {# Sidebar #}
+  <aside class="col col-lg-4">
+    <!-- {% if object.update.logo %}
+    <h3>Logo</h3>
+    <a href="{% url 'change-update' object.update.logo %}">
+      {% if object.logo_path %}
+      <img class="img-thumbnail" src="{{ object.logo_path | get_full_url }}" />
+      {% else %}
+      <span class="font-italic">(logo missing image)</span>
+      {% endif %}
+    </a> -->
+
+    <!-- <hr />
+    {% endif %} -->
+
+    <h3>Activity</h3>
+    {% include 'snippets/related_approval_logs.html' with approval_logs=object.approvallog_set.all show_notes=True%}
+
+    <hr />
+
+    <details class="small">
+      <summary>Debug Data</summary>
+
+      <pre>{{ object.update | pprint }}</pre>
+    </details>
+
+  </aside>
+{% endblock main%}
+
+{% block form %}
+<br>
+<!-- New Path -->
+<p class="gcmd-label">New Path</p>
+<p class="gcmd-path">
+    {% for attribute in gcmd_path.path %}
+        <span style="color:{% if attribute.has_changed %} #D6311C {% else %} black {% endif %};">{{attribute.new_value}}</span>
+        {% if not forloop.last %} <span style="color: black;"> > </span> {% endif %}
+    {% endfor %}
+</p>
+<p class="gcmd-footer">
+    {% for attribute in gcmd_path.path %}
+        <span>{{attribute.key}}</span>
+        {% if not forloop.last %} <span style="color: black;"> > </span> {% endif %}
+    {% endfor %}
+</p>
+<!-- Old Path -->
+{% if gcmd_path.old_path %}
+    <p class="gcmd-label">Old Path</p>
+    <p class="gcmd-path">
+        {% for attribute in gcmd_path.path %}
+            <span style="color:{% if attribute.has_changed %} #D6311C {% else %} black {% endif %};">{{attribute.old_value}}</span>
+            {% if not forloop.last %} <span style="color: black;"> > </span> {% endif %}
+        {% endfor %}
+    </p>
+    <p class="gcmd-footer">
+        {% for attribute in gcmd_path.path %}
+            <span>{{attribute.key}}</span>
+            {% if not forloop.last %} <span style="color: black;"> > </span> {% endif %}
+        {% endfor %}
+    </p>
+{% endif %}
+{% if affected_records %}
+    <hr style="height:2px;border-width:0;color:gray;background-color:gray">
+    <p class="gcmd-label">Recommended GCMD Keyword Changes</p>
+    <p>We have found {{affected_records | length }} potentially affected record(s)</p>
+    <ol>
+        <li>First, make sure this GCMD keyword is published before reviewing affected records.</li>
+        <li>Adding this GCMD keyword to an affected record will automatically remove it from the table below.</li>
+        <li>If no changes are required, you can manually "Mark as Reviewed" to remove the item from the list below.</li>
+    </ol>
+    <table class="affected-table">
+        <tr class="affected-row">
+            <th>Affected Record</th>
+            <th>Category</th>
+            <th>Status</th>
+            <th>Mark Reviewed</th>
+        </tr>
+        {% for record in affected_records %}
+            <tr>
+                <!-- TODO: href should follow {% url 'some-url-name' arg arg2 as the_url %} -->
+                    <td><a href="{{record.link}}">{{record.row.short_name}}</a></td>
+                </a>
+                <td>{{record.category}}</td>
+                <td>{{record.status}}</td>
+                <td><button class="review-button">Mark Reviewed</button></td>
+            </tr>
+            <p></p>
+        {% endfor %}
+    </table>
+{% endif %}
+{% endblock form %}

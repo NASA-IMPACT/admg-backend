@@ -19,8 +19,6 @@ urlpatterns = [
     path("campaigns/<uuid:pk>/doi-approval", views.DoiApprovalView.as_view(), name="doi-approval"),
     path("drafts/add/<str:model>", views.ChangeCreateView.as_view(), name="change-add"),
     path("drafts/edit/<uuid:pk>", views.ChangeUpdateView.as_view(), name="change-update"),
-    # TODO: Take out if we end up not using.
-    # path("drafts/edit/keyword/<uuid:pk>", views.ChangeKeywordUpdateView.as_view(), name="change-keyword-update"),
     path(
         "drafts/edit/<uuid:pk>/transition",
         views.ChangeTransition.as_view(),
@@ -31,6 +29,7 @@ urlpatterns = [
         views.GcmdSyncListView.as_view(),
         name="review_changes-list-draft",
     ),
+    path("drafts/edit/gcmd/<uuid:pk>", views.ChangeGcmdUpdateView.as_view(), name="change-gcmd"),
     path(
         "tbd",
         TemplateView.as_view(template_name="api_app/to_be_developed.html"),
