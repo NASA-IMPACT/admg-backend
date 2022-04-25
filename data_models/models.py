@@ -692,7 +692,7 @@ class Instrument(DataModel):
     gcmd_phenomenas = models.ManyToManyField(
         GcmdPhenomena,
         related_name="instruments",
-        verbose_name="Measurements / Variables from GCMD Science Keywords",
+        verbose_name="Measurements/Variables from GCMD Science Keywords",
         help_text="Select relevant measurements/variables items from GCMD Science Keywords for Earth Science",
     )
     funding_source = models.CharField(
