@@ -19,7 +19,7 @@ class DoiMatcher:
 
     def universal_get(self, table_name, uuid):
         """Queries the database for a uuid within a table name, but searches
-        the database propper as well as change objects, preferentially returning
+        the database proper as well as change objects, preferentially returning
         results from the main db.
 
         Args:
