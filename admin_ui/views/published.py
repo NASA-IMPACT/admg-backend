@@ -111,7 +111,7 @@ class PublishedEditView(ModelObjectView):
 
 
 @method_decorator(login_required, name="dispatch")
-class PublishedDeleteView(View):
+class PublishedDeleteView(mixins.DynamicModelMixin, View):
     def dispatch(self, *args, **kwargs):
         model_to_query = self._model_config["model"]
         content_type = ContentType.objects.get_for_model(model_to_query)
