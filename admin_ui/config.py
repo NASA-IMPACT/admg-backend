@@ -67,8 +67,10 @@ CUSTOM_MODEL_VALUES = {
         "admin_required_to_view": False,
         "draft_filter": filters.WebsiteFilter,
         "published_filter": published_filters.WebsiteFilter,
+        "identifier_field": "title",
     },
     "WebsiteType": {},
+    "Image": {"identifier_field": "title"},
 }
 
 # defaults are assigned to each model in this comprehension, and then overwritten by the above dictionary
@@ -87,6 +89,7 @@ MODEL_CONFIG_MAP = {
             getattr(models, model_name)._meta.verbose_name_plural.replace(" ", "_")
         ),
         "admin_required_to_view": True,
+        "identifier_field": "short_name",
         **overrides,
     }
     for model_name, overrides in CUSTOM_MODEL_VALUES.items()

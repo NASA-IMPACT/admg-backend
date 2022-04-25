@@ -44,6 +44,10 @@ class LimitedTableBase(tables.Table):
         }
 
 
+class ImagePublishedTable(tables.Table):
+    pass
+
+
 class IOPPublishedTable(tables.Table):
     short_name = ConditionalValueColumn(
         linkify=(f"{camel_to_snake('IOP')}-detail-published", [tables.A("uuid")]),

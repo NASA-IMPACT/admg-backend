@@ -152,6 +152,10 @@ class LimitedTableBase(DraftTableBase):
         sequence = ("short_name", "long_name")
 
 
+class ImageChangeListTable:
+    pass
+
+
 class IOPChangeListTable(DraftTableBase):
     short_name = ConditionalValueColumn(
         verbose_name="Short Name",
