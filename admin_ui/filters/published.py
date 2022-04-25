@@ -3,7 +3,7 @@ from data_models import models
 from data_models.models import DOI, Deployment
 
 from .filters import CampaignFilter
-from .filter_utils import default_filter_configs, get_published_campaigns, get_deployments
+from .utils import default_filter_configs, get_published_campaigns, get_deployments
 
 # TODO: Look at .values with Cast function
 
