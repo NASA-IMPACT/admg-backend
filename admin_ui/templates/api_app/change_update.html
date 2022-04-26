@@ -16,8 +16,9 @@
         {% endspaceless %}">
       &larr; Back
     </a>
-    {% if object.content_type.model == 'website' %}
+    {% if view_model == 'website' %}
     <h1>{{ object.update.title | default:object.uuid }}</h1>
+    {{ view_model }}
     {% else %}
     <h1>{{ object.update.short_name | default:object.uuid }}</h1>
     {% endif %}
@@ -29,7 +30,7 @@
   <div class="px-1">
     <a 
       class="btn btn-primary" 
-      href="{% url 'published-detail' pk=object.model_instance_uuid model=model_name %}"
+      href="{% url 'published-detail' pk=object.model_instance_uuid model=view_model %}"
     >
       View published version
     </a>
