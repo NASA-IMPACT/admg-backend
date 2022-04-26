@@ -1,6 +1,5 @@
 from django.contrib.auth.decorators import login_required
 from django.contrib.contenttypes.models import ContentType
-from django.forms import modelform_factory
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils.decorators import method_decorator
@@ -112,7 +111,7 @@ class PublishedEditView(ModelObjectView):
 
 
 @method_decorator(login_required, name="dispatch")
-class PublishedDeleteView(View):
+class PublishedDeleteView(mixins.DynamicModelMixin, View):
     def dispatch(self, *args, **kwargs):
         model_to_query = self._model_config["model"]
         content_type = ContentType.objects.get_for_model(model_to_query)

@@ -1,2 +1,2 @@
-from .published import *
-from .tables import *
+from .published import *  # noqa
+from .tables import *  # noqa

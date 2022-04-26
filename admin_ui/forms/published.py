@@ -1,4 +1,4 @@
-from django.forms import ModelForm, modelform_factory
+from django.forms import ModelForm
 
 from ..config import MODEL_CONFIG_MAP
 from ..mixins import formfield_callback
