@@ -756,14 +756,18 @@ class GcmdPhenomenaChangeListTable(DraftTableBase):
 #             f'<button id="{escape(record.uuid)}" class="review-button">Mark Reviewed</button>'
 #         )
 
-# TODO: Add functionality to
-class AffectedRecordValueColumn(tables.Column):
-    def render(self, **kwargs):
-        print(f"GCMD kwargs: {kwargs}")
-        # value = self.get_backup_value(**kwargs)
-        value = kwargs.get("value")
 
-        return f"0 of {value} resolved"
+class AffectedRecordValueColumn(tables.Column):
+    def __init__(self, resolved_accessor=None, **kwargs):
+        # super().__init__(**kwargs, empty_values=()) Not sure about this
+        super().__init__(**kwargs)
+        self.resolved_accessor = resolved_accessor
+
+    def render(self, **kwargs):
+        total_records = kwargs.get("value")
+        resolved_records = A(self.resolved_accessor).resolve(kwargs.get("record"))
+
+        return f"{resolved_records} of {total_records} resolved"
 
 
 class GcmdKeywordsListTable(DraftTableBase):
@@ -791,7 +795,9 @@ class GcmdKeywordsListTable(DraftTableBase):
         update_accessor="status",
     )
     affected_records = AffectedRecordValueColumn(
-        verbose_name="Affected Records", accessor="affected_records"
+        verbose_name="Affected Records",
+        accessor="affected_records",
+        resolved_accessor="resolved_records",
     )
 
     class Meta(DraftTableBase.Meta):

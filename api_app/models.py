@@ -789,3 +789,20 @@ class Change(models.Model):
 @receiver(post_save, sender=Change, dispatch_uid="save")
 def create_approval_log_dispatcher(sender, instance, **kwargs):
     instance._add_create_edit_approval_log()
+
+
+class ResolvedList(models.Model):
+    uuid = models.UUIDField(primary_key=True, default=uuid4, editable=False)
+    change_uuid = models.OneToOneField(Change, on_delete=models.CASCADE, null=True)
+
+    submitted = models.BooleanField(
+        verbose_name="Form has been submitted by user.", blank=False, default=False
+    )
+
+
+class Recommendation(models.Model):
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, blank=True)
+    object_uuid = models.UUIDField()
+    parent_fk = GenericForeignKey("content_type", "object_uuid")
+    result = models.BooleanField(verbose_name="Was the CASEI object connected?", null=True)
+    resolved_log = models.ForeignKey(ResolvedList, on_delete=models.CASCADE)

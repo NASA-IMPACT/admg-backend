@@ -6,11 +6,10 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import aggregates, functions, OuterRef, Value
 from django.db.models.fields.json import KeyTextTransform
-from django.db.models import IntegerField
+from django.db.models import IntegerField, Count, F
+from django.db.utils import ProgrammingError
 
-# TODO: Figure out if we need this for comparing updates to gcmd objects
-from django.forms.models import model_to_dict
-from django.http import Http404
+from django.http import Http404, HttpResponseRedirect
 from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.utils.safestring import mark_safe
@@ -500,13 +499,16 @@ class GcmdSyncListView(SingleTableMixin, FilterView):
                     functions.NullIf(KeyTextTransform('variable_1', 'update'), Value("")),
                     functions.NullIf(KeyTextTransform('term', 'update'), Value("")),
                 ),
+                # resolved_records=functions.Coalesce(functions.NullIf(Func(F('field'), function='CARDINALITY'), Value(""))
+                # resolved_records=Count("update__resolved_records"), Old, non-working
+                resolved_records=Count("update__resolved_records"),
                 affected_campaigns=affected_campaigns,
                 affected_instruments=affected_instruments,
                 affected_platforms=affected_platforms,
                 affected_records=functions.Coalesce(
                     "affected_campaigns",
-                    "affected_instruments",
                     "affected_platforms",
+                    "affected_instruments",
                     Value(0),
                     output_field=IntegerField(),
                 ),
@@ -526,7 +528,7 @@ class GcmdSyncListView(SingleTableMixin, FilterView):
 
 
 @method_decorator(user_passes_test(lambda user: user.is_admg_admin()), name="dispatch")
-class ChangeGcmdUpdateView(mixins.ChangeModelFormMixin, UpdateView):
+class ChangeGcmdUpdateView(UpdateView):
     fields = ["content_type", "model_instance_uuid", "action", "update", "status"]
     prefix = "change"
     template_name = "api_app/change_gcmd.html"
@@ -601,21 +603,22 @@ class ChangeGcmdUpdateView(mixins.ChangeModelFormMixin, UpdateView):
             ],
         }
 
-        def compare_gcmd_path_attribute(attribute, new_object, old_object=None):
+        def format_path_keys(attribute):
+            return attribute.replace("_", " ").title()
+
+        def compare_gcmd_path_attribute(attribute, new_object, previous_object={}):
             return {
-                "key": attribute,
-                "old_value": model_to_dict(old_object).get(attribute, '')
-                if old_object is not None
+                "key": format_path_keys(attribute),
+                "old_value": previous_object.get(attribute, '')
+                if previous_object is not {}
                 else '',
-                "new_value": new_object.update.get(attribute, ''),
-                "has_changed": old_object is None
-                or new_object.update is {}
-                or not model_to_dict(old_object)[attribute] == new_object.update[attribute],
+                "new_value": new_object.get(attribute, ''),
+                "has_changed": previous_object is {}
+                or new_object is {}
+                or not previous_object.get(attribute) == new_object.get(attribute),
             }
 
         content_type = self.get_model_form_content_type().model_class()
-        print(f"GCMD PATH, Object: {vars(self.object)}")
-        print(f"GCMD PATH, content type: {content_type}")
         path = {"new_path": True, "path": []}
 
         if content_type not in [GcmdPlatform, GcmdProject, GcmdInstrument, GcmdPhenomena]:
@@ -633,8 +636,9 @@ class ChangeGcmdUpdateView(mixins.ChangeModelFormMixin, UpdateView):
 
         path_order = path_order[content_type.__name__]
         for attribute in path_order:
-            path["path"].append(compare_gcmd_path_attribute(attribute, self.object, gcmd_object))
-        print(f"Final Path: {path}")
+            path["path"].append(
+                compare_gcmd_path_attribute(attribute, self.object.update, self.object.previous)
+            )
         return path
 
     # TODO: Clean up this method:
@@ -642,8 +646,20 @@ class ChangeGcmdUpdateView(mixins.ChangeModelFormMixin, UpdateView):
     # * The Platform, Campaign, and Instrument queries are similair enough to combine into one.
     def get_affected_records(self) -> Dict:
         affected_records = []
-
         content_type = self.get_model_form_content_type().model_class().__name__
+
+        # model_map = {
+        #     "GcmdPlatform": Platform,
+        #     "GcmdProject": Campaign,
+        #     "GcmdInstrument": Instrument,
+        #     "GcmdPhenomena": Instrument
+        # }
+        # casei_model = model_map[content_type]
+
+        # if content_type == "GcmdPlatform":
+        #     queryset = Platform.objects.filter(
+        #         aliases__short_name=self.object.update["short_name"]
+        #     ).exclude(gcmd_platforms__short_name=self.object.update["short_name"])
         if content_type == "GcmdPlatform":
             queryset = Platform.objects.filter(
                 aliases__short_name=self.object.update["short_name"]
@@ -662,7 +678,6 @@ class ChangeGcmdUpdateView(mixins.ChangeModelFormMixin, UpdateView):
             ).exclude(gcmd_phenomenas__short_name=self.object.update["short_name"])
         else:
             return []
-        print(f"Query Set: {queryset}")
         category = self.get_affected_type()
         for row in queryset:
             affected_records.append(
@@ -674,7 +689,6 @@ class ChangeGcmdUpdateView(mixins.ChangeModelFormMixin, UpdateView):
                 }
             )
 
-        print(f"Alias #1: {model_to_dict(queryset[0])}")
         return affected_records
 
     def get_model_form_intial(self):
@@ -694,10 +708,11 @@ class ChangeGcmdUpdateView(mixins.ChangeModelFormMixin, UpdateView):
         }
         return button_mapping.get(content_type, "summary")
 
-    def post(self, *args, **kwargs):
-        """
-        Handle POST requests: instantiate a form instance with the passed
-        POST variables and then check if it's valid.
-        """
-        self.object = self.get_object()
-        return super().post(*args, **kwargs)
+    def post(self, request, **kwargs):
+        keyword = self.get_object()
+        resolved_records = keyword.update.get("resolved_records", [])
+        resolved_records.append(request.POST['related_uuid'])
+        keyword.update["resolved_records"] = resolved_records
+        keyword.save()
+
+        return HttpResponseRedirect(reverse("change-gcmd", args=[kwargs["pk"]]))
