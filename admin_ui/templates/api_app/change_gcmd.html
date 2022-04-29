@@ -121,31 +121,56 @@
     <li>If no changes are required, you can manually "Mark as Reviewed" to remove the item from the list below.</li>
 </ol>
     {% if affected_records %}
-        <table class="affected-table">
-            <tr class="affected-row">
-                <th>Affected Record</th>
-                <th>Category</th>
-                <th>Status</th>
-                <th>Mark Reviewed</th>
-            </tr>
-            {% for record in affected_records %}
-                <tr>
-                    <!-- TODO: href should follow {% url 'some-url-name' arg arg2 as the_url %} -->
-                        <td><a href="{{record.link}}">{{record.row.short_name}}</a></td>
-                    </a>
-                    <td>{{record.category}}</td>
-                    <td>{{record.status}}</td>
-                    <td>
-                        <form action="{% url 'change-gcmd' object.uuid %}" method="post">
+        <form action="{% url 'change-gcmd' object.uuid %}" method="post">
+            <table class="affected-table">
+                <tr class="affected-row">
+                    <th>Affected Record</th>
+                    <th>Category</th>
+                    <th>Status</th>
+                    <th>Previously Associated</th>
+                    <th>Associate With Keyword</th>
+                </tr>
+                {% for record in affected_records %}
+                    <tr>
+                        <!-- TODO: href should follow {% url 'some-url-name' arg arg2 as the_url %} -->
+                            <td><a href="{{record.link}}">{{record.row.short_name}}</a></td>
+                        </a>
+                        <td>{{record.category}}</td>
+                        <td>{{record.status}}</td>
+                        <td>{{record.is_connected}}</td>
+                        <td>
+                            {% csrf_token %}
+                            <!-- <input type="radio" id="ignoreChoice" checked="{{record.currentSelection.ignore}}"> -->
+                            <input type="radio" id="connectChoice" name="choice-{{record.row.uuid}}" value="True" "{% if record.currentSelection.connect %} checked {% else %} {% endif %};">
+                            <label for="connectChoice" class="review-button">Yes</button>
+                            <!-- <input type="radio" id="connectChoice" checked="{{record.currentSelection.connect}}"> -->
+                            <input type="radio" id="ignoreChoice" name="choice-{{record.row.uuid}}" value="False" "{% if record.currentSelection.ignore %} checked {% else %} {% endif %};">
+                            <label for="ignoreChoice" class="review-button">No</button>
+                        </td>
+                        <!-- <form action="{% url 'change-gcmd' object.uuid %}" method="post">
                             {% csrf_token %}
                             <input type="hidden" name="related_uuid" value="{{record.row.uuid}}">
                             <button class="review-button">Mark Reviewed</button>
-                        </form>
-                    </td>
-                    <!-- <td><button class="review-button">Mark Reviewed</button></td> -->
-                </tr>
-                <p></p>
-            {% endfor %}
-        </table>
+                        </form> -->
+                        <!-- <td><button class="review-button">Mark Reviewed</button></td> -->
+                    </tr>
+                    <br>
+                {% endfor %}
+            </table>
+            {% with affected_records|last as last %}
+                <input type="hidden" name="related_uuids" value="{{last.uuids}}">
+                <label for="related_uuids" class="review-button"></label>
+            {% endwith %}
+
+            <input type="submit" id="saveButton" name="user_button" value="Save">
+            <!-- <label for="saveButton" class="review-button">Save</label> -->
+            <input type="submit" id="doneButton" name="user_button" value="Done">
+            <!-- <label for="doneButton" class="review-button">Done</label> -->
+
+            <!-- <input type="hidden" name="save_button">
+            <button name="saveButton" value="save" class="review-button">Save</button>
+            <input type="hidden" name="done_button">
+            <button name="doneButton" value="done" class="review-button">Done</button> -->
+        </form>
     {% endif %}
 {% endblock form %}

@@ -793,7 +793,7 @@ def create_approval_log_dispatcher(sender, instance, **kwargs):
 
 class ResolvedList(models.Model):
     uuid = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    change_uuid = models.OneToOneField(Change, on_delete=models.CASCADE, null=True)
+    change = models.OneToOneField(Change, on_delete=models.CASCADE, null=True)
 
     submitted = models.BooleanField(
         verbose_name="Form has been submitted by user.", blank=False, default=False

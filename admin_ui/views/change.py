@@ -21,7 +21,7 @@ from rest_framework.serializers import ValidationError
 
 
 from admin_ui.config import MODEL_CONFIG_MAP
-from api_app.models import ApprovalLog, Change
+from api_app.models import ApprovalLog, Change, ResolvedList, Recommendation
 from data_models.models import (
     IOP,
     Alias,
@@ -572,16 +572,6 @@ class ChangeGcmdUpdateView(UpdateView):
         elif content_type in ["GcmdInstrument", "GcmdPhenomena"]:
             return "Instrument"
 
-    def get_affected_url(self, uuid):
-        content_type = self.get_model_form_content_type().model_class().__name__
-        back = f"?back=/drafts/edit/gcmd/{self.object.uuid}"
-        if content_type == "GcmdPlatform":
-            return f"/platforms/published/{uuid}/edit{back}"
-        elif content_type == "GcmdProject":
-            return f"/campaigns/published/{uuid}/edit{back}"
-        elif content_type in ["GcmdInstrument", "GcmdPhenomena"]:
-            return f"/instruments/published/{uuid}/edit{back}"
-
     def get_gcmd_path(self) -> Dict:
         path_order = {
             "GcmdPlatform": ["category", "series_entry", "short_name"],
@@ -641,54 +631,71 @@ class ChangeGcmdUpdateView(UpdateView):
             )
         return path
 
-    # TODO: Clean up this method:
-    # * Take out imports & prints
-    # * The Platform, Campaign, and Instrument queries are similair enough to combine into one.
-    def get_affected_records(self) -> Dict:
-        affected_records = []
+    def get_affected_url(self, uuid):
         content_type = self.get_model_form_content_type().model_class().__name__
-
-        # model_map = {
-        #     "GcmdPlatform": Platform,
-        #     "GcmdProject": Campaign,
-        #     "GcmdInstrument": Instrument,
-        #     "GcmdPhenomena": Instrument
-        # }
-        # casei_model = model_map[content_type]
-
-        # if content_type == "GcmdPlatform":
-        #     queryset = Platform.objects.filter(
-        #         aliases__short_name=self.object.update["short_name"]
-        #     ).exclude(gcmd_platforms__short_name=self.object.update["short_name"])
+        # back = f"?back=/drafts/edit/gcmd/{self.object.uuid}"
         if content_type == "GcmdPlatform":
-            queryset = Platform.objects.filter(
-                aliases__short_name=self.object.update["short_name"]
-            ).exclude(gcmd_platforms__short_name=self.object.update["short_name"])
+            # return f"/platforms/published/{uuid}/edit{back}"
+            return f"/platforms/published/{uuid}"
         elif content_type == "GcmdProject":
-            queryset = Campaign.objects.filter(
-                aliases__short_name=self.object.update["short_name"]
-            ).exclude(gcmd_projects__short_name=self.object.update["short_name"])
-        elif content_type == "GcmdInstrument":
-            queryset = Instrument.objects.filter(
-                aliases__short_name=self.object.update["short_name"]
-            ).exclude(gcmd_instruments__short_name=self.object.update["short_name"])
-        elif content_type == "GcmdPhenomena":
-            queryset = Instrument.objects.filter(
-                aliases__short_name=self.object.update["short_name"]
-            ).exclude(gcmd_phenomenas__short_name=self.object.update["short_name"])
+            # return f"/campaigns/published/{uuid}/edit{back}"
+            return f"/campaigns/published/{uuid}"
+        elif content_type in ["GcmdInstrument", "GcmdPhenomena"]:
+            # return f"/instruments/published/{uuid}/edit{back}"
+            return f"/instruments/published/{uuid}"
+
+    def is_connected(self, gcmd_keyword, casei_object, content_type):
+        # TODO: Change to actual variable names
+        if gcmd_keyword.action == "Create":
+            return "New Keyword"
         else:
+            if content_type == "GcmdPlatform":
+                is_connnected = gcmd_keyword.content_object in casei_object.gcmd_platforms.all()
+            elif content_type == "GcmdProject":
+                is_connnected = gcmd_keyword.content_object in casei_object.gcmd_projects.all()
+            elif content_type == "GcmdInstrument":
+                is_connnected = gcmd_keyword.content_object in casei_object.gcmd_instruments.all()
+            elif content_type == "GcmdPhenomena":
+                is_connnected = gcmd_keyword.content_object in casei_object.gcmd_phenomenas.all()
+            return "Yes" if is_connnected else "No"
+
+    def get_current_selection(self, keyword, casei_object, resolved_list):
+        recommendation = Recommendation.objects.get(
+            object_uuid=casei_object.uuid, resolved_log=resolved_list
+        )
+        result = recommendation.result
+        if result is None:
+            return {}
+        elif result:
+            return {"connect": True}
+        else:
+            return {"ignore": True}
+
+    def get_affected_records(self) -> Dict:
+        content_type = self.get_model_form_content_type().model_class().__name__
+        if content_type not in ["GcmdPlatform", "GcmdProject", "GcmdInstrument", "GcmdPhenomena"]:
             return []
+        resolved_list = ResolvedList.objects.get(change_id=self.object.uuid)
         category = self.get_affected_type()
-        for row in queryset:
+        # TODO: Make this better
+        affected_records = []
+        uuids = []
+
+        for row in resolved_list.recommendation_set.all():
+            uuids.append(str(row.parent_fk.uuid))
             affected_records.append(
                 {
-                    "row": row,
+                    "row": row.parent_fk,
                     "status": "Published",
                     "category": category,
-                    "link": self.get_affected_url(row.uuid),
+                    "link": self.get_affected_url(row.parent_fk.uuid),
+                    "is_connected": self.is_connected(self.object, row.parent_fk, content_type),
+                    "currentSelection": self.get_current_selection(
+                        self.object, row.parent_fk, resolved_list
+                    ),
+                    "uuids": uuids,
                 }
             )
-
         return affected_records
 
     def get_model_form_intial(self):
@@ -708,11 +715,51 @@ class ChangeGcmdUpdateView(UpdateView):
         }
         return button_mapping.get(content_type, "summary")
 
+    def get_casei_object(self, uuid, content_type):
+        if content_type == "GcmdPlatform":
+            return Platform.objects.get(uuid=uuid)
+        elif content_type == "GcmdProject":
+            return Campaign.objects.get(uuid=uuid)
+        elif content_type == "GcmdInstrument":
+            return Instrument.objects.get(uuid=uuid)
+        elif content_type == "GcmdPhenomena":
+            return Instrument.objects.get(uuid=uuid)
+
     def post(self, request, **kwargs):
+        # TODO: Remove import and clean up method
+        import ast
+
         keyword = self.get_object()
-        resolved_records = keyword.update.get("resolved_records", [])
-        resolved_records.append(request.POST['related_uuid'])
-        keyword.update["resolved_records"] = resolved_records
-        keyword.save()
+        resolved_list = ResolvedList.objects.get(change_id=keyword.uuid)
+        choices = {
+            x.replace("choice-", ""): request.POST[x]
+            for x in request.POST
+            if x.startswith("choice-")
+        }
+        for valid_uuid in ast.literal_eval(request.POST["related_uuids"]):
+            recommendation = Recommendation.objects.get(
+                object_uuid=valid_uuid, resolved_log=resolved_list
+            )
+            if request.POST["user_button"] == "Save":
+                if choices.get(valid_uuid) is None:
+                    recommendation.result = None
+                elif choices.get(valid_uuid) == "True":
+                    recommendation.result = True
+                elif choices.get(valid_uuid) == "False":
+                    recommendation.result = False
+                recommendation.save()
+
+            elif request.POST["user_button"] == "Done":
+                content_type = keyword.content_type.model_class().__name__
+                casei_object = self.get_casei_object(valid_uuid, content_type)
+                # if choices.get(valid_uuid) is None:    invalid for Done!
+                #     recommendation.result = None
+                if choices.get(valid_uuid) == "True":
+                    recommendation.result = True
+                elif choices.get(valid_uuid) == "False":
+                    recommendation.result = False
+                recommendation.save()
+        else:
+            print("Not done or a save!")
 
         return HttpResponseRedirect(reverse("change-gcmd", args=[kwargs["pk"]]))
