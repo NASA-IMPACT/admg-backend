@@ -53,8 +53,16 @@ class SummaryView(django_tables2.SingleTableView):
             .order_by("-updated_at")
         )
 
+    def get_total_counts(self):
+        # counts = {}
+        # for model in self.models:
+        #     counts[model.__name__] = model.objects.all().count()
+        # return counts
+        return {model.__name__.lower(): model.objects.all().count() for model in self.models}
+
     def get_draft_status_count(self):
         status_ids = [
+            Change.Statuses.IN_PROGRESS,
             Change.Statuses.IN_REVIEW,
             Change.Statuses.IN_ADMIN_REVIEW,
             Change.Statuses.PUBLISHED,
@@ -72,7 +80,7 @@ class SummaryView(django_tables2.SingleTableView):
         # Populate with actual counts
         model_status_counts = (
             Change.objects.of_type(*self.models)
-            .filter(action=Change.Actions.CREATE, status__in=status_ids)
+            .filter(action=Change.Actions.CREATE, status__in=status_ids)  # TODO: Document this.
             .values_list("content_type__model", "status")
             .annotate(aggregates.Count("content_type"))
         )
@@ -85,7 +93,8 @@ class SummaryView(django_tables2.SingleTableView):
         return {
             **super().get_context_data(**kwargs),
             # These values for total_counts will be given to us by ADMG
-            "total_counts": {"campaign": None, "platform": None, "instrument": None},
+            # "total_counts": {"campaign": None, "platform": None, "instrument": None},
+            "total_counts": self.get_total_counts(),
             "draft_status_counts": self.get_draft_status_count(),
             "activity_list": ApprovalLog.objects.prefetch_related(
                 "change__content_type", "user"
