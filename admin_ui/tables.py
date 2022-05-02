@@ -140,7 +140,7 @@ class LimitedTableBase(DraftTableBase):
         linkify=("change-update", [tables.A("uuid")]),
     )
     long_name = ConditionalValueColumn(
-        verbose_name="Long name",
+        verbose_name="Long Name",
         accessor="update__long_name",
         update_accessor="content_object.long_name",
     )
