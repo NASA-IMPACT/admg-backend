@@ -32,7 +32,7 @@ from .tables import ConditionalValueColumn, ShortNamefromUUIDColumn
 
 
 class LimitedTableBase(tables.Table):
-    long_name = tables.Column(verbose_name="Long name", accessor="long_name")
+    long_name = tables.Column(verbose_name="Long Name", accessor="long_name")
 
     initial_fields = ("short_name", "long_name")
 
@@ -105,7 +105,7 @@ class DOIPublishedTable(tables.Table):
         verbose_name="Concept ID",
         accessor="concept_id",
     )
-    long_name = tables.Column(verbose_name="Long name", accessor="long_name")
+    long_name = tables.Column(verbose_name="Long Name", accessor="long_name")
     campaigns = ShortNamefromUUIDColumn(
         verbose_name="Campaigns", model=Campaign, accessor="campaigns"
     )
