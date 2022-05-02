@@ -853,7 +853,7 @@ class IopSe(BaseModel):
         default="",
         blank=True,
         verbose_name="Science/Flight Reports",
-        help_text="DOI or URL for location of published IOP Science of Flight reports",
+        help_text="DOI or URL for location of published IOP Science or Flight reports",
     )
     reference_file = models.CharField(
         max_length=1024,

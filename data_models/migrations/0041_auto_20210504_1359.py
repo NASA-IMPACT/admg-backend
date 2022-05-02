@@ -799,7 +799,7 @@ class Migration(migrations.Migration):
             field=models.CharField(
                 blank=True,
                 default="",
-                help_text="DOI or URL for location of published IOP Science of Flight reports",
+                help_text="DOI or URL for location of published IOP Science or Flight reports",
                 max_length=1024,
                 verbose_name="Science/Flight Reports",
             ),
