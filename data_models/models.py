@@ -75,12 +75,12 @@ class LimitedInfo(BaseModel):
     notes_internal = models.TextField(
         default="",
         blank=True,
-        help_text="Free text notes for ADMG staff - not visible to public.",
+        help_text="Free text notes for ADMG staff - not visible to the public.",
     )
     notes_public = models.TextField(
         default="",
         blank=True,
-        help_text="Free text notes on the deployment, this IS visible to public.",
+        help_text="Free text notes on the deployment, this IS visible to the public.",
     )
 
     class Meta:
@@ -337,7 +337,7 @@ class Website(BaseModel):
     notes_internal = models.TextField(
         default="",
         blank=True,
-        help_text="Free text notes for ADMG staff - not visible to public.",
+        help_text="Free text notes for ADMG staff - not visible to the public.",
     )
 
     def __str__(self):
@@ -969,12 +969,12 @@ class CollectionPeriod(BaseModel):
     notes_internal = models.TextField(
         default="",
         blank=True,
-        help_text="Free text notes for ADMG staff - not visible to public.",
+        help_text="Free text notes for ADMG staff - not visible to the public.",
     )
     notes_public = models.TextField(
         default="",
         blank=True,
-        help_text="Free text notes on the deployment, this IS visible to public.",
+        help_text="Free text notes on the deployment, this IS visible to the public.",
     )
 
     auto_generated = models.BooleanField()
