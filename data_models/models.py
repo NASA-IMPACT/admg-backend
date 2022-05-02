@@ -801,17 +801,17 @@ class Deployment(DataModel):
     study_region_map = models.TextField(
         default="",
         blank=True,
-        help_text="*these will be images that would be either uploaded or URL to image provided...we don’t have this fully in curation process yet.",
+        help_text="*these will be images that would be either uploaded directly or URL to image would be provided...we don’t have this fully in curation process yet.",
     )
     ground_sites_map = models.TextField(
         default="",
         blank=True,
-        help_text="*these will be images that would be either uploaded or URL to image provided...we don’t have this fully in curation process yet.",
+        help_text="*these will be images that would be either uploaded directly or URL to image would be provided...we don’t have this fully in curation process yet.",
     )
     flight_tracks = models.TextField(
         default="",
         blank=True,
-        help_text="*these will be images that would be either uploaded or URL to image provided...we don’t have this fully in curation process yet.",
+        help_text="*these will be images that would be either uploaded directly or URL to image would be provided...we don’t have this fully in curation process yet.",
     )
 
     def __str__(self):

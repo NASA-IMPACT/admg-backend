@@ -414,7 +414,7 @@ class Migration(migrations.Migration):
             field=models.TextField(
                 blank=True,
                 default="",
-                help_text="*these will be images that would be either uploaded or URL to image provided...we don’t have this fully in curation process yet.",
+                help_text="*these will be images that would be either uploaded directly or URL to image would be provided...we don’t have this fully in curation process yet.",
             ),
         ),
         migrations.AlterField(
@@ -434,7 +434,7 @@ class Migration(migrations.Migration):
             field=models.TextField(
                 blank=True,
                 default="",
-                help_text="*these will be images that would be either uploaded or URL to image provided...we don’t have this fully in curation process yet.",
+                help_text="*these will be images that would be either uploaded directly or URL to image would be provided...we don’t have this fully in curation process yet.",
             ),
         ),
         migrations.AlterField(
@@ -466,7 +466,7 @@ class Migration(migrations.Migration):
             field=models.TextField(
                 blank=True,
                 default="",
-                help_text="*these will be images that would be either uploaded or URL to image provided...we don’t have this fully in curation process yet.",
+                help_text="*these will be images that would be either uploaded directly or URL to image would be provided...we don’t have this fully in curation process yet.",
             ),
         ),
         migrations.AlterField(
