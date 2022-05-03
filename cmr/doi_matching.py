@@ -10,7 +10,7 @@ from django.core import serializers
 
 from cmr.cmr import query_and_process_cmr
 from cmr.utils import clean_table_name, purify_list
-
+from api_app.models import Change
 
 class DoiMatcher:
     def __init__(self):
@@ -40,8 +40,7 @@ class DoiMatcher:
 
         # if the published object isn't found, search the drafts
         except model.DoesNotExist:
-            model = apps.get_model("api_app", "change")
-            obj = model.objects.get(uuid=uuid)
+            obj = Change.objects.get(uuid=uuid)
             data = json.loads(serializers.serialize("json", [obj,]))[0][
                 "fields"
             ]["update"]
@@ -70,10 +69,10 @@ class DoiMatcher:
         valid_objects = Change.objects.filter(
             content_type__model=table_name, action=Change.Actions.CREATE
         ).exclude(action=Change.Actions.DELETE, status=Change.Statuses.PUBLISHED)
+        # TODO: Why does this exclude published things??
 
         if query_parameter:
-            query_parameter = "update__" + query_parameter
-            kwargs = {query_parameter: query_value}
+            kwargs = {f"update__{query_parameter}": query_value}
             valid_objects = valid_objects.filter(**kwargs)
 
         valid_object_uuids = [str(uuid) for uuid in valid_objects.values_list("uuid", flat=True)]
@@ -249,8 +248,9 @@ class DoiMatcher:
             supplemented_metadata_list (list): List of supplemented metadata dicts.
         """
 
-        if development:
-            metadata_list = metadata_list[0:1]
+        # if development:
+        #     # this ensures that the recommender only runs on one metadata object
+        #     metadata_list = metadata_list[0:1]
 
         supplemented_metadata_list = []
         for doi_metadata in metadata_list:
@@ -306,6 +306,7 @@ class DoiMatcher:
 
             return "Draft created for DOI"
 
+        # TODO: this is wrong. what if there was an edit draft made for a doi?
         uuid = existing_doi_uuids[0]
         existing_doi = self.universal_get("doi", uuid)
         # if item exists as a draft, directly update using db functions with same methodology as above
@@ -322,18 +323,8 @@ class DoiMatcher:
 
         # if db item exists, replace cmr metadata fields and append suggestion fields as an update
         existing_doi = DOI.objects.all().filter(uuid=uuid).first()
-        existing_campaigns = [str(c.uuid) for c in existing_doi.campaigns.all()]
-        existing_instruments = [str(c.uuid) for c in existing_doi.instruments.all()]
-        existing_platforms = [str(c.uuid) for c in existing_doi.platforms.all()]
-        existing_collection_periods = [str(c.uuid) for c in existing_doi.collection_periods.all()]
-
-        doi["campaigns"].extend(existing_campaigns)
-        doi["instruments"].extend(existing_instruments)
-        doi["platforms"].extend(existing_platforms)
-        doi["collection_periods"].extend(existing_collection_periods)
-
         for field in ["campaigns", "instruments", "platforms", "collection_periods"]:
-            doi[field] = list(set(doi[field]))
+            doi[field].extend(list(set([str(f.uuid) for f in getattr(existing_doi, field).all()])))
 
         doi_obj = Change(
             content_type=ContentType.objects.get(model="doi"),
