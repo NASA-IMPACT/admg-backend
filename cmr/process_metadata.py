@@ -16,21 +16,20 @@ def extract_doi(concept):
 
 def process_data_product(dp):
     # this takes a single entry from the campaign metadata list
-    metadata = {}
-    metadata["concept_id"] = dp["meta"].get("concept-id")
-    metadata["doi"] = extract_doi(dp)
-    metadata["cmr_projects"] = dp["umm"].get("Projects")
-    metadata["cmr_short_name"] = dp["umm"].get("ShortName")
-    metadata["cmr_entry_title"] = dp["umm"].get("EntryTitle")
-    metadata["cmr_dates"] = dp["umm"].get("TemporalExtents", [])
-    metadata["cmr_plats_and_insts"] = dp["umm"].get("Platforms", [])
-
-    return metadata
+    return {
+        "concept_id": dp["meta"].get("concept-id"),
+        "doi": extract_doi(dp),
+        "cmr_projects": dp["umm"].get("Projects"),
+        "cmr_short_name": dp["umm"].get("ShortName"),
+        "cmr_entry_title": dp["umm"].get("EntryTitle"),
+        "cmr_dates": dp["umm"].get("TemporalExtents", []),
+        "cmr_plats_and_insts": dp["umm"].get("Platforms", []),
+        "cmr_data_format": dp["umm"]
+        .get('ArchiveAndDistributionInformation', {})
+        .get('FileDistributionInformation', [{}])[0]
+        .get('Format', 'n/a'),
+    }
 
 
 def process_metadata_list(metadata_list):
-    processed_metadata_list = []
-    for dp in metadata_list:
-        processed_metadata_list.append(process_data_product(dp))
-
-    return processed_metadata_list
+    return [process_data_product(dp) for dp in metadata_list]
