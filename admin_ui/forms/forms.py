@@ -85,7 +85,6 @@ class DoiForm(forms.Form):
     platforms = ChangeMultipleChoiceField(dest_model=data_models.Platform, required=False)
     instruments = ChangeMultipleChoiceField(dest_model=data_models.Instrument, required=False)
     collection_periods = forms.MultipleChoiceField(label="CDPIs", required=False)
-    cmr_data_format = forms.CharField(label="Data Format", required=False)
     keep = forms.NullBooleanField(
         help_text="Mark as reviewed or deleted",
         widget=IconBooleanWidget,
