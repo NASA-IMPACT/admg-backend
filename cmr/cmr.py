@@ -221,24 +221,17 @@ def cmr_parameter_transform(input_str, reverse=False):
         query_parameter (str): cmr query parameter matching the input_str
     """
 
-    mapping = {
-        "instrument": "instrument",
-        "platform": "platform",
-        "campaign": "project",
-    }
+    mapping = {"instrument": "instrument", "platform": "platform", "campaign": "project"}
 
     input_str = input_str.lower()
 
     if reverse:
-        if input_str not in [cmr_param for table_name, cmr_param in mapping.items()]:
-            raise ValueError("cmr_param must be project, instrument, or platform")
-        result = {v: k for k, v in mapping.items()}[input_str]
-    else:
-        if input_str not in [table_name for table_name, cmr_param in mapping.items()]:
-            raise ValueError("table_name must be campaign, instrument, or platform")
-        result = mapping[input_str]
+        mapping = {v: k for k, v in mapping.items()}
 
-    return result
+    if input_str not in mapping.keys():
+        raise ValueError(f"Invalid input_str. Input must be one of {', '.join(mapping.values())}")
+
+    return mapping[input_str]
 
 
 def query_and_process_cmr(table_name, aliases):
