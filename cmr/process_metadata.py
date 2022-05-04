@@ -34,8 +34,4 @@ def process_data_product(dp):
 
 
 def process_metadata_list(metadata_list):
-    processed_metadata_list = []
-    for dp in metadata_list:
-        processed_metadata_list.append(process_data_product(dp))
-
-    return processed_metadata_list
+    return [process_data_product(dp) for dp in metadata_list]
