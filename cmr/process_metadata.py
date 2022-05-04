@@ -24,10 +24,12 @@ def process_data_product(dp):
         "cmr_entry_title": dp["umm"].get("EntryTitle"),
         "cmr_dates": dp["umm"].get("TemporalExtents", []),
         "cmr_plats_and_insts": dp["umm"].get("Platforms", []),
-        "cmr_data_format": dp["umm"]
-        .get('ArchiveAndDistributionInformation', {})
-        .get('FileDistributionInformation', [{}])[0]
-        .get('Format', 'n/a'),
+        "cmr_data_format": [
+            info.get('Format', '')
+            for info in dp["umm"]
+            .get('ArchiveAndDistributionInformation', {})
+            .get('FileDistributionInformation', [{}])
+        ],
     }
 
 
