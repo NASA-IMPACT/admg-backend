@@ -24,7 +24,9 @@ def process_data_product(dp):
         "cmr_entry_title": dp["umm"].get("EntryTitle"),
         "cmr_dates": dp["umm"].get("TemporalExtents", []),
         "cmr_plats_and_insts": dp["umm"].get("Platforms", []),
-        "cmr_data_format": [
+        "cmr_science_keywords": dp["umm"].get("ScienceKeywords", {}),
+        "cmr_abstract": dp["umm"].get("Abstract", ''),
+        "cmr_data_formats": [
             info.get('Format', '')
             for info in dp["umm"]
             .get('ArchiveAndDistributionInformation', {})
