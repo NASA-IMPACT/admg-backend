@@ -5,14 +5,17 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('data_models', '0044_auto_20220203_1500'),
-    ]
+    dependencies = [('data_models', '0044_auto_20220203_1500')]
 
     operations = [
         migrations.AlterField(
             model_name='instrument',
             name='gcmd_phenomenas',
-            field=models.ManyToManyField(help_text='Select relevant measurements/variables items from GCMD Science Keywords for Earth Science', related_name='instruments', to='data_models.GcmdPhenomena', verbose_name='Measurements/Variables from GCMD Science Keywords'),
-        ),
+            field=models.ManyToManyField(
+                help_text='Select relevant measurements/variables items from GCMD Science Keywords for Earth Science',
+                related_name='instruments',
+                to='data_models.GcmdPhenomena',
+                verbose_name='Measurements/Variables from GCMD Science Keywords',
+            ),
+        )
     ]
