@@ -12,6 +12,7 @@ from django.db import models
 FRONTEND_URL = "https://airborne-inventory.surge.sh/"
 NOTES_INTERNAL_HELP_TEXT = "Free text notes for ADMG staff, this is NOT visible to the public."
 NOTES_PUBLIC_HELP_TEXT = "Free text notes, this IS visible to the public."
+UNIMPLEMENTED_HELP_TEXT = "*these will be images that would be either uploaded directly or URL to image would be provided...we don’t have this fully in curation process yet."
 
 
 def select_related_distinct_data(queryset, related_data_string):
@@ -775,21 +776,9 @@ class Deployment(DataModel):
     )
 
     spatial_bounds = geomodels.PolygonField(blank=True, null=True)
-    study_region_map = models.TextField(
-        default="",
-        blank=True,
-        help_text="*these will be images that would be either uploaded directly or URL to image would be provided...we don’t have this fully in curation process yet.",
-    )
-    ground_sites_map = models.TextField(
-        default="",
-        blank=True,
-        help_text="*these will be images that would be either uploaded directly or URL to image would be provided...we don’t have this fully in curation process yet.",
-    )
-    flight_tracks = models.TextField(
-        default="",
-        blank=True,
-        help_text="*these will be images that would be either uploaded directly or URL to image would be provided...we don’t have this fully in curation process yet.",
-    )
+    study_region_map = models.TextField(default="", blank=True, help_text=UNIMPLEMENTED_HELP_TEXT)
+    ground_sites_map = models.TextField(default="", blank=True, help_text=UNIMPLEMENTED_HELP_TEXT)
+    flight_tracks = models.TextField(default="", blank=True, help_text=UNIMPLEMENTED_HELP_TEXT)
 
     def __str__(self):
         return self.short_name
