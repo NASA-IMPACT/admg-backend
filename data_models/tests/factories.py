@@ -197,8 +197,8 @@ class GcmdInstrumentFactory(GcmdBaseFactory):
     spatial_resolution = factory.Faker("text")
     temporal_resolution = factory.Faker("text")
     radiometric_frequency = factory.Faker("text")
-    gcmd_phenomenas = factory.PostGeneration(
-        create_m2m_records("gcmd_phenomenas", f"{__name__}.GcmdPhenomenaFactory")
+    gcmd_phenomena = factory.PostGeneration(
+        create_m2m_records("gcmd_phenomena", f"{__name__}.GcmdPhenomenonFactory")
     )
     measurement_regions = factory.PostGeneration(
         create_m2m_records("measurement_regions", f"{__name__}.MeasurementRegionFactory")
@@ -208,11 +208,11 @@ class GcmdInstrumentFactory(GcmdBaseFactory):
         model = models.GcmdInstrument
 
 
-class GcmdPhenomenaFactory(GcmdBaseFactory):
+class GcmdPhenomenonFactory(GcmdBaseFactory):
     category = factory.Faker("word")
 
     class Meta:
-        model = models.GcmdPhenomena
+        model = models.GcmdPhenomenon
 
 
 class GcmdPlatformFactory(GcmdBaseFactory):
@@ -257,8 +257,8 @@ class InstrumentFactory(LimitedInfoBaseFactory):
     spatial_resolution = factory.Faker("text")
     temporal_resolution = factory.Faker("text")
     radiometric_frequency = factory.Faker("text")
-    gcmd_phenomenas = factory.PostGeneration(
-        create_m2m_records("gcmd_phenomenas", f"{__name__}.GcmdPhenomenaFactory")
+    gcmd_phenomena = factory.PostGeneration(
+        create_m2m_records("gcmd_phenomena", f"{__name__}.GcmdPhenomenonFactory")
     )
     measurement_regions = factory.PostGeneration(
         create_m2m_records("measurement_regions", f"{__name__}.MeasurementRegionFactory")
@@ -355,7 +355,7 @@ DATAMODELS_FACTORIES = [
     DOIFactory,
     FocusAreaFactory,
     GcmdInstrumentFactory,
-    GcmdPhenomenaFactory,
+    GcmdPhenomenonFactory,
     GcmdPlatformFactory,
     GcmdProjectFactory,
     GeographicalRegionFactory,

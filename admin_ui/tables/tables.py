@@ -659,7 +659,7 @@ class GcmdPlatformChangeListTable(DraftTableBase):
         sequence = all_fields
 
 
-class GcmdPhenomenaChangeListTable(DraftTableBase):
+class GcmdPhenomenonChangeListTable(DraftTableBase):
     variable_3 = ConditionalValueColumn(
         verbose_name="Variable 3",
         accessor="update__variable_3",
