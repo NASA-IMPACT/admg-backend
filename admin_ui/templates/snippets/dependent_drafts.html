@@ -1,4 +1,4 @@
-{% regroup descendents by model_name as grouped_descendents %}
+{% regroup descendents by view_model as grouped_descendents %}
 <ul class="list-unstyled">
   {% for model_type in grouped_descendents %}
   <li class="font-weight-bold">{{ model_type.grouper }}</li>

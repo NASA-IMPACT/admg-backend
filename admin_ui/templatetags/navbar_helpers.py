@@ -6,12 +6,7 @@ from django.template.loader import get_template
 register = template.Library()
 
 
-def build_draft_view(view):
-    return f"{view}-list-draft"
-
-
-def build_published_view(view):
-    return f"{view}-list-published"
+LINKS = "published-list || change-list || change-add"
 
 
 def is_quoted(text: str):
@@ -19,12 +14,13 @@ def is_quoted(text: str):
 
 
 @register.inclusion_tag("snippets/sidebar/activelink_navitem.html", takes_context=True)
-def nav_link(context, title, view):
+def nav_link(context, title, link_model):
     return {
-        **context.flatten(),
+        **context.flatten(),  # NOTE: Must pass in context for active_link to work
         "title": title,
-        "view": build_draft_view(view),
-        "links": " || ".join(f(view) for f in [build_draft_view, build_published_view]),
+        "view": "change-list",
+        "link_model": link_model,
+        "links": LINKS,
     }
 
 
@@ -36,9 +32,9 @@ def collapsable_menu(parser, token):
     a collapsable menu that is un-collapsed when you are on a view linked from the menu.
 
     The first argument must be a unique title for the menu entry, wrapped within quotes. All
-    subsequent arguments represent models for which list views are linked.  E.g. if "doi" is
-    presented, the menu will be shown as active if the user is viewing either a "doi-list-draft"
-    or "doi-list-published" routes.
+    subsequent arguments represent models for which list views are linked. E.g. if "doi" is
+    presented, the menu will be shown as active if the user is viewing either a "list-draft"
+    or "list-published" routes for the "doi" model.
 
     https://getbootstrap.com/docs/4.0/components/collapse/
     """
@@ -76,11 +72,8 @@ class FoldingNavNode(template.Node):
                 **context.flatten(),
                 "title": self.title,
                 "identifier": self.title.lower().replace(" ", "-"),
-                "active_views": " || ".join(
-                    func(model_name)
-                    for model_name in self.model_names
-                    for func in [build_draft_view, build_published_view]
-                ),
+                "active_views": LINKS,
+                "model_names": self.model_names,
                 "children": self.nodelist.render(context),
             }
         )

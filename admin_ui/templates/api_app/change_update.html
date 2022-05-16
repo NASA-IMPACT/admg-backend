@@ -11,13 +11,14 @@
 
     <a href="{% spaceless %}
         {% if "back" in request.GET %} {{ request.GET.back }}
-        {% else %}{% url back_button %}
+        {% else %}{% url 'change-list' view_model %}
         {% endif %}
         {% endspaceless %}">
       &larr; Back
     </a>
-    {% if object.content_type.model == 'website' %}
+    {% if view_model == 'website' %}
     <h1>{{ object.update.title | default:object.uuid }}</h1>
+    {{ view_model }}
     {% else %}
     <h1>{{ object.update.short_name | default:object.uuid }}</h1>
     {% endif %}
@@ -25,7 +26,17 @@
 {% endblock header %}
 
 {% block actions %}
-  {% if not object.is_locked %}
+  {% if object.is_locked %}
+  <div class="px-1">
+    <a 
+      class="btn btn-primary" 
+      href="{% url 'published-detail' pk=object.model_instance_uuid model=view_model %}"
+    >
+      View published version
+    </a>
+  </div>
+
+  {% else %}
   <div class="px-1">
     {% include "snippets/approval_dropdown.html" %}
   </div>

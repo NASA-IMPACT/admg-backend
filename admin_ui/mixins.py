@@ -10,12 +10,18 @@ from django.http import HttpResponseBadRequest
 from django.http.response import Http404
 from django.shortcuts import render
 from django.views.generic.edit import ModelFormMixin
+from api_app.urls import camel_to_snake
 
 from data_models import models
 from . import fields, widgets, config, utils
 
 
-def formfield_callback(f, **kwargs):
+def formfield_callback(f, disabled_fields=[], **kwargs):
+    """
+    Custom logic for specifying widgets on a model form. To specify disabled_fields,
+    developer must apply those via functools.partial before passing this function
+    to a modelform factory.
+    """
     # Use ChangeChoiceField for any ForeignKey field in the model class
     if isinstance(f, model_fields.ForeignKey):
         if f.remote_field.model == ContentType:
@@ -51,7 +57,8 @@ def formfield_callback(f, **kwargs):
     elif isinstance(f, model_fields.BooleanField):
         # Adding choices assigns a "yes/no" option and creates a dropdown widget
         f.choices = ((True, "Yes"), (False, "No"))
-    return f.formfield(**kwargs)
+
+    return f.formfield(disabled=f.name in disabled_fields, **kwargs)
 
 
 class ChangeModelFormMixin(ModelFormMixin):
@@ -66,10 +73,17 @@ class ChangeModelFormMixin(ModelFormMixin):
     def destination_model_form(self):
         """Helper to return a form for the destination of the Draft object"""
         model_type = self.get_model_type()
+
+        # Disable any readonly fields
+        model_name = camel_to_snake(model_type.__name__)
+        model_config = config.MODEL_CONFIG_MAP.get(model_name, {})
+        disabled_fields = model_config.get("change_view_readonly_fields", [])
+        _formfield_callback = partial(formfield_callback, disabled_fields=disabled_fields)
+
         modelform = modelform_factory(
             model_type,
             exclude=[],
-            formfield_callback=formfield_callback,
+            formfield_callback=_formfield_callback,
             labels=self.get_verbose_names(model_type),
             help_texts=self.get_help_texts(model_type),
         )  # modelform generates a form class
@@ -102,11 +116,6 @@ class ChangeModelFormMixin(ModelFormMixin):
             kwargs["model_form"] = self.destination_model_form(
                 initial=self.get_model_form_intial(), prefix=self.destination_model_prefix
             )
-
-        model_name = kwargs["model_form"]._meta.model.__name__
-        model_config = config.MODEL_CONFIG_MAP.get(model_name, {})
-        for field in model_config.get("change_view_readonly_fields", []):
-            kwargs["model_form"].fields[field].disabled = True
 
         # Disable save on published or trashed
         if self.object and self.object.is_locked:
@@ -193,9 +202,6 @@ class ChangeModelFormMixin(ModelFormMixin):
         if self.object and self.object.is_locked:
             return HttpResponseBadRequest("Object no longer available for edit")
 
-        model_config = config.MODEL_CONFIG_MAP.get(self.get_model_type().__name__, {})
-        readonly_fields = model_config.get("change_view_readonly_fields", [])
-
         if form.instance._state.adding:
             # If we're create a new Change instance, we want to populate any fields that
             # are specified in the GET params. This is useful when we autopopulate a field
@@ -213,7 +219,7 @@ class ChangeModelFormMixin(ModelFormMixin):
                 # original values from form.instance.update
                 k: v
                 for k, v in utils.serialize_model_form(model_form).items()
-                if k not in readonly_fields
+                if not model_form.fields[k].disabled
             }
         )
         return self.form_valid(form, model_form)
@@ -245,3 +251,20 @@ class ChangeModelFormMixin(ModelFormMixin):
         if not form.is_valid():
             messages.error(self.request, f"Unable to save: {form.errors}")
         return self.render_to_response(self.get_context_data(form=form, model_form=model_form))
+
+
+class DynamicModelMixin:
+    """
+    Helper model to retrieve model config based on model arg in URL
+    """
+
+    @property
+    def _model_name(self):
+        return self.kwargs['model']
+
+    @property
+    def _model_config(self):
+        try:
+            return config.MODEL_CONFIG_MAP[self._model_name]
+        except KeyError:
+            raise Http404(f"Bad model name: {self._model_name}")
