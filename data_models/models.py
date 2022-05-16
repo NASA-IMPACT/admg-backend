@@ -10,6 +10,8 @@ from django.db import models
 
 # TODO: Mv to config
 FRONTEND_URL = "https://airborne-inventory.surge.sh/"
+NOTES_INTERNAL_HELP_TEXT = "Free text notes for ADMG staff, this is NOT visible to the public."
+NOTES_PUBLIC_HELP_TEXT = "Free text notes, this IS visible to the public."
 
 
 def select_related_distinct_data(queryset, related_data_string):
@@ -72,16 +74,8 @@ class Image(BaseModel):
 class LimitedInfo(BaseModel):
     short_name = models.CharField(max_length=256, blank=False, unique=True)
     long_name = models.CharField(max_length=512, default="", blank=True)
-    notes_internal = models.TextField(
-        default="",
-        blank=True,
-        help_text="Free text notes for ADMG staff - not visible to the public.",
-    )
-    notes_public = models.TextField(
-        default="",
-        blank=True,
-        help_text="Free text notes on the deployment, this IS visible to the public.",
-    )
+    notes_internal = models.TextField(default="", blank=True, help_text=NOTES_INTERNAL_HELP_TEXT)
+    notes_public = models.TextField(default="", blank=True, help_text=NOTES_PUBLIC_HELP_TEXT)
 
     class Meta:
         abstract = True
@@ -97,11 +91,7 @@ class LimitedInfoPriority(LimitedInfo):
 
 class PlatformType(LimitedInfoPriority):
     parent = models.ForeignKey(
-        "PlatformType",
-        on_delete=models.CASCADE,
-        related_name="sub_types",
-        null=True,
-        blank=True,
+        "PlatformType", on_delete=models.CASCADE, related_name="sub_types", null=True, blank=True
     )
 
     gcmd_uuid = models.UUIDField(null=True, blank=True)
@@ -126,11 +116,7 @@ class PlatformType(LimitedInfoPriority):
 
 class MeasurementType(LimitedInfoPriority):
     parent = models.ForeignKey(
-        "MeasurementType",
-        on_delete=models.CASCADE,
-        related_name="sub_types",
-        null=True,
-        blank=True,
+        "MeasurementType", on_delete=models.CASCADE, related_name="sub_types", null=True, blank=True
     )
     example = models.CharField(max_length=1024, blank=True, default="")
 
@@ -334,11 +320,7 @@ class Website(BaseModel):
     url = models.URLField(max_length=1024)
     title = models.TextField(default="", blank=True)
     description = models.TextField(default="", blank=True)
-    notes_internal = models.TextField(
-        default="",
-        blank=True,
-        help_text="Free text notes for ADMG staff - not visible to the public.",
-    )
+    notes_internal = models.TextField(default="", blank=True, help_text=NOTES_INTERNAL_HELP_TEXT)
 
     def __str__(self):
         return self.title
@@ -561,12 +543,7 @@ class Campaign(DataModel):
 
     @staticmethod
     def search_fields():
-        return [
-            "short_name",
-            "long_name",
-            "description_short",
-            "focus_phenomena",
-        ]
+        return ["short_name", "long_name", "description_short", "focus_phenomena"]
 
     def get_absolute_url(self):
         return urllib.parse.urljoin(FRONTEND_URL, f"/campaign/{self.uuid}/")
@@ -940,10 +917,7 @@ class CollectionPeriod(BaseModel):
     )
 
     platform_owner = models.CharField(
-        max_length=256,
-        default="",
-        blank=True,
-        help_text="Organization that owns the platform",
+        max_length=256, default="", blank=True, help_text="Organization that owns the platform"
     )
     platform_technical_contact = models.CharField(
         max_length=256,
@@ -966,16 +940,8 @@ class CollectionPeriod(BaseModel):
         help_text="DOI or URL for location of lists of instruments used on this platform for the deployment",
     )
 
-    notes_internal = models.TextField(
-        default="",
-        blank=True,
-        help_text="Free text notes for ADMG staff - not visible to the public.",
-    )
-    notes_public = models.TextField(
-        default="",
-        blank=True,
-        help_text="Free text notes on the deployment, this IS visible to the public.",
-    )
+    notes_internal = models.TextField(default="", blank=True, help_text=NOTES_INTERNAL_HELP_TEXT)
+    notes_public = models.TextField(default="", blank=True, help_text=NOTES_PUBLIC_HELP_TEXT)
 
     auto_generated = models.BooleanField()
 
