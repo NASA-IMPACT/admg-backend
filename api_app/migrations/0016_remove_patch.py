@@ -2,7 +2,7 @@ from django.db import migrations, models
 from api_app.models import Change
 
 
-def transition_patch_to_update():
+def transition_patch_to_update(apps, schema_editor):
     Change.objects.filter(action='Patch').update(action=Change.Actions.UPDATE)
 
 
