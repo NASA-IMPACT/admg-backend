@@ -1,10 +1,11 @@
 import os
-import uuid
 import urllib.parse
+import uuid
 
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.gis.db import models as geomodels
+from django.contrib.postgres.fields import ArrayField
 from django.contrib.postgres.search import SearchQuery, SearchVector
 from django.db import models
 
@@ -73,9 +74,7 @@ class LimitedInfo(BaseModel):
     short_name = models.CharField(max_length=256, blank=False, unique=True)
     long_name = models.CharField(max_length=512, default="", blank=True)
     notes_internal = models.TextField(
-        default="",
-        blank=True,
-        help_text="Free text notes for ADMG staff - not visible to public.",
+        default="", blank=True, help_text="Free text notes for ADMG staff - not visible to public."
     )
     notes_public = models.TextField(
         default="",
@@ -97,11 +96,7 @@ class LimitedInfoPriority(LimitedInfo):
 
 class PlatformType(LimitedInfoPriority):
     parent = models.ForeignKey(
-        "PlatformType",
-        on_delete=models.CASCADE,
-        related_name="sub_types",
-        null=True,
-        blank=True,
+        "PlatformType", on_delete=models.CASCADE, related_name="sub_types", null=True, blank=True
     )
 
     gcmd_uuid = models.UUIDField(null=True, blank=True)
@@ -126,11 +121,7 @@ class PlatformType(LimitedInfoPriority):
 
 class MeasurementType(LimitedInfoPriority):
     parent = models.ForeignKey(
-        "MeasurementType",
-        on_delete=models.CASCADE,
-        related_name="sub_types",
-        null=True,
-        blank=True,
+        "MeasurementType", on_delete=models.CASCADE, related_name="sub_types", null=True, blank=True
     )
     example = models.CharField(max_length=1024, blank=True, default="")
 
@@ -335,9 +326,7 @@ class Website(BaseModel):
     title = models.TextField(default="", blank=True)
     description = models.TextField(default="", blank=True)
     notes_internal = models.TextField(
-        default="",
-        blank=True,
-        help_text="Free text notes for ADMG staff - not visible to public.",
+        default="", blank=True, help_text="Free text notes for ADMG staff - not visible to public."
     )
 
     def __str__(self):
@@ -561,12 +550,7 @@ class Campaign(DataModel):
 
     @staticmethod
     def search_fields():
-        return [
-            "short_name",
-            "long_name",
-            "description_short",
-            "focus_phenomena",
-        ]
+        return ["short_name", "long_name", "description_short", "focus_phenomena"]
 
     def get_absolute_url(self):
         return urllib.parse.urljoin(FRONTEND_URL, f"/campaign/{self.uuid}/")
@@ -940,10 +924,7 @@ class CollectionPeriod(BaseModel):
     )
 
     platform_owner = models.CharField(
-        max_length=256,
-        default="",
-        blank=True,
-        help_text="Organization that owns the platform",
+        max_length=256, default="", blank=True, help_text="Organization that owns the platform"
     )
     platform_technical_contact = models.CharField(
         max_length=256,
@@ -967,9 +948,7 @@ class CollectionPeriod(BaseModel):
     )
 
     notes_internal = models.TextField(
-        default="",
-        blank=True,
-        help_text="Free text notes for ADMG staff - not visible to public.",
+        default="", blank=True, help_text="Free text notes for ADMG staff - not visible to public."
     )
     notes_public = models.TextField(
         default="",
@@ -996,6 +975,11 @@ class DOI(BaseModel):
     cmr_projects = models.JSONField(default=None, blank=True, null=True)
     cmr_dates = models.JSONField(default=None, blank=True, null=True)
     cmr_plats_and_insts = models.JSONField(default=None, blank=True, null=True)
+    cmr_science_keywords = models.JSONField(default=None, blank=True, null=True)
+    cmr_abstract = models.TextField(blank=True, default="")
+    cmr_data_formats = ArrayField(
+        models.CharField(max_length=512, blank=True, default=""), blank=True, default=list
+    )
 
     date_queried = models.DateTimeField()
 
