@@ -6,7 +6,7 @@
       autocomplete="off" 
       value="true"
       id="{{ widget.name }}_true"
-      disabled="{{ widget.readonly }}"
+      {% if widget.readonly %}disabled{% endif %}
       {% if widget.value == 'true' %}checked{% endif %}
     > 
     <label class="btn btn-primary mx-1 my-0" for="{{ widget.name }}_true">
@@ -19,7 +19,7 @@
       autocomplete="off"
       value="false"
       id="{{ widget.name }}_false"
-      disabled="{{ widget.readonly }}"
+      {% if widget.readonly %}disabled{% endif %}
       {% if widget.value == 'false' %}checked{% endif %}
     > 
     <label class="btn btn-primary mx-1 my-0" for="{{ widget.name }}_false">
