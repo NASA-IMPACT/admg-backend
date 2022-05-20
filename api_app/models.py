@@ -806,3 +806,11 @@ class Recommendation(models.Model):
     parent_fk = GenericForeignKey("content_type", "object_uuid")
     result = models.BooleanField(verbose_name="Was the CASEI object connected?", null=True)
     resolved_log = models.ForeignKey(ResolvedList, on_delete=models.CASCADE)
+
+
+from django.db.models import aggregates, functions, OuterRef, Value, Subquery
+
+
+class SubqueryCount(Subquery):
+    template = "(SELECT count(*) FROM (%(subquery)s) _count)"
+    output_field = models.IntegerField()

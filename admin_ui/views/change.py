@@ -4,9 +4,9 @@ import django_tables2
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.contenttypes.models import ContentType
-from django.db.models import aggregates, functions, OuterRef, Value
+from django.db.models import aggregates, functions, OuterRef, Value, Subquery
 from django.db.models.fields.json import KeyTextTransform
-from django.db.models import IntegerField, Count, F
+from django.db.models import IntegerField, Count, F, Q
 from django.db.utils import ProgrammingError
 
 from django.http import Http404, HttpResponseRedirect
@@ -21,7 +21,7 @@ from rest_framework.serializers import ValidationError
 
 
 from admin_ui.config import MODEL_CONFIG_MAP
-from api_app.models import ApprovalLog, Change, ResolvedList, Recommendation
+from api_app.models import ApprovalLog, Change, ResolvedList, Recommendation, SubqueryCount
 from data_models.models import (
     IOP,
     Alias,
@@ -456,41 +456,34 @@ class GcmdSyncListView(SingleTableMixin, FilterView):
     def get_queryset(self):
         from django.db.models import Func
 
-        affected_campaigns = (
-            Campaign.objects.filter(aliases__short_name=OuterRef("short_name"))
-            .annotate(count=Func("uuid", function='Count'))
-            .values('count')
-        )
-        affected_instruments = (
-            Instrument.objects.filter(aliases__short_name=OuterRef("short_name"))
-            .annotate(count=Func("uuid", function='Count'))
-            .values('count')
-        )
-        affected_platforms = (
-            Platform.objects.filter(aliases__short_name=OuterRef("short_name"))
-            .annotate(count=Func("uuid", function='Count'))
-            .values('count')
-        )
-        # resolved_campaigns = (
+        # affected_campaigns = (
         #     Campaign.objects.filter(aliases__short_name=OuterRef("short_name"))
         #     .annotate(count=Func("uuid", function='Count'))
         #     .values('count')
         # )
-        # resolved_instruments = (
+        # affected_instruments = (
         #     Instrument.objects.filter(aliases__short_name=OuterRef("short_name"))
         #     .annotate(count=Func("uuid", function='Count'))
         #     .values('count')
         # )
-        # resolved_platforms = (
+        # affected_platforms = (
         #     Platform.objects.filter(aliases__short_name=OuterRef("short_name"))
         #     .annotate(count=Func("uuid", function='Count'))
         #     .values('count')
         # )
+        # resolved_records = Recommendation.objects.filter(
+        #     resolved_log=OuterRef("uuid"), result__isnull=False
+        # ).aggregate(count=Count("*"))
+        resolved_records = Recommendation.objects.filter(
+            resolved_log_id=OuterRef("resolvedlist"), result__isnull=False
+        )
+        # resolved_records = Recommendation.objects.all()
+        # resolved_records_count = resolved_records.annotate(count=Count('*')).values("count")
 
         # TODO: Add migration to create index on content_type.model field and aliases.short_name
         queryset = (
             Change.objects.of_type(GcmdInstrument, GcmdPlatform, GcmdProject, GcmdPhenomena)
-            .select_related("content_type")
+            .select_related("content_type", "resolvedlist")
             .annotate(
                 short_name=functions.Coalesce(
                     functions.NullIf(KeyTextTransform('short_name', 'update'), Value("")),
@@ -499,23 +492,24 @@ class GcmdSyncListView(SingleTableMixin, FilterView):
                     functions.NullIf(KeyTextTransform('variable_1', 'update'), Value("")),
                     functions.NullIf(KeyTextTransform('term', 'update'), Value("")),
                 ),
-                # resolved_records=functions.Coalesce(functions.NullIf(Func(F('field'), function='CARDINALITY'), Value(""))
-                # resolved_records=Count("update__resolved_records"), Old, non-working
-                resolved_records=Count("update__resolved_records"),
-                affected_campaigns=affected_campaigns,
-                affected_instruments=affected_instruments,
-                affected_platforms=affected_platforms,
-                affected_records=functions.Coalesce(
-                    "affected_campaigns",
-                    "affected_platforms",
-                    "affected_instruments",
-                    Value(0),
-                    output_field=IntegerField(),
-                ),
+                # resolved_records=functions.Coalesce(SubqueryCount(resolved_records), Value(0)),
+                resolved_records=functions.Coalesce(SubqueryCount(resolved_records), Value(0)),
+                affected_records=Count("resolvedlist__recommendation")
+                # affected_campaigns=affected_campaigns,
+                # affected_instruments=affected_instruments,
+                # affected_platforms=affected_platforms,
+                # affected_records=functions.Coalesce(
+                #     "affected_campaigns",
+                #     "affected_platforms",
+                #     "affected_instruments",
+                #     Value(0),
+                #     output_field=IntegerField(),
+                # ),
             )
-            .filter(affected_records__gte=1)
-            .add_updated_at()
-            .order_by("-updated_at")
+            # .filter(affected_records__gte=1)
+            .filter(resolvedlist__submitted=False)
+            # .add_updated_at()   # TODO: Figure out why this was affecting the affected/resolved counts.
+            # .order_by("-updated_at")
         )
 
         return queryset
@@ -557,6 +551,10 @@ class ChangeGcmdUpdateView(UpdateView):
             "ancestors": (context["object"].get_ancestors().select_related("content_type")),
             "descendents": (context["object"].get_descendents().select_related("content_type")),
         }
+        default_buttons = {}
+        for record in context["affected_records"]:
+            default_buttons[record["row"].short_name] = record["currentSelection"]
+        context["default_buttons"] = default_buttons
         print(f"Context Data: {context}")
         return context
 
@@ -693,6 +691,7 @@ class ChangeGcmdUpdateView(UpdateView):
                     "currentSelection": self.get_current_selection(
                         self.object, row.parent_fk, resolved_list
                     ),
+                    "is_submitted": resolved_list.submitted,
                     "uuids": uuids,
                 }
             )
@@ -725,22 +724,24 @@ class ChangeGcmdUpdateView(UpdateView):
         elif content_type == "GcmdPhenomena":
             return Instrument.objects.get(uuid=uuid)
 
+    # TODO: Clean this method up.
     def post(self, request, **kwargs):
         # TODO: Remove import and clean up method
         import ast
 
-        keyword = self.get_object()
-        resolved_list = ResolvedList.objects.get(change_id=keyword.uuid)
+        gcmd_change = self.get_object()
+        resolved_list = ResolvedList.objects.get(change_id=gcmd_change.uuid)
         choices = {
             x.replace("choice-", ""): request.POST[x]
             for x in request.POST
             if x.startswith("choice-")
         }
         for valid_uuid in ast.literal_eval(request.POST["related_uuids"]):
+            print(f"Valid UUID: {valid_uuid}")
             recommendation = Recommendation.objects.get(
                 object_uuid=valid_uuid, resolved_log=resolved_list
             )
-            if request.POST["user_button"] == "Save":
+            if request.POST["user_button"] == "Save Progress":
                 if choices.get(valid_uuid) is None:
                     recommendation.result = None
                 elif choices.get(valid_uuid) == "True":
@@ -749,17 +750,39 @@ class ChangeGcmdUpdateView(UpdateView):
                     recommendation.result = False
                 recommendation.save()
 
-            elif request.POST["user_button"] == "Done":
-                content_type = keyword.content_type.model_class().__name__
+            elif request.POST["user_button"] == "Save & Publish":
+                content_type = gcmd_change.content_type.model_class().__name__
                 casei_object = self.get_casei_object(valid_uuid, content_type)
-                # if choices.get(valid_uuid) is None:    invalid for Done!
-                #     recommendation.result = None
+                gcmd_keyword = gcmd_change._get_model_instance()
+
                 if choices.get(valid_uuid) == "True":
                     recommendation.result = True
+                    if content_type == "GcmdPlatform":
+                        casei_object.gcmd_platforms.add(gcmd_keyword)
+                    elif content_type == "GcmdProject":
+                        casei_object.gcmd_projects.add(gcmd_keyword)
+                    elif content_type == "GcmdInstrument":
+                        casei_object.gcmd_instruments.add(gcmd_keyword)
+                    elif content_type == "GcmdPhenomena":
+                        casei_object.gcmd_phenomenas.add(gcmd_keyword)
+
                 elif choices.get(valid_uuid) == "False":
                     recommendation.result = False
+                    if content_type == "GcmdPlatform":
+                        casei_object.gcmd_platforms.remove(gcmd_keyword)
+                    elif content_type == "GcmdProject":
+                        casei_object.gcmd_projects.remove(gcmd_keyword)
+                    elif content_type == "GcmdInstrument":
+                        casei_object.gcmd_instruments.remove(gcmd_keyword)
+                    elif content_type == "GcmdPhenomena":
+                        casei_object.gcmd_phenomenas.remove(gcmd_keyword)
+
+                resolved_list.submitted = True
+
+                resolved_list.save()
+                casei_object.save()
                 recommendation.save()
-        else:
-            print("Not done or a save!")
+            else:
+                print("Not done or a save!")
 
         return HttpResponseRedirect(reverse("change-gcmd", args=[kwargs["pk"]]))

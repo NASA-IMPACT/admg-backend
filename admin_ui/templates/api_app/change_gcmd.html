@@ -115,13 +115,8 @@
 <hr style="height:2px;border-width:0;color:gray;background-color:gray">
 <p class="gcmd-label">Recommended GCMD Keyword Changes</p>
 <p>We have found {{affected_records | length }} potentially affected record(s)</p>
-<ol>
-    <li>First, make sure this GCMD keyword is published before reviewing affected records.</li>
-    <li>Adding this GCMD keyword to an affected record will automatically remove it from the table below.</li>
-    <li>If no changes are required, you can manually "Mark as Reviewed" to remove the item from the list below.</li>
-</ol>
     {% if affected_records %}
-        <form action="{% url 'change-gcmd' object.uuid %}" method="post">
+        <form action="{% url 'change-gcmd' object.uuid %}" method="post" id="connectionForm">
             <table class="affected-table">
                 <tr class="affected-row">
                     <th>Affected Record</th>
@@ -141,11 +136,13 @@
                         <td>
                             {% csrf_token %}
                             <!-- <input type="radio" id="ignoreChoice" checked="{{record.currentSelection.ignore}}"> -->
-                            <input type="radio" id="connectChoice" name="choice-{{record.row.uuid}}" value="True" "{% if record.currentSelection.connect %} checked {% else %} {% endif %};">
-                            <label for="connectChoice" class="review-button">Yes</button>
+                            <input type="radio" class="choiceRadio" id="connectChoice-{{record.row.uuid}}" name="choice-{{record.row.uuid}}" value="True" "{% if record.currentSelection.connect %} checked {% else %} {% endif %};">
+                            <label for="connectChoice-{{record.row.short_name}}" class="review-button">Yes</button>
+                            <!-- <button type="button" class="choiceRadio" id="connectChoice-{{record.row.short_name}}" name="choice-{{record.row.short_name}}" value="True" onclick="changeState(this)">Yes</button> -->
                             <!-- <input type="radio" id="connectChoice" checked="{{record.currentSelection.connect}}"> -->
-                            <input type="radio" id="ignoreChoice" name="choice-{{record.row.uuid}}" value="False" "{% if record.currentSelection.ignore %} checked {% else %} {% endif %};">
-                            <label for="ignoreChoice" class="review-button">No</button>
+                            <input type="radio" class="choiceRadio" id="ignoreChoice-{{record.row.uuid}}" name="choice-{{record.row.uuid}}" value="False" "{% if record.currentSelection.ignore %} checked {% else %} {% endif %};">
+                            <label for="ignoreChoice-{{record.row.short_name}}" class="review-button">No</button>
+                            <!-- <button type="button" class="choiceRadio" id="ignoreChoice-{{record.row.short_name}}" name="choice-{{record.row.short_name}}" value="True" onclick="changeState(this)">No</button> -->
                         </td>
                         <!-- <form action="{% url 'change-gcmd' object.uuid %}" method="post">
                             {% csrf_token %}
@@ -162,9 +159,9 @@
                 <label for="related_uuids" class="review-button"></label>
             {% endwith %}
 
-            <input type="submit" id="saveButton" name="user_button" value="Save">
+            <input type="submit" id="saveButton" name="user_button" value="Save Progress">
             <!-- <label for="saveButton" class="review-button">Save</label> -->
-            <input type="submit" id="doneButton" name="user_button" value="Done">
+            <input type="submit" id="doneButton" name="user_button" value="Save & Publish">
             <!-- <label for="doneButton" class="review-button">Done</label> -->
 
             <!-- <input type="hidden" name="save_button">
@@ -173,4 +170,79 @@
             <button name="doneButton" value="done" class="review-button">Done</button> -->
         </form>
     {% endif %}
+
+
+<!-- TODO: Figure out if this jquery import is needed! -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+<script type="text/javascript">
+    $(document).ready(function() {
+        var check_buttons = {}
+        console.log("Check Buttons created!!!");
+        $(".choiceRadio").each(function(index) {
+            console.log($(this).attr("id"), ": ", $(this).attr("checked"));
+            check_buttons[$(this).attr("id")] = $(this).attr("checked");
+        });
+        console.log("Check Buttons: ", check_buttons);
+
+        $(".choiceRadio").click(function() {
+            var $self = $(this);
+            console.log("checked : ", $self);
+            console.log("Attr: ", $self.attr("checked"));
+            // If the option is already selected, deselect it.
+            // if( $self.is(':checked') ) {
+            if( $self.attr("checked") == 'checked' ) {
+                check_buttons[$self.attr("name")] = true;
+                console.log("SELF before: ", $self);
+                console.log("Is checked!");
+                // $self.attr("checked", false);
+                // setTimeout(function(){$self.removeAttr('checked');},100);
+                $self.prop("checked", false);
+                console.log("SELF after: ", $self);
+                // setTimeout(function(){$self.removeAttr('checked');},0);
+            }
+            else {
+                check_buttons[$self.attr("name")] = false;
+                console.log("Not checked!");
+                $self.prop("checked", true);
+            }
+        });
+
+        // $(".choiceRadio:checked").click(function() {
+        //     var $self = $(this);
+        //     console.log("SELF before: ", $self);
+        //     console.log("Is checked!");
+        //     $self.prop("checked", false);
+        // });
+        // $(".choiceRadio:not(checked)").click(function() {
+        //     var $self = $(this);
+        //     console.log("Is NOT checked!");
+        //     $self.prop("checked", true);
+        // });
+
+    });
+
+    // $(document).ready(function() {
+    //     var choiceMap = {};
+    //     var context = '{{ default_buttons|escapejs }}';
+    //     console.log("DJANGO: ", context);
+    //     JSON.parse(context);
+        
+
+    //     // context.forEach(element => {
+    //     //     console.log("Element: ", element)
+    //     // });
+
+    // });
+
+    // function changeState(select) {
+    //     console.log("Select: ", select);
+    //     console.log("Select ID: ", select.id);
+    //     const btn = document.querySelector(select.id);
+    //     // btn.style.color = btn.style.color == "black" ? "dodgerblue" : "black"
+    //     console.log(btn);
+    //     console.log(btn.style.color);
+    // };
+
+
+</script>
 {% endblock form %}
