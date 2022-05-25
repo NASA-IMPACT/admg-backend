@@ -933,19 +933,8 @@ class CollectionPeriod(BaseModel):
         help_text="DOI or URL for location of lists of instruments used on this platform for the deployment",
     )
 
-<<<<<<< HEAD
     notes_internal = models.TextField(default="", blank=True, help_text=NOTES_INTERNAL_HELP_TEXT)
     notes_public = models.TextField(default="", blank=True, help_text=NOTES_PUBLIC_HELP_TEXT)
-=======
-    notes_internal = models.TextField(
-        default="", blank=True, help_text="Free text notes for ADMG staff - not visible to public."
-    )
-    notes_public = models.TextField(
-        default="",
-        blank=True,
-        help_text="Free text notes on the deployment, this IS visible to public.",
-    )
->>>>>>> dev
 
     auto_generated = models.BooleanField()
 
