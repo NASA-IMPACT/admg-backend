@@ -9,7 +9,7 @@ from data_models.models import (
     Deployment,
     FocusArea,
     GcmdInstrument,
-    GcmdPhenomena,
+    GcmdPhenomenon,
     GcmdPlatform,
     GcmdProject,
     GeographicalRegion,
@@ -32,7 +32,7 @@ from .tables import ConditionalValueColumn, ShortNamefromUUIDColumn
 
 
 class LimitedTableBase(tables.Table):
-    long_name = tables.Column(verbose_name="Long name", accessor="long_name")
+    long_name = tables.Column(verbose_name="Long Name", accessor="long_name")
 
     initial_fields = ("short_name", "long_name")
 
@@ -111,7 +111,7 @@ class DOIPublishedTable(tables.Table):
         verbose_name="Concept ID",
         accessor="concept_id",
     )
-    long_name = tables.Column(verbose_name="Long name", accessor="long_name")
+    long_name = tables.Column(verbose_name="Long Name", accessor="long_name")
     campaigns = ShortNamefromUUIDColumn(
         verbose_name="Campaigns", model=Campaign, accessor="campaigns"
     )
@@ -473,11 +473,11 @@ class GcmdPlatformPublishedTable(LimitedTableBase):
         model = GcmdPlatform
 
 
-class GcmdPhenomenaPublishedTable(tables.Table):
+class GcmdPhenomenonPublishedTable(tables.Table):
     variable_3 = ConditionalValueColumn(
         linkify=(
             "published-detail",
-            dict(pk=tables.A("uuid"), model=camel_to_snake('GcmdPhenomena')),
+            dict(pk=tables.A("uuid"), model=camel_to_snake('GcmdPhenomenon')),
         ),
         verbose_name="Variable 3",
         accessor="short_name",
@@ -491,4 +491,4 @@ class GcmdPhenomenaPublishedTable(tables.Table):
     class Meta(LimitedTableBase.Meta):
         fields = ("variable_3", "variable_2", "variable_1", "term", "topic", "category")
         sequence = fields
-        model = GcmdPhenomena
+        model = GcmdPhenomenon

@@ -11,6 +11,9 @@ from django.db import models
 
 # TODO: Mv to config
 FRONTEND_URL = "https://airborne-inventory.surge.sh/"
+NOTES_INTERNAL_HELP_TEXT = "Free text notes for ADMG staff, this is NOT visible to the public."
+NOTES_PUBLIC_HELP_TEXT = "Free text notes, this IS visible to the public."
+UNIMPLEMENTED_HELP_TEXT = "*these will be images that would be either uploaded directly or URL to image would be provided...we don’t have this fully in curation process yet."
 
 
 def select_related_distinct_data(queryset, related_data_string):
@@ -73,14 +76,8 @@ class Image(BaseModel):
 class LimitedInfo(BaseModel):
     short_name = models.CharField(max_length=256, blank=False, unique=True)
     long_name = models.CharField(max_length=512, default="", blank=True)
-    notes_internal = models.TextField(
-        default="", blank=True, help_text="Free text notes for ADMG staff - not visible to public."
-    )
-    notes_public = models.TextField(
-        default="",
-        blank=True,
-        help_text="Free text notes on the deployment, this IS visible to public.",
-    )
+    notes_internal = models.TextField(default="", blank=True, help_text=NOTES_INTERNAL_HELP_TEXT)
+    notes_public = models.TextField(default="", blank=True, help_text=NOTES_PUBLIC_HELP_TEXT)
 
     class Meta:
         abstract = True
@@ -296,7 +293,7 @@ class GcmdPlatform(BaseModel):
         ordering = ("short_name",)
 
 
-class GcmdPhenomena(BaseModel):
+class GcmdPhenomenon(BaseModel):
     category = models.CharField(max_length=256)
     topic = models.CharField(max_length=256, blank=True, default="")
     term = models.CharField(max_length=256, blank=True, default="")
@@ -316,6 +313,9 @@ class GcmdPhenomena(BaseModel):
         )
         return create_gcmd_str(categories)
 
+    class Meta:
+        verbose_name_plural = "Phenomena"
+
 
 class Website(BaseModel):
     campaign = models.ForeignKey("Campaign", related_name="websites", on_delete=models.CASCADE)
@@ -325,9 +325,7 @@ class Website(BaseModel):
     url = models.URLField(max_length=1024)
     title = models.TextField(default="", blank=True)
     description = models.TextField(default="", blank=True)
-    notes_internal = models.TextField(
-        default="", blank=True, help_text="Free text notes for ADMG staff - not visible to public."
-    )
+    notes_internal = models.TextField(default="", blank=True, help_text=NOTES_INTERNAL_HELP_TEXT)
 
     def __str__(self):
         return self.title
@@ -673,10 +671,10 @@ class Instrument(DataModel):
         verbose_name="Facility Instrument Location",
         help_text="If Facility Instrument give location or put 'retired', otherwise N/A",
     )
-    gcmd_phenomenas = models.ManyToManyField(
-        GcmdPhenomena,
+    gcmd_phenomena = models.ManyToManyField(
+        GcmdPhenomenon,
         related_name="instruments",
-        verbose_name="Measurements / Variables from GCMD Science Keywords",
+        verbose_name="Measurements/Variables from GCMD Science Keywords",
         help_text="Select relevant measurements/variables items from GCMD Science Keywords for Earth Science",
     )
     funding_source = models.CharField(
@@ -782,21 +780,9 @@ class Deployment(DataModel):
     )
 
     spatial_bounds = geomodels.PolygonField(blank=True, null=True)
-    study_region_map = models.TextField(
-        default="",
-        blank=True,
-        help_text="*these will be images that would be either uploaded or URL to image provided...we don’t have this fully in curation process yet.",
-    )
-    ground_sites_map = models.TextField(
-        default="",
-        blank=True,
-        help_text="*these will be images that would be either uploaded or URL to image provided...we don’t have this fully in curation process yet.",
-    )
-    flight_tracks = models.TextField(
-        default="",
-        blank=True,
-        help_text="*these will be images that would be either uploaded or URL to image provided...we don’t have this fully in curation process yet.",
-    )
+    study_region_map = models.TextField(default="", blank=True, help_text=UNIMPLEMENTED_HELP_TEXT)
+    ground_sites_map = models.TextField(default="", blank=True, help_text=UNIMPLEMENTED_HELP_TEXT)
+    flight_tracks = models.TextField(default="", blank=True, help_text=UNIMPLEMENTED_HELP_TEXT)
 
     def __str__(self):
         return self.short_name
@@ -837,7 +823,7 @@ class IopSe(BaseModel):
         default="",
         blank=True,
         verbose_name="Science/Flight Reports",
-        help_text="DOI or URL for location of published IOP Science of Flight reports",
+        help_text="DOI or URL for location of published IOP Science or Flight reports",
     )
     reference_file = models.CharField(
         max_length=1024,
@@ -947,14 +933,8 @@ class CollectionPeriod(BaseModel):
         help_text="DOI or URL for location of lists of instruments used on this platform for the deployment",
     )
 
-    notes_internal = models.TextField(
-        default="", blank=True, help_text="Free text notes for ADMG staff - not visible to public."
-    )
-    notes_public = models.TextField(
-        default="",
-        blank=True,
-        help_text="Free text notes on the deployment, this IS visible to public.",
-    )
+    notes_internal = models.TextField(default="", blank=True, help_text=NOTES_INTERNAL_HELP_TEXT)
+    notes_public = models.TextField(default="", blank=True, help_text=NOTES_PUBLIC_HELP_TEXT)
 
     auto_generated = models.BooleanField()
 

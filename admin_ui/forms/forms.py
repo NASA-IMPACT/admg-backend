@@ -54,7 +54,7 @@ class TransitionForm(forms.Form):
             actions["claim"] = "Claim for Staff Review"
 
         if change.status in [Change.Statuses.IN_REVIEW]:
-            actions["reject"] = "Requires adjustments"
+            actions["reject"] = "Requires Adjustments"
 
         if change.status in [Change.Statuses.IN_REVIEW]:
             actions["unclaim"] = "Unassign Staff Reviewer"
@@ -64,7 +64,7 @@ class TransitionForm(forms.Form):
 
         if user.role == ADMIN_CODE:
             if change.status in [Change.Statuses.IN_ADMIN_REVIEW]:
-                actions["reject"] = "Requires adjustments"
+                actions["reject"] = "Requires Adjustments"
 
             if change.status in [Change.Statuses.AWAITING_ADMIN_REVIEW]:
                 actions["claim"] = "Claim for Admin Review"

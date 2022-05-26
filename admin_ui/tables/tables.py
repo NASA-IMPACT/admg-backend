@@ -140,7 +140,7 @@ class LimitedTableBase(DraftTableBase):
         linkify=("change-update", [tables.A("uuid")]),
     )
     long_name = ConditionalValueColumn(
-        verbose_name="Long name",
+        verbose_name="Long Name",
         accessor="update__long_name",
         update_accessor="content_object.long_name",
     )
@@ -659,7 +659,7 @@ class GcmdPlatformChangeListTable(DraftTableBase):
         sequence = all_fields
 
 
-class GcmdPhenomenaChangeListTable(DraftTableBase):
+class GcmdPhenomenonChangeListTable(DraftTableBase):
     variable_3 = ConditionalValueColumn(
         verbose_name="Variable 3",
         accessor="update__variable_3",
