@@ -44,8 +44,27 @@ from data_models.models import (
 from .. import forms, mixins, tables, utils, filters
 
 
+class GcmdCounts:
+    def get_gcmd_count(self):
+        return (
+            Change.objects.of_type(GcmdInstrument, GcmdPlatform, GcmdProject, GcmdPhenomena)
+            .select_related("content_type", "resolvedlist")
+            .filter(resolvedlist__submitted=False)
+            .count()
+        )
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context = {
+            **context,
+            "gcmd_changes_count": self.get_gcmd_count(),
+        }
+        print(f"CONTEXT DATA: {context}")
+        return context
+
+
 @method_decorator(login_required, name="dispatch")
-class SummaryView(django_tables2.SingleTableView):
+class SummaryView(GcmdCounts, django_tables2.SingleTableView):
     model = Change
     models = (Campaign, Platform, Instrument, PartnerOrg)
     table_class = tables.ChangeSummaryTable
@@ -244,7 +263,7 @@ class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context = {
+        return {
             **context,
             "transition_form": (
                 forms.TransitionForm(change=context["object"], user=self.request.user)
@@ -255,8 +274,6 @@ class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
             "ancestors": (context["object"].get_ancestors().select_related("content_type")),
             "descendents": (context["object"].get_descendents().select_related("content_type")),
         }
-        print(f"Context Data: {context}")
-        return context
 
     def get_model_form_content_type(self) -> ContentType:
         return self.object.content_type
@@ -446,7 +463,7 @@ def format_validation_error(err: ValidationError) -> str:
 
 
 @method_decorator(user_passes_test(lambda user: user.is_admg_admin()), name="dispatch")
-class GcmdSyncListView(SingleTableMixin, FilterView):
+class GcmdSyncListView(GcmdCounts, SingleTableMixin, FilterView):
     model = Change
     template_name = "api_app/change_list.html"
     filterset_class = filters.GcmdSyncFilter
@@ -491,6 +508,11 @@ class GcmdSyncListView(SingleTableMixin, FilterView):
                     functions.NullIf(KeyTextTransform('variable_2', 'update'), Value("")),
                     functions.NullIf(KeyTextTransform('variable_1', 'update'), Value("")),
                     functions.NullIf(KeyTextTransform('term', 'update'), Value("")),
+                    functions.NullIf(KeyTextTransform('short_name', 'previous'), Value("")),
+                    functions.NullIf(KeyTextTransform('variable_3', 'previous'), Value("")),
+                    functions.NullIf(KeyTextTransform('variable_2', 'previous'), Value("")),
+                    functions.NullIf(KeyTextTransform('variable_1', 'previous'), Value("")),
+                    functions.NullIf(KeyTextTransform('term', 'previous'), Value("")),
                 ),
                 # resolved_records=functions.Coalesce(SubqueryCount(resolved_records), Value(0)),
                 resolved_records=functions.Coalesce(SubqueryCount(resolved_records), Value(0)),
@@ -522,7 +544,7 @@ class GcmdSyncListView(SingleTableMixin, FilterView):
 
 
 @method_decorator(user_passes_test(lambda user: user.is_admg_admin()), name="dispatch")
-class ChangeGcmdUpdateView(UpdateView):
+class ChangeGcmdUpdateView(GcmdCounts, UpdateView):
     fields = ["content_type", "model_instance_uuid", "action", "update", "status"]
     prefix = "change"
     template_name = "api_app/change_gcmd.html"
@@ -548,6 +570,7 @@ class ChangeGcmdUpdateView(UpdateView):
             "gcmd_path": self.get_gcmd_path(),
             "affected_records": self.get_affected_records(),
             "back_button": self.get_back_button_url(),
+            "action": self.object.action,
             "ancestors": (context["object"].get_ancestors().select_related("content_type")),
             "descendents": (context["object"].get_descendents().select_related("content_type")),
         }
@@ -594,13 +617,18 @@ class ChangeGcmdUpdateView(UpdateView):
         def format_path_keys(attribute):
             return attribute.replace("_", " ").title()
 
+        def replace_empty_path_values(value):
+            return "[NO VALUE]" if value in ["", " "] else value
+
         def compare_gcmd_path_attribute(attribute, new_object, previous_object={}):
             return {
                 "key": format_path_keys(attribute),
-                "old_value": previous_object.get(attribute, '')
-                if previous_object is not {}
-                else '',
-                "new_value": new_object.get(attribute, ''),
+                "old_value": replace_empty_path_values(
+                    previous_object.get(attribute, "[NO VALUE]")
+                    if previous_object is not {}
+                    else '[NO VALUE]'
+                ),
+                "new_value": replace_empty_path_values(new_object.get(attribute, '')),
                 "has_changed": previous_object is {}
                 or new_object is {}
                 or not previous_object.get(attribute) == new_object.get(attribute),
@@ -613,16 +641,22 @@ class ChangeGcmdUpdateView(UpdateView):
             return {}
 
         # TODO: Use non-hardcoded value for "Update", "Delete", "Create"
-        if self.object.action in ["Update", "Delete"]:
+        if self.object.action == "Update":
             path["old_path"] = True
+            path["new_path"] = True
+        elif self.object.action == "Delete":
+            path["old_path"] = True
+            path["new_path"] = False
             # TODO: .get method should work for finding GCMD objects, but maybe add exception in case.
-            gcmd_object = content_type.objects.get(uuid=self.object.model_instance_uuid)
+            # gcmd_object = content_type.objects.get(uuid=self.object.model_instance_uuid)
         # The action is a Create so there isn't a gcmd_object or an old_path.
-        else:
+        elif self.object.action == "Create":
             path["old_path"] = False
-            gcmd_object = None
+            path["new_path"] = True
+            # gcmd_object = None
 
         path_order = path_order[content_type.__name__]
+        print(f"OLD OBJECT: {self.object.previous}")
         for attribute in path_order:
             path["path"].append(
                 compare_gcmd_path_attribute(attribute, self.object.update, self.object.previous)
@@ -784,5 +818,13 @@ class ChangeGcmdUpdateView(UpdateView):
                 recommendation.save()
             else:
                 print("Not done or a save!")
+
+        # After all connections are made, let's finally publish the keyword!
+        # TODO: Put this in a seperate function.
+        # TODO: Put notes in publish method.
+        # TODO: Maybe check to see if response is valid and maybe show user errors in any
+        if request.POST["user_button"] == "Save & Publish":
+            print(f"Request: {request}")
+            response = gcmd_change.publish(user=request.user)
 
         return HttpResponseRedirect(reverse("change-gcmd", args=[kwargs["pk"]]))

@@ -194,3 +194,20 @@ tr.affected-row {
   color: rgba(68, 63, 63, 0.64);
   text-indent: 15px;
 }
+
+input.submitButton {
+  background: #294060;
+  border-radius: 8px;
+  color: white;
+}
+
+input.right {
+  float: right;
+}
+
+.gcmd-notification {
+  color: white;
+  font-weight: 500;
+  background: red;
+  border-radius: 15px;
+}

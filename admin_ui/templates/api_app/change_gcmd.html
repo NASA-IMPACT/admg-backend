@@ -14,8 +14,8 @@
         {% endspaceless %}">
       &larr; Back
     </a>
-    {% if object.content_type.model == 'website' %}
-    <h1>{{ object.update.title | default:object.uuid }}</h1>
+    {% if action == 'Delete' %}
+    <h1>{{ object.previous.short_name | default:object.uuid }}</h1>
     {% else %}
     <h1>{{ object.update.short_name | default:object.uuid }}</h1>
     {% endif %}
@@ -83,19 +83,21 @@
 {% block form %}
 <br>
 <!-- New Path -->
-<p class="gcmd-label">New Path</p>
-<p class="gcmd-path">
-    {% for attribute in gcmd_path.path %}
-        <span style="color:{% if attribute.has_changed %} #D6311C {% else %} black {% endif %};">{{attribute.new_value}}</span>
-        {% if not forloop.last %} <span style="color: black;"> > </span> {% endif %}
-    {% endfor %}
-</p>
-<p class="gcmd-footer">
-    {% for attribute in gcmd_path.path %}
-        <span style="color:{% if attribute.has_changed %} #D6311C {% else %} rgba(68, 63, 63, 0.64) {% endif %};">{{attribute.key}}</span>
-        {% if not forloop.last %} <span style="color: black;"> > </span> {% endif %}
-    {% endfor %}
-</p>
+{% if gcmd_path.new_path %}
+  <p class="gcmd-label">New Path</p>
+  <p class="gcmd-path">
+      {% for attribute in gcmd_path.path %}
+          <span style="color:{% if attribute.has_changed %} #D6311C {% else %} black {% endif %};">{{attribute.new_value}}</span>
+          {% if not forloop.last %} <span style="color: black;"> > </span> {% endif %}
+      {% endfor %}
+  </p>
+  <p class="gcmd-footer">
+      {% for attribute in gcmd_path.path %}
+          <span style="color:{% if attribute.has_changed %} #D6311C {% else %} rgba(68, 63, 63, 0.64) {% endif %};">{{attribute.key}}</span>
+          {% if not forloop.last %} <span style="color: black;"> > </span> {% endif %}
+      {% endfor %}
+  </p>
+{% endif %}
 <!-- Old Path -->
 {% if gcmd_path.old_path %}
     <p class="gcmd-label">Old Path</p>
@@ -136,11 +138,11 @@
                         <td>
                             {% csrf_token %}
                             <!-- <input type="radio" id="ignoreChoice" checked="{{record.currentSelection.ignore}}"> -->
-                            <input type="radio" class="choiceRadio" id="connectChoice-{{record.row.uuid}}" name="choice-{{record.row.uuid}}" value="True" "{% if record.currentSelection.connect %} checked {% else %} {% endif %};">
+                            <input type="radio" class="choiceRadio" id="connectChoice-{{record.row.uuid}}" name="choice-{{record.row.uuid}}" value="True" "{% if record.currentSelection.connect %} checked {% else %} {% endif %};" "{% if action == 'Delete' %} disabled {% else %} {% endif %};">
                             <label for="connectChoice-{{record.row.short_name}}" class="review-button">Yes</button>
                             <!-- <button type="button" class="choiceRadio" id="connectChoice-{{record.row.short_name}}" name="choice-{{record.row.short_name}}" value="True" onclick="changeState(this)">Yes</button> -->
                             <!-- <input type="radio" id="connectChoice" checked="{{record.currentSelection.connect}}"> -->
-                            <input type="radio" class="choiceRadio" id="ignoreChoice-{{record.row.uuid}}" name="choice-{{record.row.uuid}}" value="False" "{% if record.currentSelection.ignore %} checked {% else %} {% endif %};">
+                            <input type="radio" class="choiceRadio" id="ignoreChoice-{{record.row.uuid}}" name="choice-{{record.row.uuid}}" value="False" "{% if record.currentSelection.ignore %} checked {% else %} {% endif %};" "{% if action == 'Delete' %} disabled {% else %} {% endif %};">
                             <label for="ignoreChoice-{{record.row.short_name}}" class="review-button">No</button>
                             <!-- <button type="button" class="choiceRadio" id="ignoreChoice-{{record.row.short_name}}" name="choice-{{record.row.short_name}}" value="True" onclick="changeState(this)">No</button> -->
                         </td>
@@ -159,9 +161,9 @@
                 <label for="related_uuids" class="review-button"></label>
             {% endwith %}
 
-            <input type="submit" id="saveButton" name="user_button" value="Save Progress">
+            <input type="submit" class="submitButton" id="saveButton" name="user_button" value="Save Progress">
             <!-- <label for="saveButton" class="review-button">Save</label> -->
-            <input type="submit" id="doneButton" name="user_button" value="Save & Publish">
+            <input type="submit" onclick="publishKeyword()" class="right submitButton" id="doneButton" name="user_button" value="Save & Publish">
             <!-- <label for="doneButton" class="review-button">Done</label> -->
 
             <!-- <input type="hidden" name="save_button">
@@ -242,6 +244,21 @@
     //     console.log(btn);
     //     console.log(btn.style.color);
     // };
+
+    function publishKeyword(event) {
+      console.log("Button Clicked!")
+      if (confirm("Confirm these changes? The GCMD Object and its relationships to CASEI objects will be published!") == true) {
+        console.log("User clicked 'ok'!");
+      }
+      else {
+        console.log("User clicked 'cancel'!");
+        event.preventDefault();
+      }
+      const btn = document.querySelector(event.id);
+      // btn.style.color = btn.style.color == "black" ? "dodgerblue" : "black"
+      console.log(btn);
+      console.log(btn.style.color);
+    };
 
 
 </script>

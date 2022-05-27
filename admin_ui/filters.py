@@ -131,12 +131,11 @@ class GcmdSyncFilter(django_filters.FilterSet):
         choices=Change.Statuses.choices,
         label="Status",
     )
-    gcmd_type = django_filters.ModelMultipleChoiceFilter(
-        field_name='content_type',
-        # to_field_name='model',
-        # lookup_type='in',
-        queryset=ContentType.objects.filter(model__startswith="gcmd"),
-    )
+    # TODO: Uncomment after demo
+    # gcmd_type = django_filters.ModelMultipleChoiceFilter(
+    #     field_name='content_type',
+    #     queryset=ContentType.objects.filter(model__startswith="gcmd"),
+    # )
     # TODO: Make sure this is the best way to filter on keyword.
     short_name = django_filters.CharFilter(
         label="Keyword", field_name="short_name", lookup_expr='icontains'

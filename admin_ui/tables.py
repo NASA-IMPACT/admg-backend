@@ -140,10 +140,11 @@ class ShortNamefromUUIDLinkColumn(ShortNamefromUUIDColumn, DraftLinkColumn):
         self.model = model
 
 
+# TODO: Change this back
 class DraftTableBase(tables.Table):
     draft_action = tables.Column(verbose_name="Draft Action", accessor="action")
     status = tables.Column(verbose_name="Status", accessor="status")
-    updated_at = tables.DateTimeColumn(verbose_name="Last Edit Date")
+    # updated_at = tables.DateTimeColumn(verbose_name="Last Edit Date")
 
     final_fields = ("draft_action", "status", "updated_at")
 
@@ -154,8 +155,10 @@ class DraftTableBase(tables.Table):
             "thead": {"class": "table-primary"},
             "th": {"style": "min-width: 10em"},
         }
-        fields = ("draft_action", "status", "updated_at")
-        sequence = ("draft_action", "status", "updated_at")
+        # fields = ("draft_action", "status", "updated_at")
+        # sequence = ("draft_action", "status", "updated_at")
+        fields = ("draft_action", "status")
+        fields = ("draft_action", "status")
 
 
 class LimitedTableBase(DraftTableBase):
