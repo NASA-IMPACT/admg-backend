@@ -20,4 +20,3 @@ class Migration(migrations.Migration):
             convert_phenomenas_to_phenomena, reverse_code=migrations.RunPython.noop
         )
     ]
-
