@@ -2,8 +2,9 @@ import logging
 import uuid
 
 from typing import Dict, Optional, Set, Union, Type
-# TODO: Take out actions 
-from api_app.models import Change, CREATE, UPDATE, DELETE, PATCH, IN_ADMIN_REVIEW_CODE 
+
+# TODO: Take out actions
+from api_app.models import Change, CREATE, UPDATE, DELETE, PATCH, IN_ADMIN_REVIEW_CODE
 from django.contrib.contenttypes.models import ContentType
 from django.forms.models import model_to_dict
 from data_models import models
@@ -41,7 +42,9 @@ def convert_concept(record: dict, model: Type[Models]) -> dict:
     elif model == models.GcmdPlatform:
         record["category"] = record.pop("Basis")
         record["series_entry"] = record.pop("Category")
-        record.pop("Sub_Category")                             # Not currently in use by GCMD (left blank for all values) also not in database so skipping for now.
+        record.pop(
+            "Sub_Category"
+        )  # Not currently in use by GCMD (left blank for all values) also not in database so skipping for now.
         # record["sub_category"] = record.pop("Sub_Category")
         # record["series_entry"] = record.pop("Series_Entity") # This is the conversion we did on old GCMD csv.
     elif model == models.GcmdPhenomena:
@@ -53,7 +56,6 @@ def convert_concept(record: dict, model: Type[Models]) -> dict:
     return record
 
 
-# TODO: Figure out what type row should be!
 def compare_record_with_concept(row: Models, concept: dict) -> bool:
     row_dict = model_to_dict(row)
     row_dict["gcmd_uuid"] = str(row_dict["gcmd_uuid"])
@@ -67,13 +69,25 @@ def delete_old_records(uuids: Set[str], model: Models) -> None:
             create_change({"gcmd_uuid": str(row.gcmd_uuid)}, model, DELETE, row.uuid)
 
 
-def get_change(concept: dict, model: Models, action: Actions, model_uuid: Optional[str]) -> Union[Change, None]:
+def get_change(
+    concept: dict, model: Models, action: Actions, model_uuid: Optional[str]
+) -> Union[Change, None]:
     content_type = get_content_type(model)
     try:
         if action in [CREATE] or model_uuid is None:
-            return Change.objects.get(content_type=content_type, action=action, update__gcmd_uuid=concept["gcmd_uuid"], status__lte=IN_ADMIN_REVIEW_CODE)
+            return Change.objects.get(
+                content_type=content_type,
+                action=action,
+                update__gcmd_uuid=concept["gcmd_uuid"],
+                status__lte=IN_ADMIN_REVIEW_CODE,
+            )
         else:
-            return Change.objects.get(content_type=content_type, action=action, model_instance_uuid=model_uuid, status__lte=IN_ADMIN_REVIEW_CODE)
+            return Change.objects.get(
+                content_type=content_type,
+                action=action,
+                model_instance_uuid=model_uuid,
+                status__lte=IN_ADMIN_REVIEW_CODE,
+            )
     except Change.DoesNotExist:
         return None
 
@@ -87,14 +101,32 @@ def create_change(concept: dict, model: Models, action: Actions, model_uuid: Opt
             change_object.save()
     else:
         if action is CREATE:
-            change_object = Change(content_type=get_content_type(model),update=concept,action=action)
-            logger.info(f"Row and change record didn't exist, creating new 'CREATE' change record '{change_object}'")
+            change_object = Change(
+                content_type=get_content_type(model), update=concept, action=action
+            )
+            logger.info(
+                f"Row and change record didn't exist, creating new 'CREATE' change record '{change_object}'"
+            )
         elif action is UPDATE:
-            change_object = Change(content_type=get_content_type(model),update=concept,model_instance_uuid=model_uuid,action=action)
-            logger.info(f"Row '{concept['gcmd_uuid']}' found with mismatching contents and change record not found, creating new 'UPDATE' change record '{change_object}'")
+            change_object = Change(
+                content_type=get_content_type(model),
+                update=concept,
+                model_instance_uuid=model_uuid,
+                action=action,
+            )
+            logger.info(
+                f"Row '{concept['gcmd_uuid']}' found with mismatching contents and change record not found, creating new 'UPDATE' change record '{change_object}'"
+            )
         elif action is DELETE:
-            change_object = Change(content_type=get_content_type(model),update={},model_instance_uuid=model_uuid,action=action)
-            logger.info(f"Row '{concept['gcmd_uuid']}' found that isn't in GCMD API, creating 'DELETE' change record '{change_object}'")
+            change_object = Change(
+                content_type=get_content_type(model),
+                update={},
+                model_instance_uuid=model_uuid,
+                action=action,
+            )
+            logger.info(
+                f"Row '{concept['gcmd_uuid']}' found that isn't in GCMD API, creating 'DELETE' change record '{change_object}'"
+            )
         change_object.save()
 
 
@@ -117,9 +149,13 @@ def is_valid_uuid(uuid_str: str, version: str = 4) -> bool:
 
 def is_valid_concept(record: dict, model: Models) -> bool:
     if model == models.GcmdProject:
-        return is_valid_value(record.get("Short_Name"),record.get("Bucket")) and is_valid_uuid(record.get("UUID"))
+        return is_valid_value(record.get("Short_Name"), record.get("Bucket")) and is_valid_uuid(
+            record.get("UUID")
+        )
     elif model == models.GcmdInstrument:
-        return is_valid_value(record.get("Short_Name"),record.get("Class")) and is_valid_uuid(record.get("UUID"))
+        return is_valid_value(record.get("Short_Name"), record.get("Class")) and is_valid_uuid(
+            record.get("UUID")
+        )
     elif model == models.GcmdPlatform:
         return is_valid_value(record.get("Short_Name")) and is_valid_uuid(record.get("UUID"))
     elif model == models.GcmdPhenomena:

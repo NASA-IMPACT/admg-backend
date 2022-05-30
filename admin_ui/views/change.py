@@ -763,6 +763,8 @@ class ChangeGcmdUpdateView(GcmdCounts, UpdateView):
         # TODO: Remove import and clean up method
         import ast
 
+        print(f"\nRequest: {request.POST}\n")
+
         gcmd_change = self.get_object()
         resolved_list = ResolvedList.objects.get(change_id=gcmd_change.uuid)
         choices = {
@@ -775,7 +777,8 @@ class ChangeGcmdUpdateView(GcmdCounts, UpdateView):
             recommendation = Recommendation.objects.get(
                 object_uuid=valid_uuid, resolved_log=resolved_list
             )
-            if request.POST["user_button"] == "Save Progress":
+            if request.POST["user_button"] == "Save":
+                print("Post request is for Save")
                 if choices.get(valid_uuid) is None:
                     recommendation.result = None
                 elif choices.get(valid_uuid) == "True":
@@ -784,7 +787,8 @@ class ChangeGcmdUpdateView(GcmdCounts, UpdateView):
                     recommendation.result = False
                 recommendation.save()
 
-            elif request.POST["user_button"] == "Save & Publish":
+            elif request.POST["user_button"] == "Publish":
+                print("Post request is for Publish")
                 content_type = gcmd_change.content_type.model_class().__name__
                 casei_object = self.get_casei_object(valid_uuid, content_type)
                 gcmd_keyword = gcmd_change._get_model_instance()
@@ -817,13 +821,13 @@ class ChangeGcmdUpdateView(GcmdCounts, UpdateView):
                 casei_object.save()
                 recommendation.save()
             else:
-                print("Not done or a save!")
+                print("Post request is not Save or Publish!")
 
         # After all connections are made, let's finally publish the keyword!
         # TODO: Put this in a seperate function.
         # TODO: Put notes in publish method.
         # TODO: Maybe check to see if response is valid and maybe show user errors in any
-        if request.POST["user_button"] == "Save & Publish":
+        if request.POST["user_button"] == "Publish":
             print(f"Request: {request}")
             response = gcmd_change.publish(user=request.user)
 

@@ -139,11 +139,11 @@
                             {% csrf_token %}
                             <!-- <input type="radio" id="ignoreChoice" checked="{{record.currentSelection.ignore}}"> -->
                             <input type="radio" class="choiceRadio" id="connectChoice-{{record.row.uuid}}" name="choice-{{record.row.uuid}}" value="True" "{% if record.currentSelection.connect %} checked {% else %} {% endif %};" "{% if action == 'Delete' %} disabled {% else %} {% endif %};">
-                            <label for="connectChoice-{{record.row.short_name}}" class="review-button">Yes</button>
+                            <label for="connectChoice-{{record.row.short_name}}" class="review-button">Yes</label>
                             <!-- <button type="button" class="choiceRadio" id="connectChoice-{{record.row.short_name}}" name="choice-{{record.row.short_name}}" value="True" onclick="changeState(this)">Yes</button> -->
                             <!-- <input type="radio" id="connectChoice" checked="{{record.currentSelection.connect}}"> -->
                             <input type="radio" class="choiceRadio" id="ignoreChoice-{{record.row.uuid}}" name="choice-{{record.row.uuid}}" value="False" "{% if record.currentSelection.ignore %} checked {% else %} {% endif %};" "{% if action == 'Delete' %} disabled {% else %} {% endif %};">
-                            <label for="ignoreChoice-{{record.row.short_name}}" class="review-button">No</button>
+                            <label for="ignoreChoice-{{record.row.short_name}}" class="review-button">No</label>
                             <!-- <button type="button" class="choiceRadio" id="ignoreChoice-{{record.row.short_name}}" name="choice-{{record.row.short_name}}" value="True" onclick="changeState(this)">No</button> -->
                         </td>
                         <!-- <form action="{% url 'change-gcmd' object.uuid %}" method="post">
@@ -161,9 +161,9 @@
                 <label for="related_uuids" class="review-button"></label>
             {% endwith %}
 
-            <input type="submit" class="submitButton" id="saveButton" name="user_button" value="Save Progress">
+            <button type="submit" class="submit-button" id="saveButton" name="user_button" value="Save">Save Progress</button>
             <!-- <label for="saveButton" class="review-button">Save</label> -->
-            <input type="submit" onclick="publishKeyword()" class="right submitButton" id="doneButton" name="user_button" value="Save & Publish">
+            <button type="submit" class="right submit-button" id="doneButton" name="user_button" value="Publish">Save & Publish</button>
             <!-- <label for="doneButton" class="review-button">Done</label> -->
 
             <!-- <input type="hidden" name="save_button">
@@ -209,6 +209,23 @@
             }
         });
 
+        // Submit button conformation
+        $("#doneButton").click(function(event) {
+          confirm_response = confirm("Confirm these changes? The GCMD Object and its relationships to CASEI objects will be published!");
+          console.log("Confirm Results: ", confirm_response);
+          console.log("Confirm Event: ", event);
+          if (confirm_response == true) {
+            $('#connectionForm').submit();
+            console.log("User clicked 'ok'!");
+          }
+          else {
+            event.preventDefault();
+            console.log("User clicked 'cancel'!");
+            console.log("Event Default: ", Object.keys(event));
+            return false;
+          }
+        });
+
         // $(".choiceRadio:checked").click(function() {
         //     var $self = $(this);
         //     console.log("SELF before: ", $self);
@@ -245,21 +262,26 @@
     //     console.log(btn.style.color);
     // };
 
-    function publishKeyword(event) {
-      console.log("Button Clicked!")
-      if (confirm("Confirm these changes? The GCMD Object and its relationships to CASEI objects will be published!") == true) {
-        console.log("User clicked 'ok'!");
-      }
-      else {
-        console.log("User clicked 'cancel'!");
-        event.preventDefault();
-      }
-      const btn = document.querySelector(event.id);
-      // btn.style.color = btn.style.color == "black" ? "dodgerblue" : "black"
-      console.log(btn);
-      console.log(btn.style.color);
-    };
-
+    // function publishKeyword(event) {
+    //   console.log("Button Clicked!");
+    //   confirm_response = confirm("Confirm these changes? The GCMD Object and its relationships to CASEI objects will be published!");
+    //   console.log("Confirm Results: ", confirm_response);
+    //   console.log("Confirm Event: ", event);
+    //   if (confirm_response == true) {
+    //     $('#connectionForm').submit();
+    //     console.log("User clicked 'ok'!");
+    //   }
+    //   else {
+    //     // event.preventDefault();
+    //     console.log("User clicked 'cancel'!");
+    //     console.log("Event Default: ", Object.keys(event));
+    //     return false;
+    //   }
+    //   const btn = document.querySelector(event.id);
+    //   // btn.style.color = btn.style.color == "black" ? "dodgerblue" : "black"
+    //   console.log(btn);
+    //   console.log(btn.style.color);
+    // };
 
 </script>
 {% endblock form %}

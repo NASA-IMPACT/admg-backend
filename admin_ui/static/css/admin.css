@@ -195,13 +195,13 @@ tr.affected-row {
   text-indent: 15px;
 }
 
-input.submitButton {
+button.submit-button {
   background: #294060;
   border-radius: 8px;
   color: white;
 }
 
-input.right {
+button.right {
   float: right;
 }
 
