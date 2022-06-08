@@ -2,11 +2,11 @@
 
 This is an adapted version of an ADR to document interface design decisions
 
-+ **Status:** developed | Technical Story: #297
++ **Status:** developed | Technical Story: [#297](https://github.com/NASA-IMPACT/admg-backend/issues/297)
 + **Deciders:** Heidi Mok, John Hedman, Anthony Lukach, Stephanie Wingo, Deborah Smith, Shelby Bagwell, Carson Davis
 + **Date:** 2022-05-31
 
-**Design Story:** #234
+**Design Story:** [#234](https://github.com/NASA-IMPACT/admg-backend/issues/234)
 
 
 ## Broader Project Summary
