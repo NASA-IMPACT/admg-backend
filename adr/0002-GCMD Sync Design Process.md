@@ -10,10 +10,10 @@ This is an adapted version of an ADR to document interface design decisions
 
 
 ## Broader Project Summary
-The Airborne Data Management Group (ADMG) curates and distributes metadata for field operations conducted by the Earth Science Project Office (ESPO). ADMG wants to make it easier for scientists to access this data by creating an inventory of standardizing campaign metadata and a single search interface. Previous to the interface, data collection was managed in a massive Google Sheet and the IMPACT dev team imported it into the database. Development Seed helped build a search interface called CASEI and a maintenance interface (MI) where the inventory team can add new campaigns of metadata. 
+The Airborne Data Management Group (ADMG) curates and distributes metadata for field operations conducted by the Earth Science Project Office (ESPO). ADMG wants to make it easier for scientists to find and access this data by creating an inventory of standardizing campaign metadata and a single search interface (publically accessabile). Previous to the maintenance interface (requires login credentials), data collection was managed in a massive Google Sheet and the IMPACT dev team imported it into the database. Development Seed helped build the public search interface called CASEI and the CASEI maintenance interface (MI, restricted access) where the inventory team can add new campaigns of metadata. 
 
 ## Context and Problem Statement
-Sometimes keywords being searched in CASEI get out of sync from NASA’s GCMD database (a keyword management system). [GCMD keywords](https://www.earthdata.nasa.gov/learn/find-data/idn/gcmd-keywords) are a hierarchical set of controlled Earth Science vocabularies that help ensure Earth science data, services, and variables are described in a consistent and comprehensive manner. We wanted to make sure that CASEI was using the same keywords as the GCMD database so we built a back end tool ([#216](https://github.com/NASA-IMPACT/admg-backend/pull/216)) that does a GCMD sync. This runs a job to fetch and compare instruments in our system with the GCMD database, then creates results of differences between records, and outputs a new draft record. However, there was nowhere on the maintenance interface to allow admins to review keyword changes and resolve any affected records.
+Sometimes the GCMD keywords available in CASEI get out of sync from NASA’s GCMD database (a keyword management system). [GCMD keywords](https://www.earthdata.nasa.gov/learn/find-data/idn/gcmd-keywords) are a hierarchical set of controlled Earth Science vocabularies that help ensure Earth science data, services, and variables are described in a consistent and comprehensive manner. The GCMD keywords are reviewed and updated from time to time, with new versions including additions, deletions, and modifications of keywords from previous versions. We wanted to make sure that CASEI was using the most current GCMD keywords as possible, so we built a back end tool ([#216](https://github.com/NASA-IMPACT/admg-backend/pull/216)) that does a GCMD sync. This runs a job to fetch and compare keyword lists in our system with the GCMD database, then creates results of differences between records, and outputs a new draft record. However, there was nowhere on the maintenance interface to allow admins to review keyword changes and resolve any affected records.
 
 ![GCMDKeywordViewer](https://user-images.githubusercontent.com/10764915/172685673-b12a33d0-cddc-40a2-9b25-a4cfcba6c104.png)
 _Image of the GCMD Keyword Viewer_
@@ -30,7 +30,7 @@ _Image of the GCMD Keyword Viewer_
 
 ## Project Considerations
 + **New members.** New Development Seed members working on this — Heidi and John.
-+ **Cross-project sharing.** Other NASA Impact Teams will potentially want to reuse aspects of this solution because GCMD syncs are going to affect other projects.
++ **Cross-project sharing.** Other NASA IMPACT Teams will potentially want to reuse aspects of this solution because GCMD syncs are going to affect other projects.
 
 ## Decision Drivers
 + **Scope** - Working within the existing maintenance interface as of today and not redesigning broader aspects of the MI beyond what’s needed for GCMD. 
@@ -67,7 +67,7 @@ _Image of the GCMD Keyword Viewer_
 
 **Get notified about keyword changes**
 
-After each sync, an email will be sent to admins of CASEI (admg@uah.edu). The email will include three sections each type of GCMD change: modified, deleted, or new changes.
+After each sync, an email will be sent to admins of CASEI (admg@uah.edu). The email will include three sections, one for each type of GCMD change: modified, deleted, or new changes.
 
 ![Solution-EmailNotification](https://user-images.githubusercontent.com/10764915/172690936-c9864012-205d-43e1-8178-4af1cd64e42a.png)
 
