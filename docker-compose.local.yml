@@ -13,6 +13,8 @@ services:
       - 8890:8888 # allows use of django shell notebooks during local development
     env_file:
       - ./.env
+    environment:
+      - MIGRATE=true
     depends_on:
       - db
 
@@ -45,6 +47,8 @@ services:
     restart: on-failure
     env_file:
       - ./.env
+    environment:
+      - MIGRATE=false
     depends_on:
       - web
       - rabbitmq

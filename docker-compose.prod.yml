@@ -13,6 +13,8 @@ services:
       - 8000
     env_file:
       - .env
+    environment:
+      - MIGRATE=true
 
   nginx-proxy:
     container_name: nginx-proxy
@@ -63,6 +65,8 @@ services:
     restart: on-failure
     env_file:
       - .env
+    environment:
+      - MIGRATE=false
     depends_on:
       - web
       - rabbitmq
