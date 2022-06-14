@@ -158,7 +158,7 @@ class DraftTableBase(tables.Table):
         # fields = ("draft_action", "status", "updated_at")
         # sequence = ("draft_action", "status", "updated_at")
         fields = ("draft_action", "status")
-        fields = ("draft_action", "status")
+        sequence = ("draft_action", "status")
 
 
 class LimitedTableBase(DraftTableBase):

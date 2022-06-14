@@ -249,7 +249,34 @@ class PartnerOrg(LimitedInfoPriority):
         pass
 
 
-class GcmdProject(BaseModel):
+# TODO: Use this or get rid of it!
+class GcmdKeyword(BaseModel):
+    def _get_casei_model(self):
+        keyword_to_casei_map = {
+            "gcmdproject": Campaign,
+            "gcmdplatform": Platform,
+            "gcmdinstrument": Instrument,
+            "gcmdphenomena": Instrument,
+        }
+        return keyword_to_casei_map[self.__class__.__name__.lower()]
+
+    def _get_casei_attribute(self):
+        keyword_to_casei_map = {
+            "gcmdproject": "gcmd_projects",
+            "gcmdplatform": "gcmd_platforms",
+            "gcmdinstrument": "gcmd_instruments",
+            "gcmdphenomena": "gcmd_phenomenas",
+        }
+        return keyword_to_casei_map[self.__class__.__name__.lower()]
+
+    casei_model = property(_get_casei_model)
+    casei_attribute = property(_get_casei_attribute)
+
+    class Meta:
+        abstract = True
+
+
+class GcmdProject(GcmdKeyword):
     short_name = models.CharField(max_length=256, blank=True, default="")
     long_name = models.CharField(max_length=512, blank=True, default="")
     bucket = models.CharField(max_length=256)
@@ -263,7 +290,7 @@ class GcmdProject(BaseModel):
         ordering = ("short_name",)
 
 
-class GcmdInstrument(BaseModel):
+class GcmdInstrument(GcmdKeyword):
     short_name = models.CharField(max_length=256, blank=True, default="")
     long_name = models.CharField(max_length=512, blank=True, default="")
     # these make more sense without 'instrument', however class and type are
@@ -289,7 +316,7 @@ class GcmdInstrument(BaseModel):
         ordering = ("short_name",)
 
 
-class GcmdPlatform(BaseModel):
+class GcmdPlatform(GcmdKeyword):
     short_name = models.CharField(max_length=256, blank=True, default="")
     long_name = models.CharField(max_length=512, blank=True, default="")
     category = models.CharField(max_length=256)
@@ -305,7 +332,7 @@ class GcmdPlatform(BaseModel):
         ordering = ("short_name",)
 
 
-class GcmdPhenomena(BaseModel):
+class GcmdPhenomena(GcmdKeyword):
     category = models.CharField(max_length=256)
     topic = models.CharField(max_length=256, blank=True, default="")
     term = models.CharField(max_length=256, blank=True, default="")

@@ -15,15 +15,15 @@
       &larr; Back
     </a>
     {% if action == 'Delete' %}
-    <h1>{{ object.previous.short_name | default:object.uuid }}</h1>
+    <h1>{{ short_name | default:object.uuid }}</h1>
     {% else %}
-    <h1>{{ object.update.short_name | default:object.uuid }}</h1>
+    <h1>{{ short_name | default:object.uuid }}</h1>
     {% endif %}
   </div>
 {% endblock header %}
 
 {% block actions %}
-  <div class="px-1">
+  <!-- <div class="px-1">
     {% include "snippets/approval_dropdown.html" %}
   </div>
 
@@ -43,7 +43,7 @@
     >
       Validate
     </button>
-  </div>
+  </div> -->
 {% endblock actions %}
 
 {% block main %}
@@ -98,6 +98,7 @@
       {% endfor %}
   </p>
 {% endif %}
+
 <!-- Old Path -->
 {% if gcmd_path.old_path %}
     <p class="gcmd-label">Old Path</p>
@@ -114,6 +115,7 @@
         {% endfor %}
     </p>
 {% endif %}
+
 <hr style="height:2px;border-width:0;color:gray;background-color:gray">
 <p class="gcmd-label">Recommended GCMD Keyword Changes</p>
 <p>We have found {{affected_records | length }} potentially affected record(s)</p>
@@ -138,11 +140,11 @@
                         <td>
                             {% csrf_token %}
                             <!-- <input type="radio" id="ignoreChoice" checked="{{record.currentSelection.ignore}}"> -->
-                            <input type="radio" class="choiceRadio" id="connectChoice-{{record.row.uuid}}" name="choice-{{record.row.uuid}}" value="True" "{% if record.currentSelection.connect %} checked {% else %} {% endif %};" "{% if action == 'Delete' %} disabled {% else %} {% endif %};">
+                            <input type="radio" class="choiceRadio" id="connect-{{record.row.short_name}}" name="choice-{{record.row.uuid}}" value="True" required "{% if record.currentSelection.connect %} checked {% else %} {% endif %}" "{% if action == 'Delete' %} disabled {% else %} {% endif %}">
                             <label for="connectChoice-{{record.row.short_name}}" class="review-button">Yes</label>
                             <!-- <button type="button" class="choiceRadio" id="connectChoice-{{record.row.short_name}}" name="choice-{{record.row.short_name}}" value="True" onclick="changeState(this)">Yes</button> -->
                             <!-- <input type="radio" id="connectChoice" checked="{{record.currentSelection.connect}}"> -->
-                            <input type="radio" class="choiceRadio" id="ignoreChoice-{{record.row.uuid}}" name="choice-{{record.row.uuid}}" value="False" "{% if record.currentSelection.ignore %} checked {% else %} {% endif %};" "{% if action == 'Delete' %} disabled {% else %} {% endif %};">
+                            <input type="radio" class="choiceRadio" id="ignore-{{record.row.short_name}}" name="choice-{{record.row.uuid}}" value="False" required "{% if record.currentSelection.ignore %} checked {% else %} {% endif %}" "{% if action == 'Delete' %} disabled {% else %} {% endif %}">
                             <label for="ignoreChoice-{{record.row.short_name}}" class="review-button">No</label>
                             <!-- <button type="button" class="choiceRadio" id="ignoreChoice-{{record.row.short_name}}" name="choice-{{record.row.short_name}}" value="True" onclick="changeState(this)">No</button> -->
                         </td>
@@ -161,9 +163,9 @@
                 <label for="related_uuids" class="review-button"></label>
             {% endwith %}
 
-            <button type="submit" class="submit-button" id="saveButton" name="user_button" value="Save">Save Progress</button>
+            <button class="submit-button" id="saveButton" name="user_button" value="Save">Save Progress</button>
             <!-- <label for="saveButton" class="review-button">Save</label> -->
-            <button type="submit" class="right submit-button" id="doneButton" name="user_button" value="Publish">Save & Publish</button>
+            <button type="submit" class="right-side submit-button" id="doneButton" name="user_button" value="Publish">Save & Publish</button>
             <!-- <label for="doneButton" class="review-button">Done</label> -->
 
             <!-- <input type="hidden" name="save_button">
@@ -177,111 +179,96 @@
 <!-- TODO: Figure out if this jquery import is needed! -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
 <script type="text/javascript">
-    $(document).ready(function() {
-        var check_buttons = {}
-        console.log("Check Buttons created!!!");
-        $(".choiceRadio").each(function(index) {
-            console.log($(this).attr("id"), ": ", $(this).attr("checked"));
-            check_buttons[$(this).attr("id")] = $(this).attr("checked");
-        });
-        console.log("Check Buttons: ", check_buttons);
+  // TODO: Probably better way to solve this!
+  function convertBool(bool) {
+    return bool !== undefined;
+  }
+  function getOtherChoice(choice) {
+    var choiceType = choice.attr("id").split('-')[0];
+    if (choiceType === "connect") {
+      return choice.attr("id").replace("connect", "ignore");
+    }
+    else if (choiceType === "ignore") {
+      return choice.attr("id").replace("ignore", "connect");
+    }
+  }
 
-        $(".choiceRadio").click(function() {
-            var $self = $(this);
-            console.log("checked : ", $self);
-            console.log("Attr: ", $self.attr("checked"));
-            // If the option is already selected, deselect it.
-            // if( $self.is(':checked') ) {
-            if( $self.attr("checked") == 'checked' ) {
-                check_buttons[$self.attr("name")] = true;
-                console.log("SELF before: ", $self);
-                console.log("Is checked!");
-                // $self.attr("checked", false);
-                // setTimeout(function(){$self.removeAttr('checked');},100);
-                $self.prop("checked", false);
-                console.log("SELF after: ", $self);
-                // setTimeout(function(){$self.removeAttr('checked');},0);
-            }
-            else {
-                check_buttons[$self.attr("name")] = false;
-                console.log("Not checked!");
-                $self.prop("checked", true);
-            }
-        });
+  // TODO: Get rid of logging messages!
+  $(document).ready(function() {
+    var check_buttons = {}
+    $(".choiceRadio").each(function(index) {
+        check_buttons[$(this).attr("id")] = convertBool($(this).attr("checked"));
+    });
+    // console.log("Check Buttons: ", check_buttons);
 
-        // Submit button conformation
-        $("#doneButton").click(function(event) {
-          confirm_response = confirm("Confirm these changes? The GCMD Object and its relationships to CASEI objects will be published!");
-          console.log("Confirm Results: ", confirm_response);
-          console.log("Confirm Event: ", event);
-          if (confirm_response == true) {
-            $('#connectionForm').submit();
-            console.log("User clicked 'ok'!");
-          }
-          else {
-            event.preventDefault();
-            console.log("User clicked 'cancel'!");
-            console.log("Event Default: ", Object.keys(event));
-            return false;
-          }
-        });
+    // Deselectable radio buttons
+    $(".choiceRadio").click(function(event) {
+      console.log($(this).attr("id"), " Current Selection: ", check_buttons[$(this).attr("id")]);
+      var otherID = getOtherChoice($(this));
+      check_buttons[otherID] = false;
+      var $otherChoice = $('#'+otherID).prop("checked", false);
 
-        // $(".choiceRadio:checked").click(function() {
-        //     var $self = $(this);
-        //     console.log("SELF before: ", $self);
-        //     console.log("Is checked!");
-        //     $self.prop("checked", false);
-        // });
-        // $(".choiceRadio:not(checked)").click(function() {
-        //     var $self = $(this);
-        //     console.log("Is NOT checked!");
-        //     $self.prop("checked", true);
-        // });
-
+      // If the option is already selected, deselect it.
+      if( check_buttons[$(this).attr("id")] ) {
+        $(this).prop("checked", false);
+        check_buttons[$(this).attr("id")] = false;
+      }
+      else {
+        $(this).prop("checked", true);
+        check_buttons[$(this).attr("id")] = true;
+      }
     });
 
-    // $(document).ready(function() {
-    //     var choiceMap = {};
-    //     var context = '{{ default_buttons|escapejs }}';
-    //     console.log("DJANGO: ", context);
-    //     JSON.parse(context);
-        
+    // TODO: Get rid of logging
+    // Form validation for 'Save % Publish' button
+    $("#doneButton").click(function(event) {
+      $("input.choiceRadio").each(function(index) {
+        $choice = $(this);
+        // console.log("Choice: ", $choice);
+        // console.log("Choice validity: ", $choice.prop("validity").valid);
+        // console.log("Choice type: ", $choice.prop("validity"));
+        if (!$choice.prop("validity").valid){
+          // console.log("Found invalid input: ", $choice);
+          // console.log("CHICE GET: ", $choice.get(0));
+          $choice.reportValidity();
+          return false;
+        }
+        else{
+          // console.log("Choice ", $choice, " is valid!");
+        }
+      });
 
-    //     // context.forEach(element => {
-    //     //     console.log("Element: ", element)
-    //     // });
+      // Submit button conformation
+      confirm_response = confirm("Confirm these changes? The GCMD Object and its relationships to CASEI objects will be published!");
+      // console.log("Confirm Results: ", confirm_response);
+      // console.log("Confirm Event: ", event);
+      if (confirm_response == true) {
+        $('#connectionForm').submit();
+        console.log("User clicked 'ok'!");
+      }
+      else {
+        event.preventDefault();
+        console.log("User clicked 'cancel'!");
+        // console.log("Event Default: ", Object.keys(event));
+        return false;
+      }
+    });
 
-    // });
+    $("#saveButton").click(function(event) {
+      // event.preventDefault();
+      // $form = $('#connectionForm');
+      // console.log("Form: ", $form);
+      // $('#connectionForm').data('button', this.name);
+      console.log("Form Submitter: ", event.target);
+      console.log("Save Event: ", event);
+      $('#connectionForm').submit();
+    });
 
-    // function changeState(select) {
-    //     console.log("Select: ", select);
-    //     console.log("Select ID: ", select.id);
-    //     const btn = document.querySelector(select.id);
-    //     // btn.style.color = btn.style.color == "black" ? "dodgerblue" : "black"
-    //     console.log(btn);
-    //     console.log(btn.style.color);
-    // };
-
-    // function publishKeyword(event) {
-    //   console.log("Button Clicked!");
-    //   confirm_response = confirm("Confirm these changes? The GCMD Object and its relationships to CASEI objects will be published!");
-    //   console.log("Confirm Results: ", confirm_response);
-    //   console.log("Confirm Event: ", event);
-    //   if (confirm_response == true) {
-    //     $('#connectionForm').submit();
-    //     console.log("User clicked 'ok'!");
-    //   }
-    //   else {
-    //     // event.preventDefault();
-    //     console.log("User clicked 'cancel'!");
-    //     console.log("Event Default: ", Object.keys(event));
-    //     return false;
-    //   }
-    //   const btn = document.querySelector(event.id);
-    //   // btn.style.color = btn.style.color == "black" ? "dodgerblue" : "black"
-    //   console.log(btn);
-    //   console.log(btn.style.color);
-    // };
-
+    // TODO: Fix so that empty values don't show warning before page is reloaded.
+    $('#connectionForm').submit(function(event) {
+      console.log("Form Submit Events: ", event);
+      // event.preventDefault();
+    });    
+  });
 </script>
 {% endblock form %}
