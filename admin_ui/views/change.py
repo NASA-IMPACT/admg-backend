@@ -668,63 +668,71 @@ class ChangeGcmdUpdateView(GcmdCounts, UpdateView):
         casei_model = gcmd.get_casei_model(content_type)
         return casei_model.objects.get(uuid=uuid)
 
+    def process_choice(self, choice_uuid, decision_dict, request_type="Save"):
+        gcmd_change = self.get_object()
+        change_action = gcmd_change.action
+        print(f"Change Action: {change_action}")
+        recommendation = Recommendation.objects.get(
+            object_uuid=choice_uuid, resolved_log=self.resolved_list
+        )
+
+        if change_action == Change.Actions.DELETE or decision_dict.get(choice_uuid) == "False":
+            recommendation.result = False
+        elif decision_dict.get(choice_uuid) == "True":
+            recommendation.result = True
+        elif decision_dict.get(choice_uuid) is None:
+            recommendation.result = None
+        recommendation.save()
+
+        # print("POST REQUEST: ", request.POST)
+        if request_type == "Publish":
+            print("Post request is for Publish")
+            content_type = gcmd_change.content_type.model_class().__name__
+            casei_object = self.get_casei_object(choice_uuid, content_type)
+            gcmd_keyword = gcmd_change._get_model_instance()
+            keyword_set = gcmd.get_casei_keyword_set(casei_object, content_type)
+            # print(f"KEYWORD CONTENT TYPE: {type(content_type)}, {content_type}")
+            # print(f"Keyword Set: {type(keyword_set)}, {keyword_set}")
+
+            if change_action == Change.Actions.DELETE or decision_dict.get(choice_uuid) == "False":
+                recommendation.result = False
+                keyword_set.remove(gcmd_keyword)
+            elif decision_dict.get(choice_uuid) == "True":
+                recommendation.result = True
+                keyword_set.add(gcmd_keyword)
+
+            # Change Resolved list to "Submitted" and save all database changes.
+            self.resolved_list.save()
+            casei_object.save()
+            recommendation.save()
+
+    # TODO: Put notes in publish method.
+    # TODO: Maybe check to see if response is valid and maybe show user errors in any
+    def publish_keyword(self, request):
+        gcmd_change = self.get_object()
+        self.resolved_list.submitted = True
+        self.resolved_list.save()
+        # Publish the keyword, Create keywords are automatically "Published" so skip them.
+        if not gcmd_change.action == Change.Actions.CREATE:
+            response = gcmd_change.publish(user=request.user)
+
     # TODO: Clean this method up.
     def post(self, request, **kwargs):
         # TODO: Remove import and clean up method
         import ast
 
         gcmd_change = self.get_object()
-        resolved_list = ResolvedList.objects.get(change_id=gcmd_change.uuid)
+        self.resolved_list = ResolvedList.objects.get(change_id=gcmd_change.uuid)
         choices = {
             x.replace("choice-", ""): request.POST[x]
             for x in request.POST
             if x.startswith("choice-")
         }
         for valid_uuid in ast.literal_eval(request.POST["related_uuids"]):
-            recommendation = Recommendation.objects.get(
-                object_uuid=valid_uuid, resolved_log=resolved_list
-            )
+            self.process_choice(valid_uuid, choices, request.POST.get("user_button", "Save"))
 
-            if choices.get(valid_uuid) is None:
-                recommendation.result = None
-            elif choices.get(valid_uuid) == "True":
-                recommendation.result = True
-            elif choices.get(valid_uuid) == "False":
-                recommendation.result = False
-            recommendation.save()
-
-            # print("POST REQUEST: ", request.POST)
-            if request.POST.get("user_button") == "Publish":
-                print("Post request is for Publish")
-                content_type = gcmd_change.content_type.model_class().__name__
-                casei_object = self.get_casei_object(valid_uuid, content_type)
-                gcmd_keyword = gcmd_change._get_model_instance()
-                keyword_set = gcmd.get_casei_keyword_set(casei_object, content_type)
-                # print(f"KEYWORD CONTENT TYPE: {type(content_type)}, {content_type}")
-                # print(f"Keyword Set: {type(keyword_set)}, {keyword_set}")
-
-                if choices.get(valid_uuid) == "True":
-                    recommendation.result = True
-                    keyword_set.add(gcmd_keyword)
-
-                elif choices.get(valid_uuid) == "False":
-                    recommendation.result = False
-                    keyword_set.remove(gcmd_keyword)
-
-                # Change Resolved list to "Submitted" and save all database changes.
-                resolved_list.save()
-                casei_object.save()
-                recommendation.save()
-
-        # After all connections are made, let's finally publish the keyword!
-        # TODO: Put this in a seperate function.
-        # TODO: Put notes in publish method.
-        # TODO: Maybe check to see if response is valid and maybe show user errors in any
+        # After all connections are made (or ignored), let's finally publish the keyword!
         if request.POST.get("user_button") == "Publish":
-            resolved_list.submitted = True
-            resolved_list.save()
-            # Publish the keyword, Create keywords are automatically "Published" so skip them.
-            if not gcmd_change.action == Change.Actions.CREATE:
-                response = gcmd_change.publish(user=request.user)
+            self.publish_keyword(request)
 
         return HttpResponseRedirect(reverse("change-gcmd", args=[kwargs["pk"]]))

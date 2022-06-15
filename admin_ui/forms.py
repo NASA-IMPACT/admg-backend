@@ -79,11 +79,13 @@ class TransitionForm(forms.Form):
         return actions.items()
 
 
+# TODO: Get rid of this, not needed anymore!
 class KeywordTransitionForm(TransitionForm):
     # TODO: Write more for docstring.
     """
     Form to assist in transitioning a GCMD Keyword Change model.
     """
+
     @staticmethod
     def get_supported_actions(change: Change, user: User):
         actions = OrderedDict()
@@ -124,6 +126,11 @@ class KeywordTransitionForm(TransitionForm):
             #     )
 
         return actions.items()
+
+
+class GcmdKeywordForm(forms.Form):
+    pass
+    # affected_name = forms.
 
 
 class DoiForm(forms.Form):

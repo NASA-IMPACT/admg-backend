@@ -805,7 +805,12 @@ class Recommendation(models.Model):
     object_uuid = models.UUIDField()
     parent_fk = GenericForeignKey("content_type", "object_uuid")
     result = models.BooleanField(verbose_name="Was the CASEI object connected?", null=True)
-    resolved_log = models.ForeignKey(ResolvedList, on_delete=models.CASCADE)
+    submitted = models.BooleanField(
+        verbose_name="Has the user published their result?", blank=False, default=False
+    )
+    # resolved_list = models.ForeignKey(ResolvedList, on_delete=models.CASCADE)
+
+    # change = models.OneToOneField(Change, on_delete=models.CASCADE, null=True)
 
 
 from django.db.models import aggregates, functions, OuterRef, Value, Subquery

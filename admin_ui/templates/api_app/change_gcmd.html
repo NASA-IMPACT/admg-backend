@@ -14,11 +14,7 @@
         {% endspaceless %}">
       &larr; Back
     </a>
-    {% if action == 'Delete' %}
     <h1>{{ short_name | default:object.uuid }}</h1>
-    {% else %}
-    <h1>{{ short_name | default:object.uuid }}</h1>
-    {% endif %}
   </div>
 {% endblock header %}
 
@@ -86,94 +82,78 @@
 {% if gcmd_path.new_path %}
   <p class="gcmd-label">New Path</p>
   <p class="gcmd-path">
-      {% for attribute in gcmd_path.path %}
-          <span style="color:{% if attribute.has_changed %} #D6311C {% else %} black {% endif %};">{{attribute.new_value}}</span>
-          {% if not forloop.last %} <span style="color: black;"> > </span> {% endif %}
-      {% endfor %}
+    {% for attribute in gcmd_path.path %}
+      <span style="color:{% if attribute.has_changed %} #D6311C {% else %} black {% endif %};">{{attribute.new_value}}</span>
+      {% if not forloop.last %} <span style="color: black;"> > </span> {% endif %}
+    {% endfor %}
   </p>
   <p class="gcmd-footer">
-      {% for attribute in gcmd_path.path %}
-          <span style="color:{% if attribute.has_changed %} #D6311C {% else %} rgba(68, 63, 63, 0.64) {% endif %};">{{attribute.key}}</span>
-          {% if not forloop.last %} <span style="color: black;"> > </span> {% endif %}
-      {% endfor %}
+    {% for attribute in gcmd_path.path %}
+      <span style="color:{% if attribute.has_changed %} #D6311C {% else %} rgba(68, 63, 63, 0.64) {% endif %};">{{attribute.key}}</span>
+      {% if not forloop.last %} <span style="color: black;"> > </span> {% endif %}
+    {% endfor %}
   </p>
 {% endif %}
 
 <!-- Old Path -->
 {% if gcmd_path.old_path %}
-    <p class="gcmd-label">Old Path</p>
-    <p class="gcmd-path">
-        {% for attribute in gcmd_path.path %}
-            <span style="color:{% if attribute.has_changed %} #D6311C {% else %} black {% endif %};">{{attribute.old_value}}</span>
-            {% if not forloop.last %} <span style="color: black;"> > </span> {% endif %}
-        {% endfor %}
-    </p>
-    <p class="gcmd-footer">
-        {% for attribute in gcmd_path.path %}
-            <span style="color:{% if attribute.has_changed %} #D6311C {% else %} rgba(68, 63, 63, 0.64) {% endif %};">{{attribute.key}}</span>
-            {% if not forloop.last %} <span style="color: black;"> > </span> {% endif %}
-        {% endfor %}
-    </p>
+  <p class="gcmd-label">Old Path</p>
+  <p class="gcmd-path">
+    {% for attribute in gcmd_path.path %}
+      <span style="color:{% if attribute.has_changed %} #D6311C {% else %} black {% endif %};">{{attribute.old_value}}</span>
+      {% if not forloop.last %} <span style="color: black;"> > </span> {% endif %}
+    {% endfor %}
+  </p>
+  <p class="gcmd-footer">
+    {% for attribute in gcmd_path.path %}
+      <span style="color:{% if attribute.has_changed %} #D6311C {% else %} rgba(68, 63, 63, 0.64) {% endif %};">{{attribute.key}}</span>
+      {% if not forloop.last %} <span style="color: black;"> > </span> {% endif %}
+    {% endfor %}
+  </p>
 {% endif %}
 
 <hr style="height:2px;border-width:0;color:gray;background-color:gray">
 <p class="gcmd-label">Recommended GCMD Keyword Changes</p>
 <p>We have found {{affected_records | length }} potentially affected record(s)</p>
-    {% if affected_records %}
-        <form action="{% url 'change-gcmd' object.uuid %}" method="post" id="connectionForm">
-            <table class="affected-table">
-                <tr class="affected-row">
-                    <th>Affected Record</th>
-                    <th>Category</th>
-                    <th>Status</th>
-                    <th>Previously Associated</th>
-                    <th>Associate With Keyword</th>
-                </tr>
-                {% for record in affected_records %}
-                    <tr>
-                        <!-- TODO: href should follow {% url 'some-url-name' arg arg2 as the_url %} -->
-                            <td><a href="{{record.link}}">{{record.row.short_name}}</a></td>
-                        </a>
-                        <td>{{record.category}}</td>
-                        <td>{{record.status}}</td>
-                        <td>{{record.is_connected}}</td>
-                        <td>
-                            {% csrf_token %}
-                            <!-- <input type="radio" id="ignoreChoice" checked="{{record.currentSelection.ignore}}"> -->
-                            <input type="radio" class="choiceRadio" id="connect-{{record.row.short_name}}" name="choice-{{record.row.uuid}}" value="True" required "{% if record.currentSelection.connect %} checked {% else %} {% endif %}" "{% if action == 'Delete' %} disabled {% else %} {% endif %}">
-                            <label for="connectChoice-{{record.row.short_name}}" class="review-button">Yes</label>
-                            <!-- <button type="button" class="choiceRadio" id="connectChoice-{{record.row.short_name}}" name="choice-{{record.row.short_name}}" value="True" onclick="changeState(this)">Yes</button> -->
-                            <!-- <input type="radio" id="connectChoice" checked="{{record.currentSelection.connect}}"> -->
-                            <input type="radio" class="choiceRadio" id="ignore-{{record.row.short_name}}" name="choice-{{record.row.uuid}}" value="False" required "{% if record.currentSelection.ignore %} checked {% else %} {% endif %}" "{% if action == 'Delete' %} disabled {% else %} {% endif %}">
-                            <label for="ignoreChoice-{{record.row.short_name}}" class="review-button">No</label>
-                            <!-- <button type="button" class="choiceRadio" id="ignoreChoice-{{record.row.short_name}}" name="choice-{{record.row.short_name}}" value="True" onclick="changeState(this)">No</button> -->
-                        </td>
-                        <!-- <form action="{% url 'change-gcmd' object.uuid %}" method="post">
-                            {% csrf_token %}
-                            <input type="hidden" name="related_uuid" value="{{record.row.uuid}}">
-                            <button class="review-button">Mark Reviewed</button>
-                        </form> -->
-                        <!-- <td><button class="review-button">Mark Reviewed</button></td> -->
-                    </tr>
-                    <br>
-                {% endfor %}
-            </table>
-            {% with affected_records|last as last %}
-                <input type="hidden" name="related_uuids" value="{{last.uuids}}">
-                <label for="related_uuids" class="review-button"></label>
-            {% endwith %}
+  {% if affected_records %}
+    <form action="{% url 'change-gcmd' object.uuid %}" method="post" id="connectionForm">
+      <table class="affected-table">
+        <tr class="affected-row">
+          <th>Affected Record</th>
+          <th>Category</th>
+          <th>Status</th>
+          <th>Previously Associated</th>
+          <th>Associate With Keyword</th>
+        </tr>
+        {% for record in affected_records %}
+          <tr>
+            <!-- TODO: href should follow {% url 'some-url-name' arg arg2 as the_url %} -->
+              <td><a href="{{record.link}}">{{record.row.short_name}}</a></td>
+            </a>
+            <td>{{record.category}}</td>
+            <td>{{record.status}}</td>
+            <td>{{record.is_connected}}</td>
+            <td>
+              {% csrf_token %}
+              <!-- Connect/Ignore radio buttons -->
+              <input type="radio" class="choiceRadio" id="connect-{{record.row.short_name}}" name="choice-{{record.row.uuid}}" value="True" required "{% if record.currentSelection.connect %} checked {% else %} {% endif %}" "{% if action == 'Delete' %} disabled {% else %} {% endif %}">
+              <label for="connectChoice-{{record.row.short_name}}" class="review-button">Yes</label>
+              <input type="radio" class="choiceRadio" id="ignore-{{record.row.short_name}}" name="choice-{{record.row.uuid}}" value="False" required "{% if record.currentSelection.ignore %} checked {% else %} {% endif %}" "{% if action == 'Delete' %} disabled {% else %} {% endif %}">
+              <label for="ignoreChoice-{{record.row.short_name}}" class="review-button">No</label>
+            </td>
+          </tr>
+          <br>
+        {% endfor %}
+      </table>
+      {% with affected_records|last as last %}
+        <input type="hidden" name="related_uuids" value="{{last.uuids}}">
+        <label for="related_uuids" class="review-button"></label>
+      {% endwith %}
 
-            <button class="submit-button" id="saveButton" name="user_button" value="Save">Save Progress</button>
-            <!-- <label for="saveButton" class="review-button">Save</label> -->
-            <button type="submit" class="right-side submit-button" id="doneButton" name="user_button" value="Publish">Save & Publish</button>
-            <!-- <label for="doneButton" class="review-button">Done</label> -->
-
-            <!-- <input type="hidden" name="save_button">
-            <button name="saveButton" value="save" class="review-button">Save</button>
-            <input type="hidden" name="done_button">
-            <button name="doneButton" value="done" class="review-button">Done</button> -->
-        </form>
-    {% endif %}
+      <button class="submit-button" id="saveButton" name="user_button" value="Save">Save Progress</button>
+      <button type="submit" class="right-side submit-button" id="doneButton" name="user_button" value="Publish">Save & Publish</button>
+    </form>
+  {% endif %}
 
 
 <!-- TODO: Figure out if this jquery import is needed! -->
