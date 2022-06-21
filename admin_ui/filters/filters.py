@@ -5,7 +5,7 @@ from data_models.models import DOI, CollectionPeriod
 from django.contrib.contenttypes.models import ContentType
 from django.db.models.query_utils import Q
 
-from .filter_utils import (
+from .utils import (
     CampaignFilter,
     default_filter_configs,
     get_draft_campaigns,
@@ -25,7 +25,7 @@ def GenericDraftFilter(model_name, filter_configs=default_filter_configs):
     class GenericFilterClass(django_filters.FilterSet):
         class Meta:
             model = Change
-            fields = ["status"]
+            fields = ["action", "status"]
 
     for config in filter_configs:
         GenericFilterClass.base_filters[config["field_name"]] = django_filters.CharFilter(

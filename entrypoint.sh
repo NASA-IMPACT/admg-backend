@@ -8,9 +8,12 @@ then
     done
     echo "PostgreSQL started"
 fi
-echo "Running migrate and collectstatic..."
-python manage.py migrate
-python manage.py collectstatic --no-input
-python manage.py migrate sites
+
+if [ "$MIGRATE" = "true" ] ; then
+    echo "Running migrate and collectstatic..."
+    python manage.py migrate
+    python manage.py collectstatic --no-input
+    python manage.py migrate sites
+fi
 
 exec "$@"

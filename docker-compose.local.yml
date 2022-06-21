@@ -13,22 +13,24 @@ services:
       - 8890:8888 # allows use of django shell notebooks during local development
     env_file:
       - ./.env
+    environment:
+      - MIGRATE=true
     depends_on:
       - db
 
   db:
-    image: postgis
+    image: postgis/postgis
     volumes:
       - postgres_data:/var/lib/postgresql/data
     environment:
-      - POSTGRES_USER=alukach
-      - POSTGRES_PASSWORD=lukach
-      - POSTGRES_DB=postgres
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=admg_webapp
 
   rabbitmq:
     container_name: rabbitmq
     hostname: rabbitmq
-    image: amd64/rabbitmq:latest
+    image: rabbitmq:latest
     ports:
       - "5672:5672"
     restart: on-failure
@@ -45,6 +47,8 @@ services:
     restart: on-failure
     env_file:
       - ./.env
+    environment:
+      - MIGRATE=false
     depends_on:
       - web
       - rabbitmq

@@ -10,10 +10,7 @@ from data_models.tests import factories
 from ..models import ApprovalLog, Change
 
 @pytest.mark.django_db
-@pytest.mark.parametrize(
-    "factory",
-    factories.DATAMODELS_FACTORIES,
-)
+@pytest.mark.parametrize("factory", factories.DATAMODELS_FACTORIES)
 class TestChange:
     @staticmethod
     def dump_logs(change):
@@ -347,7 +344,7 @@ class TestChange:
         "significant_event",
         "partner_org",
         "collection_period",
-        "gcmd_phenomena",
+        "gcmd_phenomenon",
         "gcmd_project",
         "gcmd_platform",
         "gcmd_instrument",
@@ -356,19 +353,14 @@ class TestChange:
 )
 class TestApi:
     def test_get(self, client, endpoint):
-        response = client.get(
-            f"/api/{endpoint}",
-            headers={"Content-Type": "application/json"},
-        )
+        response = client.get(f"/api/{endpoint}", headers={"Content-Type": "application/json"})
         assert response.status_code == 200
         response_dict = response.json()
         assert response_dict == {"success": True, "message": "", "data": []}
 
     def test_post_arent_public(self, client, endpoint):
         response = client.post(
-            f"/api/{endpoint}",
-            data={},
-            headers={"Content-Type": "application/json"},
+            f"/api/{endpoint}", data={}, headers={"Content-Type": "application/json"}
         )
         assert response.status_code == 401
         response_dict = response.json()

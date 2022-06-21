@@ -10,8 +10,12 @@
 </div>
 
 <div class="col-auto">
+<<<<<<< HEAD
   {% if model %}
   <a class="btn btn-primary" href="{% url 'change-add' model %}">
+=======
+  <a class="btn btn-primary" href="{% url 'change-add' view_model %}">
+>>>>>>> dev
     Add New {{ display_name }} +
   </a>
   {% endif %}
@@ -27,6 +31,7 @@
         <button class="btn btn-secondary btn-sm">Filter</button>
         <a 
           class="btn btn-light btn-sm" 
+<<<<<<< HEAD
           href="{% spaceless %}
             {% if model == "campaign" %}{% url 'campaign-list-draft' %}
             {% elif model == "platform" %}{% url 'platform-list-draft' %}
@@ -35,6 +40,10 @@
             {% else %}{% url 'review_changes-list-draft' %}
             {% endif %}
           {% endspaceless %}">
+=======
+          href="{% url 'change-list' view_model %}"
+        >
+>>>>>>> dev
           Clear filters
         </a>
       </form>

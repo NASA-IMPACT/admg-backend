@@ -4,12 +4,9 @@ import django_tables2
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.contenttypes.models import ContentType
-from django.db.models import aggregates, functions, OuterRef, Value, Subquery
+from django.db.models import aggregates, functions, OuterRef, Value, Count
 from django.db.models.fields.json import KeyTextTransform
-from django.db.models import IntegerField, Count, F, Q
-from django.db.utils import ProgrammingError
-
-from django.http import Http404, HttpResponseRedirect
+from django.http import Http404, HttpResponseBadRequest, HttpResponseRedirect
 from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.utils.safestring import mark_safe
@@ -22,6 +19,7 @@ from rest_framework.serializers import ValidationError
 
 from admin_ui.config import MODEL_CONFIG_MAP
 from api_app.models import ApprovalLog, Change, Recommendation, SubqueryCount
+from api_app.urls import camel_to_snake
 from data_models.models import (
     IOP,
     Alias,
@@ -131,7 +129,11 @@ class CampaignDetailView(DetailView):
         context = super().get_context_data(**kwargs)
         deployments = (
             Change.objects.of_type(Deployment)
-            .filter(update__campaign=str(self.kwargs[self.pk_url_kwarg]))
+            .filter(
+                update__campaign=str(
+                    context['object'].model_instance_uuid or self.kwargs[self.pk_url_kwarg]
+                )
+            )
             .prefetch_approvals()
             .order_by(self.get_ordering())
         )
@@ -164,6 +166,8 @@ class CampaignDetailView(DetailView):
 
         return {
             **context,
+            # By setting the model name, our nav sidebar knows to highlight the link for campaigns
+            'model_name': 'campaign',
             "deployments": deployments,
             "transition_form": forms.TransitionForm(
                 change=context["object"], user=self.request.user
@@ -188,7 +192,7 @@ class CampaignDetailView(DetailView):
 
 
 @method_decorator(login_required, name="dispatch")
-class ChangeCreateView(mixins.ChangeModelFormMixin, CreateView):
+class ChangeCreateView(mixins.DynamicModelMixin, mixins.ChangeModelFormMixin, CreateView):
     model = Change
     fields = ["content_type", "model_instance_uuid", "action", "update"]
     template_name = "api_app/change_create.html"
@@ -218,11 +222,11 @@ class ChangeCreateView(mixins.ChangeModelFormMixin, CreateView):
     def get_model_form_content_type(self) -> ContentType:
         if not hasattr(self, "model_form_content_type"):
             try:
-                self.model_form_content_type = ContentType.objects.get(
-                    app_label="data_models", model__iexact=self.kwargs["model"]
+                self.model_form_content_type = ContentType.objects.get_for_model(
+                    MODEL_CONFIG_MAP[self._model_name]['model']
                 )
-            except ContentType.DoesNotExist as e:
-                raise Http404(f'Unsupported model type: {self.kwargs["model"]}') from e
+            except (KeyError, ContentType.DoesNotExist) as e:
+                raise Http404(f'Unsupported model type: {self._model_name}') from e
         return self.model_form_content_type
 
     def get_model_form_intial(self):
@@ -254,11 +258,7 @@ class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
     )
 
     def get_success_url(self):
-        url = (
-            reverse("change-diff", args=[self.object.pk])
-            if self.object.action == Change.Actions.UPDATE
-            else reverse("change-update", args=[self.object.pk])
-        )
+        url = reverse("change-update", args=[self.object.pk])
         if self.request.GET.get("back"):
             return f'{url}?back={self.request.GET["back"]}'
         return url
@@ -271,16 +271,45 @@ class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
                 forms.TransitionForm(change=context["object"], user=self.request.user)
             ),
             "campaign_subitems": ["Deployment", "IOP", "SignificantEvent", "CollectionPeriod"],
-            "related_fields": self.get_related_fields(),
-            "back_button": self.get_back_button_url(),
-            "ancestors": (context["object"].get_ancestors().select_related("content_type")),
-            "descendents": (context["object"].get_descendents().select_related("content_type")),
+            "related_fields": self._get_related_fields(),
+            "view_model": camel_to_snake(self.get_model_form_content_type().model_class().__name__),
+            "ancestors": context["object"].get_ancestors().select_related("content_type"),
+            "descendents": context["object"].get_descendents().select_related("content_type"),
+            "comparison_form": self._get_comparison_form(context['model_form']),
         }
+
+    def _get_comparison_form(self, model_form):
+        """
+        Generates a disabled form for the published model, used for generating
+        a diff view.
+        """
+        if self.object.action != self.object.Actions.UPDATE:
+            return None
+
+        published_form = self.destination_model_form(
+            instance=self.object.content_object, auto_id="readonly_%s"
+        )
+
+        # if published or trashed then the old data doesn't need to be from the database, it
+        # needs to be from the previous field of the change_object
+        if self.object.is_locked:
+            for key, val in self.object.previous.items():
+                published_form.initial[key] = val
+
+        comparison_obj = self.object.previous if self.object.is_locked else self.object.update
+        for field_name in comparison_obj:
+            if not utils.compare_values(
+                published_form[field_name].value(), model_form[field_name].value()
+            ):
+                attrs = model_form.fields[field_name].widget.attrs
+                attrs["class"] = f"{attrs.get('class', '')} changed-item".strip()
+
+        return utils.disable_form_fields(published_form)
 
     def get_model_form_content_type(self) -> ContentType:
         return self.object.content_type
 
-    def get_related_fields(self) -> Dict:
+    def _get_related_fields(self) -> Dict:
         related_fields = {}
         content_type = self.get_model_form_content_type().model_class().__name__
         if content_type in ["Campaign", "Platform", "Deployment", "Instrument", "PartnerOrg"]:
@@ -300,125 +329,56 @@ class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
     def get_model_form_intial(self):
         return self.object.update
 
-    def get_back_button_url(self):
-        """
-        In the case where the back button returns the user to the table view for that model type, specify
-        which table view the user should be redirected to.
-        """
-        content_type = self.get_model_form_content_type().model_class().__name__
-        button_mapping = {
-            "Platform": "platform-list-draft",
-            "Instrument": "instrument-list-draft",
-            "PartnerOrg": "partner_org-list-draft",
-            "GcmdProject": "gcmd_project-list-draft",
-            "GcmdInstrument": "gcmd_instrument-list-draft",
-            "GcmdPlatform": "gcmd_platform-list-draft",
-            "GcmdPhenomena": "gcmd_phenomena-list-draft",
-            "FocusArea": "focus_area-list-draft",
-            "GeophysicalConcept": "geophysical_concept-list-draft",
-            "MeasurementRegion": "measurement_region-list-draft",
-            "MeasurementStyle": "measurement_style-list-draft",
-            "MeasurementType": "measurement_type-list-draft",
-            "HomeBase": "home_base-list-draft",
-            "PlatformType": "platform_type-list-draft",
-            "GeographicalRegion": "geographical_region-season-list-draft",
-            "Season": "season-season-list-draft",
-            "Website": "website-list-draft",
-            "WebsiteType": "website_type-list-draft",
-            "Repository": "repository-list-draft",
-        }
-        return button_mapping.get(content_type, "summary")
-
     def post(self, *args, **kwargs):
         """
         Handle POST requests: instantiate a form instance with the passed
         POST variables and then check if it's valid.
         """
         self.object = self.get_object()
+        if self.object.status == Change.Statuses.PUBLISHED:
+            return HttpResponseBadRequest("Unable to submit published records.")
         return super().post(*args, **kwargs)
 
 
 @method_decorator(login_required, name="dispatch")
-class DiffView(ChangeUpdateView):
+class ChangeListView(mixins.DynamicModelMixin, SingleTableMixin, FilterView):
     model = Change
-    template_name = "api_app/change_diff.html"
+    template_name = "api_app/change_list.html"
 
-    def _compare_forms_and_format(self, updated_form, original_form, field_names_to_compare):
-        for field_name in field_names_to_compare:
-            if not utils.compare_values(
-                original_form[field_name].value(), updated_form[field_name].value()
-            ):
-                attrs = updated_form.fields[field_name].widget.attrs
-                attrs["class"] = f"{attrs.get('class', '')} changed-item".strip()
+    def dispatch(self, *args, **kwargs):
+        if self._model_config["admin_required_to_view"]:
+            authorization_level = user_passes_test(lambda user: user.is_admg_admin())
+        else:
+            authorization_level = login_required
+        return authorization_level(super().dispatch)(*args, **kwargs)
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        destination_model_instance = context["object"].content_object
+    def get_table_class(self):
+        return self._model_config["change_list_table"]
 
-        published_form = self.destination_model_form(
-            instance=destination_model_instance, auto_id="readonly_%s"
+    def get_filterset_class(self):
+        return self._model_config["draft_filter"]
+
+    def get_queryset(self):
+        queryset = (
+            Change.objects.of_type(self._model_config['model'])
+            .add_updated_at()
+            .order_by("-updated_at")
         )
-        is_published_or_trashed = (
-            context["object"].status == Change.Statuses.PUBLISHED
-            or context["object"].status == Change.Statuses.IN_TRASH
-        )
 
-        # if published or trashed then the old data doesn't need to be from the database, it
-        # needs to be from the previous field of the change_object
-        if is_published_or_trashed:
-            for key, val in context["object"].previous.items():
-                published_form.initial[key] = val
-
-            self._compare_forms_and_format(
-                context["model_form"], published_form, context["object"].previous
+        if self._model_config['model'] == Platform:
+            return queryset.annotate_from_relationship(
+                of_type=PlatformType, uuid_from="platform_type", to_attr="platform_type_name"
             )
         else:
-            self._compare_forms_and_format(
-                context["model_form"], published_form, context["object"].update
-            )
+            return queryset
 
+    def get_context_data(self, **kwargs):
         return {
-            **context,
-            "noneditable_published_form": utils.disable_form_fields(published_form),
-            "disable_save": is_published_or_trashed,
+            **super().get_context_data(**kwargs),
+            "url_name": self._model_config["singular_snake_case"],
+            "view_model": self._model_name,
+            "display_name": self._model_config["display_name"],
         }
-
-
-def generate_base_list_view(model_name):
-    if MODEL_CONFIG_MAP[model_name]["admin_required_to_view"]:
-        authorization_level = user_passes_test(lambda user: user.is_admg_admin())
-    else:
-        authorization_level = login_required
-
-    @method_decorator(authorization_level, name="dispatch")
-    class BaseListView(SingleTableMixin, FilterView):
-        model = Change
-        template_name = "api_app/change_list.html"
-        filterset_class = MODEL_CONFIG_MAP[model_name]["draft_filter"]
-        table_class = MODEL_CONFIG_MAP[model_name]["change_list_table"]
-        linked_model = MODEL_CONFIG_MAP[model_name]["model"]
-
-        def get_queryset(self):
-            queryset = (
-                Change.objects.of_type(self.linked_model).add_updated_at().order_by("-updated_at")
-            )
-
-            if self.linked_model == Platform:
-                return queryset.annotate_from_relationship(
-                    of_type=PlatformType, uuid_from="platform_type", to_attr="platform_type_name"
-                )
-            else:
-                return queryset
-
-        def get_context_data(self, **kwargs):
-            return {
-                **super().get_context_data(**kwargs),
-                "url_name": MODEL_CONFIG_MAP[model_name]["singular_snake_case"],
-                "model": self.linked_model._meta.model_name,
-                "display_name": MODEL_CONFIG_MAP[model_name]["display_name"],
-            }
-
-    return BaseListView.as_view()
 
 
 @method_decorator(login_required, name="dispatch")

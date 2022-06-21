@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.contrib.auth.hashers import make_password
 import factory
 
 
@@ -10,6 +11,10 @@ class ChangeFactory(factory.django.DjangoModelFactory):
         model = Change
 
 
-class UserFactor(factory.django.DjangoModelFactory):
+class UserFactory(factory.django.DjangoModelFactory):
+    username = factory.Sequence(lambda n: "blah{0}".format(n))
+    email = factory.Sequence(lambda n: "someone{0}@localhost".format(n))
+    password = make_password("password")
+
     class Meta:
         model = get_user_model()

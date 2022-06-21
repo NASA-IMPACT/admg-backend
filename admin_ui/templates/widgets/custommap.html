@@ -45,4 +45,14 @@
     </script>
     {% endif %}
 </div>
-<input type="text" id="{{ id }}" class="vSerializedField {{ class }}" cols="150" rows="10" name="{{ name }}" value="{{ extent }}" {% if widget.required %}required{% endif %} />
+<input 
+    type="text" 
+    id="{{ id }}" 
+    class="vSerializedField {{ class }}" 
+    cols="150" 
+    rows="10" 
+    name="{{ name }}" 
+    value="{{ extent }}" 
+    {% if widget.required %}required{% endif %} 
+    {% if disabled %}disabled{% endif %} 
+/>
