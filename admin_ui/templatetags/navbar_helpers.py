@@ -6,7 +6,7 @@ from django.template.loader import get_template
 register = template.Library()
 
 
-LINKS = "published-list || change-list || change-add"
+LINKS = "published-list || change-list || change-add || review_changes-list-draft"
 
 
 def is_quoted(text: str):
@@ -127,11 +127,13 @@ class NotificationNavNode(template.Node):
                 **context.flatten(),
                 "title": self.title,
                 "identifier": self.title.lower().replace(" ", "-"),
-                "active_views": " || ".join(
-                    func(model_name)
-                    for model_name in self.model_names
-                    for func in [build_draft_view, build_published_view]
-                ),
+                # TODO: delete once this is working!
+                # "active_views": " || ".join(
+                #     func(model_name)
+                #     for model_name in self.model_names
+                #     for func in [build_draft_view, build_published_view]
+                # ),
+                "active_views": LINKS,
                 "children": self.nodelist.render(context),
             }
         )

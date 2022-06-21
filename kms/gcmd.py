@@ -15,7 +15,9 @@ from data_models import models
 
 logger = logging.getLogger(__name__)
 
-Models = Union[models.GcmdProject, models.GcmdInstrument, models.GcmdPlatform, models.GcmdPhenomena]
+Models = Union[
+    models.GcmdProject, models.GcmdInstrument, models.GcmdPlatform, models.GcmdPhenomenon
+]
 Casei_Object = Union[Campaign, Instrument, Platform]
 Actions = Union[Change.Actions.CREATE, Change.Actions.UPDATE, Change.Actions.DELETE]
 
@@ -24,23 +26,23 @@ Actions = Union[Change.Actions.CREATE, Change.Actions.UPDATE, Change.Actions.DEL
 #     "instruments": models.GcmdInstrument,
 #     "projects": models.GcmdProject,
 #     "platforms": models.GcmdPlatform,
-#     "sciencekeywords": models.GcmdPhenomena,
+#     "sciencekeywords": models.gcmdphenomenon,
 # }
 concept_to_model_map = {
     # "gcmdprojects": models.GcmdProject,
-    "gcmdphenomena": models.GcmdPhenomena,
+    "gcmdphenomenon": models.GcmdPhenomenon,
 }
 keyword_to_casei_map = {
     "gcmdproject": Campaign,
     "gcmdplatform": Platform,
     "gcmdinstrument": Instrument,
-    "gcmdphenomena": Instrument,
+    "gcmdphenomenon": Instrument,
 }
 casei_gcmdkeyword_set_map = {
     "gcmdproject": "gcmd_projects",
     "gcmdplatform": "gcmd_platforms",
     "gcmdinstrument": "gcmd_instruments",
-    "gcmdphenomena": "gcmd_phenomenas",
+    "gcmdphenomenon": "gcmd_phenomenon",
 }
 path_order = {
     "gcmdproject": ["bucket", "short_name"],
@@ -52,7 +54,7 @@ path_order = {
         "instrument_subtype",
         "short_name",
     ],
-    "gcmdphenomena": [
+    "gcmdphenomenon": [
         "category",
         "topic",
         "term",
@@ -102,7 +104,7 @@ def convert_concept(record: dict, model: Type[Models]) -> dict:
         record.pop("Sub_Category", None)
         # record["sub_category"] = record.pop("Sub_Category")
         # record["series_entry"] = record.pop("Series_Entity") # This is the conversion we did on old GCMD csv.
-    elif model == models.GcmdPhenomena:
+    elif model == models.gcmdphenomenon:
         record.pop("Detailed_Variable", None)
         record["variable_1"] = record.pop("Variable_Level_1")
         record["variable_2"] = record.pop("Variable_Level_2")
@@ -295,7 +297,7 @@ def is_valid_concept(record: dict, model: Type[Models]) -> bool:
         )
     elif model == models.GcmdPlatform:
         return is_valid_value(record.get("Short_Name")) and is_valid_uuid(record.get("UUID"))
-    elif model == models.GcmdPhenomena:
+    elif model == models.gcmdphenomenon:
         return is_valid_value(record.get("Category")) and is_valid_uuid(record.get("UUID"))
     else:
         return False

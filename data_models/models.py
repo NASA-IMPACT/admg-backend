@@ -320,7 +320,7 @@ class GcmdPlatform(GcmdKeyword):
         ordering = ("short_name",)
 
 
-class GcmdPhenomena(GcmdKeyword):
+class GcmdPhenomenon(GcmdKeyword):
     category = models.CharField(max_length=256)
     topic = models.CharField(max_length=256, blank=True, default="")
     term = models.CharField(max_length=256, blank=True, default="")
@@ -699,7 +699,7 @@ class Instrument(DataModel):
         help_text="If Facility Instrument give location or put 'retired', otherwise N/A",
     )
     gcmd_phenomena = models.ManyToManyField(
-        GcmdPhenomena,
+        GcmdPhenomenon,
         related_name="instruments",
         verbose_name="Measurements/Variables from GCMD Science Keywords",
         help_text="Select relevant measurements/variables items from GCMD Science Keywords for Earth Science",

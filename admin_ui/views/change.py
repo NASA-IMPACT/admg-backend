@@ -27,7 +27,7 @@ from data_models.models import (
     CollectionPeriod,
     Deployment,
     GcmdInstrument,
-    GcmdPhenomena,
+    GcmdPhenomenon,
     GcmdProject,
     GcmdPlatform,
     Image,
@@ -47,7 +47,7 @@ from kms import gcmd
 class GcmdCounts:
     def get_gcmd_count(self):
         return (
-            Change.objects.of_type(GcmdInstrument, GcmdPlatform, GcmdProject, GcmdPhenomena)
+            Change.objects.of_type(GcmdInstrument, GcmdPlatform, GcmdProject, GcmdPhenomenon)
             .filter(recommendation__submitted=False)
             .distinct("uuid")
             .count()
@@ -438,7 +438,7 @@ class GcmdSyncListView(GcmdCounts, SingleTableMixin, FilterView):
 
         # TODO: Add database migration to create index on content_type.model field and aliases.short_name
         queryset = (
-            Change.objects.of_type(GcmdInstrument, GcmdPlatform, GcmdProject, GcmdPhenomena)
+            Change.objects.of_type(GcmdInstrument, GcmdPlatform, GcmdProject, GcmdPhenomenon)
             .select_related("content_type")
             .annotate(
                 # TODO: Might be able to make this shorter (one line for each)
