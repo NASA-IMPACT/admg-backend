@@ -21,7 +21,7 @@ from rest_framework.serializers import ValidationError
 
 
 from admin_ui.config import MODEL_CONFIG_MAP
-from api_app.models import ApprovalLog, Change, ResolvedList, Recommendation, SubqueryCount
+from api_app.models import ApprovalLog, Change, Recommendation, SubqueryCount
 from data_models.models import (
     IOP,
     Alias,
@@ -50,8 +50,8 @@ class GcmdCounts:
     def get_gcmd_count(self):
         return (
             Change.objects.of_type(GcmdInstrument, GcmdPlatform, GcmdProject, GcmdPhenomena)
-            .select_related("content_type", "resolvedlist")
-            .filter(resolvedlist__submitted=False)
+            .filter(recommendation__submitted=False)
+            .distinct("uuid")
             .count()
         )
 
@@ -473,14 +473,15 @@ class GcmdSyncListView(GcmdCounts, SingleTableMixin, FilterView):
 
     def get_queryset(self):
         resolved_records = Recommendation.objects.filter(
-            resolved_log_id=OuterRef("resolvedlist"), result__isnull=False
+            change_id=OuterRef("uuid"), result__isnull=False
         )
 
         # TODO: Add database migration to create index on content_type.model field and aliases.short_name
         queryset = (
             Change.objects.of_type(GcmdInstrument, GcmdPlatform, GcmdProject, GcmdPhenomena)
-            .select_related("content_type", "resolvedlist")
+            .select_related("content_type")
             .annotate(
+                # TODO: Might be able to make this shorter (one line for each)
                 short_name=functions.Coalesce(
                     functions.NullIf(KeyTextTransform('short_name', 'update'), Value("")),
                     functions.NullIf(KeyTextTransform('variable_3', 'update'), Value("")),
@@ -494,9 +495,9 @@ class GcmdSyncListView(GcmdCounts, SingleTableMixin, FilterView):
                     functions.NullIf(KeyTextTransform('term', 'previous'), Value("")),
                 ),
                 resolved_records=functions.Coalesce(SubqueryCount(resolved_records), Value(0)),
-                affected_records=Count("resolvedlist__recommendation"),
+                affected_records=Count("recommendation", distinct=True),
             )
-            .filter(resolvedlist__submitted=False)
+            .filter(recommendation__submitted=False)
             # .add_updated_at()   # TODO: Figure out why this was affecting the affected/resolved counts.
             # .order_by("-updated_at")
         )
@@ -621,11 +622,7 @@ class ChangeGcmdUpdateView(GcmdCounts, UpdateView):
             return "Yes" if is_connnected else "No"
 
     # TODO: There is probably a better way of doing this.
-    def get_current_selection(self, keyword, casei_object, resolved_list):
-        recommendation = Recommendation.objects.get(
-            object_uuid=casei_object.uuid, resolved_log=resolved_list
-        )
-        result = recommendation.result
+    def get_current_selection(self, result):
         if result is None:
             return {}
         elif result:
@@ -638,24 +635,25 @@ class ChangeGcmdUpdateView(GcmdCounts, UpdateView):
         # TODO: Add Exception in case this doesn't exist!
         # Idea: Probably tell them name of keyword but show message with error telling them
         #       to reach out to admin to fix problem.
-        resolved_list = ResolvedList.objects.get(change_id=self.object.uuid)
+        # resolved_list = ResolvedList.objects.get(change_id=self.object.uuid)
+        recommendations = Recommendation.objects.filter(change_id=self.object.uuid)
         category = self.get_affected_type()
         # TODO: Make this better
         affected_records, uuids = [], []
 
-        for row in resolved_list.recommendation_set.all():
-            uuids.append(str(row.parent_fk.uuid))
+        for recommendation in recommendations:
+            uuids.append(str(recommendation.casei_object.uuid))
             affected_records.append(
                 {
-                    "row": row.parent_fk,
+                    "row": recommendation.casei_object,
                     "status": "Published",
                     "category": category,
-                    "link": self.get_affected_url(row.parent_fk.uuid),
-                    "is_connected": self.is_connected(self.object, row.parent_fk, content_type),
-                    "currentSelection": self.get_current_selection(
-                        self.object, row.parent_fk, resolved_list
+                    "link": self.get_affected_url(recommendation.casei_object.uuid),
+                    "is_connected": self.is_connected(
+                        self.object, recommendation.casei_object, content_type
                     ),
-                    "is_submitted": resolved_list.submitted,
+                    "current_selection": self.get_current_selection(recommendation.result),
+                    "is_submitted": recommendation.submitted,
                     "uuids": uuids,  # TODO: Put the uuids somewhere else
                 }
             )
@@ -671,11 +669,10 @@ class ChangeGcmdUpdateView(GcmdCounts, UpdateView):
     def process_choice(self, choice_uuid, decision_dict, request_type="Save"):
         gcmd_change = self.get_object()
         change_action = gcmd_change.action
-        print(f"Change Action: {change_action}")
-        recommendation = Recommendation.objects.get(
-            object_uuid=choice_uuid, resolved_log=self.resolved_list
-        )
+        # print(f"Change Action: {change_action}")
+        recommendation = Recommendation.objects.get(object_uuid=choice_uuid, change=gcmd_change)
 
+        # Save the user's input for both save and publish buttons
         if change_action == Change.Actions.DELETE or decision_dict.get(choice_uuid) == "False":
             recommendation.result = False
         elif decision_dict.get(choice_uuid) == "True":
@@ -688,21 +685,22 @@ class ChangeGcmdUpdateView(GcmdCounts, UpdateView):
         if request_type == "Publish":
             print("Post request is for Publish")
             content_type = gcmd_change.content_type.model_class().__name__
-            casei_object = self.get_casei_object(choice_uuid, content_type)
             gcmd_keyword = gcmd_change._get_model_instance()
+            casei_object = self.get_casei_object(choice_uuid, content_type)
             keyword_set = gcmd.get_casei_keyword_set(casei_object, content_type)
             # print(f"KEYWORD CONTENT TYPE: {type(content_type)}, {content_type}")
             # print(f"Keyword Set: {type(keyword_set)}, {keyword_set}")
 
             if change_action == Change.Actions.DELETE or decision_dict.get(choice_uuid) == "False":
                 recommendation.result = False
+                recommendation.submitted = True
                 keyword_set.remove(gcmd_keyword)
             elif decision_dict.get(choice_uuid) == "True":
                 recommendation.result = True
+                recommendation.submitted = True
                 keyword_set.add(gcmd_keyword)
 
             # Change Resolved list to "Submitted" and save all database changes.
-            self.resolved_list.save()
             casei_object.save()
             recommendation.save()
 
@@ -710,24 +708,20 @@ class ChangeGcmdUpdateView(GcmdCounts, UpdateView):
     # TODO: Maybe check to see if response is valid and maybe show user errors in any
     def publish_keyword(self, request):
         gcmd_change = self.get_object()
-        self.resolved_list.submitted = True
-        self.resolved_list.save()
         # Publish the keyword, Create keywords are automatically "Published" so skip them.
         if not gcmd_change.action == Change.Actions.CREATE:
             response = gcmd_change.publish(user=request.user)
 
     # TODO: Clean this method up.
     def post(self, request, **kwargs):
-        # TODO: Remove import and clean up method
         import ast
 
-        gcmd_change = self.get_object()
-        self.resolved_list = ResolvedList.objects.get(change_id=gcmd_change.uuid)
         choices = {
             x.replace("choice-", ""): request.POST[x]
             for x in request.POST
             if x.startswith("choice-")
         }
+        print(f"\nChoices: {choices}\n")
         for valid_uuid in ast.literal_eval(request.POST["related_uuids"]):
             self.process_choice(valid_uuid, choices, request.POST.get("user_button", "Save"))
 
@@ -735,4 +729,14 @@ class ChangeGcmdUpdateView(GcmdCounts, UpdateView):
         if request.POST.get("user_button") == "Publish":
             self.publish_keyword(request)
 
-        return HttpResponseRedirect(reverse("change-gcmd", args=[kwargs["pk"]]))
+            messages.success(
+                request,
+                f'Successfully published GCMD Keyword "{gcmd.get_short_name(self.get_object())}"',
+            )
+            return HttpResponseRedirect(reverse("review_changes-list-draft"))
+        else:
+            messages.success(
+                request,
+                f'Successfully saved progress for "{gcmd.get_short_name(self.get_object())}"',
+            )
+            return HttpResponseRedirect(reverse("change-gcmd", args=[kwargs["pk"]]))

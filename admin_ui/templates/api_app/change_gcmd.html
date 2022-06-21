@@ -70,7 +70,8 @@
     <details class="small">
       <summary>Debug Data</summary>
 
-      <pre>{{ object.update | pprint }}</pre>
+      <pre>Update: {{ object.update | pprint }}</pre>
+      <pre>Previous: {{ object.previous | pprint }}</pre>
     </details>
 
   </aside>
@@ -136,9 +137,9 @@
             <td>
               {% csrf_token %}
               <!-- Connect/Ignore radio buttons -->
-              <input type="radio" class="choiceRadio" id="connect-{{record.row.short_name}}" name="choice-{{record.row.uuid}}" value="True" required "{% if record.currentSelection.connect %} checked {% else %} {% endif %}" "{% if action == 'Delete' %} disabled {% else %} {% endif %}">
+              <input type="radio" class="choiceRadio" id="connect-{{record.row.short_name}}" name="choice-{{record.row.uuid}}" value="True" required "{% if record.current_selection.connect %} checked {% else %} {% endif %}" "{% if action == 'Delete' %} disabled {% else %} {% endif %}">
               <label for="connectChoice-{{record.row.short_name}}" class="review-button">Yes</label>
-              <input type="radio" class="choiceRadio" id="ignore-{{record.row.short_name}}" name="choice-{{record.row.uuid}}" value="False" required "{% if record.currentSelection.ignore %} checked {% else %} {% endif %}" "{% if action == 'Delete' %} disabled {% else %} {% endif %}">
+              <input type="radio" class="choiceRadio" id="ignore-{{record.row.short_name}}" name="choice-{{record.row.uuid}}" value="False" required "{% if record.current_selection.ignore %} checked {% else %} {% endif %}" "{% if action == 'Delete' %} disabled {% else %} {% endif %}">
               <label for="ignoreChoice-{{record.row.short_name}}" class="review-button">No</label>
             </td>
           </tr>

@@ -5,7 +5,6 @@ from typing import Dict, Optional, Set, Union, Type
 
 from api_app.models import (
     Change,
-    ResolvedList,
     Recommendation,
 )
 

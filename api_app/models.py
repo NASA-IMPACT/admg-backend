@@ -7,7 +7,7 @@ from django.apps import apps
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
-from django.db.models import aggregates, expressions, functions
+from django.db.models import aggregates, expressions, functions, Subquery
 from django.db.models.fields.json import KeyTextTransform
 from django.db.models.signals import post_save
 from django.dispatch import receiver
@@ -791,29 +791,25 @@ def create_approval_log_dispatcher(sender, instance, **kwargs):
     instance._add_create_edit_approval_log()
 
 
-class ResolvedList(models.Model):
-    uuid = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    change = models.OneToOneField(Change, on_delete=models.CASCADE, null=True)
+# class ResolvedList(models.Model):
+#     uuid = models.UUIDField(primary_key=True, default=uuid4, editable=False)
+#     change = models.OneToOneField(Change, on_delete=models.CASCADE, null=True)
 
-    submitted = models.BooleanField(
-        verbose_name="Form has been submitted by user.", blank=False, default=False
-    )
+#     submitted = models.BooleanField(
+#         verbose_name="Form has been submitted by user.", blank=False, default=False
+#     )
 
 
 class Recommendation(models.Model):
+    change = models.ForeignKey(Change, on_delete=models.CASCADE)
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, blank=True)
     object_uuid = models.UUIDField()
-    parent_fk = GenericForeignKey("content_type", "object_uuid")
+    casei_object = GenericForeignKey("content_type", "object_uuid")
     result = models.BooleanField(verbose_name="Was the CASEI object connected?", null=True)
     submitted = models.BooleanField(
         verbose_name="Has the user published their result?", blank=False, default=False
     )
     # resolved_list = models.ForeignKey(ResolvedList, on_delete=models.CASCADE)
-
-    # change = models.OneToOneField(Change, on_delete=models.CASCADE, null=True)
-
-
-from django.db.models import aggregates, functions, OuterRef, Value, Subquery
 
 
 class SubqueryCount(Subquery):
