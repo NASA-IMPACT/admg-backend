@@ -481,7 +481,7 @@ class GcmdPhenomenonPublishedTable(tables.Table):
             dict(pk=tables.A("uuid"), model=camel_to_snake('GcmdPhenomenon')),
         ),
         verbose_name="Variable 3",
-        accessor="short_name",
+        accessor="variable_3",
     )
     variable_2 = tables.Column(verbose_name="Variable 2", accessor="variable_2")
     variable_1 = tables.Column(verbose_name="Variable 1", accessor="variable_1")
