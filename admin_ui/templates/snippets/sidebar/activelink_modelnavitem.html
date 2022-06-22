@@ -1,6 +1,9 @@
 {% load active_link_tags %}
 
-<a class="nav-link text-truncate {% active_link view 'active' %}" href="{% url view %}">
+<a
+  class="nav-link text-truncate {% active_link links 'active' model=link_model %} {% if view_model == link_model %}active{% endif %}"
+  href="{% url view link_model %}"
+>
   {{ title }}
   <!-- TODO: Make a seperate snippet for this maybe? -->
   {% if title == 'Review Changes' %}

@@ -13,14 +13,26 @@ def is_quoted(text: str):
     return text[0] == text[-1] and text[0] in ('"', "'")
 
 
-@register.inclusion_tag("snippets/sidebar/activelink_navitem.html", takes_context=True)
-def nav_link(context, title, link_model):
+@register.inclusion_tag("snippets/sidebar/activelink_modelnavitem.html", takes_context=True)
+def model_nav_link(context, title, link_model):
     return {
         **context.flatten(),  # NOTE: Must pass in context for active_link to work
         "title": title,
         "view": "change-list",
         "link_model": link_model,
         "links": LINKS,
+    }
+
+
+@register.inclusion_tag("snippets/sidebar/activelink_navitem.html", takes_context=True)
+def nav_link(context, title, view):
+    return {
+        **context.flatten(),  # NOTE: Must pass in context for active_link to work
+        "title": title,
+        "view": view,
+        # TODO: Figure out if we can get rid of this!
+        # "link_model": link_model,
+        # "links": LINKS,
     }
 
 

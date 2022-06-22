@@ -128,6 +128,7 @@ class KeywordTransitionForm(TransitionForm):
         return actions.items()
 
 
+# TODO: Get rid of if we end up not using!
 class GcmdKeywordForm(forms.Form):
     pass
     # affected_name = forms.
