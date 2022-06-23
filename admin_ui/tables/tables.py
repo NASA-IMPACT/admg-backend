@@ -699,3 +699,17 @@ class GcmdPhenomenonChangeListTable(DraftTableBase):
         ) + DraftTableBase.final_fields
         fields = list(all_fields)
         sequence = all_fields
+
+
+class ImageChangeListTable(DraftTableBase):
+    title = ConditionalValueColumn(
+        verbose_name="Title",
+        accessor="update__title",
+        update_accessor="content_object.title",
+        linkify=("change-update", [tables.A("uuid")]),
+    )
+
+    class Meta(DraftTableBase.Meta):
+        all_fields = ("title",) + DraftTableBase.final_fields
+        fields = list(all_fields)
+        sequence = all_fields
