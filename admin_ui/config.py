@@ -67,6 +67,10 @@ CUSTOM_MODEL_VALUES = {
         "published_filter": published_filters.WebsiteFilter,
     },
     "WebsiteType": {},
+    "Image": {
+        "draft_filter": filters.ImageFilter,
+        "published_filter": published_filters.ImageFilter,
+    },
 }
 
 # defaults are assigned to each model in this comprehension, and then overwritten by the above dictionary
