@@ -16,7 +16,7 @@ def trigger_deploy(request):
         messages.add_message(
             request,
             messages.ERROR,
-            f"Failed to trigger deployment: Github workflow not specified in settings.",
+            "Failed to trigger deployment: Github workflow not specified in settings.",
         )
         return HttpResponseRedirect(reverse("summary"))
 

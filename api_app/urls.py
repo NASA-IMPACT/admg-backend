@@ -1,7 +1,6 @@
 import re
 
 from django.urls import path
-from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
 from rest_framework import permissions
 
@@ -24,10 +23,7 @@ from .views.validation_view import JsonValidationView
 
 info = api_info
 
-schema_view = get_schema_view(
-    public=True,
-    permission_classes=(permissions.AllowAny,),
-)
+schema_view = get_schema_view(public=True, permission_classes=(permissions.AllowAny,))
 
 urls = [
     "PlatformType",
@@ -45,7 +41,7 @@ urls = [
     "GcmdProject",
     "GcmdInstrument",
     "GcmdPlatform",
-    "GcmdPhenomena",
+    "GcmdPhenomenon",
     "DOI",
     "Campaign",
     "Platform",
@@ -69,14 +65,12 @@ def camel_to_snake(name):
 for url in urls:
     snake_case_url = camel_to_snake(url)
     urlpatterns.append(
-        path(snake_case_url, GenericCreateGetAllView(url), name=f"{url}_create_getall"),
+        path(snake_case_url, GenericCreateGetAllView(url), name=f"{url}_create_getall")
     )
     urlpatterns.append(
         path(
-            f"{snake_case_url}/<str:uuid>",
-            GenericPutPatchDeleteView(url),
-            name=f"{url}_put_delete",
-        ),
+            f"{snake_case_url}/<str:uuid>", GenericPutPatchDeleteView(url), name=f"{url}_put_delete"
+        )
     )
 
 
@@ -94,14 +88,10 @@ urlpatterns += [
         name="change_request_validate",
     ),
     path(
-        "change_request/<str:uuid>/submit",
-        ChangeSubmitView.as_view(),
-        name="change_request_submit",
+        "change_request/<str:uuid>/submit", ChangeSubmitView.as_view(), name="change_request_submit"
     ),
     path(
-        "change_request/<str:uuid>/review",
-        ChangeReviewView.as_view(),
-        name="change_request_review",
+        "change_request/<str:uuid>/review", ChangeReviewView.as_view(), name="change_request_review"
     ),
     path(
         "change_request/<str:uuid>/publish",
@@ -109,30 +99,16 @@ urlpatterns += [
         name="change_request_publish",
     ),
     path(
-        "change_request/<str:uuid>/reject",
-        ChangeRejectView.as_view(),
-        name="change_request_reject",
+        "change_request/<str:uuid>/reject", ChangeRejectView.as_view(), name="change_request_reject"
     ),
-    path(
-        "change_request/<str:uuid>/claim",
-        ChangeClaimView.as_view(),
-        name="change_request_claim",
-    ),
+    path("change_request/<str:uuid>/claim", ChangeClaimView.as_view(), name="change_request_claim"),
     path(
         "change_request/<str:uuid>/unclaim",
         ChangeUnclaimView.as_view(),
         name="change_request_unclaim",
     ),
     path("image", ImageListCreateAPIView.as_view(), name="image_list_create"),
-    path(
-        "image/<str:uuid>",
-        ImageRetrieveDestroyAPIView.as_view(),
-        name="image_retrieve_destroy",
-    ),
+    path("image/<str:uuid>", ImageRetrieveDestroyAPIView.as_view(), name="image_retrieve_destroy"),
     path("validate_json", JsonValidationView.as_view(), name="validate_json"),
-    path(
-        "docs/",
-        schema_view.with_ui("swagger", cache_timeout=0),
-        name="schema-swagger-ui",
-    ),
+    path("docs/", schema_view.with_ui("swagger", cache_timeout=0), name="schema-swagger-ui"),
 ]

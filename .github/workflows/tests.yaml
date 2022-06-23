@@ -6,11 +6,24 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    
+
+    env:
+      DB_ENGINE: django.contrib.gis.db.backends.postgis
+      DB_NAME: admg
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
+      DJANGO_SETTINGS_MODULE: config.settings.local
+      DJANGO_SECRET_KEY: "secret key here"
+      DJANGO_ADMIN_URL: admg/
+      GH_TOKEN: faketokenhere
+
     services:
       postgres:
         image: postgis/postgis:13-3.2
         env:
+          POSTGRES_DB: admg
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
         options: >-
@@ -23,14 +36,19 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-    
+
       - name: Setup Python
-        uses: actions/setup-python@v1
+        uses: actions/setup-python@v3
         with:
           python-version: 3.9
+          cache: "pip"
+          cache-dependency-path: |
+            requirements/base.txt
+            requirements/local.txt
 
       - name: Install GDAL
         run: |
+          sudo apt-get update
           sudo apt-get install libgdal-dev
 
       - uses: actions/cache@v2
@@ -46,19 +64,10 @@ jobs:
             -r requirements/base.txt \
             -r requirements/local.txt
 
+      - name: Check for missing migrations
+        run: |
+          python manage.py makemigrations --check --dry-run
+
       - name: Run Tests
-        env:
-          DB_ENGINE: django.contrib.gis.db.backends.postgis
-          DB_NAME: admg
-          DB_USER: postgres
-          DB_PASSWORD: postgres
-          DB_HOST: 127.0.0.1
-          DB_PORT: 5432
-
-          DJANGO_SETTINGS_MODULE: config.settings.local
-          DJANGO_SECRET_KEY: "secret key here"
-          DJANGO_ADMIN_URL: admg/
-          GH_TOKEN: faketokenhere
-
         run: |
           pytest

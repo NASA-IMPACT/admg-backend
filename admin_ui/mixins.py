@@ -5,16 +5,23 @@ from django.contrib import messages
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.gis.db.models.fields import PolygonField
 from django.db import models as model_fields
-from django.forms import modelform_factory, FileField, HiddenInput
+from django.forms import modelform_factory, HiddenInput
+from django.http import HttpResponseBadRequest
 from django.http.response import Http404
 from django.shortcuts import render
 from django.views.generic.edit import ModelFormMixin
+from api_app.urls import camel_to_snake
 
 from data_models import models
-from . import fields, widgets, config
+from . import fields, widgets, config, utils
 
 
-def formfield_callback(f, **kwargs):
+def formfield_callback(f, disabled_fields=[], **kwargs):
+    """
+    Custom logic for specifying widgets on a model form. To specify disabled_fields,
+    developer must apply those via functools.partial before passing this function
+    to a modelform factory.
+    """
     # Use ChangeChoiceField for any ForeignKey field in the model class
     if isinstance(f, model_fields.ForeignKey):
         if f.remote_field.model == ContentType:
@@ -23,9 +30,7 @@ def formfield_callback(f, **kwargs):
             kwargs.update(
                 {
                     # Render link to open new window for creating new record
-                    "widget": widgets.AddAnotherChoiceFieldWidget(
-                        model=f.remote_field.model
-                    ),
+                    "widget": widgets.AddAnotherChoiceFieldWidget(model=f.remote_field.model),
                     # Use field to handle drafts rather than published models
                     "form_class": partial(
                         fields.ChangeChoiceField, dest_model=f.remote_field.model
@@ -52,7 +57,8 @@ def formfield_callback(f, **kwargs):
     elif isinstance(f, model_fields.BooleanField):
         # Adding choices assigns a "yes/no" option and creates a dropdown widget
         f.choices = ((True, "Yes"), (False, "No"))
-    return f.formfield(**kwargs)
+
+    return f.formfield(disabled=f.name in disabled_fields, **kwargs)
 
 
 class ChangeModelFormMixin(ModelFormMixin):
@@ -67,10 +73,17 @@ class ChangeModelFormMixin(ModelFormMixin):
     def destination_model_form(self):
         """Helper to return a form for the destination of the Draft object"""
         model_type = self.get_model_type()
+
+        # Disable any readonly fields
+        model_name = camel_to_snake(model_type.__name__)
+        model_config = config.MODEL_CONFIG_MAP.get(model_name, {})
+        disabled_fields = model_config.get("change_view_readonly_fields", [])
+        _formfield_callback = partial(formfield_callback, disabled_fields=disabled_fields)
+
         modelform = modelform_factory(
             model_type,
             exclude=[],
-            formfield_callback=formfield_callback,
+            formfield_callback=_formfield_callback,
             labels=self.get_verbose_names(model_type),
             help_texts=self.get_help_texts(model_type),
         )  # modelform generates a form class
@@ -83,9 +96,7 @@ class ChangeModelFormMixin(ModelFormMixin):
         try:
             model_type = self.get_model_form_content_type().model_class()
             if not model_type:
-                raise Http404(
-                    f"Unsupported model type: {self.get_model_form_content_type()}"
-                )
+                raise Http404(f"Unsupported model type: {self.get_model_form_content_type()}")
         except NotImplementedError:
             if not self.model:
                 raise NotImplementedError("Subclass must implement this property")
@@ -103,14 +114,13 @@ class ChangeModelFormMixin(ModelFormMixin):
         if "model_form" not in kwargs:
             # Ensure that the model_form is available in context for template
             kwargs["model_form"] = self.destination_model_form(
-                initial=self.get_model_form_intial(),
-                prefix=self.destination_model_prefix,
+                initial=self.get_model_form_intial(), prefix=self.destination_model_prefix
             )
 
-        model_name = kwargs["model_form"]._meta.model.__name__
-        model_config = config.MODEL_CONFIG_MAP.get(model_name, {})
-        for field in model_config.get("change_view_readonly_fields", []):
-            kwargs["model_form"].fields[field].disabled = True
+        # Disable save on published or trashed
+        if self.object and self.object.is_locked:
+            utils.disable_form_fields(kwargs['model_form'])
+
         return super().get_context_data(**kwargs)
 
     @staticmethod
@@ -172,28 +182,6 @@ class ChangeModelFormMixin(ModelFormMixin):
         else:
             return []
 
-    def get_update_values(self, model_form):
-        update = {}
-        for name, field in model_form.fields.items():
-            if isinstance(field, FileField):
-                # Save any uploaded files to disk, then overwrite their values with their name
-                model_field = getattr(model_form.instance, name)
-                if not model_field._file:
-                    continue
-                model_field.save(model_field.url, model_form.cleaned_data[name])
-                update[name] = model_field.name
-
-            else:
-                # Populate Change's form with values from destination model's form.
-                # We're not saving the cleaned_data because we want the raw text, not
-                # the processed values (e.g. we don't want Polygon objects for bounding
-                # boxes, rather we want the raw polygon text). This may or may not be
-                # the best way to achieve this.
-                update[name] = field.widget.value_from_datadict(
-                    model_form.data, model_form.files, model_form.add_prefix(name)
-                )
-        return update
-
     def post(self, request, *args, **kwargs):
         """
         Handle POST requests: instantiate a form instance with the passed
@@ -211,8 +199,8 @@ class ChangeModelFormMixin(ModelFormMixin):
         if not form.is_valid() or (validate_model_form and not model_form.is_valid()):
             return self.form_invalid(form=form, model_form=model_form)
 
-        model_config = config.MODEL_CONFIG_MAP.get(self.get_model_type().__name__, {})
-        readonly_fields = model_config.get("change_view_readonly_fields", [])
+        if self.object and self.object.is_locked:
+            return HttpResponseBadRequest("Object no longer available for edit")
 
         if form.instance._state.adding:
             # If we're create a new Change instance, we want to populate any fields that
@@ -230,23 +218,20 @@ class ChangeModelFormMixin(ModelFormMixin):
                 # Only update fields that can be altered by the form. Otherwise, retain
                 # original values from form.instance.update
                 k: v
-                for k, v in self.get_update_values(model_form).items()
-                if k not in readonly_fields
+                for k, v in utils.serialize_model_form(model_form).items()
+                if not model_form.fields[k].disabled
             }
         )
         return self.form_valid(form, model_form)
 
     def form_valid(self, form, model_form):
+        # If we're running validation...
+        if "_validate" in self.request.POST:
+            messages.success(self.request, "Successfully validated.")
+            return self.render_to_response(self.get_context_data(form=form, model_form=model_form))
 
         # Important to run super first to set self.object
         redirect = super().form_valid(form)
-
-        # If we're running validation...
-        if "_validate" in self.request.POST:
-            messages.success(self.request, f'Successfully validated "{self.object}".')
-            return self.render_to_response(
-                self.get_context_data(form=form, model_form=model_form)
-            )
 
         # If form was submitted from a popup window...
         if "_popup" in self.request.GET:
@@ -265,6 +250,21 @@ class ChangeModelFormMixin(ModelFormMixin):
         # destination model form
         if not form.is_valid():
             messages.error(self.request, f"Unable to save: {form.errors}")
-        return self.render_to_response(
-            self.get_context_data(form=form, model_form=model_form)
-        )
+        return self.render_to_response(self.get_context_data(form=form, model_form=model_form))
+
+
+class DynamicModelMixin:
+    """
+    Helper model to retrieve model config based on model arg in URL
+    """
+
+    @property
+    def _model_name(self):
+        return self.kwargs['model']
+
+    @property
+    def _model_config(self):
+        try:
+            return config.MODEL_CONFIG_MAP[self._model_name]
+        except KeyError:
+            raise Http404(f"Bad model name: {self._model_name}")

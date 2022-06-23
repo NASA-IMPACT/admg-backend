@@ -2,9 +2,7 @@ from api_app.urls import camel_to_snake
 from data_models import models
 
 from . import tables
-from . import filters, published_filters
-
-from admin_ui import published_tables
+from .filters import filters, published as published_filters
 
 
 # any custom values for each model are added to this dictionary
@@ -24,38 +22,20 @@ CUSTOM_MODEL_VALUES = {
     "MeasurementRegion": {},
     "GeographicalRegion": {},
     "GeophysicalConcept": {},
-    "PartnerOrg": {
-        "admin_required_to_view": False,
-    },
-    "Alias": {
-        "admin_required_to_view": False,
-    },
-    "GcmdProject": {
-        "display_name": "GCMD Project",
-    },
-    "GcmdInstrument": {
-        "display_name": "GCMD Instrument",
-    },
-    "GcmdPlatform": {
-        "display_name": "GCMD Platform",
-    },
-    "GcmdPhenomena": {
-        "display_name": "GCMD Phenomena",
-    },
+    "PartnerOrg": {"admin_required_to_view": False},
+    "Alias": {"admin_required_to_view": False},
+    "GcmdProject": {"display_name": "GCMD Project"},
+    "GcmdInstrument": {"display_name": "GCMD Instrument"},
+    "GcmdPlatform": {"display_name": "GCMD Platform"},
+    "GcmdPhenomenon": {"display_name": "GCMD Phenomenon"},
     "DOI": {
         "admin_required_to_view": False,
         "draft_filter": filters.DoiFilter,
         "published_filter": published_filters.DoiFilter,
     },
-    "Campaign": {
-        "admin_required_to_view": False,
-    },
-    "Platform": {
-        "admin_required_to_view": False,
-    },
-    "Instrument": {
-        "admin_required_to_view": False,
-    },
+    "Campaign": {"admin_required_to_view": False},
+    "Platform": {"admin_required_to_view": False},
+    "Instrument": {"admin_required_to_view": False},
     "Deployment": {
         "admin_required_to_view": False,
         "draft_filter": filters.DeploymentFilter,
@@ -87,19 +67,21 @@ CUSTOM_MODEL_VALUES = {
         "published_filter": published_filters.WebsiteFilter,
     },
     "WebsiteType": {},
+    "Image": {
+        "draft_filter": filters.ImageFilter,
+        "published_filter": published_filters.ImageFilter,
+    },
 }
 
 # defaults are assigned to each model in this comprehension, and then overwritten by the above dictionary
 MODEL_CONFIG_MAP = {
-    model_name: {
-        "draft_filter": overrides.get("filter_generator", filters.GenericDraftFilter)(
-            model_name
-        ),
-        "published_filter": overrides.get("published_filter_generator", published_filters.GenericPublishedListFilter)(
-            model_name
-        ),
+    camel_to_snake(model_name): {
+        "draft_filter": overrides.get("filter_generator", filters.GenericDraftFilter)(model_name),
+        "published_filter": overrides.get(
+            "published_filter_generator", published_filters.GenericPublishedListFilter
+        )(model_name),
         "model": getattr(models, model_name),
-        "published_table": getattr(published_tables, f"{model_name}PublishedTable"),
+        "published_table": getattr(tables, f"{model_name}PublishedTable"),
         "change_list_table": getattr(tables, f"{model_name}ChangeListTable"),
         "display_name": getattr(models, model_name)._meta.verbose_name.title(),
         "singular_snake_case": camel_to_snake(model_name),

@@ -27,7 +27,7 @@ CHANGABLE_INLINES = (InProgressInline, InReviewInline, InAdminReviewInline)
 @admin.register(models.GcmdProject)
 @admin.register(models.GcmdInstrument)
 @admin.register(models.GcmdPlatform)
-@admin.register(models.GcmdPhenomena)
+@admin.register(models.GcmdPhenomenon)
 @admin.register(models.WebsiteType)
 @admin.register(models.Website)
 class BasicAdmin(admin.ModelAdmin, EnforcedPermissionsMixin):
@@ -41,12 +41,7 @@ class CollectionPeriodAdmin(BasicAdmin):
 
 @admin.register(models.DOI)
 class DoiAdmin(BasicAdmin):
-    inlines = [
-        DoiCampaignInline,
-        DoiInstrumentInline,
-        DoiPlatformInline,
-        DoiCollectionPeriodInline,
-    ]
+    inlines = [DoiCampaignInline, DoiInstrumentInline, DoiPlatformInline, DoiCollectionPeriodInline]
 
 
 @admin.register(models.PlatformType)

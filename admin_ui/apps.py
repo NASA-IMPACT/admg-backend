@@ -2,4 +2,4 @@ from django.apps import AppConfig
 
 
 class AdminUiConfig(AppConfig):
-    name = 'admin_ui'
+    name = "admin_ui"

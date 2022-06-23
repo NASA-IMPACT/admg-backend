@@ -1,27 +1,16 @@
 from collections import OrderedDict
 
 from django import forms
-from django.core.exceptions import ValidationError
 from django.utils.functional import cached_property
 from django.utils.safestring import mark_safe
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit
 
-from api_app.models import (
-    Change,
-    AVAILABLE_STATUSES,
-    CREATED_CODE,
-    IN_REVIEW_CODE,
-    IN_ADMIN_REVIEW_CODE,
-    IN_PROGRESS_CODE,
-    AWAITING_REVIEW_CODE,
-    AWAITING_ADMIN_REVIEW_CODE,
-)
+from api_app.models import Change
 from admg_webapp.users.models import User, ADMIN_CODE
 from data_models import models as data_models
-from api_app.models import Change
-from .widgets import IconBooleanWidget
-from .fields import ChangeMultipleChoiceField
+from ..widgets import IconBooleanWidget
+from ..fields import ChangeMultipleChoiceField
 
 
 class TransitionForm(forms.Form):
@@ -58,34 +47,33 @@ class TransitionForm(forms.Form):
     def get_supported_actions(change: Change, user: User):
         actions = OrderedDict()
 
-        if change.status in [CREATED_CODE, IN_PROGRESS_CODE]:
+        if change.status in [Change.Statuses.CREATED, Change.Statuses.IN_PROGRESS]:
             actions["submit"] = "Ready for Staff Review"
 
-        if change.status in [AWAITING_REVIEW_CODE]:
+        if change.status in [Change.Statuses.AWAITING_REVIEW]:
             actions["claim"] = "Claim for Staff Review"
 
-        if change.status in [IN_REVIEW_CODE]:
-            actions["reject"] = "Requires adjustments"
+        if change.status in [Change.Statuses.IN_REVIEW]:
+            actions["reject"] = "Requires Adjustments"
 
-        if change.status in [IN_REVIEW_CODE]:
+        if change.status in [Change.Statuses.IN_REVIEW]:
             actions["unclaim"] = "Unassign Staff Reviewer"
 
-        if change.status in [IN_REVIEW_CODE]:
+        if change.status in [Change.Statuses.IN_REVIEW]:
             actions["review"] = "Ready for Admin Review"
 
         if user.role == ADMIN_CODE:
-            if change.status in [IN_ADMIN_REVIEW_CODE]:
-                actions["reject"] = "Requires adjustments"
+            if change.status in [Change.Statuses.IN_ADMIN_REVIEW]:
+                actions["reject"] = "Requires Adjustments"
 
-            if change.status in [AWAITING_ADMIN_REVIEW_CODE]:
+            if change.status in [Change.Statuses.AWAITING_ADMIN_REVIEW]:
                 actions["claim"] = "Claim for Admin Review"
 
             # Admin can publish at any step
             actions["publish"] = "Publish to production"
-            if change.status != IN_ADMIN_REVIEW_CODE:
+            if change.status != Change.Statuses.IN_ADMIN_REVIEW:
                 actions["publish"] = mark_safe(
-                    '<span class="text-danger font-italic">Danger:</span>  '
-                    + actions["publish"]
+                    '<span class="text-danger font-italic">Danger:</span>  ' + actions["publish"]
                 )
 
         return actions.items()
@@ -93,15 +81,9 @@ class TransitionForm(forms.Form):
 
 class DoiForm(forms.Form):
     uuid = forms.UUIDField(disabled=True, widget=forms.HiddenInput)
-    campaigns = ChangeMultipleChoiceField(
-        dest_model=data_models.Campaign, required=False
-    )
-    platforms = ChangeMultipleChoiceField(
-        dest_model=data_models.Platform, required=False
-    )
-    instruments = ChangeMultipleChoiceField(
-        dest_model=data_models.Instrument, required=False
-    )
+    campaigns = ChangeMultipleChoiceField(dest_model=data_models.Campaign, required=False)
+    platforms = ChangeMultipleChoiceField(dest_model=data_models.Platform, required=False)
+    instruments = ChangeMultipleChoiceField(dest_model=data_models.Instrument, required=False)
     collection_periods = forms.MultipleChoiceField(label="CDPIs", required=False)
     keep = forms.NullBooleanField(
         help_text="Mark as reviewed or deleted",
@@ -118,8 +100,8 @@ class DoiForm(forms.Form):
 
             field.choices = choices
 
-            if (self.initial.get('readonly')):
-                field.widget.attrs['readonly'] = True
+            if self.initial.get("readonly"):
+                field.widget.attrs["readonly"] = True
 
 
 class DoiFormSet(forms.formset_factory(DoiForm, extra=0)):
@@ -134,23 +116,14 @@ class DoiFormSet(forms.formset_factory(DoiForm, extra=0)):
         # formset's forms, we manually build the choices outside of the form.
         # https://code.djangoproject.com/ticket/22841
         querysets = {
-            "campaigns": ChangeMultipleChoiceField.get_queryset_for_model(
-                data_models.Campaign
-            ),
-            "platforms": ChangeMultipleChoiceField.get_queryset_for_model(
-                data_models.Platform
-            ),
-            "instruments": ChangeMultipleChoiceField.get_queryset_for_model(
-                data_models.Instrument
-            ),
+            "campaigns": ChangeMultipleChoiceField.get_queryset_for_model(data_models.Campaign),
+            "platforms": ChangeMultipleChoiceField.get_queryset_for_model(data_models.Platform),
+            "instruments": ChangeMultipleChoiceField.get_queryset_for_model(data_models.Instrument),
             "collection_periods": ChangeMultipleChoiceField.get_queryset_for_model(
                 data_models.CollectionPeriod
             ),
         }
-        return {
-            field: list(forms.ModelChoiceField(qs).choices)
-            for field, qs in querysets.items()
-        }
+        return {field: list(forms.ModelChoiceField(qs).choices) for field, qs in querysets.items()}
 
     def get_form_kwargs(self, index):
         return {**super().get_form_kwargs(index), "choices": self.choices}

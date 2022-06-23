@@ -6,21 +6,25 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('api_app', '0002_auto_20200408_1840'),
+        ("api_app", "0002_auto_20200408_1840"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='change',
-            name='deletes_row',
+            model_name="change",
+            name="deletes_row",
         ),
         migrations.RemoveField(
-            model_name='change',
-            name='first_change',
+            model_name="change",
+            name="first_change",
         ),
         migrations.AddField(
-            model_name='change',
-            name='action',
-            field=models.CharField(choices=[('Create', 'Create'), ('Update', 'Update'), ('Delete', 'Delete')], default='Update', max_length=10),
+            model_name="change",
+            name="action",
+            field=models.CharField(
+                choices=[("Create", "Create"), ("Update", "Update"), ("Delete", "Delete")],
+                default="Update",
+                max_length=10,
+            ),
         ),
     ]

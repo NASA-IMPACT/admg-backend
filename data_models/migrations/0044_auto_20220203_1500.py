@@ -7,18 +7,22 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('data_models', '0043_auto_20211213_1719'),
+        ("data_models", "0043_auto_20211213_1719"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='website',
-            name='campaign',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='websites', to='data_models.campaign'),
+            model_name="website",
+            name="campaign",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="websites",
+                to="data_models.campaign",
+            ),
         ),
         migrations.AlterField(
-            model_name='website',
-            name='url',
+            model_name="website",
+            name="url",
             field=models.URLField(max_length=1024),
         ),
     ]

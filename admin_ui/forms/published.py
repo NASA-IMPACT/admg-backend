@@ -1,22 +1,15 @@
 from django.forms import ModelForm
 
-from .config import MODEL_CONFIG_MAP
-from .mixins import formfield_callback
+from ..config import MODEL_CONFIG_MAP
+from ..mixins import formfield_callback
 
 
-def GenericFormClass(model_name):
-
-    class MyFormClass(ModelForm):
+def published_modelform_factory(model_name):
+    class PublishedModelForm(ModelForm):
         formfield_callback = formfield_callback
 
         def is_valid(self) -> bool:
-            unique_fields = [
-                "short_name",
-                "order_priority",
-                "gcmd_uuid",
-                "url",
-                "concept_id",
-            ]
+            unique_fields = ["short_name", "order_priority", "gcmd_uuid", "url", "concept_id"]
             unique_error_message = "with this {} already exists."
             # unique_together = [("campaign", "website"), ("campaign", "order_priority")]
 
@@ -42,4 +35,4 @@ def GenericFormClass(model_name):
             model = MODEL_CONFIG_MAP[model_name]["model"]
             fields = "__all__"
 
-    return MyFormClass
+    return PublishedModelForm
