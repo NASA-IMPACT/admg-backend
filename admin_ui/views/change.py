@@ -59,7 +59,6 @@ class GcmdCounts:
             **context,
             "gcmd_changes_count": self.get_gcmd_count(),
         }
-        print(f"CONTEXT DATA: {context}")
         return context
 
 
@@ -480,8 +479,6 @@ class ChangeGcmdUpdateView(GcmdCounts, UpdateView):
     queryset = Change.objects.select_related("content_type").prefetch_approvals()
 
     def get_context_data(self, **kwargs):
-        # print(f"CONTEXT CONTENT OBJECT: {self.object}")
-        # print(f"CONTEXT CONTENT TYPE: {type(self.object)}")
         context = super().get_context_data(**kwargs)
         context = {
             **context,
@@ -629,7 +626,6 @@ class ChangeGcmdUpdateView(GcmdCounts, UpdateView):
     def process_choice(self, choice_uuid, decision_dict, request_type="Save"):
         gcmd_change = self.get_object()
         change_action = gcmd_change.action
-        # print(f"Change Action: {change_action}")
         recommendation = Recommendation.objects.get(object_uuid=choice_uuid, change=gcmd_change)
 
         # Save the user's input for both save and publish buttons
@@ -641,15 +637,11 @@ class ChangeGcmdUpdateView(GcmdCounts, UpdateView):
             recommendation.result = None
         recommendation.save()
 
-        # print("POST REQUEST: ", request.POST)
         if request_type == "Publish":
-            print("Post request is for Publish")
             content_type = gcmd_change.content_type.model_class().__name__
             gcmd_keyword = gcmd_change._get_model_instance()
             casei_object = self.get_casei_object(choice_uuid, content_type)
             keyword_set = gcmd.get_casei_keyword_set(casei_object, content_type)
-            # print(f"KEYWORD CONTENT TYPE: {type(content_type)}, {content_type}")
-            # print(f"Keyword Set: {type(keyword_set)}, {keyword_set}")
 
             if change_action == Change.Actions.DELETE or decision_dict.get(choice_uuid) == "False":
                 recommendation.result = False
@@ -664,13 +656,11 @@ class ChangeGcmdUpdateView(GcmdCounts, UpdateView):
             casei_object.save()
             recommendation.save()
 
-    # TODO: Put notes in publish method.
-    # TODO: Maybe check to see if response is valid and maybe show user errors in any
     def publish_keyword(self, request):
         gcmd_change = self.get_object()
         # Publish the keyword, Create keywords are automatically "Published" so skip them.
         if not gcmd_change.action == Change.Actions.CREATE:
-            response = gcmd_change.publish(user=request.user)
+            gcmd_change.publish(user=request.user)
 
     # TODO: Clean this method up.
     def post(self, request, **kwargs):
@@ -681,7 +671,6 @@ class ChangeGcmdUpdateView(GcmdCounts, UpdateView):
             for x in request.POST
             if x.startswith("choice-")
         }
-        print(f"\nChoices: {choices}\n")
         for valid_uuid in ast.literal_eval(request.POST["related_uuids"]):
             self.process_choice(valid_uuid, choices, request.POST.get("user_button", "Save"))
 

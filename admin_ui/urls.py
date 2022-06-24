@@ -23,7 +23,7 @@ urlpatterns = [
         name="change-transition",
     ),
     path(
-        "gcmd_keywords/draft",
+        "gcmd_keywords_list/draft",
         views.GcmdSyncListView.as_view(),
         name="review_changes-list-draft",
     ),

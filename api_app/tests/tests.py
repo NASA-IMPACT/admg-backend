@@ -9,6 +9,7 @@ from admg_webapp.users.models import ADMIN_CODE, STAFF_CODE, User
 from data_models.tests import factories
 from ..models import ApprovalLog, Change
 
+
 @pytest.mark.django_db
 @pytest.mark.parametrize("factory", factories.DATAMODELS_FACTORIES)
 class TestChange:

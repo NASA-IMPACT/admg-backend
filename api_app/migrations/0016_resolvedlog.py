@@ -16,11 +16,31 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='ResolvedLog',
             fields=[
-                ('uuid', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                (
+                    'uuid',
+                    models.UUIDField(
+                        default=uuid.uuid4, editable=False, primary_key=True, serialize=False
+                    ),
+                ),
                 ('recommended_uuid', models.UUIDField()),
-                ('result', models.BooleanField(blank=True, verbose_name='Was the CASEI object connected?')),
-                ('change_uuid', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='api_app.change')),
-                ('content_type', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.CASCADE, to='contenttypes.contenttype')),
+                (
+                    'result',
+                    models.BooleanField(blank=True, verbose_name='Was the CASEI object connected?'),
+                ),
+                (
+                    'change_uuid',
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, to='api_app.change'
+                    ),
+                ),
+                (
+                    'content_type',
+                    models.ForeignKey(
+                        blank=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to='contenttypes.contenttype',
+                    ),
+                ),
             ],
         ),
     ]

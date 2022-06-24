@@ -14,6 +14,8 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='resolvedlog',
             name='change_uuid',
-            field=models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, to='api_app.change'),
+            field=models.OneToOneField(
+                on_delete=django.db.models.deletion.CASCADE, to='api_app.change'
+            ),
         ),
     ]

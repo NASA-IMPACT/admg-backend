@@ -121,22 +121,15 @@ class CollectionPeriodFilter(CampaignFilter):
         fields = ["status"]
 
 
-def filter_keyword(keyword):
-    queryset = None
-
-
 class GcmdSyncFilter(django_filters.FilterSet):
-    # make sure to include a filter_campaign_name method in the inherited classes
     status = django_filters.ChoiceFilter(
         choices=Change.Statuses.choices,
         label="Status",
     )
-    # TODO: Uncomment after demo
-    # gcmd_type = django_filters.ModelMultipleChoiceFilter(
-    #     field_name='content_type',
-    #     queryset=ContentType.objects.filter(model__startswith="gcmd"),
-    # )
-    # TODO: Make sure this is the best way to filter on keyword.
+    gcmd_type = django_filters.ModelMultipleChoiceFilter(
+        field_name='content_type',
+        queryset=ContentType.objects.filter(model__startswith="gcmd"),
+    )
     short_name = django_filters.CharFilter(
         label="Keyword", field_name="short_name", lookup_expr='icontains'
     )

@@ -16,19 +16,54 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='ResolvedList',
             fields=[
-                ('uuid', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('submitted', models.BooleanField(default=False, verbose_name='Form has been submitted by user.')),
-                ('change_uuid', models.OneToOneField(null=True, on_delete=django.db.models.deletion.CASCADE, to='api_app.change')),
+                (
+                    'uuid',
+                    models.UUIDField(
+                        default=uuid.uuid4, editable=False, primary_key=True, serialize=False
+                    ),
+                ),
+                (
+                    'submitted',
+                    models.BooleanField(
+                        default=False, verbose_name='Form has been submitted by user.'
+                    ),
+                ),
+                (
+                    'change_uuid',
+                    models.OneToOneField(
+                        null=True, on_delete=django.db.models.deletion.CASCADE, to='api_app.change'
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
             name='Recommendation',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                (
+                    'id',
+                    models.AutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name='ID'
+                    ),
+                ),
                 ('object_uuid', models.UUIDField()),
-                ('result', models.BooleanField(blank=True, verbose_name='Was the CASEI object connected?')),
-                ('content_type', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.CASCADE, to='contenttypes.contenttype')),
-                ('resolved_log', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='api_app.resolvedlist')),
+                (
+                    'result',
+                    models.BooleanField(blank=True, verbose_name='Was the CASEI object connected?'),
+                ),
+                (
+                    'content_type',
+                    models.ForeignKey(
+                        blank=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to='contenttypes.contenttype',
+                    ),
+                ),
+                (
+                    'resolved_log',
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, to='api_app.resolvedlist'
+                    ),
+                ),
             ],
         ),
     ]

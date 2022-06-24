@@ -9,6 +9,8 @@ from django.contrib.postgres.fields import ArrayField
 from django.contrib.postgres.search import SearchQuery, SearchVector
 from django.db import models
 
+from kms import gcmd
+
 # TODO: Mv to config
 FRONTEND_URL = "https://airborne-inventory.surge.sh/"
 NOTES_INTERNAL_HELP_TEXT = "Free text notes for ADMG staff, this is NOT visible to the public."
@@ -237,16 +239,9 @@ class PartnerOrg(LimitedInfoPriority):
         pass
 
 
-# TODO: Use this or get rid of it!
 class GcmdKeyword(BaseModel):
     def _get_casei_model(self):
-        keyword_to_casei_map = {
-            "gcmdproject": Campaign,
-            "gcmdplatform": Platform,
-            "gcmdinstrument": Instrument,
-            "gcmdphenomena": Instrument,
-        }
-        return keyword_to_casei_map[self.__class__.__name__.lower()]
+        return gcmd.keyword_to_casei_map[self.__class__.__name__.lower()]
 
     def _get_casei_attribute(self):
         keyword_to_casei_map = {
@@ -255,7 +250,7 @@ class GcmdKeyword(BaseModel):
             "gcmdinstrument": "gcmd_instruments",
             "gcmdphenomena": "gcmd_phenomenas",
         }
-        return keyword_to_casei_map[self.__class__.__name__.lower()]
+        return gcmd.keyword_casei_attribute_map[self.__class__.__name__.lower()]
 
     casei_model = property(_get_casei_model)
     casei_attribute = property(_get_casei_attribute)

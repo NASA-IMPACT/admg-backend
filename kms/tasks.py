@@ -1,7 +1,7 @@
 import logging
 from celery import shared_task
 
-from . import api, gcmd
+from . import gcmd
 from api_app.models import Change
 
 logger = logging.getLogger(__name__)

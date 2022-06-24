@@ -1,7 +1,7 @@
 import pytest
 
 from django.core.management import call_command
-from kms.fixtures.gcmd_fixtures import *
+
 
 @pytest.fixture(scope='session')
 def django_db_setup(django_db_setup, django_db_blocker):

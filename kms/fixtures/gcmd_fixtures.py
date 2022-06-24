@@ -1,15 +1,13 @@
-import json
 import pickle
 import pytest
 import uuid
 
 from data_models import models
-from api_app.models import Change, CREATE, UPDATE, DELETE
+from api_app.models import Change
 from data_models.tests.factories import (
     GcmdProjectFactory,
     GcmdInstrumentFactory,
     GcmdPlatformFactory,
-    GcmdPhenomenaFactory,
 )
 
 
@@ -19,7 +17,9 @@ def instrument_row():
     return pickle.loads(pickle_string)
 
 
-@pytest.fixture(params=[GcmdProjectFactory, GcmdInstrumentFactory, GcmdPlatformFactory, GcmdPhenomenaFactory])
+@pytest.fixture(
+    params=[GcmdProjectFactory, GcmdInstrumentFactory, GcmdPlatformFactory, GcmdPhenomenaFactory]
+)
 def gcmd_factory(request):
     return request.param
 
@@ -27,22 +27,18 @@ def gcmd_factory(request):
 @pytest.fixture
 def sync_gcmd_create_args():
     return [
+        {"action": Change.Actions.CREATE, "model": models.GcmdPhenomena, "uuid": None},
         {
-            "action": CREATE,
+            "action": Change.Actions.UPDATE,
             "model": models.GcmdPhenomena,
-            "uuid": None
+            "uuid": uuid.UUID("7dea46ac-96aa-4335-a05f-e1a83072ec4f", version=4),
         },
         {
-            "action": UPDATE,
+            "action": Change.Actions.UPDATE,
             "model": models.GcmdPhenomena,
-            "uuid": uuid.UUID("7dea46ac-96aa-4335-a05f-e1a83072ec4f", version=4)
+            "uuid": uuid.UUID("31d8bfd0-47db-4260-a0b1-bb632ac629bc", version=4),
         },
-        {
-            "action": UPDATE,
-            "model": models.GcmdPhenomena,
-            "uuid": uuid.UUID("31d8bfd0-47db-4260-a0b1-bb632ac629bc", version=4)
-        },
-        None
+        None,
     ]
 
 
@@ -53,10 +49,11 @@ def sync_gcmd_delete_args():
             "4f938731-d686-4d89-b72b-ff60474bb1f0",
             "16187619-9586-41e3-8faf-16981d5e6ef9",
             "cb21ad9d-7a83-482a-833d-fc3d3079a391",
-            "4fb2bd9c-98ed-475d-9d9f-dfdc926e516e"
+            "4fb2bd9c-98ed-475d-9d9f-dfdc926e516e",
         },
-        models.GcmdPhenomena
+        models.GcmdPhenomena,
     )
+
 
 mock_concepts_changes = [
     # Term shouldn't match, CREATE change record should be created.
@@ -68,7 +65,7 @@ mock_concepts_changes = [
         "Variable_Level_2": "",
         "Variable_Level_3": "",
         "Detailed_Variable": "",
-        "UUID": "4f938731-d686-4d89-b72b-ff60474bb1f0"
+        "UUID": "4f938731-d686-4d89-b72b-ff60474bb1f0",
     },
     # Term that exists in DB but info doesn't match, UPDATE change record should be created.
     {
@@ -79,7 +76,7 @@ mock_concepts_changes = [
         "Variable_Level_2": "",
         "Variable_Level_3": "",
         "Detailed_Variable": "",
-        "UUID": "16187619-9586-41e3-8faf-16981d5e6ef9"
+        "UUID": "16187619-9586-41e3-8faf-16981d5e6ef9",
     },
     # Term that exists in DB but info doesn't match, UPDATE change record should be created.
     {
@@ -90,7 +87,7 @@ mock_concepts_changes = [
         "Variable_Level_2": "CEPHALOPODS",
         "Variable_Level_3": "OCTOPUS",
         "Detailed_Variable": "",
-        "UUID": "cb21ad9d-7a83-482a-833d-fc3d3079a391"
+        "UUID": "cb21ad9d-7a83-482a-833d-fc3d3079a391",
     },
     # Row should already exist with no changes.
     {
@@ -101,6 +98,6 @@ mock_concepts_changes = [
         "Variable_Level_2": "ICE PELLETS",
         "Variable_Level_3": "SLEET",
         "Detailed_Variable": "",
-        "UUID": "4fb2bd9c-98ed-475d-9d9f-dfdc926e516e"
-    }
+        "UUID": "4fb2bd9c-98ed-475d-9d9f-dfdc926e516e",
+    },
 ]

@@ -23,12 +23,18 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='resolvedlog',
             name='recomendation',
-            field=models.OneToOneField(default='', on_delete=django.db.models.deletion.CASCADE, to='api_app.recommendations'),
+            field=models.OneToOneField(
+                default='',
+                on_delete=django.db.models.deletion.CASCADE,
+                to='api_app.recommendations',
+            ),
             preserve_default=False,
         ),
         migrations.AddField(
             model_name='resolvedlog',
             name='submitted',
-            field=models.BooleanField(default=False, verbose_name='Form has been submitted by user.'),
+            field=models.BooleanField(
+                default=False, verbose_name='Form has been submitted by user.'
+            ),
         ),
     ]

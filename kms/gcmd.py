@@ -1,7 +1,8 @@
 import logging
 import uuid
 
-from typing import Dict, Optional, Set, Union, Type
+# TODO: Figure out if we should be using Dict instead.
+from typing import Optional, Set, Union, Type
 
 from api_app.models import (
     Change,
@@ -38,7 +39,7 @@ keyword_to_casei_map = {
     "gcmdinstrument": Instrument,
     "gcmdphenomenon": Instrument,
 }
-casei_gcmdkeyword_set_map = {
+keyword_casei_attribute_map = {
     "gcmdproject": "gcmd_projects",
     "gcmdplatform": "gcmd_platforms",
     "gcmdinstrument": "gcmd_instruments",
@@ -70,9 +71,7 @@ def get_content_type(model: Type[Models]) -> ContentType:
 
 
 def get_casei_keyword_set(casei_object: Casei_Object, content_type: str):
-    set_attribute = casei_gcmdkeyword_set_map[content_type.lower()]
-    print(f"CASEI OBJECT: {type(casei_object)}, {casei_object}")
-    print(f"Set Attribute: {type(set_attribute)}, {set_attribute}")
+    set_attribute = keyword_casei_attribute_map[content_type.lower()]
     return getattr(casei_object, set_attribute)
 
 
@@ -81,7 +80,6 @@ def get_casei_model(content_type: str) -> Casei_Object:
 
 
 def get_path_order(content_type: str) -> list:
-    print(f"CONTENT TYPE PATH ORDER: {content_type}")
     return path_order[content_type.lower()]
 
 
@@ -121,12 +119,10 @@ def compare_record_with_concept(row: Models, concept: dict) -> bool:
 def delete_old_records(uuids: Set[str], model: Type[Models]) -> None:
     for row in model.objects.all().iterator():
         if str(row.gcmd_uuid) not in uuids:
-            print(f"Found row to delete: {row}")
             # If item in db but not in API, create "DELETE" change record
             create_change({"gcmd_uuid": str(row.gcmd_uuid)}, model, Change.Actions.DELETE, row.uuid)
 
 
-# TODO: We only use "gcmd_uuid" of concept, change so model_uuid is use instead.
 def get_change(
     concept: dict, model: Type[Models], action: Actions, model_uuid: Optional[str]
 ) -> Union[Change, None]:
@@ -136,8 +132,6 @@ def get_change(
             uuid_query = {"update__gcmd_uuid": concept["gcmd_uuid"]}
         else:
             uuid_query = {"model_instance_uuid": model_uuid}
-        # TODO: Get rid of this!
-        # print(f"UUID QUERY: {uuid_query}")
         return Change.objects.get(
             content_type=content_type,
             action=action,
@@ -197,13 +191,9 @@ def create_recommended_list(
     # Delete changes will always get rid of connections by default.
     default_result = None if action in [Change.Actions.CREATE, Change.Actions.UPDATE] else False
 
-    resolved_list = ResolvedList(change=change_draft, submitted=False)
-    resolved_list.save()
-
     for recommended_object in get_recommended_objects(concept, model, action, change_draft):
-        print(f"Recommended Object: {recommended_object}")
         recommendation = Recommendation(
-            parent_fk=recommended_object, result=default_result, resolved_log=resolved_list
+            change=change_draft, casei_object=recommended_object, result=default_result
         )
         recommendation.save()
 
@@ -223,17 +213,16 @@ def update_change(change_draft: Change, new_update: dict):
 def create_change(
     concept: dict, model: Type[Models], action: Actions, model_uuid: Optional[str]
 ) -> None:
+    # If a non-published Change already exists, just update the current one.
     change_draft = get_change(concept, model, action, model_uuid)
-    print(f"GET CHANGE RETURN: {change_draft}")
-    # If a change object already exists, just update the current one.
     if change_draft:
         update_change(change_draft, concept)
+
     else:
         if action is Change.Actions.CREATE:
             model_uuid = str(uuid.uuid4())
-            change_uuid = (
-                model_uuid  # Create records reuse the change's uuid for the instance's uuid
-            )
+            # Create records reuse the change's uuid for the instance's uuid
+            change_uuid = model_uuid
             update, previous = concept, {}
             status = Change.Statuses.PUBLISHED
             logger.info(

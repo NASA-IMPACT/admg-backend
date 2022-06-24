@@ -79,61 +79,6 @@ class TransitionForm(forms.Form):
         return actions.items()
 
 
-# TODO: Get rid of this, not needed anymore!
-class KeywordTransitionForm(TransitionForm):
-    # TODO: Write more for docstring.
-    """
-    Form to assist in transitioning a GCMD Keyword Change model.
-    """
-
-    @staticmethod
-    def get_supported_actions(change: Change, user: User):
-        actions = OrderedDict()
-
-        # TODO: Add logic that if this is a "DELETE" Change, then it should display "Delete" instead of "Publish".
-        # if change.status in [Change.Statuses.CREATED, Change.Statuses.IN_PROGRESS]:
-        #     actions["submit"] = "Publish"
-
-        # if change.status in [Change.Statuses.AWAITING_REVIEW]:
-        #     actions["claim"] = "Claim for Staff Review"
-
-        # if change.status in [Change.Statuses.IN_REVIEW]:
-        #     actions["reject"] = "Requires adjustments"
-
-        # if change.status in [Change.Statuses.IN_REVIEW]:
-        #     actions["unclaim"] = "Unassign Staff Reviewer"
-
-        # if change.status in [Change.Statuses.IN_REVIEW]:
-        #     actions["review"] = "Ready for Admin Review"
-
-        # Admins are the only role that are allowed to make transitions to GCMD Keywords
-        if user.role == ADMIN_CODE:
-            # TODO: Add logic that if this is a "DELETE" Change, then it should display "Delete" instead of "Publish".
-            if change.status in [Change.Statuses.CREATED, Change.Statuses.IN_PROGRESS]:
-                actions["submit"] = "Publish Keyword"
-
-            # if change.status in [Change.Statuses.IN_ADMIN_REVIEW]:
-            #     actions["reject"] = "Requires adjustments"
-
-            # if change.status in [Change.Statuses.AWAITING_ADMIN_REVIEW]:
-            #     actions["claim"] = "Claim for Admin Review"
-
-            # Admin can publish at any step
-            # actions["publish"] = "Publish to production"
-            # if change.status != Change.Statuses.IN_ADMIN_REVIEW:
-            #     actions["publish"] = mark_safe(
-            #         '<span class="text-danger font-italic">Danger:</span>  ' + actions["publish"]
-            #     )
-
-        return actions.items()
-
-
-# TODO: Get rid of if we end up not using!
-class GcmdKeywordForm(forms.Form):
-    pass
-    # affected_name = forms.
-
-
 class DoiForm(forms.Form):
     uuid = forms.UUIDField(disabled=True, widget=forms.HiddenInput)
     campaigns = ChangeMultipleChoiceField(dest_model=data_models.Campaign, required=False)
