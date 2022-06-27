@@ -122,7 +122,7 @@
           <ul class="list-group">
             {% for collection_period in collection_periods %}
             <li class="list-group-item deployment-child" data-deployment="{{ collection_period.update.deployment }}">
-              {% include "snippets/campaign_accordian_cards/collectionperiod.html" with change=collection_period %}
+              {% include "snippets/campaign_accordian_cards/collection_period.html" with change=collection_period %}
             </li>
             {% endfor %}
           </ul>
