@@ -120,9 +120,9 @@
         </div>
         <div id="collection-periods" class="collapse show" aria-labelledby="collection-periods-header" data-parent="#accordion">
           <ul class="list-group">
-            {% for collectionperiod in collection_periods %}
-            <li class="list-group-item deployment-child" data-deployment="{{ collectionperiod.update.deployment }}">
-              {% include "snippets/campaign_accordian_cards/collectionperiod.html" with change=collectionperiod %}
+            {% for collection_period in collection_periods %}
+            <li class="list-group-item deployment-child" data-deployment="{{ collection_period.update.deployment }}">
+              {% include "snippets/campaign_accordian_cards/collectionperiod.html" with change=collection_period %}
             </li>
             {% endfor %}
           </ul>
