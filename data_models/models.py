@@ -9,8 +9,6 @@ from django.contrib.postgres.fields import ArrayField
 from django.contrib.postgres.search import SearchQuery, SearchVector
 from django.db import models
 
-from kms import gcmd
-
 # TODO: Mv to config
 FRONTEND_URL = "https://airborne-inventory.surge.sh/"
 NOTES_INTERNAL_HELP_TEXT = "Free text notes for ADMG staff, this is NOT visible to the public."
@@ -241,16 +239,19 @@ class PartnerOrg(LimitedInfoPriority):
 
 class GcmdKeyword(BaseModel):
     def _get_casei_model(self):
-        return gcmd.keyword_to_casei_map[self.__class__.__name__.lower()]
+        from kms import keyword_to_casei_map
+
+        return keyword_to_casei_map[self.__class__.__name__.lower()]
 
     def _get_casei_attribute(self):
-        keyword_to_casei_map = {
-            "gcmdproject": "gcmd_projects",
-            "gcmdplatform": "gcmd_platforms",
-            "gcmdinstrument": "gcmd_instruments",
-            "gcmdphenomena": "gcmd_phenomenas",
-        }
-        return gcmd.keyword_casei_attribute_map[self.__class__.__name__.lower()]
+        from kms import keyword_casei_attribute_map
+
+        return keyword_casei_attribute_map[self.__class__.__name__.lower()]
+
+    # TODO: Ed and I think this should just change to attribute. Just have none value for parent class.
+    @property
+    def gcmd_path():
+        raise NotImplementedError()
 
     casei_model = property(_get_casei_model)
     casei_attribute = property(_get_casei_attribute)
@@ -264,10 +265,16 @@ class GcmdProject(GcmdKeyword):
     long_name = models.CharField(max_length=512, blank=True, default="")
     bucket = models.CharField(max_length=256)
     gcmd_uuid = models.UUIDField(unique=True)
+    gcmd_path = ["bucket", "short_name"]
 
     def __str__(self):
         categories = (self.short_name, self.long_name)
         return create_gcmd_str(categories)
+
+    # TODO: Get rid of once this works.
+    # @staticmethod
+    # def gcmd_path():
+    #     return ["bucket", "short_name"]
 
     class Meta:
         ordering = ("short_name",)
@@ -283,6 +290,13 @@ class GcmdInstrument(GcmdKeyword):
     instrument_type = models.CharField(max_length=256, blank=True, default="")
     instrument_subtype = models.CharField(max_length=256, blank=True, default="")
     gcmd_uuid = models.UUIDField(unique=True)
+    gcmd_path = [
+        "instrument_category",
+        "instrument_class",
+        "instrument_type",
+        "instrument_subtype",
+        "short_name",
+    ]
 
     def __str__(self):
         categories = (
@@ -295,6 +309,16 @@ class GcmdInstrument(GcmdKeyword):
         )
         return create_gcmd_str(categories)
 
+    # @staticmethod
+    # def gcmd_path():
+    #     return [
+    #         "instrument_category",
+    #         "instrument_class",
+    #         "instrument_type",
+    #         "instrument_subtype",
+    #         "short_name",
+    #     ]
+
     class Meta:
         ordering = ("short_name",)
 
@@ -306,10 +330,15 @@ class GcmdPlatform(GcmdKeyword):
     series_entry = models.CharField(max_length=256, blank=True, default="")
     description = models.TextField(blank=True, default="")
     gcmd_uuid = models.UUIDField(unique=True)
+    gcmd_path = ["category", "series_entry", "short_name"]
 
     def __str__(self):
         categories = (self.category, self.long_name, self.short_name)
         return create_gcmd_str(categories)
+
+    # @staticmethod
+    # def gcmd_path():
+    #     return ["category", "series_entry", "short_name"]
 
     class Meta:
         ordering = ("short_name",)
@@ -323,6 +352,14 @@ class GcmdPhenomenon(GcmdKeyword):
     variable_2 = models.CharField(max_length=256, blank=True, default="")
     variable_3 = models.CharField(max_length=256, blank=True, default="")
     gcmd_uuid = models.UUIDField(unique=True)
+    gcmd_path = [
+        "category",
+        "topic",
+        "term",
+        "variable_1",
+        "variable_2",
+        "variable_3",
+    ]
 
     def __str__(self):
         categories = (
@@ -334,6 +371,17 @@ class GcmdPhenomenon(GcmdKeyword):
             self.variable_3,
         )
         return create_gcmd_str(categories)
+
+    # @staticmethod
+    # def gcmd_path():
+    #     return [
+    #         "category",
+    #         "topic",
+    #         "term",
+    #         "variable_1",
+    #         "variable_2",
+    #         "variable_3",
+    #     ]
 
     class Meta:
         verbose_name_plural = "Phenomena"

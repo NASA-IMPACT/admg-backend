@@ -3,11 +3,13 @@ import pytest
 from unittest import mock
 from copy import deepcopy
 
-from kms import gcmd, tasks
+from kms import tasks
 from data_models import models
 from api_app.models import Change
 from kms.fixtures.gcmd_fixtures import mock_concepts_changes
 from django.contrib.contenttypes.models import ContentType
+
+from kms import gcmd
 
 
 @pytest.mark.django_db
@@ -317,9 +319,9 @@ class TestGCMD:
     def test_is_valid_concept(self, concept, model, expected_result):
         assert gcmd.is_valid_concept(concept, model) == expected_result
 
-    @mock.patch("kms.gcmd.is_valid_concept", mock.Mock(return_value=True))
-    @mock.patch("kms.gcmd.delete_old_records")
-    @mock.patch("kms.gcmd.create_change")
+    @mock.patch("kms.is_valid_concept", mock.Mock(return_value=True))
+    @mock.patch("kms.delete_old_records")
+    @mock.patch("kms.create_change")
     @mock.patch("kms.api.list_concepts")
     def test_sync_gcmd(
         self,

@@ -18,30 +18,6 @@
   </div>
 {% endblock header %}
 
-{% block actions %}
-  <!-- <div class="px-1">
-    {% include "snippets/approval_dropdown.html" %}
-  </div>
-
-  <div class="px-1">
-    <button 
-      class="btn btn-primary" 
-      form="model-form" 
-      formnovalidate
-      {% if disable_save %}disabled{% endif %}
-    >
-      Save
-    </button>
-    <button 
-      class="btn btn-secondary" 
-      form="model-form" 
-      name="_validate"
-    >
-      Validate
-    </button>
-  </div> -->
-{% endblock actions %}
-
 {% block main %}
   {% with main_class="col-lg-8" %}
     {{ block.super }}
@@ -100,6 +76,7 @@
 {% if gcmd_path.old_path %}
   <p class="gcmd-label">Old Path</p>
   <p class="gcmd-path">
+    <!-- TODO: Put inline styles in classes, only add class if the value has changed -->
     {% for attribute in gcmd_path.path %}
       <span style="color:{% if attribute.has_changed %} #D6311C {% else %} black {% endif %};">{{attribute.old_value}}</span>
       {% if not forloop.last %} <span style="color: black;"> > </span> {% endif %}
@@ -137,25 +114,24 @@
             <td>
               {% csrf_token %}
               <!-- Connect/Ignore radio buttons -->
-              <input type="radio" class="associateRadio choiceRadio" id="connect-{{record.row.short_name}}" name="choice-{{record.row.uuid}}" value="True" required "{% if record.current_selection.connect %} checked {% else %} {% endif %}" "{% if action == 'Delete' %} disabled {% else %} {% endif %}">
-              <label for="connectChoice-{{record.row.short_name}}" class="review-button">Yes</label>
-              <input type="radio" class="associateRadio choiceRadio" id="ignore-{{record.row.short_name}}" name="choice-{{record.row.uuid}}" value="False" required "{% if record.current_selection.ignore %} checked {% else %} {% endif %}" "{% if action == 'Delete' %} disabled {% else %} {% endif %}">
-              <label for="ignoreChoice-{{record.row.short_name}}" class="review-button">No</label>
+              <input type="radio" class="associate-radio" id="connect-{{record.row.short_name}}" name="choice-{{record.row.uuid}}" value="True" required {% ifequal record.current_selection True %} checked {% endifequal %} {% if action == 'Delete' %} disabled {% endif %}>
+              <label for="connectChoice-{{record.row.short_name}}">Yes</label>
+              <input type="radio" class="associate-radio" id="ignore-{{record.row.short_name}}" name="choice-{{record.row.uuid}}" value="False" required {% ifequal record.current_selection False %} checked {% endifequal %} {% if action == 'Delete' %} disabled {% endif %}>
+              <label for="ignoreChoice-{{record.row.short_name}}">No</label>
             </td>
           </tr>
           <br>
         {% endfor %}
       </table>
+      <!-- TODO: Ask Ed for a better way to do this, you could technically trick the backend. -->
+      <!-- Pass the UUIDs to the backend. -->
       {% with affected_records|last as last %}
         <input type="hidden" name="related_uuids" value="{{last.uuids}}">
-        <label for="related_uuids" class="review-button"></label>
       {% endwith %}
-
-      <button class="submit-button" id="saveButton" name="user_button" value="Save">Save Progress</button>
-      <button type="submit" class="right-side submit-button" id="doneButton" name="user_button" value="Publish">Save & Publish</button>
+      <button class="submit-button btn" id="saveButton" name="user_button" value="Save">Save Progress</button>
+      <button type="submit" class="submit-button right-side btn" id="doneButton" name="user_button" value="Publish">Save & Publish</button>
     </form>
   {% endif %}
-
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
 <script type="text/javascript">
@@ -174,12 +150,12 @@
 
   $(document).ready(function() {
     var checkButtons = {}
-    $(".choiceRadio").each(function(index) {
+    $(".associate-radio").each(function(index) {
         checkButtons[$(this).attr("id")] = convertToBool($(this).attr("checked"));
     });
 
     // Deselectable radio buttons
-    $(".choiceRadio").click(function(event) {
+    $(".associate-radio").click(function(event) {
       console.log($(this).attr("id"), " Current Selection: ", checkButtons[$(this).attr("id")]);
       var otherID = getOtherChoice($(this));
       checkButtons[otherID] = false;
@@ -198,7 +174,7 @@
 
     // Form validation for 'Save & Publish' button
     $("#doneButton").click(function(event) {
-      $("input.choiceRadio").each(function(index) {
+      $("input.associate-radio").each(function(index) {
         if (!$(this).prop("validity").valid){
             $(this).reportValidity();
             return false;
@@ -218,7 +194,7 @@
 
     // Save Button Form Submission
     $("#saveButton").click(function(event) {
-        $(".associateRadio").removeAttr("required");
+        $(".associate-radio").removeAttr("required");
         $('#connectionForm').submit();
     });
   });

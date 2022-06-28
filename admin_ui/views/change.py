@@ -242,7 +242,6 @@ class ChangeCreateView(mixins.DynamicModelMixin, mixins.ChangeModelFormMixin, Cr
         return super().post(*args, **kwargs)
 
 
-# TODO: Change this back
 @method_decorator(login_required, name="dispatch")
 class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
     fields = ["content_type", "model_instance_uuid", "action", "update", "status"]
@@ -435,30 +434,21 @@ class GcmdSyncListView(GcmdCounts, SingleTableMixin, FilterView):
             change_id=OuterRef("uuid"), result__isnull=False
         )
 
-        # TODO: Add database migration to create index on content_type.model field and aliases.short_name
         queryset = (
             Change.objects.of_type(GcmdInstrument, GcmdPlatform, GcmdProject, GcmdPhenomenon)
             .select_related("content_type")
             .annotate(
-                # TODO: Might be able to make this shorter (one line for each)
                 short_name=functions.Coalesce(
-                    functions.NullIf(KeyTextTransform('short_name', 'update'), Value("")),
-                    functions.NullIf(KeyTextTransform('variable_3', 'update'), Value("")),
-                    functions.NullIf(KeyTextTransform('variable_2', 'update'), Value("")),
-                    functions.NullIf(KeyTextTransform('variable_1', 'update'), Value("")),
-                    functions.NullIf(KeyTextTransform('term', 'update'), Value("")),
-                    functions.NullIf(KeyTextTransform('short_name', 'previous'), Value("")),
-                    functions.NullIf(KeyTextTransform('variable_3', 'previous'), Value("")),
-                    functions.NullIf(KeyTextTransform('variable_2', 'previous'), Value("")),
-                    functions.NullIf(KeyTextTransform('variable_1', 'previous'), Value("")),
-                    functions.NullIf(KeyTextTransform('term', 'previous'), Value("")),
+                    *[
+                        functions.NullIf(KeyTextTransform(attr, dictionary), Value(""))
+                        for attr in gcmd.short_name_priority
+                        for dictionary in ["update", "previous"]
+                    ]
                 ),
                 resolved_records=functions.Coalesce(SubqueryCount(resolved_records), Value(0)),
                 affected_records=Count("recommendation", distinct=True),
             )
             .filter(recommendation__submitted=False)
-            # .add_updated_at()   # TODO: Figure out why this was affecting the affected/resolved counts.
-            # .order_by("-updated_at")
         )
 
         return queryset
@@ -466,7 +456,6 @@ class GcmdSyncListView(GcmdCounts, SingleTableMixin, FilterView):
     def get_context_data(self, **kwargs):
         return {
             **super().get_context_data(**kwargs),
-            # TODO: Set this, displays at top of page.
             "display_name": "GCMD Keyword",
         }
 
@@ -504,27 +493,7 @@ class ChangeGcmdUpdateView(GcmdCounts, UpdateView):
         return casei_type.__name__
 
     def get_gcmd_path(self) -> Dict:
-        path_order = {
-            "GcmdPlatform": ["category", "series_entry", "short_name"],
-            "GcmdProject": ["bucket", "short_name"],
-            "GcmdInstrument": [
-                "instrument_category",
-                "instrument_class",
-                "instrument_type",
-                "instrument_subtype",
-                "short_name",
-            ],
-            "GcmdPhenomena": [
-                "category",
-                "topic",
-                "term",
-                "variable_1",
-                "variable_2",
-                "variable_3",
-            ],
-        }
-
-        def get_initial_path(action):
+        def get_initial_path():
             path = {"path": []}
             if self.object.action == Change.Actions.UPDATE:
                 path["old_path"], path["new_path"] = True, True
@@ -554,10 +523,9 @@ class ChangeGcmdUpdateView(GcmdCounts, UpdateView):
                 or not previous_object.get(attribute) == new_object.get(attribute),
             }
 
-        content_type = self.get_model_form_content_type().model_class().__name__
-        path = get_initial_path(self.object.action)
+        path = get_initial_path()
 
-        path_order = gcmd.get_path_order(content_type)
+        path_order = self.object.content_type.model_class().gcmd_path
         for attribute in path_order:
             path["path"].append(
                 compare_gcmd_path_attribute(attribute, self.object.update, self.object.previous)
@@ -578,24 +546,13 @@ class ChangeGcmdUpdateView(GcmdCounts, UpdateView):
             is_connnected = gcmd_keyword.content_object in keyword_set.all()
             return "Yes" if is_connnected else "No"
 
-    # TODO: There is probably a better way of doing this.
     def get_current_selection(self, result):
-        if result is None:
-            return {}
-        elif result:
-            return {"connect": True}
-        else:
-            return {"ignore": True}
+        return result
 
     def get_affected_records(self) -> Dict:
         content_type = self.get_model_form_content_type().model_class().__name__
-        # TODO: Add Exception in case this doesn't exist!
-        # Idea: Probably tell them name of keyword but show message with error telling them
-        #       to reach out to admin to fix problem.
-        # resolved_list = ResolvedList.objects.get(change_id=self.object.uuid)
         recommendations = Recommendation.objects.filter(change_id=self.object.uuid)
         category = self.get_affected_type()
-        # TODO: Make this better
         affected_records, uuids = [], []
 
         for recommendation in recommendations:
@@ -609,15 +566,15 @@ class ChangeGcmdUpdateView(GcmdCounts, UpdateView):
                     "is_connected": self.is_connected(
                         self.object, recommendation.casei_object, content_type
                     ),
-                    "current_selection": self.get_current_selection(recommendation.result),
+                    "current_selection": recommendation.result,
                     "is_submitted": recommendation.submitted,
-                    "uuids": uuids,  # TODO: Put the uuids somewhere else
+                    "uuids": uuids,
                 }
             )
         return affected_records
 
     def get_back_button_url(self):
-        return "review_changes-list-draft"
+        return "gcmd-keyword-changes"
 
     def get_casei_object(self, uuid, content_type):
         casei_model = gcmd.get_casei_model(content_type)
@@ -662,7 +619,6 @@ class ChangeGcmdUpdateView(GcmdCounts, UpdateView):
         if not gcmd_change.action == Change.Actions.CREATE:
             gcmd_change.publish(user=request.user)
 
-    # TODO: Clean this method up.
     def post(self, request, **kwargs):
         import ast
 
@@ -682,7 +638,7 @@ class ChangeGcmdUpdateView(GcmdCounts, UpdateView):
                 request,
                 f'Successfully published GCMD Keyword "{gcmd.get_short_name(self.get_object())}"',
             )
-            return HttpResponseRedirect(reverse("review_changes-list-draft"))
+            return HttpResponseRedirect(reverse("gcmd-keyword-changes"))
         else:
             messages.success(
                 request,

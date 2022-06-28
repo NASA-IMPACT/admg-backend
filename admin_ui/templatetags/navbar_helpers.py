@@ -6,7 +6,7 @@ from django.template.loader import get_template
 register = template.Library()
 
 
-LINKS = "published-list || change-list || change-add || review_changes-list-draft"
+LINKS = "published-list || change-list || change-add || gcmd-keyword-changes"
 
 
 def is_quoted(text: str):

@@ -8,30 +8,30 @@ from api_app.models import (
     Change,
     Recommendation,
 )
-
-from data_models.models import Campaign, Instrument, Platform, Alias
+from data_models.models import (
+    Campaign,
+    Instrument,
+    Platform,
+    Alias,
+    GcmdProject,
+    GcmdInstrument,
+    GcmdPlatform,
+    GcmdPhenomenon,
+)
 from django.contrib.contenttypes.models import ContentType
 from django.forms.models import model_to_dict
-from data_models import models
 
 logger = logging.getLogger(__name__)
 
-Models = Union[
-    models.GcmdProject, models.GcmdInstrument, models.GcmdPlatform, models.GcmdPhenomenon
-]
-Casei_Object = Union[Campaign, Instrument, Platform]
 Actions = Union[Change.Actions.CREATE, Change.Actions.UPDATE, Change.Actions.DELETE]
+Models = Union[GcmdProject, GcmdInstrument, GcmdPlatform, GcmdPhenomenon]
+Casei_Object = Union[Campaign, Instrument, Platform]
 
-# TODO: Change back
-# concept_to_model_map = {
-#     "instruments": models.GcmdInstrument,
-#     "projects": models.GcmdProject,
-#     "platforms": models.GcmdPlatform,
-#     "sciencekeywords": models.gcmdphenomenon,
-# }
-concept_to_model_map = {
-    # "gcmdprojects": models.GcmdProject,
-    "gcmdphenomenon": models.GcmdPhenomenon,
+keyword_to_model_map = {
+    "instruments": GcmdInstrument,
+    "projects": GcmdProject,
+    "platforms": GcmdPlatform,
+    "sciencekeywords": GcmdPhenomenon,
 }
 keyword_to_casei_map = {
     "gcmdproject": Campaign,
@@ -45,25 +45,7 @@ keyword_casei_attribute_map = {
     "gcmdinstrument": "gcmd_instruments",
     "gcmdphenomenon": "gcmd_phenomenon",
 }
-path_order = {
-    "gcmdproject": ["bucket", "short_name"],
-    "gcmdplatform": ["category", "series_entry", "short_name"],
-    "gcmdinstrument": [
-        "instrument_category",
-        "instrument_class",
-        "instrument_type",
-        "instrument_subtype",
-        "short_name",
-    ],
-    "gcmdphenomenon": [
-        "category",
-        "topic",
-        "term",
-        "variable_1",
-        "variable_2",
-        "variable_3",
-    ],
-}
+short_name_priority = ["short_name", "variable_3", "variable_2", "variable_1", "term"]
 
 
 def get_content_type(model: Type[Models]) -> ContentType:
@@ -79,30 +61,21 @@ def get_casei_model(content_type: str) -> Casei_Object:
     return keyword_to_casei_map[content_type.lower()]
 
 
-def get_path_order(content_type: str) -> list:
-    return path_order[content_type.lower()]
-
-
-def convert_concept(record: dict, model: Type[Models]) -> dict:
+def convert_keyword(record: dict, model: Type[Models]) -> dict:
     """Convert GCMD API record to match the format from the output of model_to_dict for each type of model."""
     record["gcmd_uuid"] = record.pop("UUID")
-    if model == models.GcmdProject:
-        # GcmdProject doesn't have any attributes we need to convert
+    if model == GcmdProject:
         pass
-    elif model == models.GcmdInstrument:
+    elif model == GcmdInstrument:
         record["instrument_category"] = record.pop("Category")
         record["instrument_class"] = record.pop("Class")
         record["instrument_type"] = record.pop("Type")
         record["instrument_subtype"] = record.pop("Subtype")
-    # TODO: Figure out what to do with new GCMD csv format. Had to switch basis back to category like in old csv and changed Category back to series_entry.
-    elif model == models.GcmdPlatform:
+    elif model == GcmdPlatform:
         record["category"] = record.pop("Basis")
         record["series_entry"] = record.pop("Category")
-        # Not currently in use by GCMD (left blank for all values) also not in database so skipping for now.
         record.pop("Sub_Category", None)
-        # record["sub_category"] = record.pop("Sub_Category")
-        # record["series_entry"] = record.pop("Series_Entity") # This is the conversion we did on old GCMD csv.
-    elif model == models.gcmdphenomenon:
+    elif model == GcmdPhenomenon:
         record.pop("Detailed_Variable", None)
         record["variable_1"] = record.pop("Variable_Level_1")
         record["variable_2"] = record.pop("Variable_Level_2")
@@ -111,25 +84,18 @@ def convert_concept(record: dict, model: Type[Models]) -> dict:
     return record
 
 
-def compare_record_with_concept(row: Models, concept: dict) -> bool:
+def compare_record_with_keyword(row: Models, keyword: dict) -> bool:
     row_dict = keyword_to_dict(row)
-    return concept == row_dict
-
-
-def delete_old_records(uuids: Set[str], model: Type[Models]) -> None:
-    for row in model.objects.all().iterator():
-        if str(row.gcmd_uuid) not in uuids:
-            # If item in db but not in API, create "DELETE" change record
-            create_change({"gcmd_uuid": str(row.gcmd_uuid)}, model, Change.Actions.DELETE, row.uuid)
+    return keyword == row_dict
 
 
 def get_change(
-    concept: dict, model: Type[Models], action: Actions, model_uuid: Optional[str]
+    keyword: dict, model: Type[Models], action: Actions, model_uuid: Optional[str]
 ) -> Union[Change, None]:
     content_type = get_content_type(model)
     try:
         if action in [Change.Actions.CREATE] or model_uuid is None:
-            uuid_query = {"update__gcmd_uuid": concept["gcmd_uuid"]}
+            uuid_query = {"update__gcmd_uuid": keyword["gcmd_uuid"]}
         else:
             uuid_query = {"model_instance_uuid": model_uuid}
         return Change.objects.get(
@@ -165,7 +131,7 @@ def get_short_name(row: Union[Models, dict]):
 
 
 def get_recommended_objects(
-    concept: dict, model: Type[Models], action: Actions, change_draft: Change
+    keyword: dict, model: Type[Models], action: Actions, change_draft: Change
 ) -> None:
     recommendations = []
 
@@ -179,19 +145,19 @@ def get_recommended_objects(
 
     # If keyword isn't being deleted, look in alias table for other recommendations.
     if action in [Change.Actions.CREATE, Change.Actions.UPDATE]:
-        for rec_object in Alias.objects.filter(short_name=get_short_name(concept)):
+        for rec_object in Alias.objects.filter(short_name=get_short_name(keyword)):
             recommendations.append(rec_object)
 
     return recommendations
 
 
 def create_recommended_list(
-    concept: dict, model: Type[Models], action: Actions, change_draft: Change
+    keyword: dict, model: Type[Models], action: Actions, change_draft: Change
 ) -> None:
     # Delete changes will always get rid of connections by default.
     default_result = None if action in [Change.Actions.CREATE, Change.Actions.UPDATE] else False
 
-    for recommended_object in get_recommended_objects(concept, model, action, change_draft):
+    for recommended_object in get_recommended_objects(keyword, model, action, change_draft):
         recommendation = Recommendation(
             change=change_draft, casei_object=recommended_object, result=default_result
         )
@@ -211,19 +177,19 @@ def update_change(change_draft: Change, new_update: dict):
 
 
 def create_change(
-    concept: dict, model: Type[Models], action: Actions, model_uuid: Optional[str]
+    keyword: dict, model: Type[Models], action: Actions, model_uuid: Optional[str]
 ) -> None:
     # If a non-published Change already exists, just update the current one.
-    change_draft = get_change(concept, model, action, model_uuid)
+    change_draft = get_change(keyword, model, action, model_uuid)
     if change_draft:
-        update_change(change_draft, concept)
+        update_change(change_draft, keyword)
 
     else:
         if action is Change.Actions.CREATE:
             model_uuid = str(uuid.uuid4())
             # Create records reuse the change's uuid for the instance's uuid
             change_uuid = model_uuid
-            update, previous = concept, {}
+            update, previous = keyword, {}
             status = Change.Statuses.PUBLISHED
             logger.info(
                 f"Row and change record didn't exist, creating new 'CREATE' change record '{change_draft}'"
@@ -235,14 +201,14 @@ def create_change(
             status = Change.Statuses.CREATED
 
             if action is Change.Actions.UPDATE:
-                update = concept
+                update = keyword
                 logger.info(
-                    f"Row '{concept['gcmd_uuid']}' found with mismatching contents and change record not found, creating new 'UPDATE' change record '{change_draft}'"
+                    f"Row '{keyword['gcmd_uuid']}' found with mismatching contents and change record not found, creating new 'UPDATE' change record '{change_draft}'"
                 )
             elif action is Change.Actions.DELETE:
                 update = {}
                 logger.info(
-                    f"Row '{concept['gcmd_uuid']}' found that isn't in GCMD API, creating 'DELETE' change record '{change_draft}'"
+                    f"Row '{keyword['gcmd_uuid']}' found that isn't in GCMD API, creating 'DELETE' change record '{change_draft}'"
                 )
 
         change_draft = Change(
@@ -255,7 +221,18 @@ def create_change(
             status=status,
         )
         change_draft.save(post_save=True)
-        create_recommended_list(concept, model, action, change_draft)
+        create_recommended_list(keyword, model, action, change_draft)
+
+
+# TODO: Ed has suggestion to have function accept two lists and deletes any uuids that aren't in both.
+#       Pull the query out of the function so the whole function is more generic.
+#       Get the model out of the queryset instead of it being a parameter.
+def delete_old_records(uuids: Set[str], model: Type[Models]) -> None:
+
+    for row in model.objects.all().iterator():
+        if str(row.gcmd_uuid) not in uuids:
+            # If item in db but not in API, create "DELETE" change record
+            create_change({"gcmd_uuid": str(row.gcmd_uuid)}, model, Change.Actions.DELETE, row.uuid)
 
 
 def is_valid_value(*values: str) -> bool:
@@ -275,18 +252,18 @@ def is_valid_uuid(uuid_str: str, version: str = 4) -> bool:
         return False
 
 
-def is_valid_concept(record: dict, model: Type[Models]) -> bool:
-    if model == models.GcmdProject:
+def is_valid_keyword(record: dict, model: Type[Models]) -> bool:
+    if model == GcmdProject:
         return is_valid_value(record.get("Short_Name"), record.get("Bucket")) and is_valid_uuid(
             record.get("UUID")
         )
-    elif model == models.GcmdInstrument:
+    elif model == GcmdInstrument:
         return is_valid_value(record.get("Short_Name"), record.get("Class")) and is_valid_uuid(
             record.get("UUID")
         )
-    elif model == models.GcmdPlatform:
+    elif model == GcmdPlatform:
         return is_valid_value(record.get("Short_Name")) and is_valid_uuid(record.get("UUID"))
-    elif model == models.gcmdphenomenon:
+    elif model == GcmdPhenomenon:
         return is_valid_value(record.get("Category")) and is_valid_uuid(record.get("UUID"))
     else:
         return False

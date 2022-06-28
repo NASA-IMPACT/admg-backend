@@ -25,7 +25,7 @@ urlpatterns = [
     path(
         "gcmd_keywords_list/draft",
         views.GcmdSyncListView.as_view(),
-        name="review_changes-list-draft",
+        name="gcmd-keyword-changes",
     ),
     path("drafts/edit/gcmd/<uuid:pk>", views.ChangeGcmdUpdateView.as_view(), name="change-gcmd"),
     path(
