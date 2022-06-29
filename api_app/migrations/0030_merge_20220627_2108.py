@@ -10,5 +10,4 @@ class Migration(migrations.Migration):
         ('api_app', '0016_remove_patch'),
     ]
 
-    operations = [
-    ]
+    operations = []
