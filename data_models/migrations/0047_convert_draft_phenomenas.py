@@ -9,7 +9,7 @@ def convert_phenomenas_to_phenomena(apps, schema_editor):
             instrument_draft.update['gcmd_phenomena'] = instrument_draft.update.pop(
                 'gcmd_phenomenas'
             )
-            instrument_draft.save()
+            instrument_draft.save(post_save=True)
         except KeyError:
             pass
 

@@ -15,6 +15,7 @@ from data_models.models import (
     GeographicalRegion,
     GeophysicalConcept,
     HomeBase,
+    Image,
     Instrument,
     MeasurementRegion,
     MeasurementStyle,
@@ -480,7 +481,7 @@ class GcmdPhenomenonPublishedTable(tables.Table):
             dict(pk=tables.A("uuid"), model=camel_to_snake('GcmdPhenomenon')),
         ),
         verbose_name="Variable 3",
-        accessor="short_name",
+        accessor="variable_3",
     )
     variable_2 = tables.Column(verbose_name="Variable 2", accessor="variable_2")
     variable_1 = tables.Column(verbose_name="Variable 1", accessor="variable_1")
@@ -492,3 +493,16 @@ class GcmdPhenomenonPublishedTable(tables.Table):
         fields = ("variable_3", "variable_2", "variable_1", "term", "topic", "category")
         sequence = fields
         model = GcmdPhenomenon
+
+
+class ImagePublishedTable(tables.Table):
+    title = ConditionalValueColumn(
+        linkify=("published-detail", dict(pk=tables.A("uuid"), model=camel_to_snake('Image'))),
+        verbose_name="Title",
+        accessor="title",
+    )
+
+    class Meta(LimitedTableBase.Meta):
+        fields = ("title",)
+        sequence = fields
+        model = Image

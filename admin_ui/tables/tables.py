@@ -6,7 +6,7 @@ from django_tables2 import A
 import django_tables2 as tables
 
 from api_app.models import Change
-from data_models.models import Campaign, Deployment, Instrument, Platform
+from data_models.models import Campaign, Deployment, Instrument, Platform, WebsiteType
 
 
 class ConditionalValueColumn(tables.Column):
@@ -537,10 +537,11 @@ class WebsiteChangeListTable(DraftTableBase):
     url = ConditionalValueColumn(
         verbose_name="URL", accessor="update__url", update_accessor="content_object.url"
     )
-    website_type = ConditionalValueColumn(
+    website_type = ShortNamefromUUIDColumn(
         verbose_name="Website Type",
-        accessor="website_type_name",
-        update_accessor="content_object.type_name",
+        model=WebsiteType,
+        accessor="update__website_type",
+        update_accessor="content_object.website_type",
     )
 
     class Meta(DraftTableBase.Meta):
@@ -751,5 +752,19 @@ class GcmdKeywordsListTable(DraftTableBase):
             "status",
             "affected_records",
         )
+        fields = list(all_fields)
+        sequence = all_fields
+
+
+class ImageChangeListTable(DraftTableBase):
+    title = ConditionalValueColumn(
+        verbose_name="Title",
+        accessor="update__title",
+        update_accessor="content_object.title",
+        linkify=("change-update", [tables.A("uuid")]),
+    )
+
+    class Meta(DraftTableBase.Meta):
+        all_fields = ("title",) + DraftTableBase.final_fields
         fields = list(all_fields)
         sequence = all_fields
