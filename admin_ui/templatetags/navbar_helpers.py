@@ -30,9 +30,6 @@ def nav_link(context, title, view):
         **context.flatten(),  # NOTE: Must pass in context for active_link to work
         "title": title,
         "view": view,
-        # TODO: Figure out if we can get rid of this!
-        # "link_model": link_model,
-        # "links": LINKS,
     }
 
 

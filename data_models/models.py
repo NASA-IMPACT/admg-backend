@@ -248,11 +248,6 @@ class GcmdKeyword(BaseModel):
 
         return keyword_casei_attribute_map[self.__class__.__name__.lower()]
 
-    # TODO: Ed and I think this should just change to attribute. Just have none value for parent class.
-    @property
-    def gcmd_path():
-        raise NotImplementedError()
-
     casei_model = property(_get_casei_model)
     casei_attribute = property(_get_casei_attribute)
 
@@ -270,11 +265,6 @@ class GcmdProject(GcmdKeyword):
     def __str__(self):
         categories = (self.short_name, self.long_name)
         return create_gcmd_str(categories)
-
-    # TODO: Get rid of once this works.
-    # @staticmethod
-    # def gcmd_path():
-    #     return ["bucket", "short_name"]
 
     class Meta:
         ordering = ("short_name",)
@@ -309,16 +299,6 @@ class GcmdInstrument(GcmdKeyword):
         )
         return create_gcmd_str(categories)
 
-    # @staticmethod
-    # def gcmd_path():
-    #     return [
-    #         "instrument_category",
-    #         "instrument_class",
-    #         "instrument_type",
-    #         "instrument_subtype",
-    #         "short_name",
-    #     ]
-
     class Meta:
         ordering = ("short_name",)
 
@@ -335,10 +315,6 @@ class GcmdPlatform(GcmdKeyword):
     def __str__(self):
         categories = (self.category, self.long_name, self.short_name)
         return create_gcmd_str(categories)
-
-    # @staticmethod
-    # def gcmd_path():
-    #     return ["category", "series_entry", "short_name"]
 
     class Meta:
         ordering = ("short_name",)
@@ -371,17 +347,6 @@ class GcmdPhenomenon(GcmdKeyword):
             self.variable_3,
         )
         return create_gcmd_str(categories)
-
-    # @staticmethod
-    # def gcmd_path():
-    #     return [
-    #         "category",
-    #         "topic",
-    #         "term",
-    #         "variable_1",
-    #         "variable_2",
-    #         "variable_3",
-    #     ]
 
     class Meta:
         verbose_name_plural = "Phenomena"

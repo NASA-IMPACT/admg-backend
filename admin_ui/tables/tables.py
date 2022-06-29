@@ -703,21 +703,8 @@ class GcmdPhenomenonChangeListTable(DraftTableBase):
         sequence = all_fields
 
 
-# class MarkReviewedButton(tables.Column):
-#     empty_values = []
-
-#     def render(self, value, record):
-#         from django.utils.safestring import mark_safe
-#         from django.utils.html import escape
-
-#         return mark_safe(
-#             f'<button id="{escape(record.uuid)}" class="review-button">Mark Reviewed</button>'
-#         )
-
-
 class AffectedRecordValueColumn(tables.Column):
     def __init__(self, resolved_accessor=None, **kwargs):
-        # super().__init__(**kwargs, empty_values=()) Not sure about this
         super().__init__(**kwargs)
         self.resolved_accessor = resolved_accessor
 
@@ -730,20 +717,15 @@ class AffectedRecordValueColumn(tables.Column):
 
 class GcmdKeywordsListTable(DraftTableBase):
     short_name = ConditionalValueColumn(
-        # TODO: Get rid of this once Draft Link Column is changed.
-        # viewname="change-gcmd",
         verbose_name="GCMD Keyword",
         accessor="short_name",
         update_accessor="content_object.short_name",
         linkify=("change-gcmd", [tables.A("uuid")]),
-        # url_kwargs={"pk": "uuid"},
-        # update_viewname="change-gcmd",
-        # update_accessor="content_object.short_name",
     )
     category = ConditionalValueColumn(
         verbose_name="Category",
         accessor="content_type__model",
-        update_accessor="content_type__model",  # TODO: Figure out the real value of this should be
+        update_accessor="content_type__model",
     )
     draft_action = ConditionalValueColumn(
         verbose_name="Type of Change",

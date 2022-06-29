@@ -145,17 +145,20 @@ tr.affected-row {
   line-height: 24px;
 }
 
-.gcmd-path {
-  font-weight: 400;
-  font-size: 16px;
-  line-height: 24px;
-  text-indent: 15px;
+p.gcmd-path {
   background: #FFFFFF;
   border: 1px solid gray;
   box-sizing: border-box;
   box-shadow: inset 0px 2px 4px rgba(0, 0, 0, 0.08);
   border-radius: 4px;
   padding: 2px;
+}
+
+span.gcmd-path {
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 24px;
+  text-indent: 15px;
 }
 
 .gcmd-footer {
@@ -165,11 +168,9 @@ tr.affected-row {
   text-indent: 15px;
 }
 
-/* button.submit-button {
-  background: #294060;
-  border-radius: 8px;
-  color: white;
-} */
+.gcmd-changed {
+  color: #D6311C;
+}
 
 button.right-side {
   float: right;

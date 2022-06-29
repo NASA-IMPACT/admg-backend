@@ -34,8 +34,7 @@ def sync_gcmd(keyword_scheme: str) -> str:
                 # If item in db and in API do not match, create "UPDATE" change record
                 gcmd.create_change(keyword, model, Change.Actions.UPDATE, row.uuid)
 
-    # TODO: Ed and I think this sounds like you are deleting all these UUIDs.
-    gcmd.delete_old_records(uuids, model)
+    gcmd.delete_keywords_from_current_uuids(uuids, model)
 
     return f"Handled {len(keywords)} {keyword_scheme}"
 

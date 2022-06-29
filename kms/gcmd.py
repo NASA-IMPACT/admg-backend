@@ -130,9 +130,7 @@ def get_short_name(row: Union[Models, dict]):
                 return row.previous[attribute]
 
 
-def get_recommended_objects(
-    keyword: dict, model: Type[Models], action: Actions, change_draft: Change
-) -> None:
+def get_recommended_objects(keyword: dict, action: Actions, change_draft: Change) -> None:
     recommendations = []
 
     # Get any CASEI objects that are connected to the current keyword (UPDATE & DELETE only).
@@ -224,15 +222,13 @@ def create_change(
         create_recommended_list(keyword, model, action, change_draft)
 
 
-# TODO: Ed has suggestion to have function accept two lists and deletes any uuids that aren't in both.
-#       Pull the query out of the function so the whole function is more generic.
-#       Get the model out of the queryset instead of it being a parameter.
-def delete_old_records(uuids: Set[str], model: Type[Models]) -> None:
-
-    for row in model.objects.all().iterator():
-        if str(row.gcmd_uuid) not in uuids:
+def delete_keywords_from_current_uuids(current_uuids: Set[str], gcmd_model: Type[Models]) -> None:
+    for row in gcmd_model.objects.all().iterator():
+        if str(row.gcmd_uuid) not in current_uuids:
             # If item in db but not in API, create "DELETE" change record
-            create_change({"gcmd_uuid": str(row.gcmd_uuid)}, model, Change.Actions.DELETE, row.uuid)
+            create_change(
+                {"gcmd_uuid": str(row.gcmd_uuid)}, gcmd_model, Change.Actions.DELETE, row.uuid
+            )
 
 
 def is_valid_value(*values: str) -> bool:

@@ -2,6 +2,7 @@
 {% load static %}
 {% load model_helpers %}
 {% load humanize %}
+{% load template_extras %}
 
 {% block header %}
   <div class="col">
@@ -25,18 +26,6 @@
   
   {# Sidebar #}
   <aside class="col col-lg-4">
-    <!-- {% if object.update.logo %}
-    <h3>Logo</h3>
-    <a href="{% url 'change-update' object.update.logo %}">
-      {% if object.logo_path %}
-      <img class="img-thumbnail" src="{{ object.logo_path | get_full_url }}" />
-      {% else %}
-      <span class="font-italic">(logo missing image)</span>
-      {% endif %}
-    </a> -->
-
-    <!-- <hr />
-    {% endif %} -->
 
     <h3>Activity</h3>
     {% include 'snippets/related_approval_logs.html' with approval_logs=object.approvallog_set.all show_notes=True%}
@@ -60,13 +49,13 @@
   <p class="gcmd-label">New Path</p>
   <p class="gcmd-path">
     {% for attribute in gcmd_path.path %}
-      <span style="color:{% if attribute.has_changed %} #D6311C {% else %} black {% endif %};">{{attribute.new_value}}</span>
+      <span class="{% if attribute.has_changed %} gcmd-changed {% endif %} gcmd-path">{{attribute.new_value}}</span>
       {% if not forloop.last %} <span style="color: black;"> > </span> {% endif %}
     {% endfor %}
   </p>
   <p class="gcmd-footer">
     {% for attribute in gcmd_path.path %}
-      <span style="color:{% if attribute.has_changed %} #D6311C {% else %} rgba(68, 63, 63, 0.64) {% endif %};">{{attribute.key}}</span>
+      <span class="{% if attribute.has_changed %} gcmd-changed {% endif %} gcmd-footer">{{attribute.key}}</span>
       {% if not forloop.last %} <span style="color: black;"> > </span> {% endif %}
     {% endfor %}
   </p>
@@ -76,15 +65,14 @@
 {% if gcmd_path.old_path %}
   <p class="gcmd-label">Old Path</p>
   <p class="gcmd-path">
-    <!-- TODO: Put inline styles in classes, only add class if the value has changed -->
     {% for attribute in gcmd_path.path %}
-      <span style="color:{% if attribute.has_changed %} #D6311C {% else %} black {% endif %};">{{attribute.old_value}}</span>
+      <span class="{% if attribute.has_changed %} gcmd-changed {% endif %} gcmd-path">{{attribute.old_value}}</span>
       {% if not forloop.last %} <span style="color: black;"> > </span> {% endif %}
     {% endfor %}
   </p>
   <p class="gcmd-footer">
     {% for attribute in gcmd_path.path %}
-      <span style="color:{% if attribute.has_changed %} #D6311C {% else %} rgba(68, 63, 63, 0.64) {% endif %};">{{attribute.key}}</span>
+      <span class="{% if attribute.has_changed %} gcmd-changed {% endif %} gcmd-footer">{{attribute.key}}</span>
       {% if not forloop.last %} <span style="color: black;"> > </span> {% endif %}
     {% endfor %}
   </p>
@@ -123,7 +111,6 @@
           <br>
         {% endfor %}
       </table>
-      <!-- TODO: Ask Ed for a better way to do this, you could technically trick the backend. -->
       <!-- Pass the UUIDs to the backend. -->
       {% with affected_records|last as last %}
         <input type="hidden" name="related_uuids" value="{{last.uuids}}">
