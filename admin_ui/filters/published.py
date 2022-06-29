@@ -1,6 +1,6 @@
 import django_filters
 from data_models import models
-from data_models.models import DOI, Deployment, Image, Website
+from data_models.models import DOI, CollectionPeriod, Deployment, Image, Website
 
 from .filters import CampaignFilter
 from .utils import default_filter_configs, get_published_campaigns, get_deployments
@@ -83,7 +83,7 @@ class CollectionPeriodFilter(CampaignFilter):
         return queryset.filter(deployment__in=deployments)
 
     class Meta:
-        model = DOI
+        model = CollectionPeriod
         fields = ["campaign_name"]
 
 
