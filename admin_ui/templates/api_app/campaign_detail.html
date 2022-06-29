@@ -93,7 +93,7 @@
             </button>
             <span id="significant-events-badge" class="badge badge-primary badge-pill"></span>
           </h5>
-          <a class="add-deployment-child btn btn-primary" href="{% url 'change-add' 'significantevent' %}?back={{ request.path }}">+</a>
+          <a class="add-deployment-child btn btn-primary" href="{% url 'change-add' 'significant_event' %}?back={{ request.path }}">+</a>
         </div>
 
         <div id="significant-events" class="collapse" aria-labelledby="significant-events-header" data-parent="#accordion">
@@ -116,13 +116,13 @@
             </button>
             <span id="collection-periods-badge" class="badge badge-primary badge-pill"></span>
           </h5>
-          <a class="add-deployment-child btn btn-primary" href="{% url 'change-add' 'collectionperiod' %}?back={{ request.path }}">+</a>
+          <a class="add-deployment-child btn btn-primary" href="{% url 'change-add' 'collection_period' %}?back={{ request.path }}">+</a>
         </div>
         <div id="collection-periods" class="collapse show" aria-labelledby="collection-periods-header" data-parent="#accordion">
           <ul class="list-group">
-            {% for collectionperiod in collection_periods %}
-            <li class="list-group-item deployment-child" data-deployment="{{ collectionperiod.update.deployment }}">
-              {% include "snippets/campaign_accordian_cards/collectionperiod.html" with change=collectionperiod %}
+            {% for collection_period in collection_periods %}
+            <li class="list-group-item deployment-child" data-deployment="{{ collection_period.update.deployment }}">
+              {% include "snippets/campaign_accordian_cards/collection_period.html" with change=collection_period %}
             </li>
             {% endfor %}
           </ul>
