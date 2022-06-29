@@ -12,6 +12,7 @@ from django.urls import reverse
 from django.utils import translation
 from django.utils.safestring import mark_safe
 
+from api_app.urls import camel_to_snake
 from data_models.models import Image
 from data_models.serializers import get_geojson_from_bb
 
@@ -98,7 +99,9 @@ class AddAnotherChoiceFieldWidget(forms.Select):
         return super().__init__(*args, **kwargs)
 
     def render(self, name, value, *args, **kwargs):
-        create_form_url = reverse("change-add", kwargs={"model": self.model._meta.model_name})
+        create_form_url = reverse(
+            "change-add", kwargs={"model": camel_to_snake(self.model._meta.object_name)}
+        )
 
         output = [
             super().render(name, value, *args, **kwargs),

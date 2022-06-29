@@ -133,3 +133,9 @@ class GcmdSyncFilter(django_filters.FilterSet):
     short_name = django_filters.CharFilter(
         label="Keyword", field_name="short_name", lookup_expr='icontains'
     )
+
+
+class ImageFilter(django_filters.FilterSet):
+    title = django_filters.CharFilter(
+        label="Title", field_name="update__title", method=filter_draft_and_published("Image")
+    )
