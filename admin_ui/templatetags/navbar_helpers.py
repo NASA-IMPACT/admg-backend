@@ -136,12 +136,6 @@ class NotificationNavNode(template.Node):
                 **context.flatten(),
                 "title": self.title,
                 "identifier": self.title.lower().replace(" ", "-"),
-                # TODO: delete once this is working!
-                # "active_views": " || ".join(
-                #     func(model_name)
-                #     for model_name in self.model_names
-                #     for func in [build_draft_view, build_published_view]
-                # ),
                 "active_views": LINKS,
                 "children": self.nodelist.render(context),
             }

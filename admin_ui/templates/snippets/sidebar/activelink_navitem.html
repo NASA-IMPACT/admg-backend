@@ -2,7 +2,6 @@
 
 <a class="nav-link text-truncate {% active_link view 'active' %}" href="{% url view %}">
   {{ title }}
-  <!-- TODO: Make a seperate snippet for this maybe? -->
   {% if title == 'Review Changes' %}
     <span class="gcmd-notification">{{ gcmd_changes_count }}</span>
   {% endif %}

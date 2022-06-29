@@ -128,8 +128,6 @@ class DraftTableBase(tables.Table):
             "thead": {"class": "table-primary"},
             "th": {"style": "min-width: 10em"},
         }
-        # fields = ("draft_action", "status", "updated_at")
-        # sequence = ("draft_action", "status", "updated_at")
         fields = ("draft_action", "status")
         sequence = ("draft_action", "status")
 
