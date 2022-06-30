@@ -13,9 +13,7 @@ from ..models import Change
 class GetPermissionsMixin(GenericAPIView):
     def get_permissions(self):
         if self.request.method == "GET":
-            self.permission_classes = [
-                permissions.IsAuthenticatedOrReadOnly,
-            ]
+            self.permission_classes = [permissions.IsAuthenticatedOrReadOnly]
         else:
             self.permission_classes = [permissions.IsAuthenticated, TokenHasScope]
             self.required_scopes = [STAFF]
@@ -83,7 +81,7 @@ def GenericPutPatchDeleteView(model_name):
             return super().put(request, *args, **kwargs)
 
         @handle_exception
-        @requires_admin_approval(model_name=model_name, action=Change.Actions.PATCH)
+        @requires_admin_approval(model_name=model_name, action=Change.Actions.UPDATE)
         def patch(self, request, *args, **kwargs):
             return super().patch(request, *args, **kwargs)
 

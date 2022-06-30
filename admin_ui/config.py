@@ -27,7 +27,7 @@ CUSTOM_MODEL_VALUES = {
     "GcmdProject": {"display_name": "GCMD Project"},
     "GcmdInstrument": {"display_name": "GCMD Instrument"},
     "GcmdPlatform": {"display_name": "GCMD Platform"},
-    "GcmdPhenomena": {"display_name": "GCMD Phenomena"},
+    "GcmdPhenomenon": {"display_name": "GCMD Phenomenon"},
     "DOI": {
         "admin_required_to_view": False,
         "draft_filter": filters.DoiFilter,
@@ -67,6 +67,10 @@ CUSTOM_MODEL_VALUES = {
         "published_filter": published_filters.WebsiteFilter,
     },
     "WebsiteType": {},
+    "Image": {
+        "draft_filter": filters.ImageFilter,
+        "published_filter": published_filters.ImageFilter,
+    },
 }
 
 # defaults are assigned to each model in this comprehension, and then overwritten by the above dictionary

@@ -28,17 +28,17 @@
 
   {% if request.user.is_admg_admin %}
   <li class="nav-item">
-    {% collapsable_menu "Limited Fields" "gcmd_project" "gcmd_instrument" "gcmd_platform" "gcmd_phenomena" "repository" "measurement_region" "measurement_type" "measurement_style" "home_base" "platform_type" "focus_area" "geophysical_concept" "geographical_region" "season" "website_type" %}
+    {% collapsable_menu "Limited Fields" "gcmd_project" "gcmd_instrument" "gcmd_platform" "gcmd_phenomenon" "repository" "measurement_region" "measurement_type" "measurement_style" "home_base" "platform_type" "focus_area" "geophysical_concept" "geographical_region" "season" "website_type" %}
     <ul class="nav flex-column ml-3">
       
       {# GCMD Items #}
       <li class="nav-item">
-        {% collapsable_menu "GCMD Items" "gcmd_project" "gcmd_instrument" "gcmd_platform" "gcmd_phenomena" "repository" %}
+        {% collapsable_menu "GCMD Items" "gcmd_project" "gcmd_instrument" "gcmd_platform" "gcmd_phenomenon" "repository" %}
         <ul class="nav flex-column ml-3">
           <li class="nav-item">{% nav_link "GCMD Projects" "gcmd_project" %}</li>
           <li class="nav-item">{% nav_link "GCMD Instruments" "gcmd_instrument" %}</li>
           <li class="nav-item">{% nav_link "GCMD Platforms" "gcmd_platform" %}</li>
-          <li class="nav-item">{% nav_link "GCMD Earth Science Keywords" "gcmd_phenomena" %}</li>
+          <li class="nav-item">{% nav_link "GCMD Earth Science Keywords" "gcmd_phenomenon" %}</li>
           <li class="nav-item">{% nav_link "Repositories" "repository" %}</li>
         </ul>
         {% endcollapsable_menu %}
@@ -82,4 +82,5 @@
     {% endcollapsable_menu %}
   </li>
   {% endif %}
+  <li class="nav-item">{% nav_link "Images" "image" %}</li>
 </ul>

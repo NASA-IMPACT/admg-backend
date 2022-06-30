@@ -118,3 +118,9 @@ class CollectionPeriodFilter(CampaignFilter):
     class Meta:
         model = Change
         fields = ["status"]
+
+
+class ImageFilter(django_filters.FilterSet):
+    title = django_filters.CharFilter(
+        label="Title", field_name="update__title", method=filter_draft_and_published("Image")
+    )

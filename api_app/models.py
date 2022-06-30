@@ -250,7 +250,6 @@ class Change(models.Model):
         CREATE = "Create"
         UPDATE = "Update"
         DELETE = "Delete"
-        PATCH = "Patch"
 
     uuid = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     content_type = models.ForeignKey(
@@ -474,7 +473,7 @@ class Change(models.Model):
         if self.action == Change.Actions.CREATE:
             validation_message = self._run_validator(partial=False)
 
-        elif self.action == Change.Actions.PATCH or self.action == Change.Actions.UPDATE:
+        elif self.action == Change.Actions.UPDATE:
             validation_message = self._run_validator(partial=True)
 
         elif self.action == Change.Actions.DELETE:
@@ -500,7 +499,7 @@ class Change(models.Model):
 
         return self._save_serializer(model_instance=None, data=self.update, partial=False)
 
-    def _update_patch(self):
+    def _update(self):
         model_instance = self._get_model_instance()
         if not self.model_instance_uuid:
             raise ValidationError({"uuid": "UUID for the model was not found"})
@@ -574,8 +573,8 @@ class Change(models.Model):
 
         if self.action == Change.Actions.CREATE:
             response = self._create()
-        elif self.action == Change.Actions.UPDATE or self.action == Change.Actions.PATCH:
-            response = self._update_patch()
+        elif self.action == Change.Actions.UPDATE:
+            response = self._update()
         elif self.action == Change.Actions.DELETE:
             response = self._delete()
 
