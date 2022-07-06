@@ -151,7 +151,7 @@ p.gcmd-path {
   box-sizing: border-box;
   box-shadow: inset 0px 2px 4px rgba(0, 0, 0, 0.08);
   border-radius: 4px;
-  padding: 2px;
+  padding: 4px;
 }
 
 span.gcmd-path {

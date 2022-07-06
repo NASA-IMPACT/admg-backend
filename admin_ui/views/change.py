@@ -442,7 +442,7 @@ class GcmdSyncListView(NotificationSidebar, SingleTableMixin, FilterView):
         return {
             **super().get_context_data(**kwargs),
             "display_name": "GCMD Keyword",
-            "view_model": "gcmd-list",
+            "current_view": "gcmd-list",
         }
 
 
@@ -602,11 +602,11 @@ class ChangeGcmdUpdateView(NotificationSidebar, UpdateView):
             casei_object.save()
             recommendation.save()
 
-    def publish_keyword(self, request):
+    def publish_keyword(self, user):
         gcmd_change = self.get_object()
         # Publish the keyword, Create keywords are automatically "Published" so skip them.
         if not gcmd_change.action == Change.Actions.CREATE:
-            gcmd_change.publish(user=request.user)
+            gcmd_change.publish(user=user)
 
     def post(self, request, **kwargs):
         import ast
@@ -621,7 +621,7 @@ class ChangeGcmdUpdateView(NotificationSidebar, UpdateView):
 
         # After all connections are made (or ignored), let's finally publish the keyword!
         if request.POST.get("user_button") == "Publish":
-            self.publish_keyword(request)
+            self.publish_keyword(request.user)
 
             messages.success(
                 request,

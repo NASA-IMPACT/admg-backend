@@ -66,7 +66,6 @@ def collapsable_menu(parser, token):
 
 @register.tag
 def notification_menu(parser, token):
-    print(f"NOTIFICATION TOKEN: {token}")
     try:
         tag, title, *model_names = token.split_contents()
     except ValueError:
@@ -79,10 +78,8 @@ def notification_menu(parser, token):
 
     nodelist = parser.parse(("endnotification_menu",))
     parser.delete_first_token()
-    # model_names.append('"change-gcmd"')
-    print(f"NOTIFICATION models: {model_names}")
 
-    return FoldingNavNode(
+    return NotificationNavNode(
         nodelist,
         # Trim quotes
         title=title[1:-1],
@@ -110,21 +107,21 @@ class FoldingNavNode(template.Node):
         )
 
 
-# class NotificationNavNode(template.Node):
-#     def __init__(self, nodelist, *, title: str, model_names: List[str]):
-#         self.nodelist = nodelist
-#         self.title = title
-#         self.model_names = model_names
+class NotificationNavNode(template.Node):
+    def __init__(self, nodelist, *, title: str, model_names: List[str]):
+        self.nodelist = nodelist
+        self.title = title
+        self.model_names = model_names
 
-#     def render(self, context):
-#         t = get_template("snippets/sidebar/notification_navgroup.html")
-#         return t.render(
-#             {
-#                 **context.flatten(),
-#                 "title": self.title,
-#                 "identifier": self.title.lower().replace(" ", "-"),
-#                 "active_views": LINKS,
-#                 "model_names": self.model_names,
-#                 "children": self.nodelist.render(context),
-#             }
-#         )
+    def render(self, context):
+        t = get_template("snippets/sidebar/notification_navgroup.html")
+        return t.render(
+            {
+                **context.flatten(),
+                "title": self.title,
+                "identifier": self.title.lower().replace(" ", "-"),
+                "active_views": LINKS,
+                "model_names": self.model_names,
+                "children": self.nodelist.render(context),
+            }
+        )

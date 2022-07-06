@@ -1,8 +1,8 @@
-{% load active_link_tags %} 
+{% load active_link_tags %}
 
 <span
   class="nav-link text-truncate cursor-pointer dropdown-toggle
-  {% if view_model == 'gcmd-list' %}active{% endif %}
+  {% if current_view == 'gcmd-list' %}active{% endif %}
   {% for link_model in model_names %}
     {% comment %}
       For every model associated with this nav group header, if any of them are currently 
@@ -16,8 +16,6 @@
     {% endcomment %}
     {% if view_model == link_model %}active{% endif %}
   {% endfor%}
-
-
   "
   data-toggle="collapse"
   data-target="#{{ identifier }}"
@@ -30,7 +28,7 @@
   id="{{ identifier }}"
   class="collapse mt-2
 
-    {% if view_model == 'gcmd-list' %}show{% endif %}
+    {% if current_view == 'gcmd-list' %}show{% endif %}
     
     {% for link_model in model_names %}
       {% comment %}
