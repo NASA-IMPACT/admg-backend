@@ -54,14 +54,14 @@ class SummaryView(django_tables2.SingleTableView):
         )
 
     def get_total_counts(self):
-        # counts = {}
-        # for model in self.models:
-        #     counts[model.__name__] = model.objects.all().count()
-        # return counts
-        return {model.__name__.lower(): model.objects.all().count() for model in self.models}
+        # TODO: Figure out if the total count should be total showing casei or total Change.
+        # This would be total "Published" items in CASEI
+        # return {model.__name__.lower(): model.objects.all().count() for model in self.models}
+        pass
 
     def get_draft_status_count(self):
         status_ids = [
+            Change.Statuses.CREATED,
             Change.Statuses.IN_PROGRESS,
             Change.Statuses.IN_REVIEW,
             Change.Statuses.IN_ADMIN_REVIEW,
