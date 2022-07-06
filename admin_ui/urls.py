@@ -23,9 +23,9 @@ urlpatterns = [
         name="change-transition",
     ),
     path(
-        "gcmd_keywords_list/draft",
+        "gcmd_list/draft",
         views.GcmdSyncListView.as_view(),
-        name="gcmd-keyword-changes",
+        name="gcmd-list",
     ),
     path("drafts/edit/gcmd/<uuid:pk>", views.ChangeGcmdUpdateView.as_view(), name="change-gcmd"),
     path(

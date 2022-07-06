@@ -6,7 +6,7 @@ from django.template.loader import get_template
 register = template.Library()
 
 
-LINKS = "published-list || change-list || change-add || gcmd-keyword-changes"
+LINKS = "published-list || change-list || change-add || gcmd-list"
 
 
 def is_quoted(text: str):
@@ -26,11 +26,7 @@ def model_nav_link(context, title, link_model):
 
 @register.inclusion_tag("snippets/sidebar/activelink_navitem.html", takes_context=True)
 def nav_link(context, title, view):
-    return {
-        **context.flatten(),  # NOTE: Must pass in context for active_link to work
-        "title": title,
-        "view": view,
-    }
+    return {**context.flatten(), "title": title, "view": view}
 
 
 @register.tag
@@ -70,20 +66,8 @@ def collapsable_menu(parser, token):
 
 @register.tag
 def notification_menu(parser, token):
-    """
-    Builds a folding navigation structure utilizing Bootstrap 4's Collapse functionality
-    and Django Active Link's active_link functionality. This makes it simple to build out
-    a collapsable menu that is un-collapsed when you are on a view linked from the menu.
-
-    The first argument must be a unique title for the menu entry, wrapped within quotes. All
-    subsequent arguments represent models for which list views are linked.  E.g. if "doi" is
-    presented, the menu will be shown as active if the user is viewing either a "doi-list-draft"
-    or "doi-list-published" routes.
-
-    https://getbootstrap.com/docs/4.0/components/collapse/
-    """
+    print(f"NOTIFICATION TOKEN: {token}")
     try:
-        # split_contents() knows not to split quoted strings.
         tag, title, *model_names = token.split_contents()
     except ValueError:
         raise template.TemplateSyntaxError(
@@ -95,7 +79,10 @@ def notification_menu(parser, token):
 
     nodelist = parser.parse(("endnotification_menu",))
     parser.delete_first_token()
-    return NotificationNavNode(
+    # model_names.append('"change-gcmd"')
+    print(f"NOTIFICATION models: {model_names}")
+
+    return FoldingNavNode(
         nodelist,
         # Trim quotes
         title=title[1:-1],
@@ -123,20 +110,21 @@ class FoldingNavNode(template.Node):
         )
 
 
-class NotificationNavNode(template.Node):
-    def __init__(self, nodelist, *, title: str, model_names: List[str]):
-        self.nodelist = nodelist
-        self.title = title
-        self.model_names = model_names
+# class NotificationNavNode(template.Node):
+#     def __init__(self, nodelist, *, title: str, model_names: List[str]):
+#         self.nodelist = nodelist
+#         self.title = title
+#         self.model_names = model_names
 
-    def render(self, context):
-        t = get_template("snippets/sidebar/notification_navgroup.html")
-        return t.render(
-            {
-                **context.flatten(),
-                "title": self.title,
-                "identifier": self.title.lower().replace(" ", "-"),
-                "active_views": LINKS,
-                "children": self.nodelist.render(context),
-            }
-        )
+#     def render(self, context):
+#         t = get_template("snippets/sidebar/notification_navgroup.html")
+#         return t.render(
+#             {
+#                 **context.flatten(),
+#                 "title": self.title,
+#                 "identifier": self.title.lower().replace(" ", "-"),
+#                 "active_views": LINKS,
+#                 "model_names": self.model_names,
+#                 "children": self.nodelist.render(context),
+#             }
+#         )

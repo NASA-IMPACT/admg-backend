@@ -28,15 +28,15 @@
 
   {% if request.user.is_admg_admin %}
   <li class="nav-item">
-    {% notification_menu "Limited Fields" "review_changes" "gcmd_project" "gcmd_instrument" "gcmd_platform" "gcmd_phenomena" "repository" "measurement_region" "measurement_type" "measurement_style" "home_base" "platform_type" "focus_area" "geophysical_concept" "geographical_region" "season" "website_type" %}
+    {% notification_menu "Limited Fields" "gcmd-list" "gcmd_project" "gcmd_instrument" "gcmd_platform" "gcmd_phenomenon" "repository" "measurement_region" "measurement_type" "measurement_style" "home_base" "platform_type" "focus_area" "geophysical_concept" "geographical_region" "season" "website_type" %}
     <!-- <span class="gcmdNotification">{{ gcmd_changes_count }}</span> -->
     <ul class="nav flex-column ml-3">
       
       {# GCMD Items #}
       <li class="nav-item">
-        {% notification_menu "GCMD Items" "review_changes" "gcmd_project" "gcmd_instrument" "gcmd_platform" "gcmd_phenomena" "repository" %}
+        {% notification_menu "GCMD Items" "gcmd-list" "gcmd_project" "gcmd_instrument" "gcmd_platform" "gcmd_phenomenon" "repository" %}
         <ul class="nav flex-column ml-3">
-          <li class="nav-item">{% nav_link "Review Changes" "gcmd-keyword-changes" %}</li>
+          <li class="nav-item">{% nav_link "Review Changes" "gcmd-list" %}</li>
           <li class="nav-item">{% model_nav_link "GCMD Projects" "gcmd_project" %}</li>
           <li class="nav-item">{% model_nav_link "GCMD Instruments" "gcmd_instrument" %}</li>
           <li class="nav-item">{% model_nav_link "GCMD Platforms" "gcmd_platform" %}</li>

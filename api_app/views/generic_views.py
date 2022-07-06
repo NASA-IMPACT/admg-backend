@@ -9,6 +9,29 @@ from admg_webapp.users.models import STAFF
 from .view_utils import handle_exception, requires_admin_approval
 from ..models import Change
 
+from data_models.models import (
+    GcmdInstrument,
+    GcmdPhenomenon,
+    GcmdProject,
+    GcmdPlatform,
+)
+
+
+class NotificationSidebar:
+    def get_gcmd_count(self):
+        return (
+            Change.objects.of_type(GcmdInstrument, GcmdPlatform, GcmdProject, GcmdPhenomenon)
+            .filter(recommendation__submitted=False)
+            .distinct("uuid")
+            .count()
+        )
+
+    def get_context_data(self, **kwargs):
+        return {
+            **super().get_context_data(**kwargs),
+            "gcmd_changes_count": self.get_gcmd_count(),
+        }
+
 
 class GetPermissionsMixin(GenericAPIView):
     def get_permissions(self):
@@ -31,7 +54,7 @@ def GenericCreateGetAllView(model_name):
         View(class) : view class for LIST and CREATE API views
     """
 
-    class View(GetPermissionsMixin, ListCreateAPIView):
+    class View(NotificationSidebar, GetPermissionsMixin, ListCreateAPIView):
         Model = apps.get_model("data_models", model_name)
         queryset = Model.objects.all()
         serializer_class = getattr(sz, f"{model_name}Serializer")
@@ -65,7 +88,7 @@ def GenericPutPatchDeleteView(model_name):
         View(class) : view class for PUT, PATCH and DELETE API views
     """
 
-    class View(GetPermissionsMixin, RetrieveUpdateDestroyAPIView):
+    class View(NotificationSidebar, GetPermissionsMixin, RetrieveUpdateDestroyAPIView):
         Model = apps.get_model("data_models", model_name)
         lookup_field = "uuid"
         queryset = Model.objects.all()

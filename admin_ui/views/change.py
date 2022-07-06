@@ -20,6 +20,7 @@ from rest_framework.serializers import ValidationError
 from admin_ui.config import MODEL_CONFIG_MAP
 from api_app.models import ApprovalLog, Change, Recommendation, SubqueryCount
 from api_app.urls import camel_to_snake
+from api_app.views.generic_views import NotificationSidebar
 from data_models.models import (
     IOP,
     Alias,
@@ -44,26 +45,8 @@ from .. import forms, mixins, tables, utils, filters
 from kms import gcmd
 
 
-class GcmdCounts:
-    def get_gcmd_count(self):
-        return (
-            Change.objects.of_type(GcmdInstrument, GcmdPlatform, GcmdProject, GcmdPhenomenon)
-            .filter(recommendation__submitted=False)
-            .distinct("uuid")
-            .count()
-        )
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context = {
-            **context,
-            "gcmd_changes_count": self.get_gcmd_count(),
-        }
-        return context
-
-
 @method_decorator(login_required, name="dispatch")
-class SummaryView(GcmdCounts, django_tables2.SingleTableView):
+class SummaryView(NotificationSidebar, django_tables2.SingleTableView):
     model = Change
     models = (Campaign, Platform, Instrument, PartnerOrg)
     table_class = tables.ChangeSummaryTable
@@ -119,7 +102,7 @@ class SummaryView(GcmdCounts, django_tables2.SingleTableView):
         }
 
 
-class CampaignDetailView(DetailView):
+class CampaignDetailView(NotificationSidebar, DetailView):
     model = Change
     template_name = "api_app/campaign_detail.html"
     queryset = Change.objects.of_type(Campaign)
@@ -191,7 +174,9 @@ class CampaignDetailView(DetailView):
 
 
 @method_decorator(login_required, name="dispatch")
-class ChangeCreateView(mixins.DynamicModelMixin, mixins.ChangeModelFormMixin, CreateView):
+class ChangeCreateView(
+    NotificationSidebar, mixins.DynamicModelMixin, mixins.ChangeModelFormMixin, CreateView
+):
     model = Change
     fields = ["content_type", "model_instance_uuid", "action", "update"]
     template_name = "api_app/change_create.html"
@@ -243,7 +228,7 @@ class ChangeCreateView(mixins.DynamicModelMixin, mixins.ChangeModelFormMixin, Cr
 
 
 @method_decorator(login_required, name="dispatch")
-class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
+class ChangeUpdateView(NotificationSidebar, mixins.ChangeModelFormMixin, UpdateView):
     fields = ["content_type", "model_instance_uuid", "action", "update", "status"]
     prefix = "change"
     template_name = "api_app/change_update.html"
@@ -339,7 +324,7 @@ class ChangeUpdateView(mixins.ChangeModelFormMixin, UpdateView):
 
 
 @method_decorator(login_required, name="dispatch")
-class ChangeListView(mixins.DynamicModelMixin, SingleTableMixin, FilterView):
+class ChangeListView(NotificationSidebar, mixins.DynamicModelMixin, SingleTableMixin, FilterView):
     model = Change
     template_name = "api_app/change_list.html"
 
@@ -380,7 +365,7 @@ class ChangeListView(mixins.DynamicModelMixin, SingleTableMixin, FilterView):
 
 
 @method_decorator(login_required, name="dispatch")
-class ChangeTransition(FormMixin, ProcessFormView, DetailView):
+class ChangeTransition(NotificationSidebar, FormMixin, ProcessFormView, DetailView):
     model = Change
     form_class = forms.TransitionForm
 
@@ -423,7 +408,7 @@ def format_validation_error(err: ValidationError) -> str:
 
 
 @method_decorator(user_passes_test(lambda user: user.is_admg_admin()), name="dispatch")
-class GcmdSyncListView(GcmdCounts, SingleTableMixin, FilterView):
+class GcmdSyncListView(NotificationSidebar, SingleTableMixin, FilterView):
     model = Change
     template_name = "api_app/change_list.html"
     filterset_class = filters.GcmdSyncFilter
@@ -457,11 +442,12 @@ class GcmdSyncListView(GcmdCounts, SingleTableMixin, FilterView):
         return {
             **super().get_context_data(**kwargs),
             "display_name": "GCMD Keyword",
+            "view_model": "gcmd-list",
         }
 
 
 @method_decorator(user_passes_test(lambda user: user.is_admg_admin()), name="dispatch")
-class ChangeGcmdUpdateView(GcmdCounts, UpdateView):
+class ChangeGcmdUpdateView(NotificationSidebar, UpdateView):
     fields = ["content_type", "model_instance_uuid", "action", "update", "status"]
     prefix = "change"
     template_name = "api_app/change_gcmd.html"
@@ -481,6 +467,7 @@ class ChangeGcmdUpdateView(GcmdCounts, UpdateView):
             "short_name": gcmd.get_short_name(self.object),
             "ancestors": (context["object"].get_ancestors().select_related("content_type")),
             "descendents": (context["object"].get_descendents().select_related("content_type")),
+            "view_model": camel_to_snake(self.object.content_type.model_class().__name__),
         }
         return context
 
@@ -532,11 +519,13 @@ class ChangeGcmdUpdateView(GcmdCounts, UpdateView):
             )
         return path
 
-    # TODO: Change links to active_links in Django Template
     def get_affected_url(self, uuid):
         content_type = self.get_model_form_content_type().model_class().__name__
         casei_model_name = gcmd.get_casei_model(content_type)
-        return f"/{casei_model_name.__name__.lower()}s/published/{uuid}"
+        return {
+            "model": casei_model_name.__name__.lower(),
+            "casei_uuid": uuid,
+        }
 
     def is_connected(self, gcmd_keyword, casei_object, content_type):
         if gcmd_keyword.action == Change.Actions.CREATE:
@@ -574,7 +563,7 @@ class ChangeGcmdUpdateView(GcmdCounts, UpdateView):
         return affected_records
 
     def get_back_button_url(self):
-        return "gcmd-keyword-changes"
+        return "gcmd-list"
 
     def get_casei_object(self, uuid, content_type):
         casei_model = gcmd.get_casei_model(content_type)
@@ -638,7 +627,7 @@ class ChangeGcmdUpdateView(GcmdCounts, UpdateView):
                 request,
                 f'Successfully published GCMD Keyword "{gcmd.get_short_name(self.get_object())}"',
             )
-            return HttpResponseRedirect(reverse("gcmd-keyword-changes"))
+            return HttpResponseRedirect(reverse("gcmd-list"))
         else:
             messages.success(
                 request,

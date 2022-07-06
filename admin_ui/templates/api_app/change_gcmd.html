@@ -93,8 +93,7 @@
         </tr>
         {% for record in affected_records %}
           <tr>
-            <!-- TODO: href should follow {% url 'some-url-name' arg arg2 as the_url %} -->
-              <td><a href="{{record.link}}">{{record.row.short_name}}</a></td>
+              <td><a href="{% url 'published-detail' pk=record.link.casei_uuid model=record.link.model %}?back={{ request.path }}">{{record.row.short_name}}</a></td>
             </a>
             <td>{{record.category}}</td>
             <td>{{record.status}}</td>

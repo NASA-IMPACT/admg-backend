@@ -1,10 +1,54 @@
-{% load active_link_tags %}
+{% load active_link_tags %} 
 
-<span class="nav-link text-truncate cursor-pointer dropdown-toggle {% active_link active_views 'active' %}" data-toggle="collapse" data-target="#{{ identifier }}">
+<span
+  class="nav-link text-truncate cursor-pointer dropdown-toggle
+  {% if view_model == 'gcmd-list' %}active{% endif %}
+  {% for link_model in model_names %}
+    {% comment %}
+      For every model associated with this nav group header, if any of them are currently 
+      active then we want to add the 'active' class to the group so that it is in bold.
+    {% endcomment %}
+    {% active_link active_views 'active' model=link_model %}
+
+    {% comment %}
+      If the current view's model (available via the view_model context variable) is in this 
+      nav group's model list, then we want to bold the header.
+    {% endcomment %}
+    {% if view_model == link_model %}active{% endif %}
+  {% endfor%}
+
+
+  "
+  data-toggle="collapse"
+  data-target="#{{ identifier }}"
+>
   {{ title }}
-  <span class="gcmd-notification">{{ gcmd_changes_count }}</span>
+  <span class="sidebar-notification">{{ gcmd_changes_count }}</span>
 </span>
 
-<div id="{{ identifier }}" class="collapse mt-2 {% active_link active_views 'show' %}">
+<div
+  id="{{ identifier }}"
+  class="collapse mt-2
+
+    {% if view_model == 'gcmd-list' %}show{% endif %}
+    
+    {% for link_model in model_names %}
+      {% comment %}
+        For every model associated with this nav group sublist, if any of them are currently 
+        active then we want to add the 'show' class to the group so that all of its children
+        are visibile (ie unfolded).
+      {% endcomment %}
+      {% active_link active_views 'show' model=link_model %}
+      
+      {% comment %}
+        If the current view's model (available via the view_model context variable) is in this 
+        nav group's model list, then we want to unfold the children.
+      {% endcomment %}
+      {% if view_model == link_model %}show{% endif %}
+
+    {% endfor%}
+    
+  "
+>
   {{ children }}
 </div>
