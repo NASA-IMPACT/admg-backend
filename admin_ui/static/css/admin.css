@@ -69,7 +69,12 @@ dt {
   background-color: rgba(255, 255, 0, 0.35);
 }
 
-.vl {
-  border-left: 6px solid black;
-  max-height: 50%;
+.right-border {
+  border-right: 4px solid #6c757d;
+  min-height: 90px;
+  max-height: 100%;
+}
+
+div.summary {
+  max-width: 110px;
 }

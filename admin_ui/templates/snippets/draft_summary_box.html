@@ -1,39 +1,39 @@
-<div class="col-lg-4 border">
+<!-- Min-width needed so all columns in box stay in same row even when page is  -->
+<div class="col-lg-4 border" style="min-width: 425px;">
   <h6 class="text-uppercase text-muted my-3">{{ name }}</h6>
-  <div class="row">
-    <div class="col-sm-2">
+  <div class="row" style="padding-bottom: 5px;">
+    <div class="col-2 summary right-border">
       <span class="lead font-weight-bold text-nowrap">
         {{ total }}
       </span>
       <p class="small text-muted">Total</p>
     </div>
-    <div class="col-sm-2 vl">
-    </div>
-    <!-- <div class="col-sm-2">
+    <!-- TODO: Get rid of this when feature is complete! -->
+    <!-- <div class="col-1 summary">
       <span class="lead font-weight-bold text-nowrap">
         {{ created }}
       </span>
-      <p class="small text-muted">Created</p>
+      <p class="small text-muted">In Created</p>
     </div> -->
-    <div class="col-sm-2">
+    <div class="col-2 summary">
       <span class="lead font-weight-bold text-nowrap">
         {{ in_progress }}
       </span>
       <p class="small text-muted">In Progress</p>
     </div>
-    <div class="col-sm-2">
+    <div class="col-2 summary">
       <span class="lead font-weight-bold text-nowrap">
         {{ in_review }}
       </span>
       <p class="small text-muted">In review</p>
     </div>
-    <div class="col-sm-2">
+    <div class="col-2 summary" style="min-width: 85px;">
       <span class="lead font-weight-bold text-nowrap">
         {{ in_admin_review }}
       </span>
       <p class="small text-muted">In admin review</p>
     </div>
-    <div class="col-sm-2">
+    <div class="col-3 summary">
       <span class="lead font-weight-bold text-nowrap">
         {{ published }}
       </span>

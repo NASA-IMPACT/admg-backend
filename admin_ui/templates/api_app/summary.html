@@ -21,17 +21,16 @@
   <div class="row mx-3 my-5">
     <!-- TODO: Take out Create and maybe make this one liner with django for loop -->
     {% comment %}
-    <!-- {% include 'snippets/draft_summary_box.html' with name="Campaigns" total=total_counts.campaign created=draft_status_counts.campaign.Created in_progress=draft_status_counts.campaign.In_Progress in_review=draft_status_counts.campaign.In_Review in_admin_review=draft_status_counts.campaign.In_Admin_Review published=draft_status_counts.campaign.Published %} -->
+    <!-- {% include 'snippets/draft_summary_box.html' with name="Campaigns" total=total_counts.campaign created=draft_status_counts.campaign.Created in_progress=draft_status_counts.campaign.In_Progress in_review=draft_status_counts.campaign.In_Review in_admin_review=draft_status_counts.campaign.In_Admin_Review published=draft_status_counts.campaign.Published %}
 
-    <!-- {% include 'snippets/draft_summary_box.html' with name="Platforms" total=total_counts.platform created=draft_status_counts.platform.Created in_progress=draft_status_counts.platform.In_Progress in_review=draft_status_counts.platform.In_Review in_admin_review=draft_status_counts.platform.In_Admin_Review published=draft_status_counts.platform.Published %} -->
+    {% include 'snippets/draft_summary_box.html' with name="Platforms" total=total_counts.platform created=draft_status_counts.platform.Created in_progress=draft_status_counts.platform.In_Progress in_review=draft_status_counts.platform.In_Review in_admin_review=draft_status_counts.platform.In_Admin_Review published=draft_status_counts.platform.Published %}
 
-    <!-- {% include 'snippets/draft_summary_box.html' with name="Instruments" total=total_counts.instrument created=draft_status_counts.instrument.Created in_progress=draft_status_counts.instrument.In_Progress in_review=draft_status_counts.instrument.In_Review in_admin_review=draft_status_counts.instrument.In_Admin_Review published=draft_status_counts.instrument.Published %} -->
+    {% include 'snippets/draft_summary_box.html' with name="Instruments" total=total_counts.instrument created=draft_status_counts.instrument.Created in_progress=draft_status_counts.instrument.In_Progress in_review=draft_status_counts.instrument.In_Review in_admin_review=draft_status_counts.instrument.In_Admin_Review published=draft_status_counts.instrument.Published %} -->
     {% endcomment %}
-
     {% include 'snippets/draft_summary_box.html' with name="Campaigns" total=total_counts.campaign in_progress=draft_status_counts.campaign.In_Progress in_review=draft_status_counts.campaign.In_Review in_admin_review=draft_status_counts.campaign.In_Admin_Review published=draft_status_counts.campaign.Published %}
-
+    
     {% include 'snippets/draft_summary_box.html' with name="Platforms" total=total_counts.platform in_progress=draft_status_counts.platform.In_Progress in_review=draft_status_counts.platform.In_Review in_admin_review=draft_status_counts.platform.In_Admin_Review published=draft_status_counts.platform.Published %}
-
+    
     {% include 'snippets/draft_summary_box.html' with name="Instruments" total=total_counts.instrument in_progress=draft_status_counts.instrument.In_Progress in_review=draft_status_counts.instrument.In_Review in_admin_review=draft_status_counts.instrument.In_Admin_Review published=draft_status_counts.instrument.Published %}
   </div>
 
