@@ -6,7 +6,17 @@ from django_tables2 import A
 import django_tables2 as tables
 
 from api_app.models import Change
-from data_models.models import Campaign, Deployment, Instrument, Platform, WebsiteType
+from data_models.models import (
+    Campaign,
+    Deployment,
+    Instrument,
+    Platform,
+    WebsiteType,
+    GcmdInstrument,
+    GcmdPhenomenon,
+    GcmdProject,
+    GcmdPlatform,
+)
 
 
 class ConditionalValueColumn(tables.Column):
@@ -715,6 +725,9 @@ class AffectedRecordValueColumn(tables.Column):
 
 
 class GcmdKeywordsListTable(DraftTableBase):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
     short_name = ConditionalValueColumn(
         verbose_name="GCMD Keyword",
         accessor="short_name",
@@ -741,6 +754,16 @@ class GcmdKeywordsListTable(DraftTableBase):
         accessor="affected_records",
         resolved_accessor="resolved_records",
     )
+
+    def render_category(self, value, record):
+        if value == "gcmdproject":
+            return "Project"
+        if value == "gcmdinstrument":
+            return "Instrument"
+        if value == "gcmdplatform":
+            return "Platform"
+        if value == "gcmdphenomenon":
+            return "Earth Science"
 
     class Meta(DraftTableBase.Meta):
         all_fields = (

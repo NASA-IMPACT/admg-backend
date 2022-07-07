@@ -479,43 +479,44 @@ class ChangeGcmdUpdateView(NotificationSidebar, UpdateView):
         casei_type = gcmd.get_casei_model(content_type)
         return casei_type.__name__
 
+    def _create_initial_path_dict(self):
+        path = {"path": []}
+        if self.object.action == Change.Actions.UPDATE:
+            path["old_path"], path["new_path"] = True, True
+        elif self.object.action == Change.Actions.DELETE:
+            path["old_path"], path["new_path"] = True, False
+        elif self.object.action == Change.Actions.CREATE:
+            path["old_path"], path["new_path"] = False, True
+        return path
+
+    def _format_path_keys(self, key):
+        return key.replace("_", " ").title()
+
+    def _replace_empty_path_values(self, value):
+        return "[NO VALUE]" if value in ["", " "] else value
+
+    def compare_gcmd_path_attribute(self, attribute, new_object, previous_object={}):
+        return {
+            "key": self._format_path_keys(attribute),
+            "old_value": self._replace_empty_path_values(
+                previous_object.get(attribute, "[NO VALUE]")
+                if previous_object is not {}
+                else '[NO VALUE]'
+            ),
+            "new_value": self._replace_empty_path_values(new_object.get(attribute, '')),
+            "has_changed": previous_object is {}
+            or new_object is {}
+            or not previous_object.get(attribute) == new_object.get(attribute),
+        }
+
     def get_gcmd_path(self) -> Dict:
-        def get_initial_path():
-            path = {"path": []}
-            if self.object.action == Change.Actions.UPDATE:
-                path["old_path"], path["new_path"] = True, True
-            elif self.object.action == Change.Actions.DELETE:
-                path["old_path"], path["new_path"] = True, False
-            elif self.object.action == Change.Actions.CREATE:
-                path["old_path"], path["new_path"] = False, True
-            return path
-
-        def format_path_keys(key):
-            return key.replace("_", " ").title()
-
-        def replace_empty_path_values(value):
-            return "[NO VALUE]" if value in ["", " "] else value
-
-        def compare_gcmd_path_attribute(attribute, new_object, previous_object={}):
-            return {
-                "key": format_path_keys(attribute),
-                "old_value": replace_empty_path_values(
-                    previous_object.get(attribute, "[NO VALUE]")
-                    if previous_object is not {}
-                    else '[NO VALUE]'
-                ),
-                "new_value": replace_empty_path_values(new_object.get(attribute, '')),
-                "has_changed": previous_object is {}
-                or new_object is {}
-                or not previous_object.get(attribute) == new_object.get(attribute),
-            }
-
-        path = get_initial_path()
-
+        path = self._create_initial_path_dict()
         path_order = self.object.content_type.model_class().gcmd_path
         for attribute in path_order:
             path["path"].append(
-                compare_gcmd_path_attribute(attribute, self.object.update, self.object.previous)
+                self.compare_gcmd_path_attribute(
+                    attribute, self.object.update, self.object.previous
+                )
             )
         return path
 
@@ -534,9 +535,6 @@ class ChangeGcmdUpdateView(NotificationSidebar, UpdateView):
             keyword_set = gcmd.get_casei_keyword_set(casei_object, content_type)
             is_connnected = gcmd_keyword.content_object in keyword_set.all()
             return "Yes" if is_connnected else "No"
-
-    def get_current_selection(self, result):
-        return result
 
     def get_affected_records(self) -> Dict:
         content_type = self.get_model_form_content_type().model_class().__name__
@@ -585,7 +583,7 @@ class ChangeGcmdUpdateView(NotificationSidebar, UpdateView):
 
         if request_type == "Publish":
             content_type = gcmd_change.content_type.model_class().__name__
-            gcmd_keyword = gcmd_change._get_model_instance()
+            gcmd_keyword = gcmd_change.content_object
             casei_object = self.get_casei_object(choice_uuid, content_type)
             keyword_set = gcmd.get_casei_keyword_set(casei_object, content_type)
 
@@ -616,8 +614,8 @@ class ChangeGcmdUpdateView(NotificationSidebar, UpdateView):
             for x in request.POST
             if x.startswith("choice-")
         }
-        for valid_uuid in ast.literal_eval(request.POST["related_uuids"]):
-            self.process_choice(valid_uuid, choices, request.POST.get("user_button", "Save"))
+        for casei_uuid in ast.literal_eval(request.POST["related_uuids"]):
+            self.process_choice(casei_uuid, choices, request.POST.get("user_button", "Save"))
 
         # After all connections are made (or ignored), let's finally publish the keyword!
         if request.POST.get("user_button") == "Publish":

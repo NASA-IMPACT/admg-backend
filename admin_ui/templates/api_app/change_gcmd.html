@@ -47,7 +47,7 @@
 <!-- New Path -->
 {% if gcmd_path.new_path %}
   <p class="gcmd-label">New Path</p>
-  <p class="gcmd-path">
+  <p class="gcmd-path"> 
     {% for attribute in gcmd_path.path %}
       <span class="{% if attribute.has_changed %} gcmd-changed {% endif %} gcmd-path">{{attribute.new_value}}</span>
       {% if not forloop.last %} <span style="color: black;"> > </span> {% endif %}
@@ -64,7 +64,7 @@
 <!-- Old Path -->
 {% if gcmd_path.old_path %}
   <p class="gcmd-label">Old Path</p>
-  <p class="gcmd-path">
+  <p class="gcmd-path"> 
     {% for attribute in gcmd_path.path %}
       <span class="{% if attribute.has_changed %} gcmd-changed {% endif %} gcmd-path">{{attribute.old_value}}</span>
       {% if not forloop.last %} <span style="color: black;"> > </span> {% endif %}
@@ -78,6 +78,7 @@
   </p>
 {% endif %}
 
+<!-- Recommended CASEI Section -->
 <hr style="height:2px;border-width:0;color:gray;background-color:gray">
 <p class="gcmd-label">Recommended GCMD Keyword Changes</p>
 <p>We have found {{affected_records | length }} potentially affected record(s)</p>
@@ -114,8 +115,8 @@
       {% with affected_records|last as last %}
         <input type="hidden" name="related_uuids" value="{{last.uuids}}">
       {% endwith %}
-      <button class="submit-button btn" id="saveButton" name="user_button" value="Save">Save Progress</button>
-      <button type="submit" class="submit-button right-side btn" id="doneButton" name="user_button" value="Publish">Save & Publish</button>
+      <button class="btn btn-primary" id="saveButton" name="user_button" value="Save">Save Progress</button>
+      <button type="submit" class="right-side btn btn-primary" id="doneButton" name="user_button" value="Publish">Save & Publish</button>
     </form>
   {% endif %}
 

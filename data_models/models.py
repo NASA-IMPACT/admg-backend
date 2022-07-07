@@ -267,6 +267,7 @@ class GcmdProject(GcmdKeyword):
         return create_gcmd_str(categories)
 
     class Meta:
+        verbose_name = "GCMD Project"
         ordering = ("short_name",)
 
 
@@ -300,6 +301,7 @@ class GcmdInstrument(GcmdKeyword):
         return create_gcmd_str(categories)
 
     class Meta:
+        verbose_name = "GCMD Instrument"
         ordering = ("short_name",)
 
 
@@ -317,6 +319,7 @@ class GcmdPlatform(GcmdKeyword):
         return create_gcmd_str(categories)
 
     class Meta:
+        verbose_name = "GCMD Platform"
         ordering = ("short_name",)
 
 
@@ -349,6 +352,7 @@ class GcmdPhenomenon(GcmdKeyword):
         return create_gcmd_str(categories)
 
     class Meta:
+        verbose_name = "Phenomenon"
         verbose_name_plural = "Phenomena"
 
 

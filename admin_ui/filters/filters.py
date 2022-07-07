@@ -127,6 +127,7 @@ class GcmdSyncFilter(django_filters.FilterSet):
         label="Status",
     )
     gcmd_type = django_filters.ModelMultipleChoiceFilter(
+        label="Category",
         field_name='content_type',
         queryset=ContentType.objects.filter(model__startswith="gcmd"),
     )
