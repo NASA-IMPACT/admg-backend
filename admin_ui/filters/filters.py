@@ -121,7 +121,7 @@ class CollectionPeriodFilter(CampaignFilter):
         fields = ["status"]
 
 
-class GcmdSyncFilter(django_filters.FilterSet):
+class GcmdSyncListFilter(django_filters.FilterSet):
     status = django_filters.ChoiceFilter(
         choices=Change.Statuses.choices,
         label="Status",

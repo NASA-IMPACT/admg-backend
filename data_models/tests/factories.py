@@ -191,49 +191,42 @@ class GcmdBaseFactory(BaseFactory):
     gcmd_uuid = factory.Faker("uuid4")
 
 
-class GcmdProjectFactory(GcmdBaseFactory):
-    # Just using color name for now to generate fake attributes since they are blank by default.
-    short_name = factory.Faker("color_name")
-    long_name = factory.Faker("color_name")
-    bucket = factory.Faker("color_name")
-
-    class Meta:
-        model = models.GcmdProject
-
-
 class GcmdInstrumentFactory(GcmdBaseFactory):
-    short_name = factory.Faker("color_name")
-    long_name = factory.Faker("color_name")
-    instrument_category = factory.Faker("color_name")
-    instrument_class = factory.Faker("color_name")
-    instrument_type = factory.Faker("color_name")
-    instrument_subtype = factory.Faker("color_name")
+    description = factory.Faker("paragraph")
+    technical_contact = factory.Faker("name")
+    spatial_resolution = factory.Faker("text")
+    temporal_resolution = factory.Faker("text")
+    radiometric_frequency = factory.Faker("text")
+    gcmd_phenomena = factory.PostGeneration(
+        create_m2m_records("gcmd_phenomena", f"{__name__}.GcmdPhenomenonFactory")
+    )
+    measurement_regions = factory.PostGeneration(
+        create_m2m_records("measurement_regions", f"{__name__}.MeasurementRegionFactory")
+    )
 
     class Meta:
         model = models.GcmdInstrument
 
 
+class GcmdPhenomenonFactory(GcmdBaseFactory):
+    category = factory.Faker("word")
+
+    class Meta:
+        model = models.GcmdPhenomenon
+
+
 class GcmdPlatformFactory(GcmdBaseFactory):
-    short_name = factory.Faker("color_name")
-    long_name = factory.Faker("color_name")
-    category = factory.Faker("color_name")
-    series_entry = factory.Faker("color_name")
-    description = factory.Faker("text")
+    category = factory.Faker("word")
 
     class Meta:
         model = models.GcmdPlatform
 
 
-class GcmdPhenomenonFactory(GcmdBaseFactory):
-    category = factory.Faker("color_name")
-    topic = factory.Faker("color_name")
-    term = factory.Faker("color_name")
-    variable_1 = factory.Faker("color_name")
-    variable_2 = factory.Faker("color_name")
-    variable_3 = factory.Faker("color_name")
+class GcmdProjectFactory(GcmdBaseFactory):
+    bucket = factory.Faker("word")
 
     class Meta:
-        model = models.GcmdPhenomenon
+        model = models.GcmdProject
 
 
 class GeographicalRegionFactory(LimitedInfoPriorityBaseFactory):

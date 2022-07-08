@@ -411,8 +411,8 @@ def format_validation_error(err: ValidationError) -> str:
 class GcmdSyncListView(NotificationSidebar, SingleTableMixin, FilterView):
     model = Change
     template_name = "api_app/change_list.html"
-    filterset_class = filters.GcmdSyncFilter
-    table_class = tables.GcmdKeywordsListTable
+    filterset_class = filters.GcmdSyncListFilter
+    table_class = tables.GcmdSyncListTable
 
     def get_queryset(self):
         resolved_records = Recommendation.objects.filter(
@@ -420,20 +420,24 @@ class GcmdSyncListView(NotificationSidebar, SingleTableMixin, FilterView):
         )
 
         queryset = (
-            Change.objects.of_type(GcmdInstrument, GcmdPlatform, GcmdProject, GcmdPhenomenon)
-            .select_related("content_type")
-            .annotate(
-                short_name=functions.Coalesce(
-                    *[
-                        functions.NullIf(KeyTextTransform(attr, dictionary), Value(""))
-                        for attr in gcmd.short_name_priority
-                        for dictionary in ["update", "previous"]
-                    ]
-                ),
-                resolved_records=functions.Coalesce(SubqueryCount(resolved_records), Value(0)),
-                affected_records=Count("recommendation", distinct=True),
+            (
+                Change.objects.of_type(GcmdInstrument, GcmdPlatform, GcmdProject, GcmdPhenomenon)
+                .select_related("content_type")
+                .annotate(
+                    short_name=functions.Coalesce(
+                        *[
+                            functions.NullIf(KeyTextTransform(attr, dictionary), Value(""))
+                            for attr in gcmd.short_name_priority
+                            for dictionary in ["update", "previous"]
+                        ]
+                    ),
+                    resolved_records=functions.Coalesce(SubqueryCount(resolved_records), Value(0)),
+                    affected_records=Count("recommendation", distinct=True),
+                )
+                .filter(recommendation__submitted=False)
             )
-            .filter(recommendation__submitted=False)
+            .add_updated_at()
+            .order_by("-updated_at")
         )
 
         return queryset

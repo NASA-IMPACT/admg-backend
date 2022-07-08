@@ -50,7 +50,3 @@ def trigger_gcmd_syncs() -> None:
         delay = i * offset
         logger.info(f"Scheduling task to sync {keyword} in {delay} seconds")
         sync_gcmd.apply_async(args=(keyword,), countdown=delay, retry=False)
-
-
-if __name__ == "__main__":
-    sync_gcmd("sciencekeywords")

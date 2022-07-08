@@ -12,10 +12,6 @@ from data_models.models import (
     Instrument,
     Platform,
     WebsiteType,
-    GcmdInstrument,
-    GcmdPhenomenon,
-    GcmdProject,
-    GcmdPlatform,
 )
 
 
@@ -127,7 +123,7 @@ class ShortNamefromUUIDColumn(ConditionalValueColumn):
 class DraftTableBase(tables.Table):
     draft_action = tables.Column(verbose_name="Draft Action", accessor="action")
     status = tables.Column(verbose_name="Status", accessor="status")
-    # updated_at = tables.DateTimeColumn(verbose_name="Last Edit Date")
+    updated_at = tables.DateTimeColumn(verbose_name="Last Edit Date")
 
     final_fields = ("draft_action", "status", "updated_at")
 
@@ -138,8 +134,8 @@ class DraftTableBase(tables.Table):
             "thead": {"class": "table-primary"},
             "th": {"style": "min-width: 10em"},
         }
-        fields = ("draft_action", "status")
-        sequence = ("draft_action", "status")
+        fields = ("draft_action", "status", "updated_at")
+        sequence = ("draft_action", "status", "updated_at")
 
 
 class LimitedTableBase(DraftTableBase):
@@ -724,7 +720,7 @@ class AffectedRecordValueColumn(tables.Column):
         return f"{resolved_records} of {total_records} resolved"
 
 
-class GcmdKeywordsListTable(DraftTableBase):
+class GcmdSyncListTable(DraftTableBase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 

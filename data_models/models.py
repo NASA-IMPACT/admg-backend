@@ -249,6 +249,8 @@ class GcmdKeyword(BaseModel):
         return keyword_casei_attribute_map[self.__class__.__name__.lower()]
 
     casei_model = property(_get_casei_model)
+    # Attribute on CASEI model where GCMD relationships are stored.
+    # Example: Instrument.gcmd_instruments, Instrument.gcmd_phenomenon, Proejct.gcmd_projects
     casei_attribute = property(_get_casei_attribute)
 
     class Meta:
@@ -352,7 +354,6 @@ class GcmdPhenomenon(GcmdKeyword):
         return create_gcmd_str(categories)
 
     class Meta:
-        verbose_name = "Phenomenon"
         verbose_name_plural = "Phenomena"
 
 
