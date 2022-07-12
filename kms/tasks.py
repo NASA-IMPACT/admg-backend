@@ -1,9 +1,7 @@
 import logging
 from celery import shared_task
 
-from kms import api, gcmd
-
-from api_app.models import Change
+from kms import gcmd
 
 logger = logging.getLogger(__name__)
 

@@ -216,7 +216,7 @@ class GcmdPhenomenonFactory(GcmdBaseFactory):
 
 
 class GcmdPlatformFactory(GcmdBaseFactory):
-    category = factory.Faker("word")
+    basis = factory.Faker("word")
 
     class Meta:
         model = models.GcmdPlatform

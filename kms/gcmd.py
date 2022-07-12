@@ -269,7 +269,7 @@ class GcmdSync:
                 change_uuid = model_uuid
                 update, previous = keyword, {}
                 log_message = (
-                    f"Keyword in API wasn't found in database, created 'CREATE' change record: "
+                    "Keyword in API wasn't found in database, created 'CREATE' change record: "
                 )
             else:
                 # Get the published keyword and convert it to a dictionary.

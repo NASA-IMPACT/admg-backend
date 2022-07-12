@@ -14,6 +14,8 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='recommendation',
             name='change',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='api_app.change'),
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE, to='api_app.change'
+            ),
         ),
     ]
