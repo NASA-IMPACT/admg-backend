@@ -37,9 +37,10 @@ endpoints = {
 }
 
 
-def list_keywords(scheme: str) -> List[Dict[str, any]]:
+def fetch_keyword_list(scheme: str) -> List[Dict[str, any]]:
     url = f"https://gcmd.earthdata.nasa.gov/kms/concepts/concept_scheme/{scheme}"
     r = requests.get(url, params={"format": "csv"})
     csv_contents = r.content.decode('utf-8')
-    csv_contents = csv_contents.splitlines()[1:]  # Skip first line of CSV, it is junk
+    # Skip first line of CSV, it is junk
+    csv_contents = csv_contents.splitlines()[1:]
     return list(csv.DictReader(csv_contents))

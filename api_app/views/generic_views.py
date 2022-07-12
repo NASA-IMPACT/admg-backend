@@ -1,4 +1,5 @@
 from django.apps import apps
+from django.db.models import Q
 
 from rest_framework import permissions
 from rest_framework.generics import RetrieveUpdateDestroyAPIView, ListCreateAPIView, GenericAPIView
@@ -21,7 +22,7 @@ class NotificationSidebar:
     def get_gcmd_count(self):
         return (
             Change.objects.of_type(GcmdInstrument, GcmdPlatform, GcmdProject, GcmdPhenomenon)
-            .filter(recommendation__submitted=False)
+            .filter(Q(recommendation__submitted=False) | Q(status__lte=5))
             .distinct("uuid")
             .count()
         )

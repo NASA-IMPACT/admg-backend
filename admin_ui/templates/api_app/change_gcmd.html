@@ -61,9 +61,9 @@
   </p>
 {% endif %}
 
-<!-- Old Path -->
+<!-- Previous Path -->
 {% if gcmd_path.old_path %}
-  <p class="gcmd-label">Old Path</p>
+  <p class="gcmd-label">Previous Path</p>
   <p class="gcmd-path"> 
     {% for attribute in gcmd_path.path %}
       <span class="{% if attribute.has_changed %} gcmd-changed {% endif %} gcmd-path">{{attribute.old_value}}</span>
@@ -81,9 +81,10 @@
 <!-- Recommended CASEI Section -->
 <hr style="height:2px;border-width:0;color:gray;background-color:gray">
 <p class="gcmd-label">Recommended GCMD Keyword Changes</p>
-<p>We have found {{affected_records | length }} potentially affected record(s)</p>
-  {% if affected_records %}
-    <form action="{% url 'change-gcmd' object.uuid %}" method="post" id="connectionForm">
+<p>We have found {{affected_records | length }} potentially affected record(s).</p>
+  <form action="{% url 'change-gcmd' object.uuid %}" method="post" id="connectionForm">
+    {% csrf_token %}
+    {% if affected_records %}
       <table class="affected-table">
         <tr class="affected-row">
           <th>Affected Record</th>
@@ -100,7 +101,6 @@
             <td>{{record.status}}</td>
             <td>{{record.is_connected}}</td>
             <td>
-              {% csrf_token %}
               <!-- Connect/Ignore radio buttons -->
               <input
                 type="radio"
@@ -130,10 +130,10 @@
       {% with affected_records|last as last %}
         <input type="hidden" name="related_uuids" value="{{last.uuids}}">
       {% endwith %}
-      <button class="btn btn-primary" id="saveButton" name="user_button" value="Save">Save Progress</button>
-      <button type="submit" class="right-side btn btn-primary" id="doneButton" name="user_button" value="Publish">Save & Publish</button>
-    </form>
-  {% endif %}
+    {% endif %}
+    <button class="btn btn-primary" id="saveButton" name="user_button" value="Save">Save Progress</button>
+    <button type="submit" class="right-side btn btn-primary" id="doneButton" name="user_button" value="Publish">Save & Publish</button>
+  </form>
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
 <script type="text/javascript">

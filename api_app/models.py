@@ -807,6 +807,14 @@ class Recommendation(models.Model):
         verbose_name="Has the user published their result?", blank=False, default=False
     )
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["change", "object_uuid"], name="unique_recommendation")
+        ]
+
+    def __str__(self):
+        return f"{self.id} >> {self.change} >> {self.casei_object}"
+
 
 class SubqueryCount(Subquery):
     template = "(SELECT count(*) FROM (%(subquery)s) _count)"

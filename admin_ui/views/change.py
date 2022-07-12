@@ -4,7 +4,7 @@ import django_tables2
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.contenttypes.models import ContentType
-from django.db.models import aggregates, functions, OuterRef, Value, Count
+from django.db.models import aggregates, functions, OuterRef, Value, Count, Q
 from django.db.models.fields.json import KeyTextTransform
 from django.http import Http404, HttpResponseBadRequest, HttpResponseRedirect
 from django.urls import reverse
@@ -434,7 +434,7 @@ class GcmdSyncListView(NotificationSidebar, SingleTableMixin, FilterView):
                     resolved_records=functions.Coalesce(SubqueryCount(resolved_records), Value(0)),
                     affected_records=Count("recommendation", distinct=True),
                 )
-                .filter(recommendation__submitted=False)
+                .filter(Q(recommendation__submitted=False) | Q(status__lte=5))
             )
             .add_updated_at()
             .order_by("-updated_at")
@@ -618,7 +618,7 @@ class ChangeGcmdUpdateView(NotificationSidebar, UpdateView):
             for x in request.POST
             if x.startswith("choice-")
         }
-        for casei_uuid in ast.literal_eval(request.POST["related_uuids"]):
+        for casei_uuid in ast.literal_eval(request.POST.get("related_uuids", "[]")):
             self.process_choice(casei_uuid, choices, request.POST.get("user_button", "Save"))
 
         # After all connections are made (or ignored), let's finally publish the keyword!

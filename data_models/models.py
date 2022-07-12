@@ -239,12 +239,12 @@ class PartnerOrg(LimitedInfoPriority):
 
 class GcmdKeyword(BaseModel):
     def _get_casei_model(self):
-        from kms import keyword_to_casei_map
+        from kms.gcmd import keyword_to_casei_map
 
         return keyword_to_casei_map[self.__class__.__name__.lower()]
 
     def _get_casei_attribute(self):
-        from kms import keyword_casei_attribute_map
+        from kms.gcmd import keyword_casei_attribute_map
 
         return keyword_casei_attribute_map[self.__class__.__name__.lower()]
 
@@ -262,7 +262,7 @@ class GcmdProject(GcmdKeyword):
     long_name = models.CharField(max_length=512, blank=True, default="")
     bucket = models.CharField(max_length=256)
     gcmd_uuid = models.UUIDField(unique=True)
-    gcmd_path = ["bucket", "short_name"]
+    gcmd_path = ["bucket", "short_name", "long_name"]
 
     def __str__(self):
         categories = (self.short_name, self.long_name)
@@ -289,6 +289,7 @@ class GcmdInstrument(GcmdKeyword):
         "instrument_type",
         "instrument_subtype",
         "short_name",
+        "long_name",
     ]
 
     def __str__(self):
@@ -310,11 +311,12 @@ class GcmdInstrument(GcmdKeyword):
 class GcmdPlatform(GcmdKeyword):
     short_name = models.CharField(max_length=256, blank=True, default="")
     long_name = models.CharField(max_length=512, blank=True, default="")
-    category = models.CharField(max_length=256)
-    series_entry = models.CharField(max_length=256, blank=True, default="")
+    basis = models.CharField(max_length=256)
+    category = models.CharField(max_length=256, blank=True, default="")
+    subcategory = models.CharField(max_length=256, blank=True, default="")
     description = models.TextField(blank=True, default="")
     gcmd_uuid = models.UUIDField(unique=True)
-    gcmd_path = ["category", "series_entry", "short_name"]
+    gcmd_path = ["basis", "category", "subcategory", "short_name", "long_name"]
 
     def __str__(self):
         categories = (self.category, self.long_name, self.short_name)
