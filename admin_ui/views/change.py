@@ -464,7 +464,7 @@ class ChangeGcmdUpdateView(NotificationSidebar, UpdateView):
             "transition_form": (
                 forms.TransitionForm(change=context["object"], user=self.request.user)
             ),
-            "gcmd_path": self.get_gcmd_path(),
+            "gcmd_path": gcmd.get_gcmd_path(self.object),
             "affected_records": self.get_affected_records(),
             "back_button": self.get_back_button_url(),
             "action": self.object.action,
@@ -482,47 +482,6 @@ class ChangeGcmdUpdateView(NotificationSidebar, UpdateView):
         content_type = self.get_model_form_content_type().model_class().__name__
         casei_type = gcmd.get_casei_model(content_type)
         return casei_type.__name__
-
-    def _create_initial_path_dict(self):
-        path = {"path": []}
-        if self.object.action == Change.Actions.UPDATE:
-            path["old_path"], path["new_path"] = True, True
-        elif self.object.action == Change.Actions.DELETE:
-            path["old_path"], path["new_path"] = True, False
-        elif self.object.action == Change.Actions.CREATE:
-            path["old_path"], path["new_path"] = False, True
-        return path
-
-    def _format_path_keys(self, key):
-        return key.replace("_", " ").title()
-
-    def _replace_empty_path_values(self, value):
-        return "[NO VALUE]" if value in ["", " "] else value
-
-    def compare_gcmd_path_attribute(self, attribute, new_object, previous_object={}):
-        return {
-            "key": self._format_path_keys(attribute),
-            "old_value": self._replace_empty_path_values(
-                previous_object.get(attribute, "[NO VALUE]")
-                if previous_object is not {}
-                else '[NO VALUE]'
-            ),
-            "new_value": self._replace_empty_path_values(new_object.get(attribute, '')),
-            "has_changed": previous_object is {}
-            or new_object is {}
-            or not previous_object.get(attribute) == new_object.get(attribute),
-        }
-
-    def get_gcmd_path(self) -> Dict:
-        path = self._create_initial_path_dict()
-        path_order = self.object.content_type.model_class().gcmd_path
-        for attribute in path_order:
-            path["path"].append(
-                self.compare_gcmd_path_attribute(
-                    attribute, self.object.update, self.object.previous
-                )
-            )
-        return path
 
     def get_affected_url(self, uuid):
         content_type = self.get_model_form_content_type().model_class().__name__

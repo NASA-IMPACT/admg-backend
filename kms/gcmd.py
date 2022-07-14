@@ -171,6 +171,48 @@ def is_valid_keyword(record: dict, model: Type[Models]) -> bool:
         return False
 
 
+def _create_initial_path_dict(action):
+    path = {"path": []}
+    if action == Change.Actions.UPDATE:
+        path["old_path"], path["new_path"] = True, True
+    elif action == Change.Actions.DELETE:
+        path["old_path"], path["new_path"] = True, False
+    elif action == Change.Actions.CREATE:
+        path["old_path"], path["new_path"] = False, True
+    return path
+
+def _format_path_keys(key):
+    return key.replace("_", " ").title()
+
+def _replace_empty_path_values(value):
+    return "[NO VALUE]" if value in ["", " "] else value
+
+def compare_gcmd_path_attribute(attribute, new_object, previous_object={}):
+    return {
+        "key": _format_path_keys(attribute),
+        "old_value": _replace_empty_path_values(
+            previous_object.get(attribute, "[NO VALUE]")
+            if previous_object is not {}
+            else '[NO VALUE]'
+        ),
+        "new_value": _replace_empty_path_values(new_object.get(attribute, '')),
+        "has_changed": previous_object is {}
+        or new_object is {}
+        or not previous_object.get(attribute) == new_object.get(attribute),
+    }
+
+def get_gcmd_path(change) -> dict:
+    path = _create_initial_path_dict(change.action)
+    path_order = change.content_type.model_class().gcmd_path
+    for attribute in path_order:
+        path["path"].append(
+            compare_gcmd_path_attribute(
+                attribute, change.update, change.previous
+            )
+        )
+    return path
+
+
 class GcmdSync:
     def __init__(self, gcmd_type: str) -> None:
         self.create_keywords = []
@@ -219,11 +261,11 @@ class GcmdSync:
 
     def _add_keyword_to_changed_list(self, change: Change, action: Actions):
         if action is Change.Actions.CREATE:
-            self.create_keywords.append(change)
+            self.create_keywords.append(change.uuid)
         elif action is Change.Actions.UPDATE:
-            self.update_keywords.append(change)
+            self.update_keywords.append(change.uuid)
         elif action is Change.Actions.DELETE:
-            self.delete_keywords.append(change)
+            self.delete_keywords.append(change.uuid)
 
     def get_recommended_objects(self, keyword: dict, action: Actions, change_draft: Change) -> None:
         recommendations = []
@@ -318,4 +360,5 @@ class GcmdSync:
 
     def send_email_update(self):
         from kms import tasks
+
         tasks.email_gcmd_sync_results.apply_async(args=(self,), retry=False)

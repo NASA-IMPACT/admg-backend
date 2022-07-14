@@ -1,9 +1,0 @@
-{% load email_extras %}
-
-<p>
-    This is a notification that {{ gcmd_sync.total_count }} GCMD keywords were modified, deleted, or newly created.
-    To review Changes, go to <a>Review GCMD Changes.</a>
-    {% for created in gcmd_sync.create_keywords %}
-        <h3> {{ created | gcmd_short_name }}</h3>
-    {% endfor %}
-</p>

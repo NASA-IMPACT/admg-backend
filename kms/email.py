@@ -26,11 +26,11 @@ class Template:
 
 def gcmd_changes_email(template: Template, recipients: List[str]):
     print(f"Sent Email to {recipients}: \n{template.html}")
-    # return client.send_email(
-    #     Destination={"ToAddresses": recipients},
-    #     Message={
-    #         "Body": {"Html": {"Data": template.html}, "Text": {"Data": template.text}},
-    #         "Subject": {"Data": template.subject},
-    #     },
-    #     Source="john@developmentseed.org",
-    # )
+    return client.send_email(
+        Destination={"ToAddresses": recipients},
+        Message={
+            "Body": {"Html": {"Data": template.html}, "Text": {"Data": template.text}},
+            "Subject": {"Data": template.subject},
+        },
+        Source="john@developmentseed.org",
+    )

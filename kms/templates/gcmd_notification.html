@@ -1,0 +1,45 @@
+{% load email_extras %}
+
+<p>
+    This is a notification that {{ gcmd_sync.total_count }} GCMD keywords were modified, deleted, or newly created.
+    To review Changes, go to <a href="admg.nasa-impact.net">Review GCMD Changes.</a>
+</p>
+
+<!-- Created Keywords -->
+<h1> Created Keywords ({{ create_keywords | length }}) </h3>
+{% for create in create_keywords %}
+    {% with gcmd_path=create | get_gcmd_path}
+        <p> {{ create | gcmd_short_name }}</p>
+        <p> GCMD Path: {{gcmd_path}}</p>
+        {% for attribute in gcmd_path.path %}
+            <p>
+                New Path:
+                <span> {{attribute.new_value}} </span>
+                <span> > </span>
+            </p>
+        {% endfor %}
+    {% endwith %}
+{% endfor %}
+
+<!-- Updated Keywords -->
+<h1> Updated Keywords ({{ update_keywords | length }}) </h3>
+    {% for update in update_keywords %}
+        {% with gcmd_path=update | get_gcmd_path}
+            <p> {{ update | gcmd_short_name }}</p>
+            <p> GCMD Path: {{gcmd_path}}</p>
+            {% for attribute in gcmd_path.path %}
+                <p>
+                    New Path:
+                    <span> {{attribute.new_value}} </span>
+                    <span> > </span>
+                </p>
+            {% endfor %}
+            {% for attribute in gcmd_path.path %}
+                <p>
+                    Old Path:
+                    <span> {{attribute.old_value}} </span>
+                    <span> > </span>
+                </p>
+            {% endfor %}
+        {% endwith %}
+    {% endfor %}
