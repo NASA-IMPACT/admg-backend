@@ -113,23 +113,21 @@ def get_change(
 def get_short_name(row: Union[Models, dict]):
     # Order of attributes to look for short_name in
     priority = ["short_name", "variable_3", "variable_2", "variable_1", "term"]
-    try:
-        if isinstance(row, dict):
-            for attribute in priority:
-                if row.get(attribute):
-                    return row[attribute]
-        elif isinstance(row, Models):
-            for attribute in priority:
-                if attribute in row:
-                    return row.attribute
-    # Change causes TypeError: Subscripted generics
-    except TypeError:
+    if isinstance(row, Change):
         for attribute in priority:
             if row.update.get(attribute):
                 return row.update[attribute]
         for attribute in priority:
             if row.previous.get(attribute):
                 return row.previous[attribute]
+    elif isinstance(row, dict):
+        for attribute in priority:
+            if row.get(attribute):
+                return row[attribute]
+    elif isinstance(row, Models):
+        for attribute in priority:
+            if attribute in row:
+                return row.attribute
 
 
 def keyword_to_dict(keyword: Models) -> dict:
@@ -182,6 +180,10 @@ class GcmdSync:
         self.model = keyword_to_model_map[gcmd_type]
         self.concept_type = get_content_type(self.model)
 
+    @property
+    def total_count(self):
+        return len(self.create_keywords) + len(self.update_keywords) + len(self.delete_keywords)
+
     def sync_keywords(self):
         """This method aims to sync the gcmd public dataset with the gcmd database by doing the following:
         * If item not in db but in API, create "ADD" change record
@@ -207,6 +209,7 @@ class GcmdSync:
                     self.create_change(keyword, Change.Actions.UPDATE, published_keyword.uuid)
 
         self.delete_keywords_from_current_uuids(uuids, self.model)
+
 
         return (
             f"Successfully Synced {len(keywords)} {self.gcmd_scheme} gcmd keywords - "
@@ -268,9 +271,7 @@ class GcmdSync:
                 # Create records reuse the change's uuid for the instance's uuid
                 change_uuid = model_uuid
                 update, previous = keyword, {}
-                log_message = (
-                    "Keyword in API wasn't found in database, created 'CREATE' change record: "
-                )
+                log_message = "Keyword in API wasn't found in database, created 'CREATE' change record: "
             else:
                 # Get the published keyword and convert it to a dictionary.
                 change_uuid = uuid.uuid4()
@@ -316,4 +317,5 @@ class GcmdSync:
                 )
 
     def send_email_update(self):
-        raise NotImplementedError()
+        from kms import tasks
+        tasks.email_gcmd_sync_results.apply_async(args=(self,), retry=False)

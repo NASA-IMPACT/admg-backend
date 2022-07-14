@@ -1,9 +1,15 @@
 import logging
 from celery import shared_task
+from django.template.loader import get_template
 
-from kms import gcmd
+from kms import gcmd, email
 
 logger = logging.getLogger(__name__)
+
+
+@shared_task
+def email_gcmd_sync_results(gcmd_sync: gcmd.GcmdSync):
+    email.gcmd_changes_email(email.Template("gcmd_change.html", "GCMD Sync Changes Found", {"gcmd_sync": gcmd_sync}), ["john@developmentseed.org"])
 
 
 @shared_task
