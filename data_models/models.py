@@ -957,9 +957,7 @@ class DOI(BaseModel):
     cmr_plats_and_insts = models.JSONField(default=None, blank=True, null=True)
     cmr_science_keywords = models.JSONField(default=None, blank=True, null=True)
     cmr_abstract = models.TextField(blank=True, default="")
-    cmr_data_formats = ArrayField(
-        models.CharField(max_length=512, blank=True, default=""), blank=True, default=list
-    )
+    cmr_data_formats = models.JSONField(default=None, blank=True, null=True)
 
     date_queried = models.DateTimeField()
 
