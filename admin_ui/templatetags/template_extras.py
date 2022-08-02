@@ -15,3 +15,8 @@ def get_display_name(value):
     if "display_name" in MODEL_CONFIG_MAP.get(value, {}):
         return MODEL_CONFIG_MAP[value]["display_name"]
     return value
+
+
+@register.filter()
+def keyvalue(dictionary, key):
+    return dictionary[key]
