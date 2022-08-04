@@ -18,5 +18,17 @@ def get_gcmd_path(change: Change):
 # TODO: Ask Ed/Carson about how to fix config so it works in all environments
 @register.filter()
 def get_absolute_url(relative_path):
-    absolute_url = urllib.parse.urljoin("http://" + settings.ALLOWED_HOSTS[0], relative_path)
+    absolute_url = urllib.parse.urljoin("http://localhost:8000/", relative_path)
+    print(f"Absolute URL: {absolute_url}")
+    # absolute_url = urllib.parse.urljoin("http://" + settings.ALLOWED_HOSTS[0], relative_path)
     return absolute_url
+
+@register.filter()
+def format_scheme_for_display(scheme):
+    scheme_map = {
+        "instruments": "GCMD Instruments",
+        "projects": "GCMD Projects",
+        "platforms": "GCMD Platforms",
+        "sciencekeywords": "GCMD Earth Science Keywords"
+    }
+    return scheme_map[scheme]

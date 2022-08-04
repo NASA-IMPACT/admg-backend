@@ -2,14 +2,18 @@
 {% load static %}
 {% include "email_style.html" %}
 
-<p>
-  This is a notification that {{ total_count }} GCMD keywords were modified, deleted, or newly created.
-  To review Changes, go to <a href="admg.nasa-impact.net">Review GCMD Changes.</a>
-</p>
+<h1>
+  This is a notification that {{ total_count }} GCMD keywords were newly created, modified, or deleted.
+  To review, go to <a href="http://localhost:8000/gcmd_list/draft">Review GCMD Changes.</a>
+</h1>
+
+<br>
+<br>
 
 {% for scheme in keywords_by_scheme %}
-  <h1>{{ scheme.scheme }} ({{ scheme.total_count }})</h1>
-  <!-- Created Keywords -->
+  <h1>{{ scheme.scheme|format_scheme_for_display }} ({{ scheme.scheme_count }})</h1>
+
+  <!-- Created keywords -->
   <h2> Created Keywords ({{ scheme.create_keywords | length }}) </h2>
   {% for keyword in scheme.create_keywords %}
     {% with gcmd_path=keyword|get_gcmd_path %}
@@ -72,6 +76,36 @@
       {% include 'snippets/gcmd_path.html' with preliminary_text="Old Path:" default_class="gcmd-inline-label" gcmd_path_class="gcmd-path" path_attribute="old_value" gcmd_path=gcmd_path %}
       {% include 'snippets/gcmd_path.html' with preliminary_text="" default_class="gcmd-footer" gcmd_path_class="gcmd-footer" path_attribute="key" gcmd_path=gcmd_path %}
       <p>Affected Records: {{ keyword.recommendation_set.all.count }}</p>
+    {% endwith %}
+  {% endfor %}
+{% endfor %}
+
+<!-- Auto-Published keywords -->
+<h1> Auto-Published Keywords ({{ scheme.published_keywords | length }}) </h1>
+<p>These keywords were created, updated, or deleted but didn't have any CASEI objects associated
+   with them. These keywords do not require an admin to review them.
+</p>
+{% for scheme in keywords_by_scheme %}
+  <h2>{{ scheme.scheme|format_scheme_for_display }} ({{ scheme.published_keywords | length }})</h2>
+  {% comment %} {% with current_keyword_type=scheme.published_keywords.0.%} {% endcomment %}
+  {% for keyword in scheme.published_keywords %}
+    {% with gcmd_path=keyword|get_gcmd_path %}
+      {% url 'change-update' keyword.uuid as relative_url%}
+        <h3 class="gcmd-keyword">
+          <a href="{{relative_url | get_absolute_url}}">{{ keyword | get_gcmd_short_name }}</a>
+          ({{keyword.action}})
+        </h3>
+        {% if keyword.action == "Create" %}
+          {% include 'snippets/gcmd_path.html' with preliminary_text="New Path:" default_class="gcmd-inline-label" gcmd_path_class="gcmd-path" path_attribute="new_value" gcmd_path=gcmd_path %}
+          {% include 'snippets/gcmd_path.html' with preliminary_text="" default_class="gcmd-footer" gcmd_path_class="gcmd-footer" path_attribute="key" gcmd_path=gcmd_path %}
+        {% elif keyword.action == "Update" %}
+          {% include 'snippets/gcmd_path.html' with preliminary_text="New Path:" default_class="gcmd-inline-label" gcmd_path_class="gcmd-path" path_attribute="new_value" gcmd_path=gcmd_path %}
+          {% include 'snippets/gcmd_path.html' with preliminary_text="Old Path:" default_class="gcmd-inline-label" gcmd_path_class="gcmd-path" path_attribute="old_value" gcmd_path=gcmd_path %}
+          {% include 'snippets/gcmd_path.html' with preliminary_text="" default_class="gcmd-footer" gcmd_path_class="gcmd-footer" path_attribute="key" gcmd_path=gcmd_path %}
+        {% elif keyword.action == "Delete" %}
+          {% include 'snippets/gcmd_path.html' with preliminary_text="Old Path:" default_class="gcmd-inline-label" gcmd_path_class="gcmd-path" path_attribute="old_value" gcmd_path=gcmd_path %}
+          {% include 'snippets/gcmd_path.html' with preliminary_text="" default_class="gcmd-footer" gcmd_path_class="gcmd-footer" path_attribute="key" gcmd_path=gcmd_path %}
+        {% endif %}
     {% endwith %}
   {% endfor %}
 {% endfor %}

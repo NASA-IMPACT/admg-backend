@@ -28,10 +28,10 @@ Actions = Union[Change.Actions.CREATE, Change.Actions.UPDATE, Change.Actions.DEL
 Models = Union[GcmdProject, GcmdInstrument, GcmdPlatform, GcmdPhenomenon]
 Casei_Object = Union[Campaign, Instrument, Platform]
 
-keyword_to_model_map = {
-    # "instruments": GcmdInstrument,
-    # "projects": GcmdProject,
-    # "platforms": GcmdPlatform,
+scheme_to_model_map = {
+    "instruments": GcmdInstrument,
+    "projects": GcmdProject,
+    "platforms": GcmdPlatform,
     "sciencekeywords": GcmdPhenomenon,
 }
 keyword_to_casei_map = {
@@ -52,6 +52,11 @@ short_name_priority = ["short_name", "variable_3", "variable_2", "variable_1", "
 def get_content_type(model: Type[Models]) -> ContentType:
     return ContentType.objects.get(app_label="data_models", model=model.__name__.lower())
 
+
+def get_gcmd_model(gcmd_content_type: ContentType):
+    for key, value in scheme_to_model_map.items():
+        if gcmd_content_type.model_class() == value:
+            return value 
 
 def get_casei_keyword_set(casei_object: Casei_Object, content_type: str):
     set_attribute = keyword_casei_attribute_map[content_type.lower()]
@@ -217,15 +222,16 @@ def get_gcmd_path(change) -> dict:
 @dataclass
 class GcmdSync:
     gcmd_scheme: str
-    create_keywords: List[str] = field(default_factory=list)
-    update_keywords: List[str] = field(default_factory=list)
-    delete_keywords: List[str] = field(default_factory=list)
-    model: Models = field(init=False)
-    concept_type: ContentType = field(init=False)
+    create_keywords:    List[str] = field(default_factory=list)
+    update_keywords:    List[str] = field(default_factory=list)
+    delete_keywords:    List[str] = field(default_factory=list)
+    published_keywords: List[str] = field(default_factory=list)
+    model:              Models = field(init=False)
+    content_type:       ContentType = field(init=False)
 
     def __post_init__(self):
-        self.model=keyword_to_model_map[self.gcmd_scheme]
-        self.concept_type = get_content_type(self.model)
+        self.model=scheme_to_model_map[self.gcmd_scheme]
+        self.content_type = get_content_type(self.model)
 
 
     @property
@@ -266,11 +272,24 @@ class GcmdSync:
 
     def _add_keyword_to_changed_list(self, change: Change, action: Actions):
         if action is Change.Actions.CREATE:
+            # if change.uuid in self.create_keywords:
+                # print(f"Error, UUID already in create keyword list!\n Change: {change}")
+                # exit()
             self.create_keywords.append(change.uuid)
         elif action is Change.Actions.UPDATE:
+            # if change.uuid in self.update_keywords:
+                # print(f"Error, UUID already in update keyword list!\n Change: {change}")
+                # exit()
             self.update_keywords.append(change.uuid)
         elif action is Change.Actions.DELETE:
+            # if change.uuid in self.delete_keywords:
+                # print(f"Error, UUID already in delete keyword list!\n Change: {change}")
+                # exit()
             self.delete_keywords.append(change.uuid)
+
+    def _add_keyword_to_published_list(self, change: Change):
+        self.published_keywords.append(change.uuid)
+
 
     def get_recommended_objects(self, keyword: dict, action: Actions, change_draft: Change) -> None:
         recommendations = []
@@ -289,7 +308,7 @@ class GcmdSync:
         if action in [Change.Actions.CREATE, Change.Actions.UPDATE]:
             for alias in Alias.objects.filter(
                 short_name=get_short_name(keyword),
-                content_type=ContentType.objects.get(model=keyword_to_casei_map[self.concept_type.model].__name__.lower())
+                content_type=ContentType.objects.get(model=keyword_to_casei_map[self.content_type.model].__name__.lower())
             ):
                 recommendations.append(alias.parent_fk)
 
@@ -335,7 +354,7 @@ class GcmdSync:
 
             change_draft = Change(
                 uuid=change_uuid,
-                content_type=self.concept_type,
+                content_type=self.content_type,
                 update=update,
                 previous=previous,
                 model_instance_uuid=model_uuid,
@@ -348,7 +367,9 @@ class GcmdSync:
             logger.info(log_message + f"'{change_draft}'")
             # Only publish if keyword is created/deleted and has no recommended objects.
             if action in [Change.Actions.CREATE, Change.Actions.DELETE] and len(change_draft.recommendation_set.all()) == 0:
+                # TODO: Check with Carson and make sure this is the username we should be autopublishing with.
                 change_draft.publish(User.objects.get(username='admin'))
+                self._add_keyword_to_published_list(change_draft)
 
     @staticmethod
     def update_change(change_draft: Change, new_update: dict):
