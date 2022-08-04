@@ -1,12 +1,11 @@
 from api_app.models import Change
 from celery import shared_task
 from dataclasses import asdict
-from django.template.loader import get_template
 from kms import gcmd, email
-from typing import List
 import logging
 
 logger = logging.getLogger(__name__)
+
 
 def serialize(sync):
     print(f"Sync: {sync}")
@@ -24,6 +23,7 @@ def serialize(sync):
 
     return temp
 
+
 @shared_task
 def email_gcmd_sync_results(gcmd_syncs):
     keywords_by_scheme, autopublished_keywords = [], []
@@ -32,17 +32,28 @@ def email_gcmd_sync_results(gcmd_syncs):
         autopublished_keywords.extend(published_keywords)
 
         # Get keywords for each type of change, exclude keywords that were published.
-        create_keywords = Change.objects.filter(uuid__in=sync["create_keywords"]).difference(published_keywords)
-        update_keywords = Change.objects.filter(uuid__in=sync["update_keywords"]).difference(published_keywords)
-        delete_keywords = Change.objects.filter(uuid__in=sync["delete_keywords"]).difference(published_keywords)
-        keywords_by_scheme.append({
-            "scheme": scheme,
-            "create_keywords": create_keywords,
-            "update_keywords": update_keywords,
-            "delete_keywords": delete_keywords,
-            "published_keywords": published_keywords,
-            "scheme_count": len(create_keywords) + len(update_keywords) + len(delete_keywords) + len(published_keywords),
-        })
+        create_keywords = Change.objects.filter(uuid__in=sync["create_keywords"]).difference(
+            published_keywords
+        )
+        update_keywords = Change.objects.filter(uuid__in=sync["update_keywords"]).difference(
+            published_keywords
+        )
+        delete_keywords = Change.objects.filter(uuid__in=sync["delete_keywords"]).difference(
+            published_keywords
+        )
+        keywords_by_scheme.append(
+            {
+                "scheme": scheme,
+                "create_keywords": create_keywords,
+                "update_keywords": update_keywords,
+                "delete_keywords": delete_keywords,
+                "published_keywords": published_keywords,
+                "scheme_count": len(create_keywords)
+                + len(update_keywords)
+                + len(delete_keywords)
+                + len(published_keywords),
+            }
+        )
     total_count = sum([keyword['scheme_count'] for keyword in keywords_by_scheme])
     print(f"Keywords By Scheme: {keywords_by_scheme}")
     email.gcmd_changes_email(
@@ -52,11 +63,12 @@ def email_gcmd_sync_results(gcmd_syncs):
             {
                 "keywords_by_scheme": keywords_by_scheme,
                 "total_count": total_count,
-                "autopublished_keywords": autopublished_keywords
+                "autopublished_keywords": autopublished_keywords,
             },
         ),
-        ["john@developmentseed.org"]
+        ["john@developmentseed.org"],
     )
+
 
 @shared_task
 def sync_gcmd() -> str:
