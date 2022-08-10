@@ -98,6 +98,23 @@ class CampaignDetailView(DetailView):
     template_name = "api_app/campaign_detail.html"
     queryset = Change.objects.of_type(Campaign)
 
+    def filter_latest_deployments(self, deployment_queryset):
+        """Iterates through Change queryset and returns the same list but with
+        changes that share 'model_instance_uuid' values replaced with just the change
+        that has the latest changes according to the approvallog.
+        """
+        deployments = []
+        distinct_uuids = deployment_queryset.distinct('model_instance_uuid').values_list(
+            'model_instance_uuid'
+        )
+        for uuid in distinct_uuids:
+            deployments.append(
+                deployment_queryset.filter(model_instance_uuid=str(uuid[0])).latest(
+                    'approvallog__date'
+                )
+            )
+        return deployments
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         deployments = (
@@ -108,11 +125,12 @@ class CampaignDetailView(DetailView):
                 )
             )
             .prefetch_approvals()
-            .order_by(self.get_ordering())
         )
+        deployments = self.filter_latest_deployments(deployments)
+
         collection_periods = (
             Change.objects.of_type(CollectionPeriod)
-            .filter(update__deployment__in=[str(d.uuid) for d in deployments])
+            .filter(update__deployment__in=[str(d.model_instance_uuid) for d in deployments])
             .select_related("content_type")
             .prefetch_approvals()
             .annotate_from_relationship(
@@ -147,21 +165,18 @@ class CampaignDetailView(DetailView):
             ),
             "significant_events": (
                 Change.objects.of_type(SignificantEvent)
-                .filter(update__deployment__in=[str(d.uuid) for d in deployments])
+                .filter(update__deployment__in=[str(d.model_instance_uuid) for d in deployments])
                 .select_related("content_type")
                 .prefetch_approvals()
             ),
             "iops": (
                 Change.objects.of_type(IOP)
-                .filter(update__deployment__in=[str(d.uuid) for d in deployments])
+                .filter(update__deployment__in=[str(d.model_instance_uuid) for d in deployments])
                 .select_related("content_type")
                 .prefetch_approvals()
             ),
             "collection_periods": collection_periods,
         }
-
-    def get_ordering(self):
-        return self.request.GET.get("ordering", "-status")
 
 
 @method_decorator(login_required, name="dispatch")
