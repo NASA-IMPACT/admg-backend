@@ -99,10 +99,8 @@ class CampaignDetailView(DetailView):
     queryset = Change.objects.of_type(Campaign)
 
     def filter_latest_deployments(self, deployment_queryset):
-        """Iterates through Change queryset and returns the same list but with
-        changes that share 'model_instance_uuid' values replaced with just the change
-        that has the latest changes according to the approvallog.
-        """
+        """Iterates through a Change queryset, finds & removes objects with multiple Change drafts
+        and replaces them with just the latest Change draft for that object."""
         deployments = []
         distinct_uuids = deployment_queryset.distinct('model_instance_uuid').values_list(
             'model_instance_uuid'
