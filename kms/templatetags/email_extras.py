@@ -1,9 +1,8 @@
 from api_app.models import Change
 from django import template
+from django.conf import settings
 from kms import gcmd
 import urllib.parse
-
-# from django.conf import settings
 
 register = template.Library()
 
@@ -21,9 +20,7 @@ def get_gcmd_path(change: Change):
 # TODO: Ask Ed/Carson about how to fix config so it works in all environments
 @register.filter()
 def get_absolute_url(relative_path):
-    absolute_url = urllib.parse.urljoin("http://localhost:8000/", relative_path)
-    # print(f"Absolute URL: {absolute_url}")
-    # absolute_url = urllib.parse.urljoin("http://" + settings.ALLOWED_HOSTS[0], relative_path)
+    absolute_url = urllib.parse.urljoin("http://" + settings.ALLOWED_HOSTS[0], relative_path)
     return absolute_url
 
 

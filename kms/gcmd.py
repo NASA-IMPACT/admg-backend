@@ -48,8 +48,6 @@ keyword_casei_attribute_map = {
 }
 short_name_priority = ["short_name", "variable_3", "variable_2", "variable_1", "term"]
 
-test = ["test1", "test2", "test3", "test4", "test5", "test6", "test7", "test8", "test9", "test10"]
-
 
 def get_content_type(model: Type[Models]) -> ContentType:
     return ContentType.objects.get(app_label="data_models", model=model.__name__.lower())
@@ -370,7 +368,7 @@ class GcmdSync:
                 and len(change_draft.recommendation_set.all()) == 0
             ):
                 # TODO: Check with Carson and make sure this is the username we should be autopublishing with.
-                change_draft.publish(User.objects.get(username='admin'))
+                change_draft.publish(User.objects.get(username='nimda'))
                 self._add_keyword_to_published_list(change_draft)
 
     @staticmethod

@@ -31,5 +31,6 @@ def gcmd_changes_email(template: Template, recipients: List[str]):
             "Body": {"Html": {"Data": template.html}, "Text": {"Data": template.text}},
             "Subject": {"Data": template.subject},
         },
+        # TODO: Set this as the ADMG admin email
         Source="john@developmentseed.org",
     )

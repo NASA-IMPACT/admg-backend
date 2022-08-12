@@ -8,19 +8,10 @@ logger = logging.getLogger(__name__)
 
 
 def serialize(sync):
-    print(f"Sync: {sync}")
     temp = {}
-    for field in sync:
-        print(f"FIELD: {field}")
-        if field[0] == "create_keywords":
-            temp["create_keywords"] = field[1]
-        elif field[0] == "update_keywords":
-            temp["update_keywords"] = field[1]
-        elif field[0] == "delete_keywords":
-            temp["delete_keywords"] = field[1]
-        elif field[0] == "published_keywords":
-            temp["published_keywords"] = field[1]
-
+    for key, value in sync:
+        if key in ["create_keywords", "update_keywords", "delete_keywords", "published_keywords"]:
+            temp[key] = value
     return temp
 
 
