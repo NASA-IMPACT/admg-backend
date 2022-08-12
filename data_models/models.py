@@ -334,14 +334,7 @@ class GcmdPhenomenon(GcmdKeyword):
     variable_2 = models.CharField(max_length=256, blank=True, default="")
     variable_3 = models.CharField(max_length=256, blank=True, default="")
     gcmd_uuid = models.UUIDField(unique=True)
-    gcmd_path = [
-        "category",
-        "topic",
-        "term",
-        "variable_1",
-        "variable_2",
-        "variable_3",
-    ]
+    gcmd_path = ["category", "topic", "term", "variable_1", "variable_2", "variable_3"]
 
     def __str__(self):
         categories = (
