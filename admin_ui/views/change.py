@@ -98,24 +98,24 @@ class CampaignDetailView(DetailView):
     template_name = "api_app/campaign_detail.html"
     queryset = Change.objects.of_type(Campaign)
 
-    def filter_latest_deployments(self, deployment_queryset):
+    def _filter_latest_changes(self, change_queryset):
         """Iterates through a Change queryset, finds & removes objects with multiple Change drafts
         and replaces them with just the latest Change draft for that object."""
-        deployments = []
-        distinct_uuids = deployment_queryset.distinct('model_instance_uuid').values_list(
-            'model_instance_uuid'
+        print(f"FILTER CHANGES: {change_queryset}")
+        changes = []
+        distinct_uuids = change_queryset.distinct('model_instance_uuid').values_list(
+            'model_instance_uuid', flat=True
         )
         for uuid in distinct_uuids:
-            deployments.append(
-                deployment_queryset.filter(model_instance_uuid=str(uuid[0])).latest(
-                    'approvallog__date'
-                )
+            print(f"UUID: {uuid}")
+            changes.append(
+                change_queryset.filter(model_instance_uuid=str(uuid)).latest('approvallog__date')
             )
-        return deployments
+        return changes
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        deployments = (
+        deployments = self._filter_latest_changes(
             Change.objects.of_type(Deployment)
             .filter(
                 update__campaign=str(
@@ -124,9 +124,8 @@ class CampaignDetailView(DetailView):
             )
             .prefetch_approvals()
         )
-        deployments = self.filter_latest_deployments(deployments)
 
-        collection_periods = (
+        collection_periods = self._filter_latest_changes(
             Change.objects.of_type(CollectionPeriod)
             .filter(update__deployment__in=[str(d.model_instance_uuid) for d in deployments])
             .select_related("content_type")
@@ -137,11 +136,16 @@ class CampaignDetailView(DetailView):
         )
 
         # Build collection periods instruments (too difficult to do in SQL)
-        instrument_uuids = set(
-            uuid
-            for instruments in collection_periods.values_list("update__instruments", flat=True)
-            for uuid in instruments
-        )
+        instrument_uuids = set()
+        for cp in collection_periods:
+            for uuid in cp.update["instruments"]:
+                instrument_uuids.add(uuid)
+
+        # instrument_uuids = set(
+        #     uuid
+        #     for instruments in collection_periods.values_list("update__instruments", flat=True)
+        #     for uuid in instruments
+        # )
         instrument_names = {
             str(uuid): short_name
             for uuid, short_name in Change.objects.of_type(Instrument)
@@ -161,13 +165,13 @@ class CampaignDetailView(DetailView):
             "transition_form": forms.TransitionForm(
                 change=context["object"], user=self.request.user
             ),
-            "significant_events": (
+            "significant_events": self._filter_latest_changes(
                 Change.objects.of_type(SignificantEvent)
                 .filter(update__deployment__in=[str(d.model_instance_uuid) for d in deployments])
                 .select_related("content_type")
                 .prefetch_approvals()
             ),
-            "iops": (
+            "iops": self._filter_latest_changes(
                 Change.objects.of_type(IOP)
                 .filter(update__deployment__in=[str(d.model_instance_uuid) for d in deployments])
                 .select_related("content_type")
