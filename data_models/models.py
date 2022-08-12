@@ -5,7 +5,6 @@ import uuid
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.gis.db import models as geomodels
-from django.contrib.postgres.fields import ArrayField
 from django.contrib.postgres.search import SearchQuery, SearchVector
 from django.db import models
 
@@ -957,9 +956,7 @@ class DOI(BaseModel):
     cmr_plats_and_insts = models.JSONField(default=None, blank=True, null=True)
     cmr_science_keywords = models.JSONField(default=None, blank=True, null=True)
     cmr_abstract = models.TextField(blank=True, default="")
-    cmr_data_formats = ArrayField(
-        models.CharField(max_length=512, blank=True, default=""), blank=True, default=list
-    )
+    cmr_data_formats = models.JSONField(default=None, blank=True, null=True)
 
     date_queried = models.DateTimeField()
 
