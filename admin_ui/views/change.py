@@ -94,7 +94,6 @@ class SummaryView(django_tables2.SingleTableView):
         return {
             **super().get_context_data(**kwargs),
             # These values for total_counts will be given to us by ADMG
-            # "total_counts": {"campaign": None, "platform": None, "instrument": None},
             "total_counts": self.get_total_counts(),
             "draft_status_counts": self.get_draft_status_count(),
             "activity_list": ApprovalLog.objects.prefetch_related(
