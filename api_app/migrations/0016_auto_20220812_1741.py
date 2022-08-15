@@ -15,21 +15,52 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='change',
             name='action',
-            field=models.CharField(choices=[('Create', 'Create'), ('Update', 'Update'), ('Delete', 'Delete')], default='Update', max_length=10),
+            field=models.CharField(
+                choices=[('Create', 'Create'), ('Update', 'Update'), ('Delete', 'Delete')],
+                default='Update',
+                max_length=10,
+            ),
         ),
         migrations.CreateModel(
             name='Recommendation',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                (
+                    'id',
+                    models.AutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name='ID'
+                    ),
+                ),
                 ('object_uuid', models.UUIDField()),
-                ('result', models.BooleanField(null=True, verbose_name='Was the CASEI object connected?')),
-                ('submitted', models.BooleanField(default=False, verbose_name='Has the user published their result?')),
-                ('change', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='api_app.change')),
-                ('content_type', models.ForeignKey(blank=True, on_delete=django.db.models.deletion.CASCADE, to='contenttypes.contenttype')),
+                (
+                    'result',
+                    models.BooleanField(null=True, verbose_name='Was the CASEI object connected?'),
+                ),
+                (
+                    'submitted',
+                    models.BooleanField(
+                        default=False, verbose_name='Has the user published their result?'
+                    ),
+                ),
+                (
+                    'change',
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, to='api_app.change'
+                    ),
+                ),
+                (
+                    'content_type',
+                    models.ForeignKey(
+                        blank=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to='contenttypes.contenttype',
+                    ),
+                ),
             ],
         ),
         migrations.AddConstraint(
             model_name='recommendation',
-            constraint=models.UniqueConstraint(fields=('change', 'object_uuid'), name='unique_recommendation'),
+            constraint=models.UniqueConstraint(
+                fields=('change', 'object_uuid'), name='unique_recommendation'
+            ),
         ),
     ]
