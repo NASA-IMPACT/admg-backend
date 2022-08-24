@@ -40,9 +40,7 @@ def is_not_admin(user):
     """
 
     if user.get_role_display() != ADMIN:
-        return generate_failure_response(
-            "action failed because initiating user was not admin"
-        )
+        return generate_failure_response("action failed because initiating user was not admin")
 
 
 def is_admin(function):
@@ -138,9 +136,7 @@ class ChangeQuerySet(models.QuerySet):
         return self.prefetch_related(
             models.Prefetch(
                 "approvallog_set",
-                queryset=ApprovalLog.objects.order_by(order_by).select_related(
-                    *select_related
-                ),
+                queryset=ApprovalLog.objects.order_by(order_by).select_related(*select_related),
             )
         )
 
@@ -209,11 +205,9 @@ class ChangeQuerySet(models.QuerySet):
             **{
                 to_attr: functions.Coalesce(
                     expressions.Subquery(
-                        (
-                            of_type.objects.filter(uuid=expressions.OuterRef("uuid"))[
-                                :1
-                            ]
-                        ).values(identifier)
+                        (of_type.objects.filter(uuid=expressions.OuterRef("uuid"))[:1]).values(
+                            identifier
+                        )
                     ),
                     KeyTextTransform(identifier, "update"),
                     output_field=models.TextField(),
@@ -305,9 +299,7 @@ class Change(models.Model):
         try:
             return self.FIELD_STATUS_MAPPING[field_status]
         except KeyError as E:
-            raise KeyError(
-                "The field_status provided is not among the built statuses"
-            ) from E
+            raise KeyError("The field_status provided is not among the built statuses") from E
 
     def generate_field_status_tracking_dict(self):
         """
@@ -422,9 +414,7 @@ class Change(models.Model):
         # attribute on each record.
         return (
             Change.objects.filter(uuid__in=uuids).annotate(
-                place=expressions.RawSQL(
-                    "select array_position(%s, uuid::text)", [uuids]
-                )
+                place=expressions.RawSQL("select array_position(%s, uuid::text)", [uuids])
             )
             # Reverse the order so that this change is last in list
             .order_by("-place")
@@ -436,11 +426,7 @@ class Change(models.Model):
             # Hack: Some draft IOPs, SigEvents, and CollectionPeriods will have a 'update.campaign'
             # property, despite the fact that the actual models do not store that detail. We want to
             # ignore those records as they misrepresent the heirarchy of the data.
-            **(
-                {"content_type__model": "deployment"}
-                if self.model_name == "Campaign"
-                else {}
-            ),
+            **({"content_type__model": "deployment"} if self.model_name == "Campaign" else {}),
         )
 
     def save(self, *args, post_save=False, **kwargs):
@@ -509,9 +495,7 @@ class Change(models.Model):
 
     def _save_serializer(self, model_instance, data, partial):
         serializer_class = getattr(serializers, f"{self.model_name}Serializer")
-        serializer = serializer_class(
-            instance=model_instance, data=data, partial=partial
-        )
+        serializer = serializer_class(instance=model_instance, data=data, partial=partial)
 
         if serializer.is_valid(raise_exception=True):
             new_model_instance = serializer.save()
@@ -521,25 +505,19 @@ class Change(models.Model):
         # set the db uuid == change request uuid
         self.update["uuid"] = str(self.uuid)
 
-        return self._save_serializer(
-            model_instance=None, data=self.update, partial=False
-        )
+        return self._save_serializer(model_instance=None, data=self.update, partial=False)
 
     def _update(self):
         model_instance = self._get_model_instance()
         if not self.model_instance_uuid:
             raise ValidationError({"uuid": "UUID for the model was not found"})
 
-        return self._save_serializer(
-            model_instance=model_instance, data=self.update, partial=True
-        )
+        return self._save_serializer(model_instance=model_instance, data=self.update, partial=True)
 
     def _delete(self):
         model_instance = self._get_model_instance()
         if not self.model_instance_uuid:
-            raise serializers.ValidationError(
-                {"uuid": "UUID for the model was not found"}
-            )
+            raise serializers.ValidationError({"uuid": "UUID for the model was not found"})
 
         self.update = {
             key: Change._get_processed_value(getattr(model_instance, key))
@@ -768,9 +746,7 @@ class Change(models.Model):
         self.save(post_save=True)
 
         return generate_success_response(
-            status_str=next(
-                status.label for status in Change.Statuses if status == self.status
-            ),
+            status_str=next(status.label for status in Change.Statuses if status == self.status),
             data={"uuid": self.uuid, "status": self.status},
         )
 
@@ -804,9 +780,7 @@ class Change(models.Model):
         self.save(post_save=True)
 
         return generate_success_response(
-            status_str=next(
-                status.label for status in Change.Statuses if status == self.status
-            ),
+            status_str=next(status.label for status in Change.Statuses if status == self.status),
             data={"uuid": self.uuid, "status": self.status},
         )
 
