@@ -655,7 +655,7 @@ class Change(models.Model):
         """
 
         self.status = self.Statuses.IN_PROGRESS
-        ApprovalLog.objects.create(change=self, user=user, action=ApprovalLog.UNTRASH, notes=notes)
+        ApprovalLog.objects.create(change=self, user=user, action=ApprovalLog.Actions.UNTRASH, notes=notes)
         self.save(post_save=True)
 
         return generate_success_response(
