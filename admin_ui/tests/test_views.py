@@ -94,6 +94,9 @@ class TestCampaignDetailView(TestCase):
         self.user = factories.UserFactory.create()
 
     def test_filter_latest_changes_returns_latest_change(self):
+        """
+        Only the latest Change object should be returned for the queryset.
+        """
         latest = CampaignDetailView._filter_latest_changes(
             Change.objects.of_type(Campaign)
             .filter(model_instance_uuid=str(self.campaign.uuid))
@@ -102,6 +105,10 @@ class TestCampaignDetailView(TestCase):
         self.assertEqual(latest[0].uuid, self.update_changes[-1].uuid)
 
     def test_filter_latest_changes_with_multiple_models_returns_latest_change(self):
+        """
+        If multiple campaigns are referenced in the queryset, the
+        method should return the latest Change object for each Campaign.
+        """
         campaign2 = factories.CampaignFactory.create(short_name="campaign2")
         factories.ChangeFactory.create(
             content_type=ContentType.objects.get_for_model(Campaign),
