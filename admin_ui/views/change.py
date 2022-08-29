@@ -363,6 +363,22 @@ class ChangeListView(NotificationSidebar, mixins.DynamicModelMixin, SingleTableM
             "display_name": self._model_config["display_name"],
         }
 
+    def post(self, request, **kwargs):
+        campaign = self.get_object()
+        task = tasks.match_dois.delay(campaign.content_type.model, campaign.uuid)
+        past_doi_fetches = request.session.get("doi_task_ids", {})
+        uuid = str(self.kwargs["pk"])
+        request.session["doi_task_ids"] = {
+            **past_doi_fetches,
+            uuid: [task.id, *past_doi_fetches.get(uuid, [])],
+        }
+        messages.add_message(
+            request,
+            messages.INFO,
+            f"Fetching DOIs for {campaign.update.get('short_name', uuid)}...",
+        )
+        return HttpResponseRedirect(reverse("doi-approval", args=[campaign.uuid]))
+
 
 @method_decorator(login_required, name="dispatch")
 class ChangeTransition(NotificationSidebar, FormMixin, ProcessFormView, DetailView):
@@ -448,6 +464,14 @@ class GcmdSyncListView(NotificationSidebar, SingleTableMixin, FilterView):
             "display_name": "GCMD Keyword",
             "current_view": "gcmd-list",
         }
+
+    def post(self, request, **kwargs):
+        from kms import tasks
+
+        task = tasks.sync_gcmd.delay()
+        print(f"Task return value: {task}")
+        messages.add_message(request, messages.INFO, f"Syncing with GCMD...")
+        return HttpResponseRedirect(reverse('gcmd-list'))
 
 
 @method_decorator(user_passes_test(lambda user: user.is_admg_admin()), name="dispatch")

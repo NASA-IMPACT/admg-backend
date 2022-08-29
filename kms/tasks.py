@@ -68,7 +68,5 @@ def sync_gcmd() -> str:
         sync = gcmd.GcmdSync(keyword_scheme)
         logger.info(sync.sync_keywords())
         gcmd_syncs[keyword_scheme] = asdict(sync, dict_factory=serialize)
-    # print(f"Syncs IN SYNC TASK: {gcmd_syncs}")
 
-    # TOOD: Figure out countdown value
-    email_gcmd_sync_results.apply_async(args=(gcmd_syncs,), countdown=1, retry=False)
+    email_gcmd_sync_results.apply_async(args=(gcmd_syncs,), retry=False)
