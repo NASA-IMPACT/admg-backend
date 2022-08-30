@@ -98,24 +98,17 @@ class CampaignDetailView(DetailView):
     template_name = "api_app/campaign_detail.html"
     queryset = Change.objects.of_type(Campaign)
 
-    def _filter_latest_changes(self, change_queryset):
-        """Iterates through a Change queryset, finds & removes objects with multiple Change drafts
-        and replaces them with just the latest Change draft for that object."""
-        print(f"FILTER CHANGES: {change_queryset}")
-        changes = []
-        distinct_uuids = change_queryset.distinct('model_instance_uuid').values_list(
-            'model_instance_uuid', flat=True
+    @staticmethod
+    def _filter_latest_changes(change_queryset):
+        """Returns the single latest Change draft for each model_instance_uuid in the
+        provided queryset."""
+        return change_queryset.order_by('model_instance_uuid', '-approvallog__date').distinct(
+            'model_instance_uuid'
         )
-        for uuid in distinct_uuids:
-            print(f"UUID: {uuid}")
-            changes.append(
-                change_queryset.filter(model_instance_uuid=str(uuid)).latest('approvallog__date')
-            )
-        return changes
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        deployments = self._filter_latest_changes(
+        deployments = CampaignDetailView._filter_latest_changes(
             Change.objects.of_type(Deployment)
             .filter(
                 update__campaign=str(
@@ -125,7 +118,7 @@ class CampaignDetailView(DetailView):
             .prefetch_approvals()
         )
 
-        collection_periods = self._filter_latest_changes(
+        collection_periods = CampaignDetailView._filter_latest_changes(
             Change.objects.of_type(CollectionPeriod)
             .filter(update__deployment__in=[str(d.model_instance_uuid) for d in deployments])
             .select_related("content_type")
@@ -141,11 +134,6 @@ class CampaignDetailView(DetailView):
             for uuid in cp.update["instruments"]:
                 instrument_uuids.add(uuid)
 
-        # instrument_uuids = set(
-        #     uuid
-        #     for instruments in collection_periods.values_list("update__instruments", flat=True)
-        #     for uuid in instruments
-        # )
         instrument_names = {
             str(uuid): short_name
             for uuid, short_name in Change.objects.of_type(Instrument)
@@ -165,13 +153,13 @@ class CampaignDetailView(DetailView):
             "transition_form": forms.TransitionForm(
                 change=context["object"], user=self.request.user
             ),
-            "significant_events": self._filter_latest_changes(
+            "significant_events": CampaignDetailView._filter_latest_changes(
                 Change.objects.of_type(SignificantEvent)
                 .filter(update__deployment__in=[str(d.model_instance_uuid) for d in deployments])
                 .select_related("content_type")
                 .prefetch_approvals()
             ),
-            "iops": self._filter_latest_changes(
+            "iops": CampaignDetailView._filter_latest_changes(
                 Change.objects.of_type(IOP)
                 .filter(update__deployment__in=[str(d.model_instance_uuid) for d in deployments])
                 .select_related("content_type")
@@ -390,10 +378,8 @@ class ChangeTransition(FormMixin, ProcessFormView, DetailView):
             obj = self.get_object()
             messages.success(
                 self.request,
-                (
-                    f"Transitioned \"{obj.model_name}: {obj.update.get('short_name', obj.uuid)}\" "
-                    f'to "{obj.get_status_display()}".'
-                ),
+                f"Transitioned \"{obj.model_name}: {obj.update.get('short_name', obj.uuid)}\" "
+                f"to \"{obj.get_status_display()}\".",
             )
 
         return super().form_valid(form)
@@ -406,7 +392,7 @@ def format_validation_error(err: ValidationError) -> str:
     return (
         '<ul class="list-unstyled">'
         + "".join(
-            (f"<li>{field}" "<ul>" + "".join(f"<li>{e}</li>" for e in errors) + "</ul>" "</li>")
+            (f"<li>{field}<ul>" + "".join(f"<li>{e}</li>" for e in errors) + "</ul></li>")
             for field, errors in err.detail.items()
         )
         + "</ul>"

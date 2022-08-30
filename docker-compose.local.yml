@@ -9,6 +9,7 @@ services:
     volumes:
       - .:/code
     ports:
+      - 5678:5678
       - 8001:8001 # mapped to 8001 to prevent clashes with local django instances
       - 8890:8888 # allows use of django shell notebooks during local development
     env_file:
