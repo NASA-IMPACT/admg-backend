@@ -30,18 +30,17 @@ def email_gcmd_sync_results(gcmd_syncs):
 
     keywords_by_scheme, autopublished_keywords = [], []
     for scheme, sync in gcmd_syncs.items():
-        g_sync = gcmd.GcmdSync(**sync)
-        published_keywords = Change.objects.filter(uuid__in=g_sync.published_keywords)
+        published_keywords = Change.objects.filter(uuid__in=sync["published_keywords"])
         autopublished_keywords.extend(published_keywords)
 
         # Get keywords for each type of change, exclude keywords that were published.
-        create_keywords = Change.objects.filter(uuid__in=g_sync.create_keywords).difference(
+        create_keywords = Change.objects.filter(uuid__in=sync["create_keywords"]).difference(
             published_keywords
         )
-        update_keywords = Change.objects.filter(uuid__in=g_sync.update_keywords).difference(
+        update_keywords = Change.objects.filter(uuid__in=sync["update_keywords"]).difference(
             published_keywords
         )
-        delete_keywords = Change.objects.filter(uuid__in=g_sync.delete_keywords).difference(
+        delete_keywords = Change.objects.filter(uuid__in=sync["delete_keywords"]).difference(
             published_keywords
         )
         keywords_by_scheme.append(
