@@ -27,14 +27,16 @@
 
 {% block actions %}
   {% if object.is_locked %}
-  <div class="px-1">
-    <a 
-      class="btn btn-primary" 
-      href="{% url 'published-detail' pk=object.model_instance_uuid model=view_model %}"
-    >
-      View published version
-    </a>
-  </div>
+    {% if object.model_instance_uuid %}
+    <div class="px-1">
+      <a 
+        class="btn btn-primary" 
+        href="{% url 'published-detail' pk=object.model_instance_uuid model=view_model %}"
+      >
+        View published version
+      </a>
+    </div>
+    {% endif %}
 
   {% else %}
   <div class="px-1">
