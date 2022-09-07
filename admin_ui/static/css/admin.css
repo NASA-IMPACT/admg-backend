@@ -108,7 +108,7 @@ tr.affected-row {
   line-height: 24px;
 }
 
-p.gcmd-path {
+p.gcmd-box-background {
   background: #FFFFFF;
   border: 1px solid gray;
   box-sizing: border-box;

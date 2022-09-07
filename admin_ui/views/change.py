@@ -1,10 +1,11 @@
+import logging
 from typing import Dict
 
 import django_tables2
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.contenttypes.models import ContentType
-from django.db.models import aggregates, functions, OuterRef, Value, Count, Q
+from django.db.models import Count, OuterRef, Q, Value, aggregates, functions
 from django.db.models.fields.json import KeyTextTransform
 from django.http import Http404, HttpResponseBadRequest, HttpResponseRedirect
 from django.urls import reverse
@@ -15,7 +16,6 @@ from django.views.generic.edit import CreateView, FormMixin, ProcessFormView, Up
 from django_filters.views import FilterView
 from django_tables2.views import SingleTableMixin
 from rest_framework.serializers import ValidationError
-
 
 from admin_ui.config import MODEL_CONFIG_MAP
 from api_app.models import ApprovalLog, Change, Recommendation, SubqueryCount
@@ -29,8 +29,8 @@ from data_models.models import (
     Deployment,
     GcmdInstrument,
     GcmdPhenomenon,
-    GcmdProject,
     GcmdPlatform,
+    GcmdProject,
     Image,
     Instrument,
     PartnerOrg,
@@ -39,10 +39,11 @@ from data_models.models import (
     SignificantEvent,
     Website,
 )
-
-from .. import forms, mixins, tables, utils, filters
-
 from kms import gcmd
+
+from .. import filters, forms, mixins, tables, utils
+
+logger = logging.getLogger(__name__)
 
 
 @method_decorator(login_required, name="dispatch")
@@ -363,6 +364,24 @@ class ChangeListView(NotificationSidebar, mixins.DynamicModelMixin, SingleTableM
             "display_name": self._model_config["display_name"],
         }
 
+    def post(self, request, **kwargs):
+        from cmr import tasks
+
+        campaign = self.get_object()
+        task = tasks.match_dois.delay(campaign.content_type.model, campaign.uuid)
+        past_doi_fetches = request.session.get("doi_task_ids", {})
+        uuid = str(self.kwargs["pk"])
+        request.session["doi_task_ids"] = {
+            **past_doi_fetches,
+            uuid: [task.id, *past_doi_fetches.get(uuid, [])],
+        }
+        messages.add_message(
+            request,
+            messages.INFO,
+            f"Fetching DOIs for {campaign.update.get('short_name', uuid)}...",
+        )
+        return HttpResponseRedirect(reverse("doi-approval", args=[campaign.uuid]))
+
 
 @method_decorator(login_required, name="dispatch")
 class ChangeTransition(NotificationSidebar, FormMixin, ProcessFormView, DetailView):
@@ -384,10 +403,8 @@ class ChangeTransition(NotificationSidebar, FormMixin, ProcessFormView, DetailVi
             obj = self.get_object()
             messages.success(
                 self.request,
-                (
-                    f"Transitioned \"{obj.model_name}: {obj.update.get('short_name', obj.uuid)}\" "
-                    f'to "{obj.get_status_display()}".'
-                ),
+                f"Transitioned \"{obj.model_name}: {obj.update.get('short_name', obj.uuid)}\" "
+                f"to \"{obj.get_status_display()}\".",
             )
 
         return super().form_valid(form)
@@ -400,7 +417,7 @@ def format_validation_error(err: ValidationError) -> str:
     return (
         '<ul class="list-unstyled">'
         + "".join(
-            (f"<li>{field}" "<ul>" + "".join(f"<li>{e}</li>" for e in errors) + "</ul>" "</li>")
+            (f"<li>{field}<ul>" + "".join(f"<li>{e}</li>" for e in errors) + "</ul></li>")
             for field, errors in err.detail.items()
         )
         + "</ul>"
@@ -449,6 +466,14 @@ class GcmdSyncListView(NotificationSidebar, SingleTableMixin, FilterView):
             "current_view": "gcmd-list",
         }
 
+    def post(self, request, **kwargs):
+        from kms import tasks
+
+        task = tasks.sync_gcmd.delay()
+        logger.debug(f"Task return value: {task}")
+        messages.add_message(request, messages.INFO, "Syncing with GCMD...")
+        return HttpResponseRedirect(reverse('gcmd-list'))
+
 
 @method_decorator(user_passes_test(lambda user: user.is_admg_admin()), name="dispatch")
 class ChangeGcmdUpdateView(NotificationSidebar, UpdateView):
@@ -464,7 +489,7 @@ class ChangeGcmdUpdateView(NotificationSidebar, UpdateView):
             "transition_form": (
                 forms.TransitionForm(change=context["object"], user=self.request.user)
             ),
-            "gcmd_path": self.get_gcmd_path(),
+            "gcmd_path": gcmd.get_gcmd_path(self.object),
             "affected_records": self.get_affected_records(),
             "back_button": self.get_back_button_url(),
             "action": self.object.action,
@@ -482,47 +507,6 @@ class ChangeGcmdUpdateView(NotificationSidebar, UpdateView):
         content_type = self.get_model_form_content_type().model_class().__name__
         casei_type = gcmd.get_casei_model(content_type)
         return casei_type.__name__
-
-    def _create_initial_path_dict(self):
-        path = {"path": []}
-        if self.object.action == Change.Actions.UPDATE:
-            path["old_path"], path["new_path"] = True, True
-        elif self.object.action == Change.Actions.DELETE:
-            path["old_path"], path["new_path"] = True, False
-        elif self.object.action == Change.Actions.CREATE:
-            path["old_path"], path["new_path"] = False, True
-        return path
-
-    def _format_path_keys(self, key):
-        return key.replace("_", " ").title()
-
-    def _replace_empty_path_values(self, value):
-        return "[NO VALUE]" if value in ["", " "] else value
-
-    def compare_gcmd_path_attribute(self, attribute, new_object, previous_object={}):
-        return {
-            "key": self._format_path_keys(attribute),
-            "old_value": self._replace_empty_path_values(
-                previous_object.get(attribute, "[NO VALUE]")
-                if previous_object is not {}
-                else '[NO VALUE]'
-            ),
-            "new_value": self._replace_empty_path_values(new_object.get(attribute, '')),
-            "has_changed": previous_object is {}
-            or new_object is {}
-            or not previous_object.get(attribute) == new_object.get(attribute),
-        }
-
-    def get_gcmd_path(self) -> Dict:
-        path = self._create_initial_path_dict()
-        path_order = self.object.content_type.model_class().gcmd_path
-        for attribute in path_order:
-            path["path"].append(
-                self.compare_gcmd_path_attribute(
-                    attribute, self.object.update, self.object.previous
-                )
-            )
-        return path
 
     def get_affected_url(self, uuid):
         content_type = self.get_model_form_content_type().model_class().__name__

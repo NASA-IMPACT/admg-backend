@@ -1,8 +1,11 @@
+import logging
 from time import sleep
 
 from django.core.management.base import BaseCommand
 
 from config.celery_app import debug_task
+
+logger = logging.getLogger(__name__)
 
 
 class Command(BaseCommand):
@@ -15,4 +18,4 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         response = debug_task.delay()
         sleep(0.1)
-        print(response.status)
+        logger.debug(response.status)

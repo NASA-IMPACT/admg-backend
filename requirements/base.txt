@@ -42,3 +42,6 @@ django-crum==0.7.9
 django-tables2==2.3.4  # https://django-tables2.readthedocs.io/en/latest/
 django-filter==2.4.0  # https://django-filter.readthedocs.io/en/stable/
 django-sass==1.0.1
+
+# Email Notifications
+premailer==3.10.0

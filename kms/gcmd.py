@@ -1,8 +1,3 @@
-import logging
-import uuid
-
-from typing import Optional, Set, Union, Type
-
 from admg_webapp.users.models import User
 from api_app.models import (
     Change,
@@ -18,10 +13,14 @@ from data_models.models import (
     GcmdPlatform,
     GcmdPhenomenon,
 )
+from dataclasses import dataclass, field
 from django.contrib.contenttypes.models import ContentType
 from django.forms.models import model_to_dict
 
 from kms import api
+import logging
+from typing import Optional, Set, Union, Type, List
+import uuid
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +28,7 @@ Actions = Union[Change.Actions.CREATE, Change.Actions.UPDATE, Change.Actions.DEL
 Models = Union[GcmdProject, GcmdInstrument, GcmdPlatform, GcmdPhenomenon]
 Casei_Object = Union[Campaign, Instrument, Platform]
 
-keyword_to_model_map = {
+scheme_to_model_map = {
     "instruments": GcmdInstrument,
     "projects": GcmdProject,
     "platforms": GcmdPlatform,
@@ -52,6 +51,12 @@ short_name_priority = ["short_name", "variable_3", "variable_2", "variable_1", "
 
 def get_content_type(model: Type[Models]) -> ContentType:
     return ContentType.objects.get(app_label="data_models", model=model.__name__.lower())
+
+
+def get_gcmd_model(gcmd_content_type: ContentType):
+    for key, value in scheme_to_model_map.items():
+        if gcmd_content_type.model_class() == value:
+            return value
 
 
 def get_casei_keyword_set(casei_object: Casei_Object, content_type: str):
@@ -110,26 +115,24 @@ def get_change(
         return None
 
 
-def get_short_name(row: Union[Models, dict]):
+def get_short_name(row: Union[Change, Models, dict]):
     # Order of attributes to look for short_name in
     priority = ["short_name", "variable_3", "variable_2", "variable_1", "term"]
-    try:
-        if isinstance(row, dict):
-            for attribute in priority:
-                if row.get(attribute):
-                    return row[attribute]
-        elif isinstance(row, Models):
-            for attribute in priority:
-                if attribute in row:
-                    return row.attribute
-    # Change causes TypeError: Subscripted generics
-    except TypeError:
+    if isinstance(row, Change):
         for attribute in priority:
             if row.update.get(attribute):
                 return row.update[attribute]
         for attribute in priority:
             if row.previous.get(attribute):
                 return row.previous[attribute]
+    elif isinstance(row, dict):
+        for attribute in priority:
+            if row.get(attribute):
+                return row[attribute]
+    elif isinstance(row, Models):
+        for attribute in priority:
+            if attribute in row:
+                return row.attribute
 
 
 def keyword_to_dict(keyword: Models) -> dict:
@@ -173,14 +176,70 @@ def is_valid_keyword(record: dict, model: Type[Models]) -> bool:
         return False
 
 
+def _create_initial_path_dict(action):
+    path = {"path": []}
+    if action == Change.Actions.UPDATE:
+        path["old_path"], path["new_path"] = True, True
+    elif action == Change.Actions.DELETE:
+        path["old_path"], path["new_path"] = True, False
+    elif action == Change.Actions.CREATE:
+        path["old_path"], path["new_path"] = False, True
+    return path
+
+
+def _format_path_keys(key):
+    return key.replace("_", " ").title()
+
+
+def _replace_empty_path_values(value):
+    return "[NO VALUE]" if value in ["", " "] else value
+
+
+def compare_gcmd_path_attribute(attribute, new_object, previous_object={}):
+    return {
+        "key": _format_path_keys(attribute),
+        "old_value": _replace_empty_path_values(
+            previous_object.get(attribute, "[NO VALUE]")
+            if previous_object is not {}
+            else '[NO VALUE]'
+        ),
+        "new_value": _replace_empty_path_values(new_object.get(attribute, '')),
+        "has_changed": previous_object is {}
+        or new_object is {}
+        or not previous_object.get(attribute) == new_object.get(attribute),
+    }
+
+
+def get_gcmd_path(change) -> dict:
+    try:
+        path = _create_initial_path_dict(change.action)
+        path_order = change.content_type.model_class().gcmd_path
+        for attribute in path_order:
+            path["path"].append(
+                compare_gcmd_path_attribute(attribute, change.update, change.previous)
+            )
+        return path
+    except AttributeError:
+        logger.debug(f"Attribute Error Found, Change: {change}")
+
+
+@dataclass
 class GcmdSync:
-    def __init__(self, gcmd_type: str) -> None:
-        self.create_keywords = []
-        self.update_keywords = []
-        self.delete_keywords = []
-        self.gcmd_scheme = gcmd_type
-        self.model = keyword_to_model_map[gcmd_type]
-        self.concept_type = get_content_type(self.model)
+    gcmd_scheme: str
+    create_keywords: List[str] = field(default_factory=list)
+    update_keywords: List[str] = field(default_factory=list)
+    delete_keywords: List[str] = field(default_factory=list)
+    published_keywords: List[str] = field(default_factory=list)
+    model: Models = field(init=False)
+    content_type: ContentType = field(init=False)
+
+    def __post_init__(self):
+        self.model = scheme_to_model_map[self.gcmd_scheme]
+        self.content_type = get_content_type(self.model)
+
+    @property
+    def total_count(self):
+        return len(self.create_keywords) + len(self.update_keywords) + len(self.delete_keywords)
 
     def sync_keywords(self):
         """This method aims to sync the gcmd public dataset with the gcmd database by doing the following:
@@ -216,11 +275,14 @@ class GcmdSync:
 
     def _add_keyword_to_changed_list(self, change: Change, action: Actions):
         if action is Change.Actions.CREATE:
-            self.create_keywords.append(change)
+            self.create_keywords.append(change.uuid)
         elif action is Change.Actions.UPDATE:
-            self.update_keywords.append(change)
+            self.update_keywords.append(change.uuid)
         elif action is Change.Actions.DELETE:
-            self.delete_keywords.append(change)
+            self.delete_keywords.append(change.uuid)
+
+    def _add_keyword_to_published_list(self, change: Change):
+        self.published_keywords.append(change.uuid)
 
     def get_recommended_objects(self, keyword: dict, action: Actions, change_draft: Change) -> None:
         recommendations = []
@@ -237,7 +299,12 @@ class GcmdSync:
 
         # If keyword isn't being deleted, look in alias table for other recommendations.
         if action in [Change.Actions.CREATE, Change.Actions.UPDATE]:
-            for alias in Alias.objects.filter(short_name=get_short_name(keyword)):
+            for alias in Alias.objects.filter(
+                short_name=get_short_name(keyword),
+                content_type=ContentType.objects.get(
+                    model=keyword_to_casei_map[self.content_type.model].__name__.lower()
+                ),
+            ):
                 recommendations.append(alias.parent_fk)
 
         return recommendations
@@ -256,12 +323,12 @@ class GcmdSync:
                 recommendation.save()
 
     def create_change(self, keyword: dict, action: Actions, model_uuid: Optional[str]) -> None:
-        # If a non-published Change already exists, just update the current one.
         change_draft = get_change(keyword, self.model, action, model_uuid)
+        # If a non-published Change already exists, just update the current one.
         if change_draft:
             self.update_change(change_draft, keyword)
             self.create_recommended_list(keyword, action, change_draft)
-            # self._add_keyword_to_changed_list(change_draft, action)
+            self._add_keyword_to_changed_list(change_draft, action)
         else:
             if action is Change.Actions.CREATE:
                 model_uuid = str(uuid.uuid4())
@@ -277,14 +344,20 @@ class GcmdSync:
                 previous = keyword_to_dict(self.model.objects.get(uuid=model_uuid))
                 if action is Change.Actions.UPDATE:
                     update = keyword
-                    log_message = f"Keyword with gcmd_uuid '{keyword['gcmd_uuid']}' found with mismatching attributes compared to GCMD API, created new 'UPDATE' change record: "
+                    log_message = (
+                        f"Keyword with gcmd_uuid '{keyword['gcmd_uuid']}' found with mismatching"
+                        " attributes compared to GCMD API, created new 'UPDATE' change record: "
+                    )
                 elif action is Change.Actions.DELETE:
                     update = {}
-                    log_message = f"Keyword with gcmd_uuid '{keyword['gcmd_uuid']}' found that doesn't exist in GCMD API, created new 'DELETE' change record: "
+                    log_message = (
+                        f"Keyword with gcmd_uuid '{keyword['gcmd_uuid']}' found that doesn't exist"
+                        " in GCMD API, created new 'DELETE' change record: "
+                    )
 
             change_draft = Change(
                 uuid=change_uuid,
-                content_type=self.concept_type,
+                content_type=self.content_type,
                 update=update,
                 previous=previous,
                 model_instance_uuid=model_uuid,
@@ -295,9 +368,14 @@ class GcmdSync:
             self.create_recommended_list(keyword, action, change_draft)
             self._add_keyword_to_changed_list(change_draft, action)
             logger.info(log_message + f"'{change_draft}'")
-            # Only publish if keyword is new and has no recommended objects.
-            if action is Change.Actions.CREATE and len(change_draft.recommendation_set.all()) == 0:
-                change_draft.publish(User.objects.get(username='admin'))
+            # Only publish if keyword is created/deleted and has no recommended objects.
+            if (
+                action in [Change.Actions.CREATE, Change.Actions.DELETE]
+                and len(change_draft.recommendation_set.all()) == 0
+            ):
+                # TODO: Check with Carson and make sure this is the username we should be autopublishing with.
+                change_draft.publish(User.objects.get(username='nimda'))
+                self._add_keyword_to_published_list(change_draft)
 
     @staticmethod
     def update_change(change_draft: Change, new_update: dict):
@@ -316,4 +394,6 @@ class GcmdSync:
                 )
 
     def send_email_update(self):
-        raise NotImplementedError()
+        from kms import tasks
+
+        tasks.email_gcmd_sync_results.apply_async(args=(self,), retry=False)
