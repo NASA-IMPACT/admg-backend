@@ -1,10 +1,11 @@
+import logging
 from typing import Dict
 
 import django_tables2
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.contenttypes.models import ContentType
-from django.db.models import aggregates, functions, OuterRef, Value, Count, Q
+from django.db.models import Count, OuterRef, Q, Value, aggregates, functions
 from django.db.models.fields.json import KeyTextTransform
 from django.http import Http404, HttpResponseBadRequest, HttpResponseRedirect
 from django.urls import reverse
@@ -15,7 +16,6 @@ from django.views.generic.edit import CreateView, FormMixin, ProcessFormView, Up
 from django_filters.views import FilterView
 from django_tables2.views import SingleTableMixin
 from rest_framework.serializers import ValidationError
-
 
 from admin_ui.config import MODEL_CONFIG_MAP
 from api_app.models import ApprovalLog, Change, Recommendation, SubqueryCount
@@ -29,8 +29,8 @@ from data_models.models import (
     Deployment,
     GcmdInstrument,
     GcmdPhenomenon,
-    GcmdProject,
     GcmdPlatform,
+    GcmdProject,
     Image,
     Instrument,
     PartnerOrg,
@@ -39,10 +39,11 @@ from data_models.models import (
     SignificantEvent,
     Website,
 )
-
-from .. import forms, mixins, tables, utils, filters
-
 from kms import gcmd
+
+from .. import filters, forms, mixins, tables, utils
+
+logger = logging.getLogger(__name__)
 
 
 @method_decorator(login_required, name="dispatch")
@@ -469,7 +470,7 @@ class GcmdSyncListView(NotificationSidebar, SingleTableMixin, FilterView):
         from kms import tasks
 
         task = tasks.sync_gcmd.delay()
-        print(f"Task return value: {task}")
+        logger.debug(f"Task return value: {task}")
         messages.add_message(request, messages.INFO, "Syncing with GCMD...")
         return HttpResponseRedirect(reverse('gcmd-list'))
 
