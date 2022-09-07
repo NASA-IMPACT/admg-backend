@@ -57,20 +57,42 @@ def email_gcmd_sync_results(gcmd_syncs):
         )
     total_count = sum([keyword['scheme_count'] for keyword in keywords_by_scheme])
 
-    email.gcmd_changes_email(
-        email.Template(
-            "gcmd_notification.html",
-            "gcmd_notification.txt",
-            f"GCMD Sync - {total_count} Changes Found!",
-            {
-                "keywords_by_scheme": keywords_by_scheme,
-                "total_count": total_count,
-                "autopublished_keywords": autopublished_keywords,
-                "hostname": settings.ALLOWED_HOSTS[0],
-            },
-        ),
-        settings.GCMD_SYNC_RECIPIENTS,
-    )
+    max_items_per_email = 1000
+    if total_count > max_items_per_email:
+        # if the update is too large, split the emails up so we don't hit a
+        # message size limit
+        logging.debug("Message size too large. Sending one email per scheme to reduce size.")
+        for keyword in keywords_by_scheme:
+            message = email.Template(
+                "gcmd_notification.html",
+                "gcmd_notification.txt",
+                f"GCMD Sync - {total_count} Changes Found!",
+                {
+                    "keywords_by_scheme": [keyword],
+                    "total_count": keyword["scheme_count"],
+                    "autopublished_keywords": keyword["published_keywords"],
+                    "hostname": settings.ALLOWED_HOSTS[0],
+                },
+            )
+            email.gcmd_changes_email(
+                message,
+                settings.GCMD_SYNC_RECIPIENTS,
+            )
+    else:
+        email.gcmd_changes_email(
+            email.Template(
+                "gcmd_notification.html",
+                "gcmd_notification.txt",
+                f"GCMD Sync - {total_count} Changes Found!",
+                {
+                    "keywords_by_scheme": keywords_by_scheme,
+                    "total_count": total_count,
+                    "autopublished_keywords": autopublished_keywords,
+                    "hostname": settings.ALLOWED_HOSTS[0],
+                },
+            ),
+            settings.GCMD_SYNC_RECIPIENTS,
+        )
 
 
 @shared_task
