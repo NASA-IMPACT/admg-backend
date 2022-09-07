@@ -220,7 +220,7 @@ def get_gcmd_path(change) -> dict:
             )
         return path
     except AttributeError:
-        print(f"Attribute Error Found, Change: {change}")
+        logger.debug(f"Attribute Error Found, Change: {change}")
 
 
 @dataclass
@@ -344,10 +344,16 @@ class GcmdSync:
                 previous = keyword_to_dict(self.model.objects.get(uuid=model_uuid))
                 if action is Change.Actions.UPDATE:
                     update = keyword
-                    log_message = f"Keyword with gcmd_uuid '{keyword['gcmd_uuid']}' found with mismatching attributes compared to GCMD API, created new 'UPDATE' change record: "
+                    log_message = (
+                        f"Keyword with gcmd_uuid '{keyword['gcmd_uuid']}' found with mismatching"
+                        " attributes compared to GCMD API, created new 'UPDATE' change record: "
+                    )
                 elif action is Change.Actions.DELETE:
                     update = {}
-                    log_message = f"Keyword with gcmd_uuid '{keyword['gcmd_uuid']}' found that doesn't exist in GCMD API, created new 'DELETE' change record: "
+                    log_message = (
+                        f"Keyword with gcmd_uuid '{keyword['gcmd_uuid']}' found that doesn't exist"
+                        " in GCMD API, created new 'DELETE' change record: "
+                    )
 
             change_draft = Change(
                 uuid=change_uuid,

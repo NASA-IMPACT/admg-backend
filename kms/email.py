@@ -1,7 +1,9 @@
+from typing import List, Optional
+
 import boto3
+from django.conf import settings
 from django.template.loader import get_template
 from premailer import transform
-from typing import List, Optional
 
 client = boto3.client("ses")
 
@@ -31,6 +33,5 @@ def gcmd_changes_email(template: Template, recipients: List[str]):
             "Body": {"Html": {"Data": template.html}, "Text": {"Data": template.text}},
             "Subject": {"Data": template.subject},
         },
-        # TODO: Set this as the ADMG admin email
-        Source="john@developmentseed.org",
+        Source=settings.GCMD_SYNC_SOURCE_EMAIL,
     )
