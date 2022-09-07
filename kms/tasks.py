@@ -27,7 +27,6 @@ def email_gcmd_sync_results(gcmd_syncs):
             GcmdSync objects (passed to this task as dictionaries since they transit through
             a message broker).
     """
-
     keywords_by_scheme, autopublished_keywords = [], []
     for scheme, sync in gcmd_syncs.items():
         published_keywords = Change.objects.filter(uuid__in=sync["published_keywords"])
@@ -61,11 +60,13 @@ def email_gcmd_sync_results(gcmd_syncs):
     email.gcmd_changes_email(
         email.Template(
             "gcmd_notification.html",
+            "gcmd_notification.txt",
             f"GCMD Sync - {total_count} Changes Found!",
             {
                 "keywords_by_scheme": keywords_by_scheme,
                 "total_count": total_count,
                 "autopublished_keywords": autopublished_keywords,
+                "hostname": settings.ALLOWED_HOSTS[0],
             },
         ),
         settings.GCMD_SYNC_RECIPIENTS,

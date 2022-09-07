@@ -1,0 +1,52 @@
+{% load email_extras %}
+{% load static %}
+
+This is a notification that {{ total_count }} GCMD keywords were newly created, modified, or deleted.
+To review GCMD changes, go to: https://{{hostname}}{% url 'gcmd-list' %}
+
+{% for scheme in keywords_by_scheme %}
+{{ scheme.scheme|format_scheme_for_display }} ({{ scheme.scheme_count }})
+
+Created Keywords ({{ scheme.create_keywords | length }})
+  {% for keyword in scheme.create_keywords %}
+  {% include 'snippets/keyword.txt' with keyword=keyword new_path=True old_path=False %}
+  {% endfor %}
+
+{# Updated Keywords #}
+Updated Keywords ({{ scheme.update_keywords | length }})
+  {% for keyword in scheme.update_keywords %}
+  {% include 'snippets/keyword.txt' with keyword=keyword new_path=True old_path=True %}
+  {% endfor %}
+
+{# Deleted Keywords #}
+Deleted Keywords ({{ scheme.delete_keywords | length }})
+  {% for keyword in scheme.delete_keywords %}
+  {% include 'snippets/keyword.txt' with keyword=keyword new_path=False old_path=True %}
+  {% endfor %}
+{% endfor %}
+
+{# Auto-Published keywords #}
+Auto-Published Keywords ({{ autopublished_keywords | length }})
+These keywords were created, updated, or deleted but didn't have any CASEI objects associated with them. These keywords do not require an admin to review them.
+
+{% for scheme in keywords_by_scheme %}
+  {{ scheme.scheme|format_scheme_for_display }} ({{ scheme.published_keywords | length }})
+  {# {% with current_keyword_type=scheme.published_keywords.0.%} #}
+  {% for keyword in scheme.published_keywords %}
+    {% with gcmd_path=keyword|get_gcmd_path %}
+      {% url 'change-update' keyword.uuid as relative_url%}
+        {{ keyword | get_gcmd_short_name }}: {{relative_url | get_absolute_url}} ({{keyword.action}})
+        {% if keyword.action == "Create" %}
+          {% include 'snippets/gcmd_path.txt' with preliminary_text="New Path:" default_class="gcmd-inline-label" gcmd_path_class="gcmd-path" path_attribute="new_value" gcmd_path=gcmd_path %}
+          {% include 'snippets/gcmd_path.txt' with preliminary_text="" default_class="gcmd-footer" gcmd_path_class="gcmd-footer" path_attribute="key" gcmd_path=gcmd_path %}
+        {% elif keyword.action == "Update" %}
+          {% include 'snippets/gcmd_path.txt' with preliminary_text="New Path:" default_class="gcmd-inline-label" gcmd_path_class="gcmd-path" path_attribute="new_value" gcmd_path=gcmd_path %}
+          {% include 'snippets/gcmd_path.txt' with preliminary_text="Old Path:" default_class="gcmd-inline-label" gcmd_path_class="gcmd-path" path_attribute="old_value" gcmd_path=gcmd_path %}
+          {% include 'snippets/gcmd_path.txt' with preliminary_text="" default_class="gcmd-footer" gcmd_path_class="gcmd-footer" path_attribute="key" gcmd_path=gcmd_path %}
+        {% elif keyword.action == "Delete" %}
+          {% include 'snippets/gcmd_path.txt' with preliminary_text="Old Path:" default_class="gcmd-inline-label" gcmd_path_class="gcmd-path" path_attribute="old_value" gcmd_path=gcmd_path %}
+          {% include 'snippets/gcmd_path.txt' with preliminary_text="" default_class="gcmd-footer" gcmd_path_class="gcmd-footer" path_attribute="key" gcmd_path=gcmd_path %}
+        {% endif %}
+    {% endwith %}
+  {% endfor %}
+{% endfor %}

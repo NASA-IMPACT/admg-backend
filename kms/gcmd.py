@@ -1,26 +1,24 @@
-from admg_webapp.users.models import User
-from api_app.models import (
-    Change,
-    Recommendation,
-)
-from data_models.models import (
-    Campaign,
-    Instrument,
-    Platform,
-    Alias,
-    GcmdProject,
-    GcmdInstrument,
-    GcmdPlatform,
-    GcmdPhenomenon,
-)
+import logging
+import uuid
 from dataclasses import dataclass, field
+from typing import List, Optional, Set, Type, Union
+
 from django.contrib.contenttypes.models import ContentType
 from django.forms.models import model_to_dict
 
+from admg_webapp.users.models import User
+from api_app.models import Change, Recommendation
+from data_models.models import (
+    Alias,
+    Campaign,
+    GcmdInstrument,
+    GcmdPhenomenon,
+    GcmdPlatform,
+    GcmdProject,
+    Instrument,
+    Platform,
+)
 from kms import api
-import logging
-from typing import Optional, Set, Union, Type, List
-import uuid
 
 logger = logging.getLogger(__name__)
 
