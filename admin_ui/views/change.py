@@ -364,6 +364,8 @@ class ChangeListView(NotificationSidebar, mixins.DynamicModelMixin, SingleTableM
         }
 
     def post(self, request, **kwargs):
+        from cmr import tasks
+
         campaign = self.get_object()
         task = tasks.match_dois.delay(campaign.content_type.model, campaign.uuid)
         past_doi_fetches = request.session.get("doi_task_ids", {})
@@ -400,10 +402,8 @@ class ChangeTransition(NotificationSidebar, FormMixin, ProcessFormView, DetailVi
             obj = self.get_object()
             messages.success(
                 self.request,
-                (
-                    f"Transitioned \"{obj.model_name}: {obj.update.get('short_name', obj.uuid)}\" "
-                    f'to "{obj.get_status_display()}".'
-                ),
+                f"Transitioned \"{obj.model_name}: {obj.update.get('short_name', obj.uuid)}\" "
+                f"to \"{obj.get_status_display()}\".",
             )
 
         return super().form_valid(form)
@@ -416,7 +416,7 @@ def format_validation_error(err: ValidationError) -> str:
     return (
         '<ul class="list-unstyled">'
         + "".join(
-            (f"<li>{field}" "<ul>" + "".join(f"<li>{e}</li>" for e in errors) + "</ul>" "</li>")
+            (f"<li>{field}<ul>" + "".join(f"<li>{e}</li>" for e in errors) + "</ul></li>")
             for field, errors in err.detail.items()
         )
         + "</ul>"
@@ -470,7 +470,7 @@ class GcmdSyncListView(NotificationSidebar, SingleTableMixin, FilterView):
 
         task = tasks.sync_gcmd.delay()
         print(f"Task return value: {task}")
-        messages.add_message(request, messages.INFO, f"Syncing with GCMD...")
+        messages.add_message(request, messages.INFO, "Syncing with GCMD...")
         return HttpResponseRedirect(reverse('gcmd-list'))
 
 
