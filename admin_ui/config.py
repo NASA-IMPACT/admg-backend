@@ -30,7 +30,17 @@ CUSTOM_MODEL_VALUES = {
     },
     "GcmdInstrument": {"display_name": "GCMD Instrument"},
     "GcmdPlatform": {"display_name": "GCMD Platform"},
-    "GcmdPhenomenon": {"display_name": "GCMD Phenomenon"},
+    "GcmdPhenomenon": {
+        "display_name": "GCMD Phenomenon",
+        "draft_filter": filters.GenericDraftFilter(
+            "GcmdPhenomenon",
+            [
+                {"field_name": "term", "label": "Term"},
+                {"field_name": "topic", "label": "Topic"},
+                {"field_name": "category", "label": "Category"},
+            ],
+        ),
+    },
     "DOI": {
         "admin_required_to_view": False,
         "draft_filter": filters.DoiFilter,

@@ -146,3 +146,16 @@ span.sidebar-notification {
   background: red;
   border-radius: 10px;
 }
+
+/* Forms */
+.form-inline {
+  margin-bottom: 0.5em;
+}
+
+.form-inline .form-group {
+  margin-right: 1em;
+}
+
+.form-inline .form-group label {
+  margin-right: 0.4em;
+}
