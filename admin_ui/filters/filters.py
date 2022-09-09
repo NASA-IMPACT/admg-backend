@@ -1,18 +1,19 @@
 import django_filters
+from django.contrib.contenttypes.models import ContentType
+from django.db.models.query_utils import Q
+
 from api_app.models import Change
 from data_models import models
 from data_models.models import DOI, CollectionPeriod
-from django.db.models.query_utils import Q
 
 from .utils import (
     CampaignFilter,
     default_filter_configs,
-    get_draft_campaigns,
-    get_deployments,
     filter_draft_and_published,
+    get_deployments,
+    get_draft_campaigns,
     second_level_campaign_name_filter,
 )
-
 
 # TODO:
 # 1. Look at .values with Cast function
@@ -118,6 +119,21 @@ class CollectionPeriodFilter(CampaignFilter):
     class Meta:
         model = Change
         fields = ["status"]
+
+
+class GcmdSyncListFilter(django_filters.FilterSet):
+    status = django_filters.ChoiceFilter(
+        choices=Change.Statuses.choices,
+        label="Status",
+    )
+    gcmd_type = django_filters.ModelMultipleChoiceFilter(
+        label="Category",
+        field_name='content_type',
+        queryset=ContentType.objects.filter(model__startswith="gcmd"),
+    )
+    short_name = django_filters.CharFilter(
+        label="Keyword", field_name="short_name", lookup_expr='icontains'
+    )
 
 
 class ImageFilter(django_filters.FilterSet):

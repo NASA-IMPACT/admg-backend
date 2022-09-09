@@ -8,12 +8,15 @@ from django.views.generic import DetailView
 from django_filters.views import FilterView
 from django_tables2.views import SingleTableMixin
 
+from api_app.views.generic_views import NotificationSidebar
 from api_app.models import Change
 
 from .. import utils, forms, mixins
 
 
-class PublishedListView(mixins.DynamicModelMixin, SingleTableMixin, FilterView):
+class PublishedListView(
+    NotificationSidebar, mixins.DynamicModelMixin, SingleTableMixin, FilterView
+):
     template_name = "api_app/published_list.html"
 
     def get_table_class(self):
@@ -32,7 +35,7 @@ class PublishedListView(mixins.DynamicModelMixin, SingleTableMixin, FilterView):
         }
 
 
-class ModelObjectView(mixins.DynamicModelMixin, DetailView):
+class ModelObjectView(NotificationSidebar, mixins.DynamicModelMixin, DetailView):
     fields = "__all__"
 
     def _initialize_form(self, form_class, disable_all=False, **kwargs):

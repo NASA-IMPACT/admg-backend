@@ -236,21 +236,43 @@ class PartnerOrg(LimitedInfoPriority):
         pass
 
 
-class GcmdProject(BaseModel):
+class GcmdKeyword(BaseModel):
+    def _get_casei_model(self):
+        from kms.gcmd import keyword_to_casei_map
+
+        return keyword_to_casei_map[self.__class__.__name__.lower()]
+
+    def _get_casei_attribute(self):
+        from kms.gcmd import keyword_casei_attribute_map
+
+        return keyword_casei_attribute_map[self.__class__.__name__.lower()]
+
+    casei_model = property(_get_casei_model)
+    # Attribute on CASEI model where GCMD relationships are stored.
+    # Example: Instrument.gcmd_instruments, Instrument.gcmd_phenomenon, Proejct.gcmd_projects
+    casei_attribute = property(_get_casei_attribute)
+
+    class Meta:
+        abstract = True
+
+
+class GcmdProject(GcmdKeyword):
     short_name = models.CharField(max_length=256, blank=True, default="")
     long_name = models.CharField(max_length=512, blank=True, default="")
     bucket = models.CharField(max_length=256)
     gcmd_uuid = models.UUIDField(unique=True)
+    gcmd_path = ["bucket", "short_name", "long_name"]
 
     def __str__(self):
         categories = (self.short_name, self.long_name)
         return create_gcmd_str(categories)
 
     class Meta:
+        verbose_name = "GCMD Project"
         ordering = ("short_name",)
 
 
-class GcmdInstrument(BaseModel):
+class GcmdInstrument(GcmdKeyword):
     short_name = models.CharField(max_length=256, blank=True, default="")
     long_name = models.CharField(max_length=512, blank=True, default="")
     # these make more sense without 'instrument', however class and type are
@@ -260,6 +282,14 @@ class GcmdInstrument(BaseModel):
     instrument_type = models.CharField(max_length=256, blank=True, default="")
     instrument_subtype = models.CharField(max_length=256, blank=True, default="")
     gcmd_uuid = models.UUIDField(unique=True)
+    gcmd_path = [
+        "instrument_category",
+        "instrument_class",
+        "instrument_type",
+        "instrument_subtype",
+        "short_name",
+        "long_name",
+    ]
 
     def __str__(self):
         categories = (
@@ -273,26 +303,30 @@ class GcmdInstrument(BaseModel):
         return create_gcmd_str(categories)
 
     class Meta:
+        verbose_name = "GCMD Instrument"
         ordering = ("short_name",)
 
 
-class GcmdPlatform(BaseModel):
+class GcmdPlatform(GcmdKeyword):
     short_name = models.CharField(max_length=256, blank=True, default="")
     long_name = models.CharField(max_length=512, blank=True, default="")
-    category = models.CharField(max_length=256)
-    series_entry = models.CharField(max_length=256, blank=True, default="")
+    basis = models.CharField(max_length=256)
+    category = models.CharField(max_length=256, blank=True, default="")
+    subcategory = models.CharField(max_length=256, blank=True, default="")
     description = models.TextField(blank=True, default="")
     gcmd_uuid = models.UUIDField(unique=True)
+    gcmd_path = ["basis", "category", "subcategory", "short_name", "long_name"]
 
     def __str__(self):
         categories = (self.category, self.long_name, self.short_name)
         return create_gcmd_str(categories)
 
     class Meta:
+        verbose_name = "GCMD Platform"
         ordering = ("short_name",)
 
 
-class GcmdPhenomenon(BaseModel):
+class GcmdPhenomenon(GcmdKeyword):
     category = models.CharField(max_length=256)
     topic = models.CharField(max_length=256, blank=True, default="")
     term = models.CharField(max_length=256, blank=True, default="")
@@ -300,6 +334,7 @@ class GcmdPhenomenon(BaseModel):
     variable_2 = models.CharField(max_length=256, blank=True, default="")
     variable_3 = models.CharField(max_length=256, blank=True, default="")
     gcmd_uuid = models.UUIDField(unique=True)
+    gcmd_path = ["category", "topic", "term", "variable_1", "variable_2", "variable_3"]
 
     def __str__(self):
         categories = (
