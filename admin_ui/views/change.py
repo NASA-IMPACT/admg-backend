@@ -108,9 +108,17 @@ class CampaignDetailView(NotificationSidebar, DetailView):
     template_name = "api_app/campaign_detail.html"
     queryset = Change.objects.of_type(Campaign)
 
+    @staticmethod
+    def _filter_latest_changes(change_queryset):
+        """Returns the single latest Change draft for each model_instance_uuid in the
+        provided queryset."""
+        return change_queryset.order_by('model_instance_uuid', '-approvallog__date').distinct(
+            'model_instance_uuid'
+        )
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        deployments = (
+        deployments = CampaignDetailView._filter_latest_changes(
             Change.objects.of_type(Deployment)
             .filter(
                 update__campaign=str(
@@ -118,11 +126,11 @@ class CampaignDetailView(NotificationSidebar, DetailView):
                 )
             )
             .prefetch_approvals()
-            .order_by(self.get_ordering())
         )
-        collection_periods = (
+
+        collection_periods = CampaignDetailView._filter_latest_changes(
             Change.objects.of_type(CollectionPeriod)
-            .filter(update__deployment__in=[str(d.uuid) for d in deployments])
+            .filter(update__deployment__in=[str(d.model_instance_uuid) for d in deployments])
             .select_related("content_type")
             .prefetch_approvals()
             .annotate_from_relationship(
@@ -131,11 +139,11 @@ class CampaignDetailView(NotificationSidebar, DetailView):
         )
 
         # Build collection periods instruments (too difficult to do in SQL)
-        instrument_uuids = set(
-            uuid
-            for instruments in collection_periods.values_list("update__instruments", flat=True)
-            for uuid in instruments
-        )
+        instrument_uuids = set()
+        for cp in collection_periods:
+            for uuid in cp.update["instruments"]:
+                instrument_uuids.add(uuid)
+
         instrument_names = {
             str(uuid): short_name
             for uuid, short_name in Change.objects.of_type(Instrument)
@@ -155,23 +163,20 @@ class CampaignDetailView(NotificationSidebar, DetailView):
             "transition_form": forms.TransitionForm(
                 change=context["object"], user=self.request.user
             ),
-            "significant_events": (
+            "significant_events": CampaignDetailView._filter_latest_changes(
                 Change.objects.of_type(SignificantEvent)
-                .filter(update__deployment__in=[str(d.uuid) for d in deployments])
+                .filter(update__deployment__in=[str(d.model_instance_uuid) for d in deployments])
                 .select_related("content_type")
                 .prefetch_approvals()
             ),
-            "iops": (
+            "iops": CampaignDetailView._filter_latest_changes(
                 Change.objects.of_type(IOP)
-                .filter(update__deployment__in=[str(d.uuid) for d in deployments])
+                .filter(update__deployment__in=[str(d.model_instance_uuid) for d in deployments])
                 .select_related("content_type")
                 .prefetch_approvals()
             ),
             "collection_periods": collection_periods,
         }
-
-    def get_ordering(self):
-        return self.request.GET.get("ordering", "-status")
 
 
 @method_decorator(login_required, name="dispatch")
