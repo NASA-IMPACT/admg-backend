@@ -63,8 +63,17 @@ class SummaryView(NotificationSidebar, django_tables2.SingleTableView):
             .order_by("-updated_at")
         )
 
+    def get_total_counts(self):
+        return {
+            model.__name__.lower(): Change.objects.of_type(model)
+            .filter(action=Change.Actions.CREATE)
+            .count()
+            for model in self.models
+        }
+
     def get_draft_status_count(self):
         status_ids = [
+            Change.Statuses.IN_PROGRESS,
             Change.Statuses.IN_REVIEW,
             Change.Statuses.IN_ADMIN_REVIEW,
             Change.Statuses.PUBLISHED,
@@ -95,7 +104,7 @@ class SummaryView(NotificationSidebar, django_tables2.SingleTableView):
         return {
             **super().get_context_data(**kwargs),
             # These values for total_counts will be given to us by ADMG
-            "total_counts": {"campaign": None, "platform": None, "instrument": None},
+            "total_counts": self.get_total_counts(),
             "draft_status_counts": self.get_draft_status_count(),
             "activity_list": ApprovalLog.objects.prefetch_related(
                 "change__content_type", "user"

@@ -69,6 +69,17 @@ dt {
   background-color: rgba(255, 255, 0, 0.35);
 }
 
+
+div.right-border {
+  border-right: 4px solid #6c757d;
+  min-height: 90px;
+  max-height: 100%;
+}
+
+div.summary {
+  max-width: 110px;
+}
+
 table.affected-table {
   width: 100%;
   text-align: left;
