@@ -55,7 +55,7 @@
         </div>
       </li>
       {% for deployment in deployments %}
-      <li class="list-group-item list-group-item-action justify-content-between deployment cursor-pointer show-caret" data-id="{{ deployment.uuid }}">
+      <li class="list-group-item list-group-item-action justify-content-between deployment cursor-pointer show-caret" data-id="{{ deployment.model_instance_uuid }}">
         {% include "snippets/campaign_accordian_cards/deployment.html" with change=deployment %}
       </li>
       {% endfor %}
@@ -64,6 +64,7 @@
 
   <div class="campaign-summary col">
     <div id="accordion">
+      <!-- IOPs -->
       <div class="card">
         <div class="card-header d-flex justify-content-between" id="iops-header">
           <h5 class="mb-0">
@@ -84,6 +85,8 @@
           </ul>
         </div>
       </div>
+
+      <!-- Significant Events -->
       <div class="card">
         <div class="card-header d-flex justify-content-between" id="significant-events-header">
           <h5 class="mb-0">
@@ -95,7 +98,6 @@
           </h5>
           <a class="add-deployment-child btn btn-primary" href="{% url 'change-add' 'significant_event' %}?back={{ request.path }}">+</a>
         </div>
-
         <div id="significant-events" class="collapse" aria-labelledby="significant-events-header" data-parent="#accordion">
           <ul class="list-group">
             {% for event in significant_events %}
@@ -106,8 +108,8 @@
           </ul>
         </div>
       </div>
-      
-      
+
+      <!-- CDPIs -->
       <div class="card">
         <div class="card-header d-flex justify-content-between" id="collection-periods-header">
           <h5 class="mb-0">

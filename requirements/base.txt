@@ -31,8 +31,9 @@ boto3==1.14.9
 botocore==1.17.9
 django-storages==1.11.1
 
-celery==5.0.5
+celery==5.1.2
 django-celery-results==2.0.1
+django-celery-beat==2.2.1
 
 # current user logging
 django-crum==0.7.9
@@ -41,3 +42,6 @@ django-crum==0.7.9
 django-tables2==2.3.4  # https://django-tables2.readthedocs.io/en/latest/
 django-filter==2.4.0  # https://django-filter.readthedocs.io/en/stable/
 django-sass==1.0.1
+
+# Email Notifications
+premailer==3.10.0

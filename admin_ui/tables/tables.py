@@ -6,7 +6,13 @@ from django_tables2 import A
 import django_tables2 as tables
 
 from api_app.models import Change
-from data_models.models import Campaign, Deployment, Instrument, Platform, WebsiteType
+from data_models.models import (
+    Campaign,
+    Deployment,
+    Instrument,
+    Platform,
+    WebsiteType,
+)
 
 
 class ConditionalValueColumn(tables.Column):
@@ -698,6 +704,71 @@ class GcmdPhenomenonChangeListTable(DraftTableBase):
             "topic",
             "category",
         ) + DraftTableBase.final_fields
+        fields = list(all_fields)
+        sequence = all_fields
+
+
+class AffectedRecordValueColumn(tables.Column):
+    def __init__(self, resolved_accessor=None, **kwargs):
+        super().__init__(**kwargs)
+        self.resolved_accessor = resolved_accessor
+
+    def render(self, **kwargs):
+        total_records = kwargs.get("value")
+        resolved_records = A(self.resolved_accessor).resolve(kwargs.get("record"))
+
+        return f"{resolved_records} of {total_records} resolved"
+
+
+class GcmdSyncListTable(DraftTableBase):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    short_name = ConditionalValueColumn(
+        verbose_name="GCMD Keyword",
+        accessor="short_name",
+        update_accessor="content_object.short_name",
+        linkify=("change-gcmd", [tables.A("uuid")]),
+    )
+    category = ConditionalValueColumn(
+        verbose_name="Category",
+        accessor="content_type__model",
+        update_accessor="content_type__model",
+    )
+    draft_action = ConditionalValueColumn(
+        verbose_name="Type of Change",
+        accessor="action",
+        update_accessor="action",
+    )
+    status = ConditionalValueColumn(
+        verbose_name="Status",
+        accessor="status",
+        update_accessor="status",
+    )
+    affected_records = AffectedRecordValueColumn(
+        verbose_name="Affected Records",
+        accessor="affected_records",
+        resolved_accessor="resolved_records",
+    )
+
+    def render_category(self, value, record):
+        if value == "gcmdproject":
+            return "Project"
+        if value == "gcmdinstrument":
+            return "Instrument"
+        if value == "gcmdplatform":
+            return "Platform"
+        if value == "gcmdphenomenon":
+            return "Earth Science"
+
+    class Meta(DraftTableBase.Meta):
+        all_fields = (
+            "short_name",
+            "category",
+            "draft_action",
+            "status",
+            "affected_records",
+        )
         fields = list(all_fields)
         sequence = all_fields
 

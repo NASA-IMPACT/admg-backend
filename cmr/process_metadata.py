@@ -1,5 +1,6 @@
 def extract_doi(concept):
-    """test function to extract missing DOI metadata. I'm actually not sure if this is legit and we should check for errors"""
+    """test function to extract missing DOI metadata.
+    I'm actually not sure if this is legit and we should check for errors"""
 
     doi = concept["umm"].get("DOI", {}).get("DOI", "")
     if not doi:

@@ -5,6 +5,7 @@
   {# Tabs #}
   <div class="col pb-3">
     <ul class="nav nav-tabs" role="tablist">
+      {% if url_name %}
       <li class="nav-item">
         <a class="nav-link {% if 'draft' in request.path %} active {% endif %}" href="{% url 'change-list' view_model %}" role="tab" aria-controls="details" aria-selected="true">
           Drafts
@@ -15,6 +16,7 @@
           Published Content
         </a>
       </li>
+      {% endif %}
     </ul>
   </div>
 {% endblock maintabs %}

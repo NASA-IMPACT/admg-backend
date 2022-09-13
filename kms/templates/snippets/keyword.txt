@@ -1,0 +1,21 @@
+{% load email_extras %}
+
+{% with gcmd_path=keyword|get_gcmd_path %}
+    {% if keyword.recommendation_set %}
+    {# If recommended connections, link the GCMD keyword page so operator can view them. #}
+        {% url 'change-gcmd' keyword.uuid as relative_url%}
+        {{ keyword | get_gcmd_short_name }}: {{relative_url | get_absolute_url}}
+    {# If no recommended connections, just link the published keyword page. #}
+    {% else %}
+        {% url 'change-update' keyword.uuid as relative_url%}
+        {{ keyword | get_gcmd_short_name }}: {{relative_url | get_absolute_url}}
+    {% endif %}
+    {% if new_path %}
+        {% include 'snippets/gcmd_path.txt' with preliminary_text="New Path:" default_class="gcmd-inline-label" gcmd_path_class="gcmd-path" path_attribute="new_value" gcmd_path=gcmd_path %}
+    {% endif %}
+    {% if old_path %}
+        {% include 'snippets/gcmd_path.txt' with preliminary_text="Old Path:" default_class="gcmd-inline-label" gcmd_path_class="gcmd-path" path_attribute="old_value" gcmd_path=gcmd_path %}
+    {% endif %}
+    {% include 'snippets/gcmd_path.txt' with preliminary_text="" default_class="gcmd-footer" gcmd_path_class="gcmd-footer" path_attribute="key" gcmd_path=gcmd_path %}
+    Affected Records: {{ keyword.recommendation_set.all.count }}
+{% endwith %}

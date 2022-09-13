@@ -7,7 +7,7 @@ from django.apps import apps
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
-from django.db.models import aggregates, expressions, functions
+from django.db.models import aggregates, expressions, functions, Subquery
 from django.db.models.fields.json import KeyTextTransform
 from django.db.models.signals import post_save
 from django.dispatch import receiver
@@ -141,7 +141,11 @@ class ChangeQuerySet(models.QuerySet):
         )
 
     def annotate_from_relationship(
-        self, of_type: models.Model, to_attr: str, uuid_from: str, identifier="short_name"
+        self,
+        of_type: models.Model,
+        to_attr: str,
+        uuid_from: str,
+        identifier="short_name",
     ):
         """
         Annotate queryset with an identifier obtained from a related model.
@@ -253,7 +257,9 @@ class Change(models.Model):
 
     uuid = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     content_type = models.ForeignKey(
-        ContentType, help_text="Model for which the draft pertains.", on_delete=models.CASCADE
+        ContentType,
+        help_text="Model for which the draft pertains.",
+        on_delete=models.CASCADE,
     )
     model_instance_uuid = models.UUIDField(default=uuid4, blank=True, null=True)
     content_object = GenericForeignKey("content_type", "model_instance_uuid")
@@ -264,7 +270,9 @@ class Change(models.Model):
     previous = models.JSONField(default=dict)
 
     action = models.CharField(
-        max_length=10, choices=((choice, choice) for choice in Actions), default=Actions.UPDATE
+        max_length=10,
+        choices=((choice, choice) for choice in Actions),
+        default=Actions.UPDATE,
     )
     objects = ChangeQuerySet.as_manager()
 
@@ -585,11 +593,17 @@ class Change(models.Model):
 
         if self.status != self.Statuses.IN_ADMIN_REVIEW:
             ApprovalLog.objects.create(
-                change=self, user=admin_user, action=ApprovalLog.Actions.REVIEW, notes=notes
+                change=self,
+                user=admin_user,
+                action=ApprovalLog.Actions.REVIEW,
+                notes=notes,
             )
 
         ApprovalLog.objects.create(
-            change=self, user=admin_user, action=ApprovalLog.Actions.PUBLISH, notes=notes
+            change=self,
+            user=admin_user,
+            action=ApprovalLog.Actions.PUBLISH,
+            notes=notes,
         )
 
         self.status = self.Statuses.PUBLISHED
@@ -655,7 +669,9 @@ class Change(models.Model):
         """
 
         self.status = self.Statuses.IN_PROGRESS
-        ApprovalLog.objects.create(change=self, user=user, action=ApprovalLog.UNTRASH, notes=notes)
+        ApprovalLog.objects.create(
+            change=self, user=user, action=ApprovalLog.Actions.UNTRASH, notes=notes
+        )
         self.save(post_save=True)
 
         return generate_success_response(
@@ -752,7 +768,8 @@ class Change(models.Model):
         if user.get_role_display() != ADMIN:
             if latest_log.user != user:
                 return generate_failure_response(
-                    "To unclaim an item the user must be the same as the claiming user, or must be admin."
+                    "To unclaim an item the user must be the same as the claiming user,"
+                    " or must be admin."
                 )
 
         self._goto_previous_approval_stage()
@@ -787,7 +804,9 @@ class Change(models.Model):
                 ApprovalLog.Actions.UNCLAIM,
             ]:
                 ApprovalLog.objects.create(
-                    change=self, user=get_current_user(), action=ApprovalLog.Actions.EDIT
+                    change=self,
+                    user=get_current_user(),
+                    action=ApprovalLog.Actions.EDIT,
                 )
 
 
@@ -795,3 +814,27 @@ class Change(models.Model):
 @receiver(post_save, sender=Change, dispatch_uid="save")
 def create_approval_log_dispatcher(sender, instance, **kwargs):
     instance._add_create_edit_approval_log()
+
+
+class Recommendation(models.Model):
+    change = models.ForeignKey(Change, on_delete=models.CASCADE)
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, blank=True)
+    object_uuid = models.UUIDField()
+    casei_object = GenericForeignKey("content_type", "object_uuid")
+    result = models.BooleanField(verbose_name="Was the CASEI object connected?", null=True)
+    submitted = models.BooleanField(
+        verbose_name="Has the user published their result?", blank=False, default=False
+    )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["change", "object_uuid"], name="unique_recommendation")
+        ]
+
+    def __str__(self):
+        return f"{self.id} >> {self.change} >> {self.casei_object}"
+
+
+class SubqueryCount(Subquery):
+    template = "(SELECT count(*) FROM (%(subquery)s) _count)"
+    output_field = models.IntegerField()

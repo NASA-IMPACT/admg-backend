@@ -1,3 +1,4 @@
+from api_app.views.generic_views import NotificationSidebar
 from api_app.models import ApprovalLog, Change
 from cmr import tasks
 from data_models.models import DOI, Campaign
@@ -16,7 +17,7 @@ from .. import forms
 
 
 @method_decorator(login_required, name="dispatch")
-class DoiFetchView(View):
+class DoiFetchView(NotificationSidebar, View):
     queryset = Change.objects.of_type(Campaign)
 
     def get_object(self):
@@ -43,7 +44,7 @@ class DoiFetchView(View):
 
 
 @method_decorator(login_required, name="dispatch")
-class DoiApprovalView(SingleObjectMixin, MultipleObjectMixin, FormView):
+class DoiApprovalView(NotificationSidebar, SingleObjectMixin, MultipleObjectMixin, FormView):
     form_class = forms.DoiFormSet
     template_name = "api_app/campaign_dois.html"
     paginate_by = 10

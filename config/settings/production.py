@@ -86,7 +86,7 @@ LOGGING = {
     "filters": {"require_debug_false": {"()": "django.utils.log.RequireDebugFalse"}},
     "formatters": {
         "verbose": {
-            "format": "%(levelname)s %(asctime)s %(module)s " "%(process)d %(thread)d %(message)s"
+            "format": "%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s"
         }
     },
     "handlers": {
@@ -140,3 +140,5 @@ GITHUB_WORKFLOW = {
     # Branch to be deployed
     "branch": env("CASEI_GH_BRANCH", default="production"),
 }
+
+EMAIL_BACKEND = "anymail.backends.amazon_ses.EmailBackend"

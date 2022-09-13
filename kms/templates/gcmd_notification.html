@@ -1,0 +1,34 @@
+{% load email_extras %}
+{% load static %}
+{% include "email_style.html" %}
+
+<h1>
+  This is a notification that {{ total_count }} GCMD keywords were newly created, modified, or deleted.<br>
+  To review, go to <a href="https://{{ hostname }}{% url 'gcmd-list' %}">Review GCMD Changes.</a>
+</h1>
+
+<br>
+<br>
+
+{% for scheme in keywords_by_scheme %}
+  <h1>{{ scheme.scheme|format_scheme_for_display }} ({{ scheme.scheme_count }})</h1>
+
+  <!-- Created keywords -->
+  <h2> Created Keywords: {{ scheme.create_keywords | length }} </h2>
+  
+  <!-- Updated Keywords -->
+  <h2> Updated Keywords: {{ scheme.update_keywords | length }} </h2>
+  
+  <!-- Deleted Keywords -->
+  <h2> Deleted Keywords: {{ scheme.delete_keywords | length }} </h2>
+  
+{% endfor %}
+
+<!-- Auto-Published keywords -->
+<h1> Auto-Published Keywords: {{ autopublished_keywords | length }} </h1>
+<p>These keywords were created, updated, or deleted but didn't have any CASEI objects associated
+   with them. These keywords do not require an admin to review them.
+</p>
+{% for scheme in keywords_by_scheme %}
+  <h2>{{ scheme.scheme|format_scheme_for_display }}: ({{ scheme.published_keywords | length }})</h2>
+{% endfor %}
