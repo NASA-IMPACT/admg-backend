@@ -72,12 +72,13 @@ class SummaryView(NotificationSidebar, django_tables2.SingleTableView):
         }
 
     def get_draft_status_count(self):
-        status_ids = [
+        statuses_count_create = [Change.Statuses.PUBLISHED]
+        statuses_count_create_or_update = [
             Change.Statuses.IN_PROGRESS,
             Change.Statuses.IN_REVIEW,
             Change.Statuses.IN_ADMIN_REVIEW,
-            Change.Statuses.PUBLISHED,
         ]
+
         status_translations = {k: v.replace(" ", "_") for k, v in Change.Statuses.choices}
 
         # Setup dict with 0 counts
@@ -91,7 +92,13 @@ class SummaryView(NotificationSidebar, django_tables2.SingleTableView):
         # Populate with actual counts
         model_status_counts = (
             Change.objects.of_type(*self.models)
-            .filter(action=Change.Actions.CREATE, status__in=status_ids)
+            .filter(
+                Q(action=Change.Actions.CREATE, status__in=statuses_count_create)
+                | Q(
+                    action__in=[Change.Actions.CREATE, Change.Actions.UPDATE],
+                    status__in=statuses_count_create_or_update,
+                )
+            )
             .values_list("content_type__model", "status")
             .annotate(aggregates.Count("content_type"))
         )
