@@ -17,8 +17,10 @@ Updated Keywords: {{ scheme.update_keywords | length }}
 Deleted Keywords: {{ scheme.delete_keywords | length }}
 {% endfor %}
 
+---
+
 {# Auto-Published keywords #}
-Auto-Published Keywords: {{ autopublished_keywords | length }}
+Auto-Published Keywords ({{ autopublished_keywords | length }})
 These keywords were created, updated, or deleted but didn't have any CASEI objects associated with them. These keywords do not require an admin to review them.
 
 {% for scheme in keywords_by_scheme %}

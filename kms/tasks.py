@@ -49,13 +49,12 @@ def email_gcmd_sync_results(gcmd_syncs):
                 "update_keywords": update_keywords,
                 "delete_keywords": delete_keywords,
                 "published_keywords": published_keywords,
-                "scheme_count": len(create_keywords)
-                + len(update_keywords)
-                + len(delete_keywords)
-                + len(published_keywords),
+                "scheme_count": len(create_keywords) + len(update_keywords) + len(delete_keywords),
             }
         )
-    total_count = sum([keyword['scheme_count'] for keyword in keywords_by_scheme])
+    total_count = sum([keyword['scheme_count'] for keyword in keywords_by_scheme]) + len(
+        autopublished_keywords
+    )
 
     email.gcmd_changes_email(
         email.Template(
