@@ -17,51 +17,7 @@ This ADR documents the implementation of this feature. For the design and decisi
 <a name="background-processing-workflow"></a>
 The GCMD Sync background process fetches items from the GCMD Keyword Management Service API and compares them to records in our database. If items are new, they are added as a Create Draft. If they are already present in the DB, but have been modified, an Update Draft is created. If any items in the DB are no longer available through the KMS API, a Delete Draft is created.
 
-```plantuml
-@startuml
-start
-
-:Sync GCMD Button;
-:Schedule sync_gcmd task;
-
-while (For each GCMD Scheme ("instruments", "platforms", "projects", "sciencekeywords"))
-
-    :GET Request to GCMD API
-    https://gcmd.earthdata.nasa.gov/kms/concepts/concept_scheme/<scheme>;
-
-    while (Loop through keywords)
-        if (Keyword UUID in DB) then (yes)
-            if (Keyword Properties match DB Record) then (yes)
-                :No action;
-            else (no)
-                :Create "Update" Draft for Keyword;
-            endif
-        else (no)
-            :Create "Create" Draft for Keyword;
-            if (Recommended objects related to keyword?) then (yes)
-            else (no)
-                :Autopublish Draft;
-            endif
-        endif
-    endwhile (Done)
-
-    :Create set of all UUIDs of returned keywords;
-    :Retrieve all GCMD Items of the relevant type;
-    while (Loop through GCMD Items)
-        if (UUID of GCMD Item not in set of UUIDs) then (yes)
-            :Create "Delete" Draft for GCMD Item;
-        else (no)
-            :No action;
-        endif
-    endwhile (Done)
-
-endwhile (Done)
-
-:Send notification email to admins with count of items added, updated, deleted and auto-published;
-
-stop
-@enduml
-```
+![Activity Diagram of GCMD Sync Process](./images/gcmd-sync-activity.png)
 
 ### Interface
 
