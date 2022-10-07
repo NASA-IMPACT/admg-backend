@@ -111,6 +111,7 @@ class AddAnotherChoiceFieldWidget(forms.Select):
             f" {self.model._meta.verbose_name.title()}</a>",
         ]
         if value:
+            # add a published url if available
             try:
                 published = self.model.objects.get(pk=value)
             except self.model.DoesNotExist:
