@@ -1,7 +1,15 @@
 from django.core.exceptions import ValidationError
+from django.db.models.functions import Coalesce
 from django.contrib.gis.forms.fields import PolygonField
-from django.forms import MultipleChoiceField, ModelChoiceField, DateField, DateInput
+from django.forms import (
+    MultipleChoiceField,
+    ModelChoiceField,
+    DateField,
+    DateInput,
+)
+from django.forms.models import ModelChoiceIterator, ModelChoiceIteratorValue
 from django.utils.translation import gettext_lazy as _
+from itertools import groupby
 
 from api_app import models
 from data_models import models as data_models
@@ -52,21 +60,25 @@ class ChangeChoiceMixin:
         # Field to use for textual description of field
         identifier_field = {"image": "title", "website": "title"}.get(dest_model_name, "short_name")
 
+        changes = (
+            models.Change.objects.filter(content_type__model=dest_model_name)
+            .exclude(status=models.Change.Statuses.IN_TRASH)
+            .add_updated_at()
+            .annotate(effective_uuid=Coalesce("model_instance_uuid", "uuid"))
+            .order_by("effective_uuid", "-updated_at")
+        )
+
+        latest_change_uuids = []
+        for u, changes in groupby(changes, lambda change: change.effective_uuid):
+            latest_change_uuids.append(list(changes)[0].uuid)
+
         return (
             ChangeWithIdentifier("short_name")
-            .objects
-            # Only focus on Created drafts, so we can treat the `uuid` as the target model's uuid
-            .filter(action=models.Change.Actions.CREATE, content_type__model=dest_model_name)
-            # Remove any Changes that have been successfully deleted
-            .exclude(
-                uuid__in=models.Change.objects.of_type(dest_model)
-                .filter(action="Delete", status=models.Change.Statuses.PUBLISHED)
-                .values("model_instance_uuid")
-            )
-            # Add identifier from published record (if available) or models.change.update.short_name
+            .objects.filter(uuid__in=latest_change_uuids)
             .annotate_from_published(dest_model, to_attr="short_name", identifier=identifier_field)
             .select_related("content_type")
             .order_by("short_name")
+            .annotate(effective_uuid=Coalesce("model_instance_uuid", "uuid"))
         )
 
     @staticmethod
@@ -117,10 +129,20 @@ class ChangeMultipleChoiceField(ChangeChoiceMixin, MultipleChoiceField):
     ...
 
 
+class ChangeChoiceIterator(ModelChoiceIterator):
+    def choice(self, obj):
+        return (
+            ModelChoiceIteratorValue(obj.effective_uuid, obj),
+            self.field.label_from_instance(obj),
+        )
+
+
 class ChangeChoiceField(ChangeChoiceMixin, ModelChoiceField):
     """
     A ModelChoiceField that renders Choice models rather than the actual target models
     """
+
+    iterator = ChangeChoiceIterator
 
     def to_python(self, value):
         """
