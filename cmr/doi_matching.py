@@ -312,7 +312,7 @@ class DoiMatcher:
         uuid = existing_doi_uuids[0]
         existing_doi = self.universal_get("doi", uuid)
         # if item exists as a draft, directly update using db functions with same methodology as above
-        if existing_doi.get("change_object"):
+        if existing_doi.get("change_object") and existing_doi.Statuses != 'PUBLISHED':
             for field in ["campaigns", "instruments", "platforms", "collection_periods"]:
                 doi[field].extend(existing_doi.get(field))
                 doi[field] = list(set(doi[field]))
@@ -324,7 +324,7 @@ class DoiMatcher:
             return f"DOI already exists as a draft. Existing draft updated. {uuid}"
 
         # if db item exists, replace cmr metadata fields and append suggestion fields as an update
-        existing_doi = DOI.objects.all().filter(uuid=uuid).first()
+        existing_doi = DOI.objects.get(uuid=uuid)
         existing_campaigns = [str(c.uuid) for c in existing_doi.campaigns.all()]
         existing_instruments = [str(c.uuid) for c in existing_doi.instruments.all()]
         existing_platforms = [str(c.uuid) for c in existing_doi.platforms.all()]
@@ -337,16 +337,19 @@ class DoiMatcher:
 
         for field in ["campaigns", "instruments", "platforms", "collection_periods"]:
             doi[field] = list(set(doi[field]))
+        if (existing_doi.cmr_short_name != doi.update['cmr_short_name'] or existing_doi.ccmr_entry_title != doi.update['ccmr_entry_title']
+        or existing_doi.cmr_projects != doi.update['cmr_projects'] or existing_doi.cmr_dates != doi.update['cmr_dates']
+        or existing_doi.cmr_science_keywords != doi.update['cmr_science_keywords'] or existing_doi.cmr_abstract != doi.update['abstract']
+        or existing_doi.cmr_data_formats  != doi.update['cmr_data_formats'] ):
+            doi_obj = Change(
+                content_type=ContentType.objects.get(model="doi"),
+                model_instance_uuid=str(uuid),
+                update=json.loads(json.dumps(doi)),
+                status=Change.Statuses.CREATED,
+                action=Change.Actions.UPDATE,
+            )
 
-        doi_obj = Change(
-            content_type=ContentType.objects.get(model="doi"),
-            model_instance_uuid=str(uuid),
-            update=json.loads(json.dumps(doi)),
-            status=Change.Statuses.CREATED,
-            action=Change.Actions.UPDATE,
-        )
-
-        doi_obj.save()
+            doi_obj.save()
 
         return f"DOI already exists in database. Update draft created. {uuid}"
 
