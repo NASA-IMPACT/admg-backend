@@ -1,3 +1,4 @@
+from dataclasses import field
 import json
 import logging
 import pickle
@@ -82,6 +83,7 @@ class DoiMatcher:
         valid_object_uuids = [str(uuid) for uuid in valid_objects.values_list("uuid", flat=True)]
 
         return valid_object_uuids
+
 
     def universal_alias(self, table_name, uuid):
         """Every object has multiple forms of aliases such as long_names, gmcd names, and
@@ -288,16 +290,15 @@ class DoiMatcher:
             str: String indicating action taken by the function
         """
 
-        # search db for existing items with concept_id
-        existing_doi_uuids = self.valid_object_list_generator(
-            "doi", query_parameter="concept_id", query_value=doi["concept_id"]
+        # search db for create drafts with concept_id
+        doi_drafts = Change.objects.filter(
+            content_type__model='doi',
+            action__in=[Change.Actions.CREATE, Change.Actions.UPDATE],
+            update__concept_id=doi['concept_id']
         )
-        # this check can fail for some complicated reasons that will be addressed in a future PR
-        # if len(existing_doi_uuids)>1:
-        #     raise ValueError('There has been an internal database error')
 
         # if none exist add normally as a draft
-        if not existing_doi_uuids:
+        if not doi_drafts:
             doi_obj = Change(
                 content_type=ContentType.objects.get(model="doi"),
                 model_instance_uuid=None,
@@ -309,10 +310,13 @@ class DoiMatcher:
 
             return "Draft created for DOI"
 
-        uuid = existing_doi_uuids[0]
+        # TODO: CHANGE FROM HERE DOWN 
+
         existing_doi = self.universal_get("doi", uuid)
-        # if item exists as a draft, directly update using db functions with same methodology as above
-        if existing_doi.get("change_object") and existing_doi.Statuses != 'PUBLISHED':
+        # TODO: don't we need to now check if there is also an update draft? before assuming this will work
+        # TODO: OR this check can check that there are no updates and then
+        # if item exists as a create draft, directly update using db functions with same methodology as above
+        if existing_doi.get("change_object"):
             for field in ["campaigns", "instruments", "platforms", "collection_periods"]:
                 doi[field].extend(existing_doi.get(field))
                 doi[field] = list(set(doi[field]))
@@ -337,10 +341,7 @@ class DoiMatcher:
 
         for field in ["campaigns", "instruments", "platforms", "collection_periods"]:
             doi[field] = list(set(doi[field]))
-        if (existing_doi.cmr_short_name != doi.update['cmr_short_name'] or existing_doi.ccmr_entry_title != doi.update['ccmr_entry_title']
-        or existing_doi.cmr_projects != doi.update['cmr_projects'] or existing_doi.cmr_dates != doi.update['cmr_dates']
-        or existing_doi.cmr_science_keywords != doi.update['cmr_science_keywords'] or existing_doi.cmr_abstract != doi.update['abstract']
-        or existing_doi.cmr_data_formats  != doi.update['cmr_data_formats'] ):
+        if doi_mismatch(self, doi_recommendation, doi_draft):
             doi_obj = Change(
                 content_type=ContentType.objects.get(model="doi"),
                 model_instance_uuid=str(uuid),
@@ -352,6 +353,33 @@ class DoiMatcher:
             doi_obj.save()
 
         return f"DOI already exists in database. Update draft created. {uuid}"
+
+
+    def doi_mismatch(self, doi_recommendation, doi_draft):
+        """Takes a doi_recommendation that includes metadata from CMR and a doi_draft from
+        the admg database and compares specific fields to find a mismatch. 
+
+        Args:
+            doi_recommendation (dict): metadata from cmr 
+            doi_draft (dict): Change object of type model=doi
+
+        Returns:
+            bool: True if there was a mismatch
+        """
+
+        fields_to_compare = [
+            'cmr_short_name',
+            'cmr_entry_title',
+            'cmr_projects',
+            'cmr_dates',
+            'cmr_science_keywords',
+            'abstract',
+            'cmr_data_formats'
+        ]
+
+        # TODO: does this actually get the right stuff from the doi recommendation object?
+        return any([doi_recommendation.get(field) != doi_draft.update.get(field) for field in fields_to_compare])
+
 
     def generate_recommendations(self, table_name, uuid, development=False):
         """This is the overarching parent function which takes a table_name and a uuid and
