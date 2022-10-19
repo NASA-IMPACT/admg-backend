@@ -269,6 +269,9 @@ class DoiMatcher:
 
         return supplemented_metadata_list
 
+    def merge_doi_update_draft(model_instance_uuid):
+        return False
+
     def add_to_db(self, doi):
         """After cmr has been queried and each dataproduct has received recommended UUID
         matches, each of this is added to the database. Because DOIs might already exist
@@ -296,6 +299,26 @@ class DoiMatcher:
             action__in=[Change.Actions.CREATE, Change.Actions.UPDATE],
             update__concept_id=doi['concept_id']
         )
+
+        if unpublished_updates:=doi_drafts.filter(action=Change.Actions.UPDATE).exclude(status=Change.Statuses.PUBLISHED).exists():
+            # call the add to draft function
+            # there can only be one unpublished update at a time
+            merge_doi_update_draft(model_instance_uuid = unpublished_updates.first().model_instance_uuid)
+          
+        elif doi_drafts.filter(action=Change.Actions.CREATE, status=Change.Statuses.PUBLISHED).exists():
+            # make a brand new update
+            pass
+
+        elif published_creates:=doi_drafts.filter(action=Change.Actions.CREATE).exclude(status=Change.Statuses.PUBLISHED).exists():
+            # call the add to draft function
+            # there should only be one published create per concept_id, although maybe this is not true if stuff was deleted and
+            # then recreated. this is a very fringe possiblity though
+            # TODO: consider this possiblity and code for it
+            merge_doi_update_draft(model_instance_uuid = published_creates.first().model_instance_uuid)
+
+        else:
+            # make a create draft
+            pass
 
         # if none exist add normally as a draft
         if not doi_drafts:
