@@ -111,7 +111,6 @@ jobs:
           branch: coverage-report
           name: code_coverage
           path: dev_cov
-          workflow_conclusion: ""
           if_no_artifact_found: fail
 
       - name: Calculate Coverage
