@@ -96,15 +96,10 @@ jobs:
         uses: dawidd6/action-download-artifact@v2
         with:
           workflow: tests.yaml
-          commit: ${{github.event.head_commit.id}}
+          run_id: ${{github.run_id}}
           name: code_coverage
+          path: new_cov
           if_no_artifact_found: ignore
-
-      - name: Calculate Commit Coverage
-        id: calculate_commit_coverage
-        run: |
-          new_cov=$(cat ./coverage.json)
-          echo "cov=${new_cov//'%'/'%25'}" >> $GITHUB_OUTPUT
 
       - name: Get Dev Coverage
         uses: dawidd6/action-download-artifact@v2
@@ -112,19 +107,22 @@ jobs:
           workflow: tests.yaml
           branch: coverage-report
           name: code_coverage
+          path: dev_cov
           if_no_artifact_found: ignore
 
-      - name: Calculate Dev Coverage
-        id: calculate_dev_coverage
+      - name: Calculate Coverage
+        id: calculate_coverage
         run: |
-          dev_cov=$(cat ./coverage.json)
-          echo "cov=${dev_cov//'%'/'%25'}" >> $GITHUB_OUTPUT
+          new_cov=$(cat ./new_cov/coverage.json)
+          echo "new_cov=${new_cov//'%'/'%25'}" >> $GITHUB_OUTPUT
+          dev_cov=$(cat ./dev_cov/coverage.json)
+          echo "dev_cov=${dev_cov//'%'/'%25'}" >> $GITHUB_OUTPUT
 
       - name: Compare Coverage
         id: compare_coverage
         run: |
-          dev_total="${{fromJson(steps.calculate_dev_coverage.outputs.cov).totals.percent_covered}}"
-          new_total="${{fromJson(steps.calculate_commit_coverage.outputs.cov).totals.percent_covered}}"
+          dev_total="${{fromJson(steps.calculate_coverage.outputs.dev_cov).totals.percent_covered}}"
+          new_total="${{fromJson(steps.calculate_coverage.outputs.new_cov).totals.percent_covered}}"
           (( $(echo "$new_total < $dev_total" | bc -l) )) && result=failure || result=success
           echo "result=${result}" >> $GITHUB_OUTPUT
           echo "Coverage comparison: $result"
