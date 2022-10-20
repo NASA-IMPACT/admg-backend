@@ -55,11 +55,13 @@ jobs:
           sudo apt-get install libgdal-dev
 
       - uses: actions/cache@v2
+        id: cache-dependencies
         with:
           path: ${{ env.pythonLocation }}
           key: ${{ env.pythonLocation }}-${{ hashFiles('requirements/base.txt') }}-${{ hashFiles('requirements/local.txt') }}
 
       - name: Install Dependencies
+        if: steps.cache-dependencies.outputs.cache-hit != 'true'
         run: |
           pip install \
             --upgrade \
