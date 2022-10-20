@@ -75,3 +75,11 @@ jobs:
       - name: Run Tests
         run: |
           coverage run -m pytest
+          coverage report -m --skip-covered
+          coverage json -o coverage.json
+
+      - name: Save Code Coverage
+        uses: actions/upload-artifact@v2
+        with:
+          name: code_coverage
+          path: coverage.json
