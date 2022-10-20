@@ -95,7 +95,7 @@ jobs:
       - name: Get Commit Coverage
         uses: dawidd6/action-download-artifact@v2
         with:
-          workflow: publish_coverage.yml
+          workflow: tests.yaml
           commit: ${{github.event.head_commit.id}}
           name: code_coverage
           if_no_artifact_found: ignore
@@ -109,7 +109,7 @@ jobs:
       - name: Get Dev Coverage
         uses: dawidd6/action-download-artifact@v2
         with:
-          workflow: publish_coverage.yml
+          workflow: tests.yaml
           branch: coverage-report
           name: code_coverage
           if_no_artifact_found: ignore
