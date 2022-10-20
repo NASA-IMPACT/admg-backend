@@ -83,3 +83,55 @@ jobs:
         with:
           name: code_coverage
           path: coverage.json
+
+  compare-coverage:
+    runs-on: ubuntu-latest
+    needs: test
+    if: ${{ github.ref_name != 'dev'}}
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Get Commit Coverage
+        uses: dawidd6/action-download-artifact@v2
+        with:
+          workflow: publish_coverage.yml
+          commit: ${{github.event.head_commit.id}}
+          name: code_coverage
+          if_no_artifact_found: ignore
+
+      - name: Calculate Commit Coverage
+        id: calculate_commit_coverage
+        run: |
+          new_cov=$(cat ./coverage.json)
+          echo "cov=${new_cov//'%'/'%25'}" >> $GITHUB_OUTPUT
+
+      - name: Get Dev Coverage
+        uses: dawidd6/action-download-artifact@v2
+        with:
+          workflow: publish_coverage.yml
+          branch: coverage-report
+          name: code_coverage
+          if_no_artifact_found: ignore
+
+      - name: Calculate Dev Coverage
+        id: calculate_dev_coverage
+        run: |
+          dev_cov=$(cat ./coverage.json)
+          echo "cov=${dev_cov//'%'/'%25'}" >> $GITHUB_OUTPUT
+
+      - name: Compare Coverage
+        id: compare_coverage
+        run: |
+          dev_total="${{fromJson(steps.calculate_dev_coverage.outputs.cov).totals.percent_covered}}"
+          new_total="${{fromJson(steps.calculate_commit_coverage.outputs.cov).totals.percent_covered}}"
+          (( $(echo "$new_total < $dev_total" | bc -l) )) && result=failure || result=success
+          echo "result=${result}" >> $GITHUB_OUTPUT
+          echo "Coverage comparison: $result"
+
+      - name: Report result
+        if: ${{steps.compare_coverage.outputs.result=='failure'}}
+        uses: actions/github-script@v3
+        with:
+          script: |
+            core.setFailed('Test coverage on source branch is lower than on dev branch')
