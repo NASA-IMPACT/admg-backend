@@ -2,7 +2,7 @@ name: Publish main coverage
 
 on:
   push:
-    branches: [coverage-report]
+    branches: [dev]
 
 jobs:
   publish-coverage:

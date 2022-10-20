@@ -1,4 +1,4 @@
-name: Publish main coverage
+name: Compare test coverage
 
 on:
   pull_request:
@@ -89,21 +89,21 @@ jobs:
         id: calculate_coverage
         run: |
           dev_cov=$(cat ./coverage.json)
-          echo "::set-output name=dev_cov::${dev_cov//'%'/'%25'}"
+          echo "dev_cov=${dev_cov//'%'/'%25'}" >> $GITHUB_OUTPUT
           new_cov=$(cat ./new_coverage.json)
-          echo "::set-output name=new_cov::${new_cov//'%'/'%25'}"
+          echo "new_cov=${new_cov//'%'/'%25'}" >> $GITHUB_OUTPUT
 
       - name: Compare Coverage
         id: compare_coverage
         run: |
-          dev_total=${{fromJson(steps.calculate_coverage.dev_cov).totals.percent_covered}}
-          new_total=${{fromJson(steps.calculate_coverage.new_cov).totals.percent_covered}}
+          dev_total="${{fromJson(steps.calculate_coverage.outputs.dev_cov).totals.percent_covered}}"
+          new_total="${{fromJson(steps.calculate_coverage.outputs.new_cov).totals.percent_covered}}"
           (( $(echo "$total > $prev_total" | bc -l) )) && result=success || result=failure
-          echo "::set-output name=result::${result}"
+          echo "result=${result}" >> $GITHUB_OUTPUT
           echo "Coverage comparison: $result"
 
       - name: Report result
-        if: ${{steps.compare_coverage.result=='failure'}}
+        if: ${{steps.compare_coverage.outputs.result=='failure'}}
         uses: actions/github-script@v3
         with:
           script: |
