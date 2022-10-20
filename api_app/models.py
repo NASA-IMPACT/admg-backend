@@ -7,7 +7,7 @@ from django.apps import apps
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
-from django.db.models import aggregates, expressions, functions
+from django.db.models import aggregates, expressions, functions, Subquery
 from django.db.models.fields.json import KeyTextTransform
 from django.db.models.signals import post_save
 from django.dispatch import receiver
@@ -814,3 +814,27 @@ class Change(models.Model):
 @receiver(post_save, sender=Change, dispatch_uid="save")
 def create_approval_log_dispatcher(sender, instance, **kwargs):
     instance._add_create_edit_approval_log()
+
+
+class Recommendation(models.Model):
+    change = models.ForeignKey(Change, on_delete=models.CASCADE)
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, blank=True)
+    object_uuid = models.UUIDField()
+    casei_object = GenericForeignKey("content_type", "object_uuid")
+    result = models.BooleanField(verbose_name="Was the CASEI object connected?", null=True)
+    submitted = models.BooleanField(
+        verbose_name="Has the user published their result?", blank=False, default=False
+    )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["change", "object_uuid"], name="unique_recommendation")
+        ]
+
+    def __str__(self):
+        return f"{self.id} >> {self.change} >> {self.casei_object}"
+
+
+class SubqueryCount(Subquery):
+    template = "(SELECT count(*) FROM (%(subquery)s) _count)"
+    output_field = models.IntegerField()

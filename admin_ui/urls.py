@@ -23,6 +23,12 @@ urlpatterns = [
         name="change-transition",
     ),
     path(
+        "gcmd_list/draft",
+        views.GcmdSyncListView.as_view(),
+        name="gcmd-list",
+    ),
+    path("drafts/edit/gcmd/<uuid:pk>", views.ChangeGcmdUpdateView.as_view(), name="change-gcmd"),
+    path(
         "tbd",
         TemplateView.as_view(template_name="api_app/to_be_developed.html"),
         name="to-be-developed",

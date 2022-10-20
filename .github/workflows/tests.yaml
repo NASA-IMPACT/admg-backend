@@ -18,6 +18,8 @@ jobs:
       DJANGO_SECRET_KEY: "secret key here"
       DJANGO_ADMIN_URL: admg/
       GH_TOKEN: faketokenhere
+      GCMD_SYNC_SOURCE_EMAIL: gcmdadmg@localhost
+      GCMD_SYNC_RECIPIENTS: gcmd@localhost
 
     services:
       postgres:

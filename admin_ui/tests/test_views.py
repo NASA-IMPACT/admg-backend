@@ -4,6 +4,7 @@ from django.urls import reverse
 
 from data_models.models import Campaign, Season
 from api_app.models import Change
+from admin_ui.views.change import CampaignDetailView
 
 from . import factories
 
@@ -72,3 +73,58 @@ class TestCreateView(TestCase):
         )
         seasons = Change.objects.filter(content_type=self.content_type)
         self.assertEqual(len(seasons), 0)
+
+
+class TestCampaignDetailView(TestCase):
+    def setUp(self):
+        self.campaign = factories.CampaignFactory.create(short_name="campaign1")
+        self.create_change = factories.ChangeFactory.create(
+            content_type=ContentType.objects.get_for_model(Campaign),
+            action=Change.Actions.CREATE,
+            model_instance_uuid=self.campaign.uuid,
+        )
+        self.update_changes = [
+            factories.ChangeFactory.create(
+                content_type=ContentType.objects.get_for_model(Campaign),
+                action=Change.Actions.UPDATE,
+                model_instance_uuid=self.campaign.uuid,
+            )
+            for _ in range(10)
+        ]
+        self.user = factories.UserFactory.create()
+
+    def test_filter_latest_changes_returns_latest_change(self):
+        """
+        Only the latest Change object should be returned for the queryset.
+        """
+        latest = CampaignDetailView._filter_latest_changes(
+            Change.objects.of_type(Campaign)
+            .filter(model_instance_uuid=str(self.campaign.uuid))
+            .prefetch_approvals()
+        )
+        self.assertEqual(latest[0].uuid, self.update_changes[-1].uuid)
+
+    def test_filter_latest_changes_with_multiple_models_returns_latest_change(self):
+        """
+        If multiple campaigns are referenced in the queryset, the
+        method should return the latest Change object for each Campaign.
+        """
+        campaign2 = factories.CampaignFactory.create(short_name="campaign2")
+        factories.ChangeFactory.create(
+            content_type=ContentType.objects.get_for_model(Campaign),
+            action=Change.Actions.CREATE,
+            model_instance_uuid=campaign2.uuid,
+        )
+        update_changes = [
+            factories.ChangeFactory.create(
+                content_type=ContentType.objects.get_for_model(Campaign),
+                action=Change.Actions.UPDATE,
+                model_instance_uuid=campaign2.uuid,
+            )
+            for _ in range(10)
+        ]
+        latest = CampaignDetailView._filter_latest_changes(
+            Change.objects.of_type(Campaign).prefetch_approvals()
+        )
+        self.assertTrue(self.update_changes[-1].uuid in [change.uuid for change in latest])
+        self.assertTrue(update_changes[-1].uuid in [change.uuid for change in latest])
