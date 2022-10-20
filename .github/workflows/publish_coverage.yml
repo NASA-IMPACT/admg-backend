@@ -74,6 +74,7 @@ jobs:
       - name: Run Tests
         run: |
           coverage run -m pytest
+          coverage report -m --skip-covered
           coverage json -o coverage.json
 
       - name: Save Code Coverage
