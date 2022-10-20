@@ -99,7 +99,8 @@ jobs:
           run_id: ${{github.run_id}}
           name: code_coverage
           path: new_cov
-          if_no_artifact_found: ignore
+          workflow_conclusion: ""
+          if_no_artifact_found: fail
 
       - name: Get Dev Coverage
         uses: dawidd6/action-download-artifact@v2
@@ -108,7 +109,8 @@ jobs:
           branch: coverage-report
           name: code_coverage
           path: dev_cov
-          if_no_artifact_found: ignore
+          workflow_conclusion: ""
+          if_no_artifact_found: fail
 
       - name: Calculate Coverage
         id: calculate_coverage
