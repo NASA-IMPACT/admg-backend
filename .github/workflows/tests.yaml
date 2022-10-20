@@ -96,10 +96,10 @@ jobs:
         uses: dawidd6/action-download-artifact@v2
         with:
           workflow: tests.yaml
-          run_id: ${{github.run_id}}
+          commit: ${{github.event.head_commit.id}}
           name: code_coverage
           path: new_cov
-          workflow_conclusion: ""
+          workflow_conclusion: "in_progress"
           if_no_artifact_found: fail
 
       - name: Get Dev Coverage
