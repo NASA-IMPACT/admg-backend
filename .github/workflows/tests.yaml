@@ -95,19 +95,12 @@ jobs:
       - name: Get Commit Coverage
         uses: actions/download-artifact@v3
         with:
-          # workflow: tests.yaml
           name: code_coverage
           path: new_cov
-          # commit: ${{github.event.head_commit.id}}
-          # name: code_coverage
-          # path: new_cov
-          # workflow_conclusion: "in_progress"
-          # if_no_artifact_found: fail
 
       - name: Get Dev Coverage
         uses: dawidd6/action-download-artifact@v2
         with:
-          # workflow: tests.yaml
           branch: coverage-report
           name: code_coverage
           path: dev_cov
