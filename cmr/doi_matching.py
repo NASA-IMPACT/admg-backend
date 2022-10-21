@@ -296,8 +296,8 @@ class DoiMatcher:
         # TODO: does this actually get the right stuff from the doi recommendation object?
         return any(
             [
-                doi_recommendation.get(field) != doi_draft.update.get(field)  # noqa
-                for field in self.fields_to_compare  # noqa
+                doi_recommendation.get(field) != doi_draft.update.get(field)
+                for field in self.fields_to_compare
             ]
         )
 
@@ -339,7 +339,7 @@ class DoiMatcher:
                 # merge the rec with the unpublished_update
                 # completely replace the fields to compare (metadata from cmr)
                 # append the recomendation fields (recommended by engine and hand modified by human)
-                for field in self.fields_to_compare:  # noqa
+                for field in self.fields_to_compare:
                     unpublished_update.update[field] = doi_recommendation[field]
                 for field in self.fields_to_merge:
                     unpublished_update.update[field].append(doi_recommendation[field])
