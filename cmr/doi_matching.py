@@ -18,6 +18,8 @@ import data_models
 from data_models.models import DOI
 
 logger = logging.getLogger(__name__)
+
+
 class DoiMatcher:
     def __init__(self):
         self.uuid_to_aliases = {}
@@ -29,14 +31,9 @@ class DoiMatcher:
             'cmr_dates',
             'cmr_science_keywords',
             'abstract',
-            'cmr_data_formats'
+            'cmr_data_formats',
         ]
-        self.fields_to_merge = [
-            'campaigns',
-            'instruments',
-            'platforms',
-            'collection_periods'
-        ]
+        self.fields_to_merge = ['campaigns', 'instruments', 'platforms', 'collection_periods']
 
     def universal_get(self, table_name, uuid):
         """Queries the database for a uuid within a table name, but searches
@@ -100,7 +97,6 @@ class DoiMatcher:
         valid_object_uuids = [str(uuid) for uuid in valid_objects.values_list("uuid", flat=True)]
 
         return valid_object_uuids
-
 
     def universal_alias(self, table_name, uuid):
         """Every object has multiple forms of aliases such as long_names, gmcd names, and
@@ -289,7 +285,6 @@ class DoiMatcher:
     def merge_doi_update_draft(model_instance_uuid):
         return False
 
-
     def doi_mismatch(self, doi_recommendation, doi_draft):
         """Takes a doi_recommendation that includes metadata from CMR and a doi_draft from
         the admg database and compares specific fields to find a mismatch.
@@ -303,7 +298,12 @@ class DoiMatcher:
         """
 
         # TODO: does this actually get the right stuff from the doi recommendation object?
-        return any([doi_recommendation.get(field) != doi_draft.update.get(field) for field in self.fields_to_compare])
+        return any(
+            [
+                doi_recommendation.get(field) != doi_draft.update.get(field)
+                for field in self.fields_to_compare
+            ]
+        )
 
     def add_to_db(self, doi_recommendation):
         """After cmr has been queried and each dataproduct has received recommended UUID
@@ -330,23 +330,29 @@ class DoiMatcher:
         doi_drafts = Change.objects.filter(
             content_type__model='doi',
             action__in=[Change.Actions.CREATE, Change.Actions.UPDATE],
-            update__concept_id=doi_recommendation['concept_id']
+            update__concept_id=doi_recommendation['concept_id'],
         )
 
-        if unpublished_update:=doi_drafts.filter(action=Change.Actions.UPDATE).exclude(status=Change.Statuses.PUBLISHED).first():
+        if (
+            unpublished_update := doi_drafts.filter(action=Change.Actions.UPDATE)
+            .exclude(status=Change.Statuses.PUBLISHED)
+            .first()
+        ):
             # there can only be one unpublished update at a time
             if self.doi_mismatch(doi_recommendation, unpublished_update):
                 # merge the rec with the unpublished_update
                 # completely replace the fields to compare (metadata from cmr)
                 # append the recomendation fields (recommended by engine and hand modified by human)
                 for field in self.fields_to_compare:
-                    unpublished_update.update[field]=doi_recommendation[field]
+                    unpublished_update.update[field] = doi_recommendation[field]
                 for field in self.fields_to_merge:
                     unpublished_update.update[field].append(doi_recommendation[field])
                 unpublished_update.status = Change.Statuses.CREATED
                 unpublished_update.save()
-          
-        elif doi_drafts.filter(action=Change.Actions.CREATE, status=Change.Statuses.PUBLISHED).exists():
+
+        elif doi_drafts.filter(
+            action=Change.Actions.CREATE, status=Change.Statuses.PUBLISHED
+        ).exists():
             # make a brand new update
             doi_obj = Change(
                 content_type=ContentType.objects.get(model="doi"),
@@ -357,19 +363,27 @@ class DoiMatcher:
             )
             doi_obj.save()
 
-        elif published_creates:=doi_drafts.filter(action=Change.Actions.CREATE).exclude(status=Change.Statuses.PUBLISHED).exists():
+        elif (
+            published_creates := doi_drafts.filter(action=Change.Actions.CREATE)
+            .exclude(status=Change.Statuses.PUBLISHED)
+            .exists()
+        ):
             # call the add to draft function
             # there should only be one published create per concept_id, although maybe this is not true if stuff was deleted and
             # then recreated. this is a very fringe possiblity though
             # TODO: consider this possiblity and code for it
-            published_create_draft = doi_drafts.filter(action=Change.Actions.CREATE).exclude(status=Change.Statuses.PUBLISHED).first()
-            self.merge_doi_update_draft(model_instance_uuid = published_creates.first().uuid)
+            published_create_draft = (
+                doi_drafts.filter(action=Change.Actions.CREATE)
+                .exclude(status=Change.Statuses.PUBLISHED)
+                .first()
+            )
+            self.merge_doi_update_draft(model_instance_uuid=published_creates.first().uuid)
             # needs to be an update that points at published_creates.first().uuid
-            # we are going to make a brand new item, but we are going to populate the update field with stuff that used to be in the 
+            # we are going to make a brand new item, but we are going to populate the update field with stuff that used to be in the
             # published_create update field and got merged with our recommendations
             merged_update = published_create_draft.update
             for field in self.fields_to_compare:
-                merged_update[field]=doi_recommendation[field]
+                merged_update[field] = doi_recommendation[field]
             for field in self.fields_to_merge:
                 merged_update[field].append(doi_recommendation[field])
 
@@ -377,7 +391,7 @@ class DoiMatcher:
                 action=Change.Actions.UPDATE,
                 status=Change.Status.CREATED,
                 model_instance_uuid=published_create_draft.uuid,
-                update = merged_update,
+                update=merged_update,
             )
             new_thing.save()
 
@@ -392,7 +406,7 @@ class DoiMatcher:
             doi_obj.save()
             return "Draft created for DOI"
 
-        # TODO: CHANGE FROM HERE DOWN 
+        # TODO: CHANGE FROM HERE DOWN
 
         existing_doi = self.universal_get("doi", uuid)
         # TODO: don't we need to now check if there is also an update draft? before assuming this will work
@@ -435,7 +449,6 @@ class DoiMatcher:
             doi_obj.save()
 
         return f"DOI already exists in database. Update draft created. {uuid}"
-
 
     def generate_recommendations(self, table_name, uuid, development=False):
         """This is the overarching parent function which takes a table_name and a uuid and
