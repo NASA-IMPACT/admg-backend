@@ -1,10 +1,7 @@
-from dataclasses import field
-from ensurepip import version
 import json
 import logging
 import pickle
 from datetime import datetime
-from turtle import update
 import uuid
 
 from django.apps import apps
@@ -14,7 +11,6 @@ from django.core import serializers
 from api_app.models import Change
 from cmr.cmr import query_and_process_cmr
 from cmr.utils import clean_table_name, purify_list
-import data_models
 from data_models.models import DOI
 
 logger = logging.getLogger(__name__)
@@ -300,8 +296,8 @@ class DoiMatcher:
         # TODO: does this actually get the right stuff from the doi recommendation object?
         return any(
             [
-                doi_recommendation.get(field) != doi_draft.update.get(field)
-                for field in self.fields_to_compare
+                doi_recommendation.get(field) != doi_draft.update.get(field)  # noqa
+                for field in self.fields_to_compare  # noqa
             ]
         )
 
@@ -343,7 +339,7 @@ class DoiMatcher:
                 # merge the rec with the unpublished_update
                 # completely replace the fields to compare (metadata from cmr)
                 # append the recomendation fields (recommended by engine and hand modified by human)
-                for field in self.fields_to_compare:
+                for field in self.fields_to_compare:  # noqa
                     unpublished_update.update[field] = doi_recommendation[field]
                 for field in self.fields_to_merge:
                     unpublished_update.update[field].append(doi_recommendation[field])
