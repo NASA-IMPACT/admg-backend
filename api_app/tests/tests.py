@@ -2,11 +2,12 @@
 
 import json
 
+import factory as factory_module
 import pytest
-from django.contrib.contenttypes.models import ContentType
-
 from admg_webapp.users.models import ADMIN_CODE, STAFF_CODE, User
 from data_models.tests import factories
+from django.contrib.contenttypes.models import ContentType
+from rest_framework.serializers import ValidationError
 from ..models import ApprovalLog, Change
 
 
@@ -22,10 +23,18 @@ class TestChange:
 
     @staticmethod
     def create_users():
-        staff_user = User.objects.create(role=STAFF_CODE, username="staff")
-        staff_user_2 = User.objects.create(role=STAFF_CODE, username="staff_2")
-        admin_user = User.objects.create(role=ADMIN_CODE, username="admin")
-        admin_user_2 = User.objects.create(role=ADMIN_CODE, username="admin_2")
+        staff_user = User.objects.create(
+            role=STAFF_CODE, username=factory_module.Faker('user_name').generate()
+        )
+        staff_user_2 = User.objects.create(
+            role=STAFF_CODE, username=factory_module.Faker('user_name').generate()
+        )
+        admin_user = User.objects.create(
+            role=ADMIN_CODE, username=factory_module.Faker('user_name').generate()
+        )
+        admin_user_2 = User.objects.create(
+            role=ADMIN_CODE, username=factory_module.Faker('user_name').generate()
+        )
         return admin_user, admin_user_2, staff_user, staff_user_2
 
     @staticmethod
@@ -45,7 +54,7 @@ class TestChange:
         return Change.objects.create(
             content_type=content_type,
             status=Change.Statuses.CREATED,
-            action="Create",
+            action=Change.Actions.CREATE,
             update={**factory.as_change_dict(), **overrides},
         )
 
@@ -70,7 +79,7 @@ class TestChange:
         return Change.objects.create(
             content_type=content_type,
             status=Change.Statuses.CREATED,
-            action="Update",
+            action=Change.Actions.UPDATE,
             model_instance_uuid=create_draft.uuid,
             update={**factory.as_change_dict(), **overrides},
         )
@@ -358,16 +367,33 @@ class TestChange:
         assert approval_log.action == ApprovalLog.Actions.CLAIM
 
     def test_unpublished_unpublished(self, factory):
+        """test that an existing, UNpublished update draft prevents the creation
+        of a second update draft which references the same data_models object"""
         admin_user, _, _, _ = self.create_users()
         change = self.make_create_change_object(factory)
         change.publish(admin_user)
 
-        update = self.make_update_change_object(factory, change.uuid)
+        update = self.make_update_change_object(factory, change)
+        update.save()
 
-        update = Change
-        change_2 = self.make_create_change_object(factory)
+        with pytest.raises(ValidationError):
+            update_2 = self.make_update_change_object(factory, change)
+            update_2.save()
 
-        change
+    def test_published_unpublished(self, factory):
+        """test that an existing, published update draft does not prevent the creation
+        of a second update draft which references the same data_models object"""
+        admin_user, _, _, _ = self.create_users()
+
+        change = self.make_create_change_object(factory)
+        change.publish(admin_user)
+
+        update = self.make_update_change_object(factory, change)
+        update.save()
+        update.publish(admin_user)
+
+        update_2 = self.make_update_change_object(factory, change)
+        update_2.publish(admin_user)
 
 
 @pytest.mark.django_db
