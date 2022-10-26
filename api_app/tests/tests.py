@@ -29,36 +29,50 @@ class TestChange:
         return admin_user, admin_user_2, staff_user, staff_user_2
 
     @staticmethod
-    def make_create_change_object(factory):
+    def make_create_change_object(factory, custom_fields={}):
         """make a Change.Actions.CREATE change object to use during testing"""
         content_type = ContentType.objects.get_for_model(factory._meta.model)
+
+        # _meta.fields does not contain many to many
+        model_field_names = {
+            field.name
+            for field in factory._meta.get_model_class()._meta._forward_fields_map.values()
+        }
+        overrides = {
+            field: value for field, value in custom_fields.items() if field in model_field_names
+        }
 
         return Change.objects.create(
             content_type=content_type,
             status=Change.Statuses.CREATED,
             action="Create",
-            update=factory.as_change_dict(),
+            update={**factory.as_change_dict(), **overrides},
         )
 
     @staticmethod
-    def make_update_change_object(factory, model_instance_uuid, create_draft, fields_to_keep=[]):
+    def make_update_change_object(factory, create_draft, fields_to_keep=[]):
         """make a Change.Actions.CREATE change object to use during testing"""
         content_type = ContentType.objects.get_for_model(factory._meta.model)
 
-        # fields_to_keep = ['short_name', 'concept_id']
+        # we want the ability to keep the original's values, say short_name or concept_id
+        # models can't take any field though, so this checks that the fields are real
+        # TODO: move this to an error check?
+        model_field_names = {
+            field.name
+            for field in factory._meta.get_model_class()._meta._forward_fields_map.values()
+        }
         overrides = {
-            field:create_draft.update[field] for field in fields_to_keep if field in create_draft.update.keys()
+            field: create_draft.update[field]
+            for field in fields_to_keep
+            if field in model_field_names
         }
 
         return Change.objects.create(
             content_type=content_type,
             status=Change.Statuses.CREATED,
             action="Update",
-            model_instance_uuid = model_instance_uuid,
-            update={
-                **factory.as_change_dict(),
-                **overrides
-            },
+            model_instance_uuid=create_draft.uuid,
+            update={**factory.as_change_dict(), **overrides},
         )
 
     def test_change_query_check(self, factory):
@@ -343,13 +357,12 @@ class TestChange:
         assert change.status == Change.Statuses.IN_ADMIN_REVIEW
         assert approval_log.action == ApprovalLog.Actions.CLAIM
 
-
-    def test_published_unpublished(self, factory):
-        admin_user, _, _, _ = create_users()
+    def test_unpublished_unpublished(self, factory):
+        admin_user, _, _, _ = self.create_users()
         change = self.make_create_change_object(factory)
         change.publish(admin_user)
 
-        update = make_update_change_object(factory, change.uuid)
+        update = self.make_update_change_object(factory, change.uuid)
 
         update = Change
         change_2 = self.make_create_change_object(factory)
