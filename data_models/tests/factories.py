@@ -111,6 +111,7 @@ class LimitedInfoPriorityBaseFactory(LimitedInfoBaseFactory):
 
 
 class AliasFactory(BaseFactory):
+    short_name = factory.Faker("text", max_nb_chars=20)
     parent_fk = factory.SubFactory(f"{__name__}.CampaignFactory")
 
     class Meta:
@@ -269,6 +270,7 @@ class InstrumentFactory(LimitedInfoBaseFactory):
 
 
 class IOPFactory(BaseFactory):
+    short_name = factory.Faker("text", max_nb_chars=20)
     start_date = factory.Faker("date")
     end_date = factory.Faker("date")
     description = factory.Faker("sentence")
@@ -323,6 +325,7 @@ class SeasonFactory(LimitedInfoPriorityBaseFactory):
 
 
 class SignificantEventFactory(BaseFactory):
+    short_name = factory.Faker("text", max_nb_chars=20)
     start_date = factory.Faker("date")
     end_date = factory.Faker("date")
     description = factory.Faker("sentence")
