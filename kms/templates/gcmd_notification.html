@@ -22,8 +22,9 @@
 
 <!-- Auto-Published keywords -->
 <h2 class="autopublished">Auto-Published Keywords ({{ autopublished_keywords | length }})</h2>
-<p>These keywords were created, updated, or deleted but didn't have any CASEI objects associated
-   with them. These keywords do not require an admin to review them.
+<p>
+  These keywords were created, updated, or deleted but didn't have any CASEI objects associated
+  with them. These keywords do not require an admin to review them.
 </p>
 {% for scheme in keywords_by_scheme %}
   <h3>{{ scheme.scheme|format_scheme_for_display }}: {{ scheme.published_keywords | length }}</h3>
