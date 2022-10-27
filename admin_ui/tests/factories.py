@@ -1,9 +1,10 @@
 from datetime import date
+
+import factory
 from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import make_password
-import factory
 
-
+from admg_webapp.users.models import User
 from api_app.models import Change
 from data_models.models import Campaign
 
@@ -26,9 +27,10 @@ class ChangeFactory(factory.django.DjangoModelFactory):
 
 
 class UserFactory(factory.django.DjangoModelFactory):
-    username = factory.Sequence(lambda n: "blah{0}".format(n))
-    email = factory.Sequence(lambda n: "someone{0}@localhost".format(n))
+    username = factory.Faker('user_name').generate()
+    email = factory.Faker("email").generate()
     password = make_password("password")
+    role = User.Roles.STAFF
 
     class Meta:
         model = get_user_model()
