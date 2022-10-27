@@ -78,14 +78,13 @@ class TestCreateView(TestCase):
 
 class TestCampaignDetailView(TestCase):
     def setUp(self):
-
         # admin is needed to force publish without the intervening steps
         self.user = factories.UserFactory.create(role=User.Roles.ADMIN)
         self.create_change = TestChange.make_create_change_object(CampaignFactory)
         self.create_change.publish(self.user)
 
         self.update_changes = []
-        for inter in range(10):
+        for _ in range(10):
             update_change = factories.ChangeFactory.create(
                 content_type=ContentType.objects.get_for_model(Campaign),
                 action=Change.Actions.UPDATE,
