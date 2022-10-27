@@ -32,6 +32,10 @@ class Template:
         return self.render(self.html_template_name, True)
 
 
+def this_function_does_nothing(hello: str):
+    return hello
+
+
 def gcmd_changes_email(template: Template, recipients: List[str]):
     with mail.get_connection() as connection:
         mail.send_mail(
