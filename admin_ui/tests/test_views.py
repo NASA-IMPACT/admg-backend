@@ -2,18 +2,19 @@ from django.contrib.contenttypes.models import ContentType
 from django.test import TestCase
 from django.urls import reverse
 
-from data_models.models import Campaign, Season
-from api_app.models import Change
+from admg_webapp.users.models import User
 from admin_ui.views.change import CampaignDetailView
+from api_app.models import Change
+from data_models.models import Campaign, Season
 
 from . import factories
+from api_app.tests.tests import TestChange
+from data_models.tests.factories import CampaignFactory
 
 
 class TestChangeUpdateView(TestCase):
     def setUp(self):
-        self.change = factories.ChangeFactory.create(
-            content_type=ContentType.objects.get_for_model(Campaign), action=Change.Actions.CREATE
-        )
+        self.change = TestChange.make_create_change_object(CampaignFactory)
         self.user = factories.UserFactory.create()
         self.url = reverse("change-update", args=(self.change.uuid,))
 
@@ -77,21 +78,21 @@ class TestCreateView(TestCase):
 
 class TestCampaignDetailView(TestCase):
     def setUp(self):
-        self.campaign = factories.CampaignFactory.create(short_name="campaign1")
-        self.create_change = factories.ChangeFactory.create(
-            content_type=ContentType.objects.get_for_model(Campaign),
-            action=Change.Actions.CREATE,
-            model_instance_uuid=self.campaign.uuid,
-        )
-        self.update_changes = [
-            factories.ChangeFactory.create(
+
+        # admin is needed to force publish without the intervening steps
+        self.user = factories.UserFactory.create(role=User.Roles.ADMIN)
+        self.create_change = TestChange.make_create_change_object(CampaignFactory)
+        self.create_change.publish(self.user)
+
+        self.update_changes = []
+        for inter in range(10):
+            update_change = factories.ChangeFactory.create(
                 content_type=ContentType.objects.get_for_model(Campaign),
                 action=Change.Actions.UPDATE,
-                model_instance_uuid=self.campaign.uuid,
+                model_instance_uuid=self.create_change.uuid,
             )
-            for _ in range(10)
-        ]
-        self.user = factories.UserFactory.create()
+            update_change.publish(self.user)
+            self.update_changes.append(update_change)
 
     def test_filter_latest_changes_returns_latest_change(self):
         """
@@ -99,7 +100,7 @@ class TestCampaignDetailView(TestCase):
         """
         latest = CampaignDetailView._filter_latest_changes(
             Change.objects.of_type(Campaign)
-            .filter(model_instance_uuid=str(self.campaign.uuid))
+            .filter(model_instance_uuid=str(self.create_change.uuid))
             .prefetch_approvals()
         )
         self.assertEqual(latest[0].uuid, self.update_changes[-1].uuid)
@@ -109,20 +110,20 @@ class TestCampaignDetailView(TestCase):
         If multiple campaigns are referenced in the queryset, the
         method should return the latest Change object for each Campaign.
         """
-        campaign2 = factories.CampaignFactory.create(short_name="campaign2")
-        factories.ChangeFactory.create(
-            content_type=ContentType.objects.get_for_model(Campaign),
-            action=Change.Actions.CREATE,
-            model_instance_uuid=campaign2.uuid,
-        )
-        update_changes = [
-            factories.ChangeFactory.create(
+
+        create_change = TestChange.make_create_change_object(CampaignFactory)
+        create_change.publish(self.user)
+
+        update_changes = []
+        for _ in range(10):
+            update_change = factories.ChangeFactory.create(
                 content_type=ContentType.objects.get_for_model(Campaign),
                 action=Change.Actions.UPDATE,
-                model_instance_uuid=campaign2.uuid,
+                model_instance_uuid=create_change.uuid,
             )
-            for _ in range(10)
-        ]
+            update_change.publish(self.user)
+            update_changes.append(update_change)
+
         latest = CampaignDetailView._filter_latest_changes(
             Change.objects.of_type(Campaign).prefetch_approvals()
         )
