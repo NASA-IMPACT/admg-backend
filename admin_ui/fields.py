@@ -61,7 +61,7 @@ class ChangeChoiceMixin:
         identifier_field = {"image": "title", "website": "title"}.get(dest_model_name, "short_name")
 
         changes = (
-            models.Change.objects.filter(content_type__model=dest_model_name)
+            models.Change.objects.of_type(dest_model)
             .exclude(status=models.Change.Statuses.IN_TRASH)
             .add_updated_at()
             .annotate(effective_uuid=Coalesce("model_instance_uuid", "uuid"))
