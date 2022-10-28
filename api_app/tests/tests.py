@@ -2,7 +2,6 @@
 
 import json
 
-import factory as factory_module
 import pytest
 from django.contrib.contenttypes.models import ContentType
 from rest_framework.serializers import ValidationError
