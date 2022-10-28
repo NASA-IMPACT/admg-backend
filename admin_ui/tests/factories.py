@@ -12,8 +12,8 @@ class ChangeFactory(factory.django.DjangoModelFactory):
 
 
 class UserFactory(factory.django.DjangoModelFactory):
-    username = factory.Faker('user_name').generate()
-    email = factory.Faker("email").generate()
+    username = factory.Faker('user_name')
+    email = factory.Faker("email")
     password = make_password("password")
     role = User.Roles.STAFF
 
