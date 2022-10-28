@@ -1,6 +1,6 @@
 from uuid import UUID, uuid4
 
-from admg_webapp.users.models import ADMIN, User
+from admg_webapp.users.models import User
 from crum import get_current_user
 from data_models import serializers
 from django.apps import apps
@@ -39,7 +39,7 @@ def is_not_admin(user):
         [dict]: {success, message}
     """
 
-    if user.get_role_display() != ADMIN:
+    if user.get_role_display() != User.Roles.ADMIN.label:
         return generate_failure_response("action failed because initiating user was not admin")
 
 
@@ -786,7 +786,7 @@ class Change(models.Model):
 
         # check if unclaiming user is the same as the claiming user or if unclaiming user is admin
         latest_log = self.get_latest_log()
-        if user.get_role_display() != ADMIN:
+        if user.get_role_display() != User.Roles.ADMIN.label:
             if latest_log.user != user:
                 return generate_failure_response(
                     "To unclaim an item the user must be the same as the claiming user,"

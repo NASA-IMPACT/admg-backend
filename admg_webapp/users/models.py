@@ -6,14 +6,6 @@ from django.db.models import CharField, IntegerField
 from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
 
-# TODO: remove these old references throughout the codebase on a dedicated PR
-ADMIN = "Admin"
-STAFF = "Staff"
-
-ADMIN_CODE = 1
-STAFF_CODE = 2
-AVAILABLE_ROLES = ((ADMIN_CODE, ADMIN), (STAFF_CODE, STAFF))
-
 
 class User(AbstractUser):
     """
