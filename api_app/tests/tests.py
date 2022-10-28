@@ -4,10 +4,13 @@ import json
 
 import factory as factory_module
 import pytest
-from admg_webapp.users.models import ADMIN_CODE, STAFF_CODE, User
-from data_models.tests import factories
 from django.contrib.contenttypes.models import ContentType
 from rest_framework.serializers import ValidationError
+
+from admg_webapp.users.models import User
+from admin_ui.tests.factories import UserFactory
+from data_models.tests import factories
+
 from ..models import ApprovalLog, Change
 
 
@@ -23,18 +26,10 @@ class TestChange:
 
     @staticmethod
     def create_users():
-        staff_user = User.objects.create(
-            role=STAFF_CODE, username=factory_module.Faker('user_name').generate()
-        )
-        staff_user_2 = User.objects.create(
-            role=STAFF_CODE, username=factory_module.Faker('user_name').generate()
-        )
-        admin_user = User.objects.create(
-            role=ADMIN_CODE, username=factory_module.Faker('user_name').generate()
-        )
-        admin_user_2 = User.objects.create(
-            role=ADMIN_CODE, username=factory_module.Faker('user_name').generate()
-        )
+        staff_user = UserFactory(role=User.Roles.STAFF)
+        staff_user_2 = UserFactory(role=User.Roles.STAFF)
+        admin_user = UserFactory(role=User.Roles.ADMIN)
+        admin_user_2 = UserFactory(role=User.Roles.ADMIN)
         return admin_user, admin_user_2, staff_user, staff_user_2
 
     @staticmethod
