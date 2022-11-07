@@ -1,6 +1,10 @@
 from .base import *  # noqa
 from .base import env
 
+import sentry_sdk
+from sentry_sdk.integrations.django import DjangoIntegration
+
+
 # GENERAL
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#secret-key
@@ -150,3 +154,20 @@ ANYMAIL = {
 }
 
 EMAIL_BACKEND = "anymail.backends.amazon_ses.EmailBackend"
+# EMAIL_BACKEND = env(
+#     "DJANGO_EMAIL_BACKEND", default="django.core.mail.backends.console.EmailBackend"
+# )
+
+SENTRY_DSN = env("SENTRY_DSN")
+
+sentry_sdk.init(
+    dsn=SENTRY_DSN,
+    integrations=[
+        DjangoIntegration(),
+    ],
+    environment=env("SENTRY_ENV", default="production"),
+    # Set traces_sample_rate to 1.0 to capture 100%
+    # of transactions for performance monitoring.
+    # We recommend adjusting this value in production.
+    traces_sample_rate=1.0,
+)
