@@ -1,5 +1,4 @@
 # to run this test file, use 'pytest -k cmr'
-from argparse import Action
 import pytest
 from admg_webapp.users.tests.factories import UserFactory
 from data_models.tests.factories import (
