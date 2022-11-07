@@ -1,6 +1,5 @@
 # to run this test file, use 'pytest -k cmr'
-from urllib import response
-from admin_ui.views import doi
+from argparse import Action
 import pytest
 from admg_webapp.users.tests.factories import UserFactory
 from data_models.tests.factories import (
@@ -9,7 +8,7 @@ from data_models.tests.factories import (
     CampaignFactory,
     DeploymentFactory,
     CollectionPeriodFactory,
-    DATAMODELS_FACTORIES,
+    # DATAMODELS_FACTORIES,
 )
 from data_models.tests.factories import *
 from data_models.models import Instrument, Platform, Campaign, Deployment, CollectionPeriod
@@ -127,7 +126,7 @@ class TestCMRRecommender:
         #     Change.objects.of_type(Campaign).all().filter(update__short_name="ACES")[0].uuid
         # )
         recommendations = match_dois('campaign', str(campaign_uuid))
-        existing_data = Change.objects.filter(update__campaigns__contains=str(campaign_uuid))
+        # existing_data = Change.objects.filter(update__campaigns__contains=str(campaign_uuid))
 
         # existing_data = Change.objects.of_type(Campaign).all()
 
