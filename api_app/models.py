@@ -817,8 +817,10 @@ def set_change_updated_at(sender, instance, **kwargs):
     Set `updated_at` on the related Change object to the value of
     the ApprovalLog's `date` field.
     """
+    post_save.disconnect(create_approval_log_dispatcher, sender=Change)
     instance.change.updated_at = instance.date
     instance.change.save()
+    post_save.connect(create_approval_log_dispatcher, sender=Change)
 
 
 class Recommendation(models.Model):
