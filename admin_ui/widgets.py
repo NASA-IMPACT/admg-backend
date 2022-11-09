@@ -133,7 +133,6 @@ class AddAnotherChoiceFieldWidget(forms.Select):
             active_draft = (
                 Change.objects.filter(model_instance_uuid=value)
                 .exclude(status__in=(Change.Statuses.PUBLISHED, Change.Statuses.IN_TRASH))
-                .add_updated_at()
                 .order_by("-updated_at")
                 .first()
             )
