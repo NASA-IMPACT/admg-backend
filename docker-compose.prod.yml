@@ -5,7 +5,7 @@ services:
     build:
       context: ./
       dockerfile: Dockerfile.prod
-    command: gunicorn config.wsgi:application --bind 0.0.0.0:8000 -w 4 --timeout 300
+    command: gunicorn config.wsgi:application --bind 0.0.0.0:8000 -w 4 --timeout 300 --access-logfile - --forwarded-allow-ips="*" --proxy-allow-from="*" --worker-tmp-dir /dev/shm
     volumes:
       - static_volume:/home/app/web/staticfiles
       - media_volume:/home/app/web/media
@@ -32,7 +32,7 @@ services:
       - morecerts:/etc/acme.sh
       - certs:/etc/nginx/certs
       - html:/usr/share/nginx/html
-      - vhost:/etc/nginx/vhost.d
+      - ./nginx/vhost.d:/etc/nginx/vhost.d
       - /var/run/docker.sock:/tmp/docker.sock:ro
     depends_on:
       - web
@@ -46,7 +46,7 @@ services:
       - morecerts:/etc/acme.sh
       - certs:/etc/nginx/certs
       - html:/usr/share/nginx/html
-      - vhost:/etc/nginx/vhost.d
+      - ./nginx/vhost.d:/etc/nginx/vhost.d
     depends_on:
       - nginx-proxy
 
@@ -81,4 +81,3 @@ volumes:
   morecerts:
   certs:
   html:
-  vhost:
