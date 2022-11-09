@@ -7,7 +7,7 @@ from django.apps import apps
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
-from django.db.models import aggregates, expressions, functions, Subquery, OuterRef
+from django.db.models import expressions, functions, Subquery
 from django.db.models.fields.json import KeyTextTransform
 from django.db.models.signals import post_save
 from django.dispatch import receiver
@@ -260,7 +260,7 @@ class Change(models.Model):
 
     status = models.IntegerField(choices=Statuses.choices, default=Statuses.IN_PROGRESS)
     update = models.JSONField(default=dict, blank=True)
-    updated_at = models.DateTimeField(blank=True, null=True)
+    updated_at = models.DateTimeField(blank=True, null=True, db_index=True)
     field_status_tracking = models.JSONField(default=dict, blank=True)
     previous = models.JSONField(default=dict)
 
