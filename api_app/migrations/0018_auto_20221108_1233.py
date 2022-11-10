@@ -7,7 +7,7 @@ def set_updated_at(apps, schema_editor):
     Change = apps.get_model("api_app", "Change")
     ApprovalLog = apps.get_model("api_app", "ApprovalLog")
 
-    for change in Change.objects.all():
+    for change in Change.objects.order_by("pk"):
         Change.objects.filter(pk=change.pk).update(
             updated_at=ApprovalLog.objects.filter(change=change).order_by("-date").first().date
         )
