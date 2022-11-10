@@ -17,9 +17,6 @@
   </a>
 {% endblock header %}
 
-{% block object_details %}
-{% endblock object_details %}
-
 {% block actions %}
   <div class="px-1">
     <a href="{% url 'published-edit' view_model object.uuid %}?back={{ request.path }}" class="btn btn-primary ml-3">
