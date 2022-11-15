@@ -7,6 +7,41 @@
 This template prepares a view for form rendering
 {% endcomment %}
 
+{% block header_tabs %}
+<div class="col">
+  <ul class="nav">
+    <li class="nav-item">
+      <a class="nav-link active" href="#">
+        Content
+        <span class="badge badge-pill badge-success ml-1">Published</span>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="#">
+        Details
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="#">
+        DOIs
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link disabled" href="#">
+        Edits 
+        <span class="badge badge-pill badge-danger ml-1">In Progress</span>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="#">
+        History 
+      </a>
+    </li>
+  </ul>
+</div>
+{% endblock header_tabs %}
+
+
 {% block extrahead %}
 {{ block.super }}
 {{ form.media.css }}
