@@ -1,6 +1,12 @@
 {% extends "base.html" %}
 {% load static %}
 
+{% comment %}
+This view is responsible for building the general layout of the MI.
+This primarily deciding where the sidebar goes and where the main "page"
+goes.
+{% endcomment %}
+
 {% block extrahead %}
 <link href="{% static 'css/admin.css' %}" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
