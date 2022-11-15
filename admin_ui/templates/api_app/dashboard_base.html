@@ -1,6 +1,11 @@
 {% extends "./form_capable.html" %}
 {% load active_link_tags %}
 
+{% comment %}
+This template provides the view for a dashboard for a single record (e.g. campaign,
+platform, instrument).
+{% endcomment %}
+
 {% block header %}
   <div class="col">
     <a href="{% url 'change-list' 'campaign' %}">&larr; Back</a>
