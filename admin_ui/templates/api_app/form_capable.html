@@ -3,6 +3,10 @@
 {% load humanize %}
 {% load template_extras %}
 
+{% comment %}
+This template prepares a view for form rendering
+{% endcomment %}
+
 {% block extrahead %}
 {{ block.super }}
 {{ form.media.css }}
