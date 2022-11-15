@@ -149,15 +149,6 @@ button.right-side {
   float: right;
 }
 
-span.sidebar-notification {
-  padding-left: 5px;
-  padding-right: 5px;
-  color: white;
-  font-weight: 500;
-  background: red;
-  border-radius: 10px;
-}
-
 /* Forms */
 .form-inline {
   margin-bottom: 0.5em;
