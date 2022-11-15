@@ -1,6 +1,13 @@
 {% extends "./layout.html" %}
 {% load crispy_forms_tags static %}
 
+{% comment %}
+This template provides the general layout for data views.
+These are views that have a header (describing what data is
+being displayed) and a body (eg a form or table).
+{% endcomment %}
+
+
 {% block extrahead %}
 {{ block.super }}
 {{ form.media.css }}
@@ -8,7 +15,7 @@
 {% endblock %}
 
 {% block page %}
-<header class="mx-3 py-3 sticky-top bg-white border-bottom">
+<header class="mx-3 py-3 sticky-top bg-black border-bottom">
   <div class="row align-items-center">
     {% block maintabs %}{% endblock maintabs %}
   </div>
@@ -17,10 +24,9 @@
     {% block header %}{% endblock header %}
   </div>
 
-  <div class="row">
-    <div class="col d-flex flex-row-reverse">
+  <div class="row flex-row-reverse">
+    <!-- TODO: Actions should only appear on edit forms -->
       {% block actions %}{% endblock actions %}
-    </div>
   </div>
 </header>
 
