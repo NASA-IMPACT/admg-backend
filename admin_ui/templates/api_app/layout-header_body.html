@@ -25,13 +25,14 @@ being displayed) and a body (eg a form or table).
     {% block maintabs %}{% endblock maintabs %}
   </div>
 
-  <div class="row flex-row-reverse">
-    <!-- TODO: Actions should only appear on edit forms -->
-      {% block actions %}{% endblock actions %}
-  </div>
 </header>
 
 {% block tabs %}{% endblock tabs %}
+
+<div class="row flex-row-reverse">
+  <!-- TODO: Actions should only appear on edit forms -->
+    {% block actions %}{% endblock actions %}
+</div>
 
 <div class="row mx-3">
   {% block main %}
