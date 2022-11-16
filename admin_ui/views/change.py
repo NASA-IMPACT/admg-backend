@@ -121,7 +121,7 @@ class SummaryView(NotificationSidebar, django_tables2.SingleTableView):
 
 class CampaignDetailView(NotificationSidebar, DetailView):
     model = Change
-    template_name = "api_app/dashboard_base.html"
+    template_name = "api_app/campaign_details.html"
     queryset = Change.objects.of_type(Campaign)
 
     @staticmethod

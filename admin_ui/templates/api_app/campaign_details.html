@@ -6,13 +6,6 @@ This template provides the view for a dashboard for a single record (e.g. campai
 platform, instrument).
 {% endcomment %}
 
-{% block header %}
-  <div class="col">
-    <a href="{% url 'change-list' 'campaign' %}">&lt; Back to Campaigns</a>
-    <h1 class="my-5">Campaign {% firstof object.update.short_name object.update.uuid %}</h1>
-  </div>
-{% endblock header %}
-
 {% block actions %}
   <div class="px-1">
     {% include "snippets/approval_dropdown.html" %}
