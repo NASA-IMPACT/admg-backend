@@ -4,21 +4,6 @@
 {% load humanize %}
 {% load template_extras %}
 
-{% block header %}
-  <div class="col">
-    {% include 'snippets/breadcrumbs.html' with ancestors=ancestors %}
-
-    <a href="{% spaceless %}
-        {% if "back" in request.GET %} {{ request.GET.back }}
-        {% else %}{% url back_button %}
-        {% endif %}
-        {% endspaceless %}">
-      &larr; Back
-    </a>
-    <h1>{{ short_name | default:object.uuid }}</h1>
-  </div>
-{% endblock header %}
-
 {% block main %}
   {% with main_class="col-lg-8" %}
     {{ block.super }}

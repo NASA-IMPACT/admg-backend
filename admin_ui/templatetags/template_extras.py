@@ -10,11 +10,23 @@ def zip_lists(a, b):
     return zip(a, b)
 
 
-@register.filter()
-def get_display_name(value):
-    if "display_name" in MODEL_CONFIG_MAP.get(value, {}):
-        return MODEL_CONFIG_MAP[value]["display_name"]
-    return value
+@register.filter
+def title(name):
+    """
+    Override Django's builtin title to ignore plural names that already contain
+    capitalized letters.
+    """
+    return name.title() if name.islower() else name
+
+
+@register.filter
+def verbose_name(obj):
+    return obj._meta.verbose_name
+
+
+@register.filter
+def verbose_name_plural(obj):
+    return obj._meta.verbose_name_plural
 
 
 @register.filter()
