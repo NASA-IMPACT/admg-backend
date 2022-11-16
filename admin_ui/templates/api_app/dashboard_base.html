@@ -25,26 +25,6 @@ platform, instrument).
   </div>
 {% endblock actions %}
 
-{% block tabs %}
-  <div class="row m-3">
-    {# Tabs #}
-    <div class="col">
-      <ul class="nav nav-tabs" role="tablist">
-        <li class="nav-item">
-          <a class="nav-link {% active_link 'campaign-detail' 'active' pk=object.uuid strict=True %}" href="{% url 'campaign-detail' object.uuid %}" role="tab" aria-controls="details" aria-selected="true">
-            Details
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link {% active_link 'doi-approval' 'active' pk=object.uuid strict=True %}" href="{% url 'doi-approval' object.uuid %}" role="tab" aria-controls="dois" aria-selected="false">
-            DOIs
-          </a>
-        </li>
-      </ul>
-    </div>
-  </div>
-{% endblock tabs %}
-
 {% block main %}
   <div class="campaign-summary col">
     <ul class="list-group" id="deployments-list-draft">
