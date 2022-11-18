@@ -20,7 +20,11 @@ import json
 class TestCMRRecommender:
     def setup_method(self):
         self.create_test_data()
-        campaign = Campaign.objects.get(short_name='ACES')
+        # TODO: HOW DOES THIS WORK, MUST FIX
+        # campaign = Campaign.objects.get(short_name='ACES')
+        campaign = Change.objects.of_type(Campaign).get(udpate__short_name='ACES')
+        print('ahhhh' * 50)
+        print(campaign)
         self.cmr_metadata = query_and_process_cmr('campaign', [campaign.short_name])
         self.aces_uuid = campaign.uuid
 
@@ -61,7 +65,8 @@ class TestCMRRecommender:
     def create_test_data(self):
         assert Change.objects.of_type(Instrument).count() == 0
         instrument_draft = self.make_create_change_object(InstrumentFactory)
-        assert Change.objects.of_type(Instrument).count() == 1
+        instrument_draft_2 = self.make_create_change_object(InstrumentFactory)
+        assert Change.objects.of_type(Instrument).count() == 2
 
         platform_draft = self.make_create_change_object(PlatformFactory)
         assert Change.objects.of_type(Platform).count() == 1
@@ -74,7 +79,7 @@ class TestCMRRecommender:
 
         collection_period_draft = self.make_create_change_object(CollectionPeriodFactory)
         assert Change.objects.of_type(CollectionPeriod).count() == 1
-        assert Change.objects.of_type(Instrument).count() == 1
+        assert Change.objects.of_type(Instrument).count() == 2
         assert Change.objects.of_type(Platform).count() == 1
 
         Instrument.objects.all().delete()
@@ -110,6 +115,12 @@ class TestCMRRecommender:
             },
         )
         self.draft_updater(
+            instrument_draft_2,
+            {
+                'short_name': 'fake',
+            },
+        )
+        self.draft_updater(
             campaign_draft,
             {
                 'short_name': 'ACES',
@@ -138,15 +149,15 @@ class TestCMRRecommender:
         return {draft.uuid: hash(draft) for draft in query_object}
 
     def test_test_data(self):
-        assert Change.objects.of_type(Instrument).count() == 1
+        assert Change.objects.of_type(Instrument).count() == 2
         assert Change.objects.of_type(Platform).count() == 1
         assert Change.objects.of_type(Campaign).count() == 1
         assert Change.objects.of_type(Deployment).count() == 1
         assert Change.objects.of_type(CollectionPeriod).count() == 1
 
-        assert Change.objects.of_type(Instrument).first().update["short_name"] == 'GPS'
-        assert Change.objects.of_type(Platform).first().update["short_name"] == 'ALTUS'
-        assert Change.objects.of_type(Campaign).first().update["short_name"] == 'ACES'
+        assert Change.objects.of_type(Instrument).get(update__short_name='GPS')
+        assert Change.objects.of_type(Platform).get(update__short_name='ALTUS')
+        assert Change.objects.of_type(Campaign).get(update__short_name='ACES')
 
     def test_no_drafts(self):
         # tests that when we start with an empty database containing no DOI drafts and
@@ -196,6 +207,19 @@ class TestCMRRecommender:
 
         self.bulk_add_to_db(self.make_cmr_recommendation())
         self.are_hashes_identical(hash_dictionary, self.make_hash_dict(self.get_aces_drafts()))
+
+        # change a field to merge
+        for doi_draft in aces_doi_drafts:
+            fake_instrument = Change.objects.of_type(Instrument).get(udpate__short_name='fake')
+            # delete the old instrument, add a new fake one
+            doi_draft.update['instruments'] = [fake_instrument]
+            doi_draft.save()
+
+        # run recommender
+        # run add to db
+        # check that five of the drafts still have the added fake instrument
+        # one of the drafts should have fake_instrument AND should have added GPS
+        # NOTE we should figure out which draft has the GPS do this by concept_id
 
 
 # cmr_recommendations = self.make_cmr_recommendation()
