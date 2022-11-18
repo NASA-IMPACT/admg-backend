@@ -1,5 +1,5 @@
 # to run this test file, use 'pytest -k cmr'
-from nis import match
+from cmr.cmr import query_and_process_cmr
 import pytest
 from django.contrib.contenttypes.models import ContentType
 from admg_webapp.users.tests.factories import UserFactory
@@ -13,12 +13,16 @@ from data_models.tests.factories import (
 from data_models.models import Instrument, Platform, Campaign, Deployment, CollectionPeriod, DOI
 from api_app.models import Change
 from cmr.doi_matching import DoiMatcher
-from cmr.tasks import match_dois
 import json
 
 
 @pytest.mark.django_db
 class TestCMRRecommender:
+    def setUp(self):
+        self.create_test_data()
+        campaign = Campaign.objects.get(short_name='ACES')
+        self.cmr_metadata = query_and_process_cmr('campaign', [campaign.short_name])
+
     @staticmethod
     def draft_updater(draft, overrides):
         """overrides the test data created"""
@@ -93,14 +97,7 @@ class TestCMRRecommender:
         collection_period_draft.publish(user=admin_user)
 
     def make_cmr_recommendation(self):
-        campaign_uuid = Campaign.objects.get(short_name="ACES").uuid
-        recommendations = match_dois('campaign', str(campaign_uuid))
-        # data_file = open('datarecommended.txt', 'wt')
-        # for i in recommendations:
-        #     data_file.write(json.dumps(i))
-        # data_file.close()
-        file_path = 'cmr_recommendations.json'
-        json.dump(recommendations, open(file_path, 'w'))
+        return DoiMatcher().supplement_metadata(self.cmr_metadata)
 
     def make_hashes(self, query_object):
         return {draft.uuid: hash(draft) for draft in query_object}
