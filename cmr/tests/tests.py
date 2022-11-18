@@ -13,6 +13,7 @@ from data_models.tests.factories import (
 from data_models.models import Instrument, Platform, Campaign, Deployment, CollectionPeriod, DOI
 from api_app.models import Change
 from cmr.doi_matching import DoiMatcher
+import json
 
 
 @pytest.mark.django_db
@@ -21,6 +22,18 @@ class TestCMRRecommender:
         self.create_test_data()
         campaign = Campaign.objects.get(short_name='ACES')
         self.cmr_metadata = query_and_process_cmr('campaign', [campaign.short_name])
+        self.aces_uuid = campaign.uuid
+
+        self.all_fields = [f.name for f in DOI._meta.fields]
+        self.fields_to_compare = DoiMatcher().fields_to_compare
+        self.fields_to_merge = DoiMatcher().fields_to_merge
+        # this is not a perfect list, it includes long_name and uuid
+        self.fields_to_ignore = set(set(self.all_fields) - set(self.fields_to_compare)) - set(
+            self.fields_to_merge
+        )
+
+    def get_aces_drafts(self):
+        return Change.objects.of_type(DOI).filter(update__campaigns__contains=str(self.aces_uuid))
 
     @staticmethod
     def bulk_add_to_db(cmr_recommendations):
@@ -115,7 +128,13 @@ class TestCMRRecommender:
     def make_cmr_recommendation(self):
         return DoiMatcher().supplement_metadata(self.cmr_metadata)
 
-    def make_hashes(self, query_object):
+    @staticmethod
+    def are_hashes_identical(original_hashes, new_hashes):
+        assert len(original_hashes) == len(new_hashes)
+        for uuid, original_hash in original_hashes.items():
+            assert original_hash == new_hashes.get(uuid)
+
+    def make_hash_dict(self, query_object):
         return {draft.uuid: hash(draft) for draft in query_object}
 
     def test_test_data(self):
@@ -132,10 +151,7 @@ class TestCMRRecommender:
     def test_no_drafts(self):
         # tests that when we start with an empty database containing no DOI drafts and
         # run the recommender from scratch, we end up with exactly 6 unpublished create drafts
-        aces_uuid = Campaign.objects.get(short_name="ACES").uuid
-        aces_doi_drafts = Change.objects.of_type(DOI).filter(
-            update__campaigns__contains=str(aces_uuid)
-        )
+        aces_doi_drafts = self.get_aces_drafts()
         # before running the recommender, there should be no DOI drafts in the system
         assert len(aces_doi_drafts) == 0
         cmr_recommendations = self.make_cmr_recommendation()
@@ -143,7 +159,7 @@ class TestCMRRecommender:
         assert len(cmr_recommendations) == 6
         self.bulk_add_to_db(cmr_recommendations)
         aces_doi_drafts = Change.objects.of_type(DOI).filter(
-            update__campaigns__contains=str(aces_uuid)
+            update__campaigns__contains=str(self.aces_uuid)
         )
         # after running the recommender, we should have 6 drafts that correspond with the
         # six CMR items
@@ -152,41 +168,68 @@ class TestCMRRecommender:
         assert set(draft.status for draft in aces_doi_drafts) == set([Change.Statuses.CREATED])
         assert set(draft.action for draft in aces_doi_drafts) == set([Change.Actions.CREATE])
 
-    # def test_unpublished_create(self):
-    #     self.test_no_drafts()
-    #     matcher = DoiMatcher()
-    #     campaign_uuid = Campaign.objects.get(short_name="ACES").uuid
-    #     query_object = Change.objects.of_type(DOI).filter(
-    #         update__campaigns__contains=str(campaign_uuid)
-    #     )
-    #     hashes = self.make_hashes(query_object)
-    #     with open('cmr_recommendations.json') as f:
-    #         data = json.load(f)
-    #     for i in data:
-    #         matcher.add_to_db(i)
-    #     print(len(hashes))
-    #     new_hashes = self.make_hashes(
-    #         Change.objects.filter(content_type__model='doi').filter(
-    #             update__campaigns__contains=str(campaign_uuid)
-    #         )
-    #     )
-    #     assert len(hashes) == len(data)
-    #     assert hashes == new_hashes
+    def test_unpublished_create(self):
 
-    #     query_object.first().update['cmr_plats_and_insts'] = 'new value'
-    #     new_hashes1 = self.make_hashes(query_object)
-    #     for i in data:
-    #         matcher.add_to_db(i)
-    #     assert len(new_hashes) == len(data)
-    #     assert hashes == new_hashes1
+        # run it for the first time
+        aces_doi_drafts = self.get_aces_drafts()
+        for draft in aces_doi_drafts:
+            # this sets each draft to in_progress
+            draft.save()
+        assert len(aces_doi_drafts) == 0
 
-    #     query_object.first().update['instruments'].append('testinstrument')
-    #     matcher.add_to_db(query_object.first().update)
-    #     assert len(query_object) == 6
+        self.bulk_add_to_db(self.make_cmr_recommendation())
 
-    #     query_object.first().update['cmr_short_name'] = 'testvalue'
-    #     matcher.add_to_db(query_object.first().update)
-    #     assert len(query_object) == 6
+        aces_doi_drafts = self.get_aces_drafts()
+        assert len(aces_doi_drafts) == 6
+
+        # do nothing and run it again
+        hash_dictionary = self.make_hash_dict(aces_doi_drafts)
+        self.bulk_add_to_db(self.make_cmr_recommendation())
+        self.are_hashes_identical(hash_dictionary, self.make_hash_dict(self.get_aces_drafts()))
+
+        # change a field to ignore and run it again
+        field_to_ignore = 'cmr_plats_and_insts'
+        assert field_to_ignore in self.fields_to_ignore
+        for doi_draft in aces_doi_drafts:
+            doi_draft.update[field_to_ignore] = json.dumps(['random and horrible'])
+            doi_draft.save()
+
+        self.bulk_add_to_db(self.make_cmr_recommendation())
+        self.are_hashes_identical(hash_dictionary, self.make_hash_dict(self.get_aces_drafts()))
+
+
+# cmr_recommendations = self.make_cmr_recommendation()
+# # six items should have come back from CMR
+# assert len(cmr_recommendations) == 6
+# self.bulk_add_to_db(cmr_recommendations)
+
+# with open('cmr_recommendations.json') as f:
+#     data = json.load(f)
+# for i in data:
+#     matcher.add_to_db(i)
+# print(len(hashes))
+# new_hashes = self.make_hash_dict(
+#     Change.objects.filter(content_type__model='doi').filter(
+#         update__campaigns__contains=str(campaign_uuid)
+#     )
+# )
+# assert len(hashes) == len(data)
+# assert hashes == new_hashes
+
+# query_object.first().update['cmr_plats_and_insts'] = 'new value'
+# new_hashes1 = self.make_hash_dict(query_object)
+# for i in data:
+#     matcher.add_to_db(i)
+# assert len(new_hashes) == len(data)
+# assert hashes == new_hashes1
+
+# query_object.first().update['instruments'].append('testinstrument')
+# matcher.add_to_db(query_object.first().update)
+# assert len(query_object) == 6
+
+# query_object.first().update['cmr_short_name'] = 'testvalue'
+# matcher.add_to_db(query_object.first().update)
+# assert len(query_object) == 6
 
 
 """
