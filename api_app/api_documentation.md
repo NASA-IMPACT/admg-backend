@@ -81,12 +81,27 @@ The following parameters are used when constructing a query.
 We've seen a few examples already above, but in this section we will demonstrate all the common usecases.
 
 ### Query an entire table
-`https://admg.nasa-impact.net/api/campaign/`
+This query will return metadata for all the campaigns.
+```
+https://admg.nasa-impact.net/api/campaign/
+```
 ### Query by UUID
-`https://admg.nasa-impact.net/api/campaign/30ba471c-0844-447a-91fd-b63a2f42b715`
+This query will return metadata for the exact campaign specified by UUID.
+```
+https://admg.nasa-impact.net/api/campaign/30ba471c-0844-447a-91fd-b63a2f42b715
+```
 ### Query by default search fields
-`https://admg.nasa-impact.net/api/campaign/search_term=ACES`
-### Query by short_name
-`https://admg.nasa-impact.net/api/campaign/search_term=ACES&search_fields=short_name`
-### Query by custom field list
-`https://admg.nasa-impact.net/api/campaign/search_term=ice&search_fields=short_name,description`
+Each table has a list of default search fields, usually `short_name`, `long_name`, `description`, and any other text fields. This query will search all of those fields for the listed term.
+```
+https://admg.nasa-impact.net/api/campaign/search_term=ACES
+```
+### Query by specific field
+If you know the exact field and want to search it specifically, use the search_fields parameter.
+```
+https://admg.nasa-impact.net/api/campaign/search_term=ACES&search_fields=short_name
+```
+### Query by specific field list
+You can also search by a specific list of fields, just join them with a comma.
+```
+https://admg.nasa-impact.net/api/campaign/search_term=ice&search_fields=short_name,description
+```
