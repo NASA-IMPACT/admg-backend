@@ -2,7 +2,7 @@
 
 CASEI is built on top of a PostgreSQL database with multiple tables that each contain fields and foreign keys. Each endpoint in the API will point to a corresponding table. All the available models and fields can be seen at the bottom of this page.
 
-Requesting a bare table endpoint, such as `https://admg.nasa-impact.net/api/campaign/` will return a list of all the metadata items in the table, in this case, for every campaign in the inventory. Specific objects can be retrieved by adding a known UUID after the table name, and if you don"t know the UUID, string match searching is available for most fields. Further details on all search types as well as example queries can be found below.
+Requesting a bare table endpoint, such as `https://admg.nasa-impact.net/api/campaign/` will return a list of all the metadata items in the table, in this case, for every campaign in the inventory. Specific objects can be retrieved by adding a known UUID after the table name, and if you don't know the UUID, string match searching is available for most fields. Further details on all search types as well as example queries can be found below.
 
 # Queries
 ## Full Table Query
@@ -41,7 +41,7 @@ Below is a contrived example of the results from a `/campaign/` query, with ... 
 
 In the example results from the Campaign table, we saw several UUIDs listed: one `uuid` for the campaign itself, and on OLYMPEX one for the `partner_orgs` list.
 
-This is because every item has it"s own identifying UUID, and related objects linked from other tables are always specified using a UUID. For example, each Campaign might have been conducted in conjunction with a Partner Org. However, Partner Org is not a simple string value. It is an independent object with its own table and additional metadata. So the Campaign API response will list Partner Org as a UUID to the relevant object.
+This is because every item has its own identifying UUID, and related objects linked from other tables are always specified using a UUID. For example, each Campaign might have been conducted in conjunction with a Partner Org. However, Partner Org is not a simple string value. It is an independent object with its own table and additional metadata. So the Campaign API response will list Partner Org as a UUID to the relevant object.
 
 If you would like to see the details on that Partner Org, you must query the `/partner_org/` endpoint with the given UUID. Using the metadata shown above, we would make the following query:
 ```
@@ -72,7 +72,7 @@ As you can see, the Partner Org has its own useful metadata such as a long name,
 
 Observant readers will have noticed that `campaign` had a plural field called `partner_orgs` but the table name was the singular `partner_org`. Table names are *always* singular, but related fields can be a singular or plural version of the table name depending on whether only one or many items are linked.
 
-But what if you don"t know the UUID of the item you want to query?
+But what if you don't know the UUID of the item you want to query?
 
 ## String Match Queries
 In practice, it is unlikely that you will know the UUID of the Campaign or Partner Org you are interested in. Instead you will probably know the short name, long name, or maybe a keyword from the description.
@@ -92,19 +92,16 @@ The following parameters are used when constructing a query.
 - phrase: terms are treated as a single phrase
 - raw: formatted search query with terms and operators
 - websearch: formatted search query, similar to the one used by web search engines. 
-- Refer to the PostgreSQL docs for more details on differences and syntax
+- Refer to the [PostgreSQL docs](https://www.postgresql.org/docs/current/textsearch-controls.html#TEXTSEARCH-PARSING-QUERIES) for more details on differences and syntax
 
 ### search_fields
 - Optional, defaults to predefined fields in each model
 - Specifies the exact field to be searched: `short_name`, `description`, `start_date`
-- Example Queries
-- Campaign short name search
-- UUID Search
-- Multi-Item Search
+
 
 
 ## Example Queries
-We"ve seen a few examples already above, but in this section we will demonstrate all the common usecases.
+We've seen a few examples already above, but in this section we will demonstrate all the common use cases.
 
 ### Query an entire table
 This query will return metadata for all the campaigns.
