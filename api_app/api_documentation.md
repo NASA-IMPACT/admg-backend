@@ -8,21 +8,13 @@ Requesting a bare table endpoint, such as `https://admg.nasa-impact.net/api/camp
 ## Full Table Query
 As mentioned above, the most basic query returns the full data from a table. For example `https://admg.nasa-impact.net/api/campaign/` will return a list of all published campaign items in the database.
 
-Below is a contrived example of the results from a `/campaign/` query, with ... indicating the continuation of additional metadata and additional campaigns.
+Below is a contrived example of the results from a `/campaign/` query, with ... indicating the continuation of additional metadata and additional campaigns. Here you can see abbreviated metadata for two campaigns, OLYMPEX and ACES.
 
 ```
 { 
     "success": True, 
     "message": ", 
     "data": [
-        { 
-            "uuid": "30ba471c-0844-447a-91fd-b63a2f42b715",
-            "short_name": "ACES",
-            "long_name": "Altus Cumulus Electrification Study",
-            "start_date": "2002-08-02"
-            "partner_orgs": [],
-            ...
-        }, 
         { 
             "uuid": "2552174b-213c-4bfc-b36a-632fb16c5ec2",
             "short_name": "OLYMPEX",
@@ -33,13 +25,21 @@ Below is a contrived example of the results from a `/campaign/` query, with ... 
             ],
             ...
         }, 
+        { 
+            "uuid": "30ba471c-0844-447a-91fd-b63a2f42b715",
+            "short_name": "ACES",
+            "long_name": "Altus Cumulus Electrification Study",
+            "start_date": "2002-08-02"
+            "partner_orgs": [],
+            ...
+        }, 
     ...
     ]
 }
 ```
 ## UUIDs and Related Objects
 
-In the example results from the Campaign table, we saw several UUIDs listed: one `uuid` for the campaign itself, and on OLYMPEX one for the `partner_orgs` list.
+In the example results from the Campaign table, we saw several UUIDs listed: one `uuid` that identifies each campaign, and on OLYMPEX a UUID in the `partner_orgs` list.
 
 This is because every item has its own identifying UUID, and related objects linked from other tables are always specified using a UUID. For example, each Campaign might have been conducted in conjunction with a Partner Org. However, Partner Org is not a simple string value. It is an independent object with its own table and additional metadata. So the Campaign API response will list Partner Org as a UUID to the relevant object.
 
