@@ -312,6 +312,7 @@ class TestCMRRecommender:
         assert len(aces_doi_drafts) == 6
 
     def test_published_create(self):
+        admin_user = UserFactory(role=1)
 
         # run it for the first time
         aces_doi_drafts = self.get_aces_drafts()
@@ -326,11 +327,11 @@ class TestCMRRecommender:
         assert len(aces_doi_drafts) == 6
         # change the status to publish
         for draft in aces_doi_drafts:
-            draft.status = json.dumps(Change.Statuses.PUBLISHED)
+            draft.publish(admin_user)
             draft.save()
 
         for test_draft in aces_doi_drafts:
-            assert test_draft.status == '6'
+            assert test_draft.status == Change.Statuses.PUBLISHED
 
         self.bulk_add_to_db(self.make_cmr_recommendation())
         aces_doi_drafts = self.get_aces_drafts()
@@ -342,6 +343,6 @@ class TestCMRRecommender:
             doi_drafts.update[field_to_compare] = json.dumps(['randomtest'])
             doi_drafts.save()
 
-        # self.bulk_add_to_db(self.make_cmr_recommendation())
-        # aces_doi_drafts = self.get_aces_drafts()
-        # assert len(aces_doi_drafts) == 12
+        self.bulk_add_to_db(self.make_cmr_recommendation())
+        aces_doi_drafts = self.get_aces_drafts()
+        assert len(aces_doi_drafts) == 12
