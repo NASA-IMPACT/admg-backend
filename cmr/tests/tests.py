@@ -21,11 +21,8 @@ class TestCMRRecommender:
     def setup_method(self):
         self.create_test_data()
         # TODO: HOW DOES THIS WORK, MUST FIX
-        # campaign = Campaign.objects.get(short_name='ACES')
-        campaign = Change.objects.of_type(Campaign).get(udpate__short_name='ACES')
-        print('ahhhh' * 50)
-        print(campaign)
-        self.cmr_metadata = query_and_process_cmr('campaign', [campaign.short_name])
+        campaign = Change.objects.of_type(Campaign).get(update__short_name='ACES')
+        self.cmr_metadata = query_and_process_cmr('campaign', [campaign.update['short_name']])
         self.aces_uuid = campaign.uuid
 
         self.all_fields = [f.name for f in DOI._meta.fields]
@@ -208,111 +205,143 @@ class TestCMRRecommender:
         self.bulk_add_to_db(self.make_cmr_recommendation())
         self.are_hashes_identical(hash_dictionary, self.make_hash_dict(self.get_aces_drafts()))
 
+        test_concept_id = ''
+        for test_doi in aces_doi_drafts:
+            if 'GPS' in test_doi.update['instruments']:
+                test_concept_id = test_doi.update['concept_id']
+
         # change a field to merge
         for doi_draft in aces_doi_drafts:
-            fake_instrument = Change.objects.of_type(Instrument).get(udpate__short_name='fake')
+            fake_instrument = Change.objects.of_type(Instrument).get(update__short_name='fake')
+            # fake_instrument = Instrument.objects.get(short_name='fake')
             # delete the old instrument, add a new fake one
-            doi_draft.update['instruments'] = [fake_instrument]
+            doi_draft.update['instruments'] = [fake_instrument.update['short_name']]
             doi_draft.save()
 
         # run recommender
         # run add to db
+        self.bulk_add_to_db(self.make_cmr_recommendation())
         # check that five of the drafts still have the added fake instrument
-        # one of the drafts should have fake_instrument AND should have added GPS
-        # NOTE we should figure out which draft has the GPS do this by concept_id
+        for doi_draft in aces_doi_drafts:
+            assert 'fake' in doi_draft.update['instruments']
+            # one of the drafts should have fake_instrument AND should have added GPS
+            # NOTE we should figure out which draft has the GPS do this by concept_id
+            if 'GPS' in doi_draft.update['instruments']:
+                if 'fake' in doi_draft.update['instruments']:
+                    assert test_concept_id == doi_draft.update['concept_id']
 
+        # change in fields to compare
+        field_to_compare = 'cmr_short_name'
+        assert field_to_compare in self.fields_to_compare
+        for doi_drafts in aces_doi_drafts:
+            doi_draft.update[field_to_compare] = json.dumps(['randomtest'])
+            doi_draft.save()
+        self.bulk_add_to_db(self.make_cmr_recommendation())
+        self.are_hashes_identical(hash_dictionary, self.make_hash_dict(self.get_aces_drafts()))
+        aces_doi_drafts = self.get_aces_drafts()
+        assert len(aces_doi_drafts) == 6
 
-# cmr_recommendations = self.make_cmr_recommendation()
-# # six items should have come back from CMR
-# assert len(cmr_recommendations) == 6
-# self.bulk_add_to_db(cmr_recommendations)
+    def test_unpublished_update(self):
 
-# with open('cmr_recommendations.json') as f:
-#     data = json.load(f)
-# for i in data:
-#     matcher.add_to_db(i)
-# print(len(hashes))
-# new_hashes = self.make_hash_dict(
-#     Change.objects.filter(content_type__model='doi').filter(
-#         update__campaigns__contains=str(campaign_uuid)
-#     )
-# )
-# assert len(hashes) == len(data)
-# assert hashes == new_hashes
+        # run it for the first time
+        aces_doi_drafts = self.get_aces_drafts()
+        for draft in aces_doi_drafts:
+            # this sets each draft to in_progress
+            draft.save()
+        assert len(aces_doi_drafts) == 0
 
-# query_object.first().update['cmr_plats_and_insts'] = 'new value'
-# new_hashes1 = self.make_hash_dict(query_object)
-# for i in data:
-#     matcher.add_to_db(i)
-# assert len(new_hashes) == len(data)
-# assert hashes == new_hashes1
+        self.bulk_add_to_db(self.make_cmr_recommendation())
+        for draft in aces_doi_drafts:
+            draft.action = json.dumps('Update')
+            draft.save()
 
-# query_object.first().update['instruments'].append('testinstrument')
-# matcher.add_to_db(query_object.first().update)
-# assert len(query_object) == 6
+        for test_draft in aces_doi_drafts:
+            assert test_draft.action == 'Update'
 
-# query_object.first().update['cmr_short_name'] = 'testvalue'
-# matcher.add_to_db(query_object.first().update)
-# assert len(query_object) == 6
+        aces_doi_drafts = self.get_aces_drafts()
+        assert len(aces_doi_drafts) == 6
 
+        # do nothing and run it again
+        hash_dictionary = self.make_hash_dict(aces_doi_drafts)
+        self.bulk_add_to_db(self.make_cmr_recommendation())
+        self.are_hashes_identical(hash_dictionary, self.make_hash_dict(self.get_aces_drafts()))
 
-"""
-    def test_add_to_db(self):
-        self.create_test_data()
-        self.make_cmr_recommendation()
-        matcher = DoiMatcher()
-        campaign_uuid = Campaign.objects.get(short_name="ACES").uuid
-        # campaign_uuid = (
-        #     Change.objects.of_type(Campaign).all().filter(update__short_name="ACES")[0].uuid
-        # )
+        # change a field to ignore and run it again
+        field_to_ignore = 'cmr_plats_and_insts'
+        assert field_to_ignore in self.fields_to_ignore
+        for doi_draft in aces_doi_drafts:
+            doi_draft.update[field_to_ignore] = json.dumps(['random and horrible'])
+            doi_draft.save()
 
-        # existing_data = Change.objects.filter(update__campaigns__contains=str(campaign_uuid))
+        self.bulk_add_to_db(self.make_cmr_recommendation())
+        self.are_hashes_identical(hash_dictionary, self.make_hash_dict(self.get_aces_drafts()))
 
-        # existing_data = Change.objects.of_type(Campaign).all()
+        test_concept_id = ''
+        for test_doi in aces_doi_drafts:
+            if 'GPS' in test_doi.update['instruments']:
+                test_concept_id = test_doi.update['concept_id']
 
-        doi_drafts = Change.objects.filter(
-            content_type__model='doi',
-            action__in=[Change.Actions.CREATE, Change.Actions.UPDATE],
-            update__concept_id=recommendations['concept_id'],
-        )
+        # change a field to merge
+        for doi_draft in aces_doi_drafts:
+            fake_instrument = Change.objects.of_type(Instrument).get(update__short_name='fake')
+            # delete the old instrument, add a new fake one
+            doi_draft.update['instruments'] = [fake_instrument.update['short_name']]
+            doi_draft.save()
 
-        if unpublished_creates := (
-            doi_drafts.filter(action=Change.Actions.CREATE)
-            .exclude(status=Change.Statuses.PUBLISHED)
-            .first()
-        ):
-            for field in matcher.fields_to_compare:
-                unpublished_creates.update[field] = recommendations[0][field]
-            for field in matcher.fields_to_merge:
-                unpublished_creates.update[field].append(recommendations[0][field])
-            unpublished_creates.action = Change.Actions.CREATE
-            unpublished_creates.save()
+        # run recommender
+        # run add to db
+        self.bulk_add_to_db(self.make_cmr_recommendation())
+        # check that five of the drafts still have the added fake instrument
+        for doi_draft in aces_doi_drafts:
+            assert 'fake' in doi_draft.update['instruments']
+            # one of the drafts should have fake_instrument AND should have added GPS
+            # NOTE we should figure out which draft has the GPS do this by concept_id
+            if 'GPS' in doi_draft.update['instruments']:
+                if 'fake' in doi_draft.update['instruments']:
+                    assert test_concept_id == doi_draft.update['concept_id']
 
-            assert unpublished_creates.action == Change.Actions.CREATE
-        elif published_create := doi_drafts.filter(
-            action=Change.Actions.CREATE, status=Change.Statuses.PUBLISHED
-        ).first():
-            for field in matcher.fields_to_compare:
-                if published_create.update[field] != recommendations[0][field]:
-                    doi_obj = Change(
-                        content_type=ContentType.objects.get(model="doi"),
-                        model_instance_uuid=published_create.uuid,
-                        update=json.loads(json.dumps(recommendations[0])),
-                        status=Change.Statuses.CREATED,
-                        action=Change.Actions.UPDATE,
-                    )
-                    doi_obj.save()
-                    break
-            assert published_create.status == Change.Statuses.CREATED
-            assert published_create.action == Change.Actions.UPDATE
-        else:
-            doi_obj = Change(
-                content_type=ContentType.objects.get(model="doi"),
-                update=json.loads(json.dumps(recommendations[0])),
-                status=Change.Statuses.CREATED,
-                action=Change.Actions.CREATE,
-            )
-            doi_obj.save()
+        # change in fields to compare
+        field_to_compare = 'cmr_short_name'
+        assert field_to_compare in self.fields_to_compare
+        for doi_drafts in aces_doi_drafts:
+            doi_drafts.update[field_to_compare] = json.dumps(['randomtest'])
+            doi_drafts.save()
+        self.bulk_add_to_db(self.make_cmr_recommendation())
+        self.are_hashes_identical(hash_dictionary, self.make_hash_dict(self.get_aces_drafts()))
+        aces_doi_drafts = self.get_aces_drafts()
+        assert len(aces_doi_drafts) == 6
 
-            assert doi_obj.status == Change.Statuses.CREATED
-            assert doi_obj.action == Change.Actions.CREATE"""
+    def test_published_create(self):
+
+        # run it for the first time
+        aces_doi_drafts = self.get_aces_drafts()
+        for draft in aces_doi_drafts:
+            # this sets each draft to in_progress
+            draft.save()
+        assert len(aces_doi_drafts) == 0
+
+        self.bulk_add_to_db(self.make_cmr_recommendation())
+
+        aces_doi_drafts = self.get_aces_drafts()
+        assert len(aces_doi_drafts) == 6
+        # change the status to publish
+        for draft in aces_doi_drafts:
+            draft.status = json.dumps(Change.Statuses.PUBLISHED)
+            draft.save()
+
+        for test_draft in aces_doi_drafts:
+            assert test_draft.status == '6'
+
+        self.bulk_add_to_db(self.make_cmr_recommendation())
+        aces_doi_drafts = self.get_aces_drafts()
+        assert len(aces_doi_drafts) == 6
+
+        field_to_compare = 'cmr_short_name'
+        assert field_to_compare in self.fields_to_compare
+        for doi_drafts in aces_doi_drafts:
+            doi_drafts.update[field_to_compare] = json.dumps(['randomtest'])
+            doi_drafts.save()
+
+        # self.bulk_add_to_db(self.make_cmr_recommendation())
+        # aces_doi_drafts = self.get_aces_drafts()
+        # assert len(aces_doi_drafts) == 12
