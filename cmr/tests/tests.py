@@ -16,13 +16,27 @@ from cmr.doi_matching import DoiMatcher
 import json
 
 
+def generate_cmr_response():
+    """Many of our processes rely on first getting information from the CMR API.
+    This function is only run once and it saves a sample CMR file to the repository.
+    All test functions that rely on CMR will use this file, and there is a separate test
+    that evaluates whether CMR still gives the same response.
+
+    To run this function and generate the file, use a manage.py shell
+    """
+
+    cmr_metadata = query_and_process_cmr('campaign', ['ACES'])
+
+    json.dump(cmr_metadata, open('cmr/tests/cmr_response_aces.json', 'w'))
+
+
 @pytest.mark.django_db
 class TestCMRRecommender:
     def setup_method(self):
         self.create_test_data()
         # TODO: HOW DOES THIS WORK, MUST FIX
         campaign = Change.objects.of_type(Campaign).get(update__short_name='ACES')
-        self.cmr_metadata = query_and_process_cmr('campaign', [campaign.update['short_name']])
+        self.cmr_metadata = json.load(open('cmr_response_aces.json', 'r'))
         self.aces_uuid = campaign.uuid
 
         self.all_fields = [f.name for f in DOI._meta.fields]
