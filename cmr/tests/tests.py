@@ -256,18 +256,46 @@ class TestCMRRecommender:
         assert len(aces_doi_drafts) == 6
 
     def test_unpublished_update(self):
+        """
+        If there is an unpublished update draft, compare specific existing fields to CMR.
+        If different, edit the update draft with new metadata. If same, do nothing
 
-        # run it for the first time
+        run recommender
+        publish the results
+        make an update draft against a doi
+            which fields are they going to change
+            we probably need to test all the fields: merge fields, ingnore fields, etc
+        """
+        # make sure there were no prior doi drafts
         aces_doi_drafts = self.get_aces_drafts()
-        for draft in aces_doi_drafts:
-            # this sets each draft to in_progress
-            draft.save()
         assert len(aces_doi_drafts) == 0
 
+        # run it for the first time and get the doi drafts made
         self.bulk_add_to_db(self.make_cmr_recommendation())
+        aces_doi_drafts = self.get_aces_drafts()
+        assert len(aces_doi_drafts) == 6
+
+        # publish all our create drafts
+        admin_user = UserFactory(role=1)
         for draft in aces_doi_drafts:
-            draft.action = json.dumps('Update')
-            draft.save()
+            draft.publish(admin_user)
+
+        # make an unpublished update draft
+        aces_dois = DOI.objects.get(campaigns_contains=self.aces_uuid)  # something like this
+        uuid_to_update = aces_dois.first().uuid
+        doi_content_type = ContentType.objects.get_for_model(DOI)
+        update_draft = Change.objects.create(
+            content_type=doi_content_type,
+            action=Change.Actions.UPDATE,
+            model_instance_uuid=uuid_to_update,
+            update=json.dumps({"short_name": "ACES"}),
+        )
+        update_draft.save()
+
+        assert Change.objects.of_type(DOI).count() == 0
+        instrument_draft = self.make_create_change_object(InstrumentFactory)
+        instrument_draft_2 = self.make_create_change_object(InstrumentFactory)
+        assert Change.objects.of_type(Instrument).count() == 2
 
         for test_draft in aces_doi_drafts:
             assert test_draft.action == 'Update'
