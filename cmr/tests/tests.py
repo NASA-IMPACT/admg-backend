@@ -14,6 +14,7 @@ from data_models.models import Instrument, Platform, Campaign, Deployment, Colle
 from api_app.models import Change
 from cmr.doi_matching import DoiMatcher
 import json
+import ipdb
 
 
 def generate_cmr_response():
@@ -47,8 +48,15 @@ class TestCMRRecommender:
             self.fields_to_merge
         )
 
-    def get_aces_drafts(self):
-        return Change.objects.of_type(DOI).filter(update__campaigns__contains=str(self.aces_uuid))
+    def get_aces_drafts(self, action=None):
+        if action:
+            return Change.objects.of_type(DOI).filter(
+                update__campaigns__contains=str(self.aces_uuid), action=action
+            )
+        else:
+            return Change.objects.of_type(DOI).filter(
+                update__campaigns__contains=str(self.aces_uuid)
+            )
 
     @staticmethod
     def bulk_add_to_db(cmr_recommendations):
@@ -281,7 +289,7 @@ class TestCMRRecommender:
             draft.publish(admin_user)
 
         # make an unpublished update draft
-        aces_dois = DOI.objects.get(campaigns_contains=self.aces_uuid)  # something like this
+        aces_dois = DOI.objects.filter(campaigns__uuid=self.aces_uuid)  # something like this
         uuid_to_update = aces_dois.first().uuid
         doi_content_type = ContentType.objects.get_for_model(DOI)
         update_draft = Change.objects.create(
@@ -292,13 +300,10 @@ class TestCMRRecommender:
         )
         update_draft.save()
 
-        assert Change.objects.of_type(DOI).count() == 0
-        instrument_draft = self.make_create_change_object(InstrumentFactory)
-        instrument_draft_2 = self.make_create_change_object(InstrumentFactory)
-        assert Change.objects.of_type(Instrument).count() == 2
-
-        for test_draft in aces_doi_drafts:
-            assert test_draft.action == 'Update'
+        # assert Change.objects.of_type(DOI).count() == 0
+        # instrument_draft = self.make_create_change_object(InstrumentFactory)
+        # instrument_draft_2 = self.make_create_change_object(InstrumentFactory)
+        # assert Change.objects.of_type(Instrument).count() == 2
 
         aces_doi_drafts = self.get_aces_drafts()
         assert len(aces_doi_drafts) == 6
@@ -311,7 +316,7 @@ class TestCMRRecommender:
         # change a field to ignore and run it again
         field_to_ignore = 'cmr_plats_and_insts'
         assert field_to_ignore in self.fields_to_ignore
-        for doi_draft in aces_doi_drafts:
+        for doi_draft in self.get_aces_drafts():
             doi_draft.update[field_to_ignore] = json.dumps(['random and horrible'])
             doi_draft.save()
 
@@ -319,12 +324,12 @@ class TestCMRRecommender:
         self.are_hashes_identical(hash_dictionary, self.make_hash_dict(self.get_aces_drafts()))
 
         test_concept_id = ''
-        for test_doi in aces_doi_drafts:
+        for test_doi in self.get_aces_drafts():
             if 'GPS' in test_doi.update['instruments']:
                 test_concept_id = test_doi.update['concept_id']
 
         # change a field to merge
-        for doi_draft in aces_doi_drafts:
+        for doi_draft in self.get_aces_drafts():
             fake_instrument = Change.objects.of_type(Instrument).get(update__short_name='fake')
             # delete the old instrument, add a new fake one
             doi_draft.update['instruments'] = [fake_instrument.update['short_name']]
@@ -334,7 +339,8 @@ class TestCMRRecommender:
         # run add to db
         self.bulk_add_to_db(self.make_cmr_recommendation())
         # check that five of the drafts still have the added fake instrument
-        for doi_draft in aces_doi_drafts:
+        for doi_draft in self.get_aces_drafts():
+            assert len(self.get_aces_drafts()) == 6
             assert 'fake' in doi_draft.update['instruments']
             # one of the drafts should have fake_instrument AND should have added GPS
             # NOTE we should figure out which draft has the GPS do this by concept_id
@@ -345,22 +351,28 @@ class TestCMRRecommender:
         # change in fields to compare
         field_to_compare = 'cmr_short_name'
         assert field_to_compare in self.fields_to_compare
-        for doi_drafts in aces_doi_drafts:
-            doi_drafts.update[field_to_compare] = json.dumps(['randomtest'])
+        for doi_drafts in self.get_aces_drafts():
+            doi_drafts.update[field_to_compare] = json.dumps('randomtest')
             doi_drafts.save()
+        assert len(self.get_aces_drafts()) == 6
+        assert len(self.get_aces_drafts(action=Change.Actions.CREATE)) == 6
+        test_data = self.get_aces_drafts(action=Change.Actions.CREATE)
+        test_data_statuses = set([draft.status for draft in test_data])
+        assert test_data_statuses == set([Change.Statuses.IN_PROGRESS])
+
         self.bulk_add_to_db(self.make_cmr_recommendation())
-        self.are_hashes_identical(hash_dictionary, self.make_hash_dict(self.get_aces_drafts()))
-        aces_doi_drafts = self.get_aces_drafts()
-        assert len(aces_doi_drafts) == 6
+        # self.are_hashes_identical(hash_dictionary, self.make_hash_dict(self.get_aces_drafts()))
+        assert len(self.get_aces_drafts()) == 12
+        assert len(self.get_aces_drafts(action=Change.Actions.CREATE)) == 6
+        assert len(self.get_aces_drafts(action=Change.Actions.UPDATE)) == 6
+        for doi_draft in self.get_aces_drafts(action=Change.Actions.UPDATE):
+            assert doi_draft.update['cmr_short_name'] == json.dumps('randomtest')
 
     def test_published_create(self):
         admin_user = UserFactory(role=1)
 
         # run it for the first time
         aces_doi_drafts = self.get_aces_drafts()
-        for draft in aces_doi_drafts:
-            # this sets each draft to in_progress
-            draft.save()
         assert len(aces_doi_drafts) == 0
 
         self.bulk_add_to_db(self.make_cmr_recommendation())
@@ -374,6 +386,7 @@ class TestCMRRecommender:
 
         for test_draft in aces_doi_drafts:
             assert test_draft.status == Change.Statuses.PUBLISHED
+            assert test_draft.action == Change.Actions.CREATE
 
         self.bulk_add_to_db(self.make_cmr_recommendation())
         aces_doi_drafts = self.get_aces_drafts()
