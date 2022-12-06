@@ -41,11 +41,23 @@ def create_gcmd_str(categories):
     return " > ".join(category for category in categories if category)
 
 
+def remove_empties(list_of_strings):
+    return [i for i in list_of_strings if i]
+
+
 class BaseModel(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False, unique=True)
 
     def __str__(self):
         return self.short_name
+
+    @property
+    def searchable_names(self):
+        names = []
+        if "aliases" in [field.name for field in self._meta.fields]:
+            names = list(self.aliases.values_list("short_name", flat=True))
+        names.extend([self.short_name, self.long_name])
+        return remove_empties(names)
 
     class Meta:
         abstract = True
@@ -67,6 +79,10 @@ class Image(BaseModel):
     description = models.CharField(max_length=2048, default="", blank=True)
     owner = models.CharField(max_length=512, default="", blank=True)
     source_url = models.TextField(blank=True, default="")
+
+    @property
+    def searchable_names(self):
+        return remove_empties([self.title])
 
     def __str__(self):
         return self.title or self.image.name
@@ -347,6 +363,19 @@ class GcmdPhenomenon(GcmdKeyword):
         )
         return create_gcmd_str(categories)
 
+    @property
+    def searchable_names(self):
+        return remove_empties(
+            [
+                self.category,
+                self.topic,
+                self.term,
+                self.variable_1,
+                self.variable_2,
+                self.variable_3,
+            ]
+        )
+
     class Meta:
         verbose_name_plural = "Phenomena"
 
@@ -360,6 +389,10 @@ class Website(BaseModel):
     title = models.TextField(default="", blank=True)
     description = models.TextField(default="", blank=True)
     notes_internal = models.TextField(default="", blank=True, help_text=NOTES_INTERNAL_HELP_TEXT)
+
+    @property
+    def searchable_names(self):
+        return remove_empties([self.url, self.title])
 
     def __str__(self):
         return self.title
@@ -867,6 +900,10 @@ class IopSe(BaseModel):
         help_text="Text filename of a specific granule file for reference",
     )
 
+    @property
+    def searchable_names(self):
+        return [self.short_name]
+
     class Meta:
         abstract = True
 
@@ -978,6 +1015,10 @@ class CollectionPeriod(BaseModel):
         deployment = str(self.deployment).replace(campaign + "_", "")
         return f"{campaign} | {deployment} | {self.platform} {platform_id}"
 
+    @property
+    def searchable_names(self):
+        return remove_empties([self.platform.short_name, self.platform.long_name])
+
 
 class DOI(BaseModel):
     concept_id = models.CharField(max_length=512, unique=True)
@@ -1005,6 +1046,10 @@ class DOI(BaseModel):
 
     def get_absolute_url(self):
         return urllib.parse.urljoin("https://doi.org", self.doi)
+
+    @property
+    def searchable_names(self):
+        return remove_empties([self.concept_id, self.long_name, self.doi])
 
     class Meta:
         verbose_name = "DOI"
