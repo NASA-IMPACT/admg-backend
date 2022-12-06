@@ -1,6 +1,6 @@
-# to run this test file, use 'pytest -k api_app'
-
+from datetime import datetime
 import json
+from uuid import uuid4
 
 import pytest
 from django.contrib.contenttypes.models import ContentType
@@ -8,6 +8,29 @@ from django.contrib.contenttypes.models import ContentType
 from admg_webapp.users.models import ADMIN_CODE, STAFF_CODE, User
 from data_models.tests import factories
 from ..models import ApprovalLog, Change
+
+
+class TestChangeStatic:
+    def test_get_processed_value_uuid(self):
+        """Change model fields of UUID type should serialize to a string representation."""
+        u = uuid4()
+        assert Change._get_processed_value(u) == str(u)
+
+    def test_get_processed_value_date(self):
+        """Change model fields of date or datetime type should serialize to their ISO 8601 representation."""
+        d = datetime.now()
+        assert Change._get_processed_value(d) == d.isoformat()
+        assert Change._get_processed_value(d.date()) == d.date().isoformat()
+
+    def test_get_processed_value_list(self):
+        """
+        A list of Change model fields should be serialized
+        individually and returned as a list.
+        """
+        u = uuid4()
+        d = datetime.now()
+        s = "something"
+        assert Change._get_processed_value([u, d, s]) == [str(u), d.isoformat(), s]
 
 
 @pytest.mark.django_db
@@ -172,7 +195,8 @@ class TestChange:
         assert response["success"] is False
         assert (
             response["message"]
-            == "action failed because status was not one of ['Created', 'In Progress', 'Awaiting Review', 'In Review', 'Awaiting Admin Review', 'In Admin Review']"
+            == "action failed because status was not one of ['Created', 'In Progress', 'Awaiting"
+            " Review', 'In Review', 'Awaiting Admin Review', 'In Admin Review']"
         )
 
     def test_staff_cant_publish(self, factory):
@@ -207,13 +231,15 @@ class TestChange:
         assert response["success"] is False
         assert (
             response["message"]
-            == "action failed because status was not one of ['Awaiting Review', 'Awaiting Admin Review']"
+            == "action failed because status was not one of ['Awaiting Review', 'Awaiting Admin"
+            " Review']"
         )
         response = change.claim(admin_user)
         assert response["success"] is False
         assert (
             response["message"]
-            == "action failed because status was not one of ['Awaiting Review', 'Awaiting Admin Review']"
+            == "action failed because status was not one of ['Awaiting Review', 'Awaiting Admin"
+            " Review']"
         )
 
         change.submit(staff_user)
@@ -224,13 +250,15 @@ class TestChange:
         assert response["success"] is False
         assert (
             response["message"]
-            == "action failed because status was not one of ['Awaiting Review', 'Awaiting Admin Review']"
+            == "action failed because status was not one of ['Awaiting Review', 'Awaiting Admin"
+            " Review']"
         )
         response = change.claim(admin_user)
         assert response["success"] is False
         assert (
             response["message"]
-            == "action failed because status was not one of ['Awaiting Review', 'Awaiting Admin Review']"
+            == "action failed because status was not one of ['Awaiting Review', 'Awaiting Admin"
+            " Review']"
         )
 
         change.review(staff_user_2)
@@ -241,13 +269,15 @@ class TestChange:
         assert response["success"] is False
         assert (
             response["message"]
-            == "action failed because status was not one of ['Awaiting Review', 'Awaiting Admin Review']"
+            == "action failed because status was not one of ['Awaiting Review', 'Awaiting Admin"
+            " Review']"
         )
         response = change.claim(admin_user)
         assert response["success"] is False
         assert (
             response["message"]
-            == "action failed because status was not one of ['Awaiting Review', 'Awaiting Admin Review']"
+            == "action failed because status was not one of ['Awaiting Review', 'Awaiting Admin"
+            " Review']"
         )
 
         change.publish(admin_user)
@@ -257,13 +287,15 @@ class TestChange:
         assert response["success"] is False
         assert (
             response["message"]
-            == "action failed because status was not one of ['Awaiting Review', 'Awaiting Admin Review']"
+            == "action failed because status was not one of ['Awaiting Review', 'Awaiting Admin"
+            " Review']"
         )
         response = change.claim(admin_user)
         assert response["success"] is False
         assert (
             response["message"]
-            == "action failed because status was not one of ['Awaiting Review', 'Awaiting Admin Review']"
+            == "action failed because status was not one of ['Awaiting Review', 'Awaiting Admin"
+            " Review']"
         )
 
     def test_admin_unclaim_all(self, factory):
@@ -321,48 +353,3 @@ class TestChange:
         assert response["success"] is False
         assert change.status == Change.Statuses.IN_ADMIN_REVIEW
         assert approval_log.action == ApprovalLog.Actions.CLAIM
-
-
-@pytest.mark.django_db
-@pytest.mark.parametrize(
-    "endpoint",
-    [
-        "platform_type",
-        "home_base",
-        "repository",
-        "focus_area",
-        "season",
-        "measurement_style",
-        "measurement_type",
-        "measurement_region",
-        "geographical_region",
-        "geophysical_concept",
-        "campaign",
-        "platform",
-        "instrument",
-        "deployment",
-        "iop",
-        "significant_event",
-        "partner_org",
-        "collection_period",
-        "gcmd_phenomenon",
-        "gcmd_project",
-        "gcmd_platform",
-        "gcmd_instrument",
-        "alias",
-    ],
-)
-class TestApi:
-    def test_get(self, client, endpoint):
-        response = client.get(f"/api/{endpoint}", headers={"Content-Type": "application/json"})
-        assert response.status_code == 200
-        response_dict = response.json()
-        assert response_dict == {"success": True, "message": "", "data": []}
-
-    def test_post_arent_public(self, client, endpoint):
-        response = client.post(
-            f"/api/{endpoint}", data={}, headers={"Content-Type": "application/json"}
-        )
-        assert response.status_code == 401
-        response_dict = response.json()
-        assert response_dict == {"detail": "Authentication credentials were not provided."}
