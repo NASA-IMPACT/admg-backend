@@ -2,7 +2,7 @@
 
 CASEI is built on top of a PostgreSQL database with multiple tables that each contain fields and foreign keys. Each endpoint in the API will point to a corresponding table. All the available models and fields can be seen at the bottom of this page.
 
-Requesting a bare table endpoint, such as `https://admg.nasa-impact.net/api/campaign/` will return a list of all the metadata items in the table, in this case, for every campaign in the inventory. Specific objects can be retrieved by adding a known UUID after the table name, and if you don't know the UUID, string match searching is available for most fields. Further details on all search types as well as example queries can be found below.
+Requesting a bare table endpoint, such as `https://admg.nasa-impact.net/api/campaign` will return a list of all the metadata items in the table, in this case, for every campaign in the inventory. Specific objects can be retrieved by adding a known UUID after the table name, and if you don't know the UUID, string match searching is available for most fields. Further details on all search types as well as example queries can be found below.
 
 # Queries
 ## Full Table Query
