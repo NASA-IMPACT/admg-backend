@@ -8,7 +8,7 @@ Requesting a bare table endpoint, such as `https://admg.nasa-impact.net/api/camp
 ## Full Table Query
 As mentioned above, the most basic query returns the full data from a table. For example `https://admg.nasa-impact.net/api/campaign` will return a list of all published campaign items in the database.
 
-Below is a contrived example of the results from a `/campaign/` query, with ... indicating the continuation of additional metadata and additional campaigns. Here you can see abbreviated metadata for two campaigns, OLYMPEX and ACES.
+Below is a contrived example of the results from a `campaign` query, with ... indicating the continuation of additional metadata and additional campaigns. Here you can see abbreviated metadata for two campaigns, OLYMPEX and ACES.
 
 ```
 { 
