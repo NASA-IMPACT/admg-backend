@@ -19,7 +19,7 @@ Below is a contrived example of the results from a `campaign` query, with ... in
             "uuid": "2552174b-213c-4bfc-b36a-632fb16c5ec2",
             "short_name": "OLYMPEX",
             "long_name": "Olympic Mountains Experiment",
-            "start_date":
+            "start_date": "2015-11-01",
             "partner_orgs": [
                 "d6ffd2fa-1230-4971-a0a4-832b27b3a6c1"
             ],
