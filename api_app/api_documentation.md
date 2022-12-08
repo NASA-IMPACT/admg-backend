@@ -119,7 +119,7 @@ Each table has a list of default search fields, usually `short_name`, `long_name
 https://admg.nasa-impact.net/api/campaign/search_term=ACES
 ```
 ### Query by specific field
-If you know the exact field and want to search it specifically, use the search_fields parameter.
+If you know the exact field and want to search it specifically, use the search_fields parameter. Here we are looking for the term `ACES` in the `short_name` field of any campaign. 
 ```
 https://admg.nasa-impact.net/api/campaign/search_term=ACES&search_fields=short_name
 ```
