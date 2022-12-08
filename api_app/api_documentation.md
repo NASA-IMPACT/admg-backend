@@ -43,7 +43,7 @@ In the example results from the Campaign table, we saw several UUIDs listed: one
 
 This is because every item has its own identifying UUID, and related objects linked from other tables are always specified using a UUID. For example, each Campaign might have been conducted in conjunction with a Partner Org. However, Partner Org is not a simple string value. It is an independent object with its own table and additional metadata. So the Campaign API response will list Partner Org as a UUID to the relevant object.
 
-If you would like to see the details on that Partner Org, you must query the `/partner_org/` endpoint with the given UUID. Using the metadata shown above, we would make the following query:
+If you would like to see the details on that Partner Org, you must query the `partner_org` endpoint with the given UUID. Using the metadata shown above, we would make the following query:
 ```
 https://admg.nasa-impact.net/api/partner_org/d6ffd2fa-1230-4971-a0a4-832b27b3a6c1
 ```
