@@ -124,7 +124,7 @@ If you know the exact field and want to search it specifically, use the search_f
 https://admg.nasa-impact.net/api/campaign/search_term=ACES&search_fields=short_name
 ```
 ### Query by specific field list
-You can also search by a specific list of fields, just join them with a comma.
+You can also search by a specific list of fields, just join them with a comma. In this example we are searching for the term `ice` anywhere in the `short_name` or `description` field of any campaign.
 ```
 https://admg.nasa-impact.net/api/campaign/search_term=ice&search_fields=short_name,description
 ```
