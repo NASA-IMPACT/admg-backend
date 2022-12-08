@@ -106,7 +106,7 @@ We've seen a few examples already above, but in this section we will demonstrate
 ### Query an entire table
 This query will return metadata for all the campaigns.
 ```
-https://admg.nasa-impact.net/api/campaign/
+https://admg.nasa-impact.net/api/campaign
 ```
 ### Query by UUID
 This query will return metadata for the exact campaign specified by UUID.
