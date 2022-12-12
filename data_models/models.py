@@ -51,7 +51,7 @@ class BaseModel(models.Model):
     @classmethod
     def search(cls, params):
         search_type = params.pop("search_type", "plain")
-        search = params.pop("search_term", None)
+        search = params.pop("search_term", None) or params.pop('search', None)
         search_fields_param = params.pop("search_fields", None)
         if search_fields_param:
             search_fields = search_fields_param.split(",")
