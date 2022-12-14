@@ -48,10 +48,6 @@ jobs:
             requirements/base.txt
             requirements/local.txt
 
-      - name: Install Playwright
-        run: |
-          playwright install --with-deps
-
       - name: Install GDAL
         run: |
           sudo apt-get update
@@ -71,6 +67,10 @@ jobs:
             --upgrade-strategy eager \
             -r requirements/base.txt \
             -r requirements/local.txt
+
+      - name: Install Playwright
+        run: |
+          playwright install --with-deps
 
       - name: Check for missing migrations
         run: |
