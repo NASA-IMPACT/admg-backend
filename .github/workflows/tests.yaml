@@ -48,6 +48,10 @@ jobs:
             requirements/base.txt
             requirements/local.txt
 
+      - name: Install Playwright
+        run: |
+          playwright install --with-deps
+
       - name: Install GDAL
         run: |
           sudo apt-get update
