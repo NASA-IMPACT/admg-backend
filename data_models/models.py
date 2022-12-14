@@ -44,6 +44,31 @@ def create_gcmd_str(categories):
 class BaseModel(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False, unique=True)
 
+    @staticmethod
+    def search_fields():
+        return ["short_name", "long_name"]
+
+    @classmethod
+    def search(cls, params):
+        search_type = params.pop("search_type", "plain")
+        search = params.pop("search_term", None) or params.pop('search', None)
+        search_fields_param = params.pop("search_fields", None)
+        if search_fields_param:
+            search_fields = search_fields_param.split(",")
+        else:
+            search_fields = cls.search_fields()
+
+        queryset = cls.objects.all()
+
+        if search:
+            vector = SearchVector(*search_fields)
+
+            queryset = queryset.annotate(search=vector).filter(
+                search=SearchQuery(search, search_type=search_type)
+            )
+
+        return queryset.filter(**params)
+
     def __str__(self):
         return self.short_name
 
@@ -67,6 +92,10 @@ class Image(BaseModel):
     description = models.CharField(max_length=2048, default="", blank=True)
     owner = models.CharField(max_length=512, default="", blank=True)
     source_url = models.TextField(blank=True, default="")
+
+    @staticmethod
+    def search_fields():
+        return ["title", "description"]
 
     def __str__(self):
         return self.title or self.image.name
@@ -143,6 +172,10 @@ class HomeBase(LimitedInfoPriority):
     location = models.CharField(max_length=512, blank=True, default="")
     additional_info = models.CharField(max_length=2048, blank=True, default="")
 
+    @staticmethod
+    def search_fields():
+        return ["short_name", "long_name", "location"]
+
     class Meta(LimitedInfo.Meta):
         pass
 
@@ -193,6 +226,10 @@ class GeophysicalConcept(LimitedInfoPriority):
 class WebsiteType(LimitedInfoPriority):
     description = models.TextField(blank=True, default="")
 
+    @staticmethod
+    def search_fields():
+        return ["short_name", "long_name", "description"]
+
     def __str__(self):
         return self.long_name
 
@@ -218,6 +255,10 @@ class Alias(BaseModel):
     #         app_label="data_models", model=self.model_name.lower()
     #     )
     #     return super(Alias, self).save(*args, **kwargs)
+
+    @staticmethod
+    def search_fields():
+        return ["short_name"]
 
     class Meta:
         verbose_name_plural = "Aliases"
@@ -301,6 +342,10 @@ class GcmdPhenomenon(BaseModel):
     variable_3 = models.CharField(max_length=256, blank=True, default="")
     gcmd_uuid = models.UUIDField(unique=True)
 
+    @staticmethod
+    def search_fields():
+        return ["category", "topic"]
+
     def __str__(self):
         categories = (
             self.category,
@@ -326,6 +371,10 @@ class Website(BaseModel):
     description = models.TextField(default="", blank=True)
     notes_internal = models.TextField(default="", blank=True, help_text=NOTES_INTERNAL_HELP_TEXT)
 
+    @staticmethod
+    def search_fields():
+        return ["title", "description"]
+
     def __str__(self):
         return self.title
 
@@ -338,31 +387,6 @@ class Website(BaseModel):
 class DataModel(LimitedInfo):
     class Meta:
         abstract = True
-
-    @staticmethod
-    def search_fields():
-        return ["short_name", "long_name"]
-
-    @classmethod
-    def search(cls, params):
-        search_type = params.pop("search_type", "plain")
-        search = params.pop("search", None)
-        search_fields_param = params.pop("search_fields", None)
-        if search_fields_param:
-            search_fields = search_fields_param.split(",")
-        else:
-            search_fields = cls.search_fields()
-
-        queryset = cls.objects.all()
-
-        if search:
-            vector = SearchVector(*search_fields)
-
-            queryset = queryset.annotate(search=vector).filter(
-                search=SearchQuery(search, search_type=search_type)
-            )
-
-        return queryset.filter(**params)
 
 
 class Campaign(DataModel):
@@ -762,6 +786,10 @@ class Instrument(DataModel):
     def get_absolute_url(self):
         return urllib.parse.urljoin(FRONTEND_URL, f"/instrument/{self.uuid}/")
 
+    @staticmethod
+    def search_fields():
+        return ["short_name", "long_name", "description"]
+
 
 class Deployment(DataModel):
     campaign = models.ForeignKey(Campaign, on_delete=models.CASCADE, related_name="deployments")
@@ -831,6 +859,10 @@ class IopSe(BaseModel):
         verbose_name="Reference Granule/File",
         help_text="Text filename of a specific granule file for reference",
     )
+
+    @staticmethod
+    def search_fields():
+        return ["short_name", "description"]
 
     class Meta:
         abstract = True
@@ -937,6 +969,10 @@ class CollectionPeriod(BaseModel):
 
     auto_generated = models.BooleanField()
 
+    @staticmethod
+    def search_fields():
+        return ["campaign_deployment_base", "platform_owner"]
+
     def __str__(self):
         platform_id = f"({self.platform_identifier})" if self.platform_identifier else ""
         campaign = str(self.deployment.campaign)
@@ -970,6 +1006,10 @@ class DOI(BaseModel):
 
     def get_absolute_url(self):
         return urllib.parse.urljoin("https://doi.org", self.doi)
+
+    @staticmethod
+    def search_fields():
+        return ["concept_id", "long_name", "doi"]
 
     class Meta:
         verbose_name = "DOI"
