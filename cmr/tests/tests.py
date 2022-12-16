@@ -14,6 +14,7 @@ from data_models.models import Instrument, Platform, Campaign, Deployment, Colle
 from api_app.models import Change
 from cmr.doi_matching import DoiMatcher
 import json
+import os
 
 
 def generate_cmr_response():
@@ -26,8 +27,7 @@ def generate_cmr_response():
     """
 
     cmr_metadata = query_and_process_cmr('campaign', ['ACES'])
-
-    json.dump(cmr_metadata, open('cmr/tests/cmr_response_aces.json', 'w'))
+    json.dump(cmr_metadata, open(os.path.dirname(__file__) + '/cmr_response_aces.json', 'w'))
 
 
 @pytest.mark.django_db
@@ -36,7 +36,9 @@ class TestCMRRecommender:
         self.create_test_data()
         # TODO: HOW DOES THIS WORK, MUST FIX
         campaign = Change.objects.of_type(Campaign).get(update__short_name='ACES')
-        self.cmr_metadata = json.load(open('cmr_response_aces.json', 'r'))
+        self.cmr_metadata = json.load(
+            open(os.path.dirname(__file__) + '/cmr_response_aces.json', 'r')
+        )
         self.aces_uuid = campaign.uuid
 
         self.all_fields = [f.name for f in DOI._meta.fields]
@@ -81,24 +83,17 @@ class TestCMRRecommender:
         )
 
     def create_test_data(self):
-        assert Change.objects.of_type(Instrument).count() == 0
+        """creating the test data"""
         instrument_draft = self.make_create_change_object(InstrumentFactory)
         instrument_draft_2 = self.make_create_change_object(InstrumentFactory)
-        assert Change.objects.of_type(Instrument).count() == 2
 
         platform_draft = self.make_create_change_object(PlatformFactory)
-        assert Change.objects.of_type(Platform).count() == 1
 
         campaign_draft = self.make_create_change_object(CampaignFactory)
-        assert Change.objects.of_type(Campaign).count() == 1
 
         deployment_draft = self.make_create_change_object(DeploymentFactory)
-        assert Change.objects.of_type(Deployment).count() == 1
 
         collection_period_draft = self.make_create_change_object(CollectionPeriodFactory)
-        assert Change.objects.of_type(CollectionPeriod).count() == 1
-        assert Change.objects.of_type(Instrument).count() == 2
-        assert Change.objects.of_type(Platform).count() == 1
 
         Instrument.objects.all().delete()
         Platform.objects.all().delete()
@@ -167,6 +162,9 @@ class TestCMRRecommender:
         return {draft.uuid: hash(draft) for draft in query_object}
 
     def test_test_data(self):
+        """
+        Assert the created test data
+        """
         assert Change.objects.of_type(Instrument).count() == 2
         assert Change.objects.of_type(Platform).count() == 1
         assert Change.objects.of_type(Campaign).count() == 1
@@ -178,6 +176,10 @@ class TestCMRRecommender:
         assert Change.objects.of_type(Campaign).get(update__short_name='ACES')
 
     def test_no_drafts(self):
+        """
+        start with an empty database containing no DOI drafts.
+        run the recommender, end up with exactly 6 unpublished create drafts
+        """
         # tests that when we start with an empty database containing no DOI drafts and
         # run the recommender from scratch, we end up with exactly 6 unpublished create drafts
         aces_doi_drafts = self.get_aces_drafts()
@@ -198,6 +200,10 @@ class TestCMRRecommender:
         assert set(draft.action for draft in aces_doi_drafts) == set([Change.Actions.CREATE])
 
     def test_unpublished_create(self):
+        """
+        If there is an unpublished create draft, compare specific existing fields to CMR.
+        If different, edit the create draft with new metadata. If same, do nothing
+        """
 
         # run it for the first time
         aces_doi_drafts = self.get_aces_drafts()
@@ -234,19 +240,16 @@ class TestCMRRecommender:
         # change a field to merge
         for doi_draft in aces_doi_drafts:
             fake_instrument = Change.objects.of_type(Instrument).get(update__short_name='fake')
-            # fake_instrument = Instrument.objects.get(short_name='fake')
             # delete the old instrument, add a new fake one
             doi_draft.update['instruments'] = [fake_instrument.update['short_name']]
             doi_draft.save()
 
-        # run recommender
-        # run add to db
+        # run recommender and add to db
         self.bulk_add_to_db(self.make_cmr_recommendation())
         # check that five of the drafts still have the added fake instrument
         for doi_draft in aces_doi_drafts:
             assert 'fake' in doi_draft.update['instruments']
             # one of the drafts should have fake_instrument AND should have added GPS
-            # NOTE we should figure out which draft has the GPS do this by concept_id
             if 'GPS' in doi_draft.update['instruments']:
                 if 'fake' in doi_draft.update['instruments']:
                     assert test_concept_id == doi_draft.update['concept_id']
@@ -299,11 +302,6 @@ class TestCMRRecommender:
         )
         update_draft.save()
 
-        # assert Change.objects.of_type(DOI).count() == 0
-        # instrument_draft = self.make_create_change_object(InstrumentFactory)
-        # instrument_draft_2 = self.make_create_change_object(InstrumentFactory)
-        # assert Change.objects.of_type(Instrument).count() == 2
-
         aces_doi_drafts = self.get_aces_drafts()
         assert len(aces_doi_drafts) == 6
 
@@ -342,7 +340,6 @@ class TestCMRRecommender:
             assert len(self.get_aces_drafts()) == 6
             assert 'fake' in doi_draft.update['instruments']
             # one of the drafts should have fake_instrument AND should have added GPS
-            # NOTE we should figure out which draft has the GPS do this by concept_id
             if 'GPS' in doi_draft.update['instruments']:
                 if 'fake' in doi_draft.update['instruments']:
                     assert test_concept_id == doi_draft.update['concept_id']
@@ -355,9 +352,6 @@ class TestCMRRecommender:
             doi_drafts.save()
         assert len(self.get_aces_drafts()) == 6
         assert len(self.get_aces_drafts(action=Change.Actions.CREATE)) == 6
-        # test_data = self.get_aces_drafts(action=Change.Actions.CREATE)
-        # test_data_statuses = set([draft.status for draft in test_data])
-        # assert test_data_statuses == set([Change.Statuses.IN_PROGRESS])
 
         self.bulk_add_to_db(self.make_cmr_recommendation())
         assert len(self.get_aces_drafts()) == 12
@@ -367,6 +361,11 @@ class TestCMRRecommender:
             assert doi_draft.update['cmr_short_name'] == json.dumps('randomtest')
 
     def test_published_create(self):
+        """
+        If there is an published create draft.
+        compare specific existing fields to CMR.
+        If different, add the new update draft with new metadata. If same, do nothing
+        """
         admin_user = UserFactory(role=1)
 
         # run it for the first time
@@ -390,6 +389,19 @@ class TestCMRRecommender:
         aces_doi_drafts = self.get_aces_drafts()
         assert len(aces_doi_drafts) == 6
 
+        hash_dictionary = self.make_hash_dict(aces_doi_drafts)
+        self.bulk_add_to_db(self.make_cmr_recommendation())
+        self.are_hashes_identical(hash_dictionary, self.make_hash_dict(self.get_aces_drafts()))
+
+        field_to_ignore = 'cmr_plats_and_insts'
+        assert field_to_ignore in self.fields_to_ignore
+        for doi_draft in aces_doi_drafts:
+            doi_draft.update[field_to_ignore] = json.dumps(['random and horrible'])
+            doi_draft.save()
+
+        self.bulk_add_to_db(self.make_cmr_recommendation())
+        self.are_hashes_identical(hash_dictionary, self.make_hash_dict(self.get_aces_drafts()))
+
         field_to_compare = 'cmr_short_name'
         assert field_to_compare in self.fields_to_compare
         for doi_drafts in aces_doi_drafts:
@@ -397,5 +409,10 @@ class TestCMRRecommender:
             doi_drafts.save()
 
         self.bulk_add_to_db(self.make_cmr_recommendation())
+
         aces_doi_drafts = self.get_aces_drafts()
         assert len(aces_doi_drafts) == 12
+
+        for doi_draft in aces_doi_drafts:
+            if doi_drafts.update[field_to_compare] == 'randomtest':
+                assert doi_draft.action == Change.Actions.UPDATE
