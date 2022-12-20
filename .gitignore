@@ -285,7 +285,6 @@ cmr/config.py
 *.xlsx
 *.jpg
 *.jpeg
-*.png
 *.gif
 *.sql
 hosts/*

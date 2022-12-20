@@ -5,10 +5,10 @@ from django.urls import reverse
 from admg_webapp.users.models import User
 from admin_ui.views.change import CampaignDetailView
 from api_app.models import Change
+from api_app.tests.test_change import TestChange
 from data_models.models import Campaign, Season
 
 from . import factories
-from api_app.tests.tests import TestChange
 from data_models.tests.factories import CampaignFactory
 
 
