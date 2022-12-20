@@ -1,18 +1,20 @@
+from datetime import date, datetime
 from uuid import UUID, uuid4
 
-from admg_webapp.users.models import ADMIN, User
 from crum import get_current_user
-from data_models import serializers
 from django.apps import apps
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
-from django.db.models import aggregates, expressions, functions, Subquery
+from django.db.models import Subquery, aggregates, expressions, functions
 from django.db.models.fields.json import KeyTextTransform
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from rest_framework.response import Response
 from rest_framework.serializers import ValidationError
+
+from admg_webapp.users.models import ADMIN, User
+from data_models import serializers
 
 
 def generate_failure_response(message):
@@ -334,10 +336,15 @@ class Change(models.Model):
 
     @classmethod
     def _get_processed_value(cls, value):
+        """
+        Serialize field values for storage in JSONField columns.
+        """
         if isinstance(value, UUID):
             return str(value)
         elif isinstance(value, list):
             return [cls._get_processed_value(val) for val in value]
+        elif isinstance(value, date) or isinstance(value, datetime):
+            return value.isoformat()
 
         return value
 
