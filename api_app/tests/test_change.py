@@ -4,9 +4,12 @@ from uuid import uuid4
 
 import pytest
 from django.contrib.contenttypes.models import ContentType
+from rest_framework.serializers import ValidationError
 
-from admg_webapp.users.models import ADMIN_CODE, STAFF_CODE, User
+from admg_webapp.users.models import User
+from admin_ui.tests.factories import UserFactory
 from data_models.tests import factories
+
 from ..models import ApprovalLog, Change
 
 
@@ -45,22 +48,57 @@ class TestChange:
 
     @staticmethod
     def create_users():
-        staff_user = User.objects.create(role=STAFF_CODE, username="staff")
-        staff_user_2 = User.objects.create(role=STAFF_CODE, username="staff_2")
-        admin_user = User.objects.create(role=ADMIN_CODE, username="admin")
-        admin_user_2 = User.objects.create(role=ADMIN_CODE, username="admin_2")
+        staff_user = UserFactory(role=User.Roles.STAFF)
+        staff_user_2 = UserFactory(role=User.Roles.STAFF)
+        admin_user = UserFactory(role=User.Roles.ADMIN)
+        admin_user_2 = UserFactory(role=User.Roles.ADMIN)
         return admin_user, admin_user_2, staff_user, staff_user_2
 
     @staticmethod
-    def make_create_change_object(factory):
+    def make_create_change_object(factory, custom_fields={}):
         """make a Change.Actions.CREATE change object to use during testing"""
         content_type = ContentType.objects.get_for_model(factory._meta.model)
+
+        # _meta.fields does not contain many to many
+        model_field_names = {
+            field.name
+            for field in factory._meta.get_model_class()._meta._forward_fields_map.values()
+        }
+        overrides = {
+            field: value for field, value in custom_fields.items() if field in model_field_names
+        }
 
         return Change.objects.create(
             content_type=content_type,
             status=Change.Statuses.CREATED,
-            action="Create",
-            update=factory.as_change_dict(),
+            action=Change.Actions.CREATE,
+            update={**factory.as_change_dict(), **overrides},
+        )
+
+    @staticmethod
+    def make_update_change_object(factory, create_draft, fields_to_keep=[]):
+        """make a Change.Actions.CREATE change object to use during testing"""
+        content_type = ContentType.objects.get_for_model(factory._meta.model)
+
+        # we want the ability to keep the original's values, say short_name or concept_id
+        # models can't take any field though, so this checks that the fields are real
+        # TODO: move this to an error check?
+        model_field_names = {
+            field.name
+            for field in factory._meta.get_model_class()._meta._forward_fields_map.values()
+        }
+        overrides = {
+            field: create_draft.update[field]
+            for field in fields_to_keep
+            if field in model_field_names
+        }
+
+        return Change.objects.create(
+            content_type=content_type,
+            status=Change.Statuses.CREATED,
+            action=Change.Actions.UPDATE,
+            model_instance_uuid=create_draft.uuid,
+            update={**factory.as_change_dict(), **overrides},
         )
 
     def test_change_query_check(self, factory):
@@ -353,3 +391,77 @@ class TestChange:
         assert response["success"] is False
         assert change.status == Change.Statuses.IN_ADMIN_REVIEW
         assert approval_log.action == ApprovalLog.Actions.CLAIM
+
+    def test_unpublished_unpublished(self, factory):
+        """test that an existing, UNpublished update draft prevents the creation
+        of a second update draft which references the same data_models object"""
+        admin_user, _, _, _ = self.create_users()
+        change = self.make_create_change_object(factory)
+        change.publish(admin_user)
+
+        update = self.make_update_change_object(factory, change)
+        update.save()
+
+        with pytest.raises(ValidationError):
+            update_2 = self.make_update_change_object(factory, change)
+            update_2.save()
+
+    def test_published_unpublished(self, factory):
+        """test that an existing, published update draft does not prevent the creation
+        of a second update draft which references the same data_models object"""
+        admin_user, _, _, _ = self.create_users()
+
+        change = self.make_create_change_object(factory)
+        change.publish(admin_user)
+
+        update = self.make_update_change_object(factory, change)
+        update.save()
+        update.publish(admin_user)
+
+        update_2 = self.make_update_change_object(factory, change)
+        update_2.publish(admin_user)
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "endpoint",
+    [
+        "platform_type",
+        "home_base",
+        "repository",
+        "focus_area",
+        "season",
+        "measurement_style",
+        "measurement_type",
+        "measurement_region",
+        "geographical_region",
+        "geophysical_concept",
+        "campaign",
+        "platform",
+        "instrument",
+        "deployment",
+        "iop",
+        "significant_event",
+        "partner_org",
+        "collection_period",
+        "gcmd_phenomenon",
+        "gcmd_project",
+        "gcmd_platform",
+        "gcmd_instrument",
+        "alias",
+    ],
+)
+class TestApi:
+    def test_get(self, client, endpoint):
+        response = client.get(f"/api/{endpoint}", headers={"Content-Type": "application/json"})
+        assert response.status_code == 200
+        response_dict = response.json()
+        assert response_dict == {"success": True, "message": "", "data": []}
+
+    def test_post_arent_public(self, client, endpoint):
+        response = client.post(
+            f"/api/{endpoint}", data={}, headers={"Content-Type": "application/json"}
+        )
+        assert response.status_code == 401
+        response_dict = response.json()
+        assert response_dict == {"detail": "Authentication credentials were not provided."}

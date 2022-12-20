@@ -436,6 +436,22 @@ class Change(models.Model):
             **({"content_type__model": "deployment"} if self.model_name == "Campaign" else {}),
         )
 
+    def check_prior_unpublished_update_exists(self):
+        """This checks to see there is an existing Update draft which has not yet been published
+        and links to the same data_model as the current proposed draft. The intention is to allow
+        a check to prevent two simultaneous update drafts
+
+        Returns:
+            bool: True if there is existing update draft
+        """
+        if self.action == self.Actions.UPDATE:
+            return bool(
+                Change.objects.filter(model_instance_uuid=self.model_instance_uuid)
+                .exclude(status=self.Statuses.PUBLISHED)
+                .exclude(uuid=self.uuid)
+            )
+        return False
+
     def save(self, *args, post_save=False, **kwargs):
         # do not check for validity of model_name and uuid if it has been approved or rejected.
         # Check is done for the first time only
@@ -453,6 +469,11 @@ class Change(models.Model):
 
         if not self.field_status_tracking:
             self.generate_field_status_tracking_dict()
+
+        if self.check_prior_unpublished_update_exists():
+            raise ValidationError(
+                {"model_instance_uuid": "Unpublished draft already exists for this model uuid."}
+            )
 
         return super().save(*args, **kwargs)
 
