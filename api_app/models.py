@@ -1,7 +1,6 @@
 from datetime import date, datetime
 from uuid import UUID, uuid4
 
-from admg_webapp.users.models import User
 from crum import get_current_user
 from django.apps import apps
 from django.contrib.contenttypes.fields import GenericForeignKey
@@ -14,7 +13,7 @@ from django.dispatch import receiver
 from rest_framework.response import Response
 from rest_framework.serializers import ValidationError
 
-from admg_webapp.users.models import ADMIN, User
+from admg_webapp.users.models import User
 from data_models import serializers
 
 
