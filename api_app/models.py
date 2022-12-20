@@ -41,7 +41,7 @@ def is_not_admin(user):
         [dict]: {success, message}
     """
 
-    if user.get_role_display() != User.Roles.ADMIN.label:
+    if user.role != User.Roles.ADMIN:
         return generate_failure_response("action failed because initiating user was not admin")
 
 
