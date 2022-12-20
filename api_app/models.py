@@ -439,7 +439,7 @@ class Change(models.Model):
     def check_prior_unpublished_update_exists(self):
         """This checks to see there is an existing Update draft which has not yet been published
         and links to the same data_model as the current proposed draft. The intention is to allow
-        a check to prevent two simulataneous update drafts/
+        a check to prevent two simultaneous update drafts
 
         Returns:
             bool: True if there is existing update draft
