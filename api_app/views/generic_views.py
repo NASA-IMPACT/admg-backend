@@ -6,7 +6,7 @@ from rest_framework.generics import RetrieveUpdateDestroyAPIView, ListCreateAPIV
 
 from oauth2_provider.contrib.rest_framework import TokenHasScope
 from data_models import serializers as sz
-from admg_webapp.users.models import STAFF
+from admg_webapp.users.models import User
 from .view_utils import handle_exception, requires_admin_approval
 from ..models import Change
 
@@ -40,7 +40,7 @@ class GetPermissionsMixin(GenericAPIView):
             self.permission_classes = [permissions.IsAuthenticatedOrReadOnly]
         else:
             self.permission_classes = [permissions.IsAuthenticated, TokenHasScope]
-            self.required_scopes = [STAFF]
+            self.required_scopes = [User.Roles.STAFF.label]
         return super().get_permissions()
 
 

@@ -7,7 +7,7 @@ from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit
 
 from api_app.models import Change
-from admg_webapp.users.models import User, ADMIN_CODE
+from admg_webapp.users.models import User
 from data_models import models as data_models
 from ..widgets import IconBooleanWidget
 from ..fields import ChangeMultipleChoiceField
@@ -62,7 +62,7 @@ class TransitionForm(forms.Form):
         if change.status in [Change.Statuses.IN_REVIEW]:
             actions["review"] = "Ready for Admin Review"
 
-        if user.role == ADMIN_CODE:
+        if user.role == User.Roles.ADMIN:
             if change.status in [Change.Statuses.IN_ADMIN_REVIEW]:
                 actions["reject"] = "Requires Adjustments"
 

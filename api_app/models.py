@@ -13,7 +13,7 @@ from django.dispatch import receiver
 from rest_framework.response import Response
 from rest_framework.serializers import ValidationError
 
-from admg_webapp.users.models import ADMIN, User
+from admg_webapp.users.models import User
 from data_models import serializers
 
 
@@ -41,7 +41,7 @@ def is_not_admin(user):
         [dict]: {success, message}
     """
 
-    if user.get_role_display() != ADMIN:
+    if user.role != User.Roles.ADMIN:
         return generate_failure_response("action failed because initiating user was not admin")
 
 
@@ -793,7 +793,7 @@ class Change(models.Model):
 
         # check if unclaiming user is the same as the claiming user or if unclaiming user is admin
         latest_log = self.get_latest_log()
-        if user.get_role_display() != ADMIN:
+        if user.role != User.Roles.ADMIN:
             if latest_log.user != user:
                 return generate_failure_response(
                     "To unclaim an item the user must be the same as the claiming user,"
