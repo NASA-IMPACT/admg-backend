@@ -63,7 +63,6 @@ class ChangeChoiceMixin:
         changes = (
             models.Change.objects.of_type(dest_model)
             .exclude(status=models.Change.Statuses.IN_TRASH)
-            .add_updated_at()
             .annotate(effective_uuid=Coalesce("model_instance_uuid", "uuid"))
             .order_by("effective_uuid", "-updated_at")
         )

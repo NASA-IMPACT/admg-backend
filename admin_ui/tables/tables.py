@@ -482,7 +482,8 @@ class CampaignChangeListTable(LimitedTableBase):
 
     def render_short_name(self, value, record):
         return format_html(
-            '<a href="{form_url}">{label}</a> <a href="{dashboard_url}" class="font-italic small">(dashboard)</a>',
+            '<a href="{form_url}">{label}</a> <a href="{dashboard_url}" class="font-italic'
+            ' small">(dashboard)</a>',
             form_url=reverse('change-update', args=[record.uuid]),
             label=record.update.get('short_name') or '---',
             dashboard_url=reverse('campaign-detail', args=[record.uuid]),
@@ -522,7 +523,7 @@ class ChangeSummaryTable(DraftTableBase):
     content_type__model = tables.Column(
         verbose_name="Model Type", accessor="model_name", order_by="content_type__model"
     )
-    updated_at = tables.DateTimeColumn(verbose_name="Last Edit Date")
+    updated_at = tables.DateTimeColumn(verbose_name="Last Edit Date", accessor="updated_at")
     status = tables.Column(verbose_name="Status", accessor="status")
 
     class Meta:

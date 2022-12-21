@@ -6,7 +6,7 @@ from django.apps import apps
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
-from django.db.models import Subquery, aggregates, expressions, functions
+from django.db.models import expressions, functions, Subquery
 from django.db.models.fields.json import KeyTextTransform
 from django.db.models.signals import post_save
 from django.dispatch import receiver
@@ -101,7 +101,7 @@ class ApprovalLog(models.Model):
         User, on_delete=models.SET_NULL, related_name="user", null=True, blank=True
     )
 
-    date = models.DateTimeField(auto_now_add=True)
+    date = models.DateTimeField(auto_now_add=True, db_index=True)
 
     action = models.IntegerField(choices=Actions.choices, default=Actions.CREATE)
     notes = models.TextField(blank=True, default="")
@@ -123,12 +123,6 @@ class ChangeQuerySet(models.QuerySet):
         Limit changes to only those targeted to provided models
         """
         return self.filter(content_type__model__in=[m._meta.model_name for m in models])
-
-    def add_updated_at(self):
-        """
-        Add the date of the latest related ApprovalLog as a 'updated_at' attribute
-        """
-        return self.annotate(updated_at=aggregates.Max("approvallog__date"))
 
     def prefetch_approvals(self, *, order_by="-date", select_related=("user",)):
         """
@@ -268,6 +262,7 @@ class Change(models.Model):
 
     status = models.IntegerField(choices=Statuses.choices, default=Statuses.IN_PROGRESS)
     update = models.JSONField(default=dict, blank=True)
+    updated_at = models.DateTimeField(blank=True, null=True, db_index=True)
     field_status_tracking = models.JSONField(default=dict, blank=True)
     previous = models.JSONField(default=dict)
 
@@ -842,6 +837,15 @@ class Change(models.Model):
 @receiver(post_save, sender=Change, dispatch_uid="save")
 def create_approval_log_dispatcher(sender, instance, **kwargs):
     instance._add_create_edit_approval_log()
+
+
+@receiver(post_save, sender=ApprovalLog, dispatch_uid="set_change_updated_at")
+def set_change_updated_at(sender, instance, **kwargs):
+    """
+    Set `updated_at` on the related Change object to the value of
+    the ApprovalLog's `date` field.
+    """
+    Change.objects.filter(pk=instance.change.pk).update(updated_at=instance.date)
 
 
 class Recommendation(models.Model):
