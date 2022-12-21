@@ -5,7 +5,7 @@ services:
     build:
       context: ./
       dockerfile: Dockerfile.prod
-    command: gunicorn config.wsgi:application --bind 0.0.0.0:8000 -w 4 --timeout 300 --access-logfile - --forwarded-allow-ips="*" --proxy-allow-from="*" --worker-tmp-dir /dev/shm
+    command: gunicorn config.wsgi:application --bind 0.0.0.0:8000 -w 4 --timeout 300 --worker-tmp-dir /dev/shm
     volumes:
       - static_volume:/home/app/web/staticfiles
       - media_volume:/home/app/web/media
