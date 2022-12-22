@@ -35,25 +35,19 @@ class CuratorWorkflowTests(StaticLiveServerTestCase):
     def setUpClass(cls):
         os.environ["DJANGO_ALLOW_ASYNC_UNSAFE"] = "true"
         super().setUpClass()
-
-        cls.curator_user = UserFactory.create(username="curator")
+        print("setting up test data")
 
         cls.playwright = sync_playwright().start()
 
         cls.browser = cls.playwright.webkit.launch(timeout=10000)
-        cls.storage = cls.login(
-            cls.browser,
-            cls.curator_user.username,
+
+    def setUp(self):
+        self.curator_user = UserFactory.create(username="curator")
+        self.storage = self.login(
+            self.browser,
+            self.curator_user.username,
             "password",
         )
-        print("Init cookies")
-        print(cls.storage)
-
-    @classmethod
-    def tearDownClass(cls):
-        super().tearDownClass()
-        cls.browser.close()
-        cls.playwright.stop()
 
     @classmethod
     def login(cls, browser: Browser, username: str, password: str, next_path="/") -> StorageState:
