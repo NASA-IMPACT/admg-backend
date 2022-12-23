@@ -90,7 +90,10 @@ class CuratorWorkflowTests(StaticLiveServerTestCase):
             * Geophysical concepts
             * Platform types
             * Data Repository(ies)
-        4. Click Save button
+        4. Click the validate button (validates that all required fields are filled out correctly)
+            * check sucessful validation toast at the top of the page
+        5. Click Save button
+            * check that campaign had been successfully created
         """
         with BrowserContextManager(
             self.browser, self.storage, base_url=self.live_server_url
