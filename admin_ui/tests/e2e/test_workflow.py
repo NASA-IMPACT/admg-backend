@@ -2,7 +2,14 @@ import os
 from typing import Optional
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from django.urls import reverse
-from ..factories import UserFactory
+from ..factories import (
+    UserFactory,
+    SeasonsFactory,
+    FocusAreaFactory,
+    GeophysicalConceptFactory,
+    PlatformTypeFactory,
+    RepositoryFactory,
+)
 
 from playwright.sync_api import Browser, StorageState, sync_playwright, expect
 
@@ -43,6 +50,12 @@ class CuratorWorkflowTests(StaticLiveServerTestCase):
 
     def setUp(self):
         self.curator_user = UserFactory.create(username="curator")
+        self.seasons_factory = SeasonsFactory.create(short_name="Summer")
+        self.focus_area_factory = FocusAreaFactory.create(short_name="Weather")
+        self.repository_factory = RepositoryFactory.create(short_name="Unpublished")
+        self.geophysical_concepts_factory = GeophysicalConceptFactory.create(short_name="Clouds")
+        self.platform_type_factory = PlatformTypeFactory.create(short_name="Jet")
+
         self.storage = self.login(
             self.browser,
             self.curator_user.username,
@@ -120,11 +133,11 @@ class CuratorWorkflowTests(StaticLiveServerTestCase):
             page.select_option("select#id_model_form-nasa_led", label="Yes")
 
             # select dropdowns based on db options
-            # page.select_option("select#id_model_form-seasons", label="?")
-            # page.select_option("select#id_model_form-focus_areas", label="?")
-            # page.select_option("select#id_model_form-geophysical_concepts", label="?")
-            # page.select_option("select#id_model_form-platform_types", label="?")
-            # page.select_option("select#id_model_form-repositories", label="?")
+            page.select_option("select#id_model_form-seasons", label="Summer")
+            page.select_option("select#id_model_form-focus_areas", label="Weather")
+            page.select_option("select#id_model_form-geophysical_concepts", label="Clouds")
+            page.select_option("select#id_model_form-platform_types", label="Jet")
+            page.select_option("select#id_model_form-repositories", label="Unpublished")
 
     def test_login(self):
         with BrowserContextManager(

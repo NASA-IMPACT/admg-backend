@@ -5,7 +5,14 @@ import factory
 
 
 from api_app.models import Change
-from data_models.models import Campaign
+from data_models.models import (
+    Campaign,
+    Season,
+    FocusArea,
+    GeophysicalConcept,
+    PlatformType,
+    Repository,
+)
 
 
 class CampaignFactory(factory.django.DjangoModelFactory):
@@ -18,6 +25,31 @@ class CampaignFactory(factory.django.DjangoModelFactory):
     nasa_led = True
     lead_investigator = "test"
     focus_phenomena = "test"
+
+
+class SeasonsFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = Season
+
+
+class FocusAreaFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = FocusArea
+
+
+class GeophysicalConceptFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = GeophysicalConcept
+
+
+class PlatformTypeFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = PlatformType
+
+
+class RepositoryFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = Repository
 
 
 class ChangeFactory(factory.django.DjangoModelFactory):
