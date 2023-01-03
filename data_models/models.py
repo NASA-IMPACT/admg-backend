@@ -48,6 +48,31 @@ def remove_empties(list_of_strings):
 class BaseModel(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False, unique=True)
 
+    @staticmethod
+    def search_fields():
+        return ["short_name", "long_name"]
+
+    @classmethod
+    def search(cls, params):
+        search_type = params.pop("search_type", "plain")
+        search = params.pop("search_term", None) or params.pop('search', None)
+        search_fields_param = params.pop("search_fields", None)
+        if search_fields_param:
+            search_fields = search_fields_param.split(",")
+        else:
+            search_fields = cls.search_fields()
+
+        queryset = cls.objects.all()
+
+        if search:
+            vector = SearchVector(*search_fields)
+
+            queryset = queryset.annotate(search=vector).filter(
+                search=SearchQuery(search, search_type=search_type)
+            )
+
+        return queryset.filter(**params)
+
     def __str__(self):
         return self.short_name
 
@@ -159,6 +184,10 @@ class HomeBase(LimitedInfoPriority):
     location = models.CharField(max_length=512, blank=True, default="")
     additional_info = models.CharField(max_length=2048, blank=True, default="")
 
+    @staticmethod
+    def search_fields():
+        return ["short_name", "long_name", "location"]
+
     class Meta(LimitedInfo.Meta):
         pass
 
@@ -209,6 +238,10 @@ class GeophysicalConcept(LimitedInfoPriority):
 class WebsiteType(LimitedInfoPriority):
     description = models.TextField(blank=True, default="")
 
+    @staticmethod
+    def search_fields():
+        return ["short_name", "long_name", "description"]
+
     def __str__(self):
         return self.long_name
 
@@ -234,6 +267,10 @@ class Alias(BaseModel):
     #         app_label="data_models", model=self.model_name.lower()
     #     )
     #     return super(Alias, self).save(*args, **kwargs)
+
+    @staticmethod
+    def search_fields():
+        return ["short_name"]
 
     class Meta:
         verbose_name_plural = "Aliases"
@@ -352,6 +389,10 @@ class GcmdPhenomenon(GcmdKeyword):
     gcmd_uuid = models.UUIDField(unique=True)
     gcmd_path = ["category", "topic", "term", "variable_1", "variable_2", "variable_3"]
 
+    @staticmethod
+    def search_fields():
+        return ["category", "topic"]
+
     def __str__(self):
         categories = (
             self.category,
@@ -406,31 +447,6 @@ class Website(BaseModel):
 class DataModel(LimitedInfo):
     class Meta:
         abstract = True
-
-    @staticmethod
-    def search_fields():
-        return ["short_name", "long_name"]
-
-    @classmethod
-    def search(cls, params):
-        search_type = params.pop("search_type", "plain")
-        search = params.pop("search", None)
-        search_fields_param = params.pop("search_fields", None)
-        if search_fields_param:
-            search_fields = search_fields_param.split(",")
-        else:
-            search_fields = cls.search_fields()
-
-        queryset = cls.objects.all()
-
-        if search:
-            vector = SearchVector(*search_fields)
-
-            queryset = queryset.annotate(search=vector).filter(
-                search=SearchQuery(search, search_type=search_type)
-            )
-
-        return queryset.filter(**params)
 
 
 class Campaign(DataModel):
@@ -830,6 +846,10 @@ class Instrument(DataModel):
     def get_absolute_url(self):
         return urllib.parse.urljoin(FRONTEND_URL, f"/instrument/{self.uuid}/")
 
+    @staticmethod
+    def search_fields():
+        return ["short_name", "long_name", "description"]
+
 
 class Deployment(DataModel):
     campaign = models.ForeignKey(Campaign, on_delete=models.CASCADE, related_name="deployments")
@@ -1008,6 +1028,10 @@ class CollectionPeriod(BaseModel):
     notes_public = models.TextField(default="", blank=True, help_text=NOTES_PUBLIC_HELP_TEXT)
 
     auto_generated = models.BooleanField()
+
+    @staticmethod
+    def search_fields():
+        return ["campaign_deployment_base", "platform_owner"]
 
     def __str__(self):
         platform_id = f"({self.platform_identifier})" if self.platform_identifier else ""
