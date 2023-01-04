@@ -68,8 +68,7 @@ POSSIBLE_SEARCHABLE_FIELDS = [
 class BaseModel(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False, unique=True)
 
-    @staticmethod
-    def search_fields(cls):
+    def custom_search_fields(cls):
         all_model_field_names = [field.name for field in cls._meta.fields]
         actual_searchable_names = [
             field
@@ -86,7 +85,7 @@ class BaseModel(models.Model):
         if search_fields_param:
             search_fields = search_fields_param.split(",")
         else:
-            search_fields = cls.search_fields()
+            search_fields = cls.custom_search_fields(cls)
 
         queryset = cls.objects.all()
 
