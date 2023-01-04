@@ -1,6 +1,6 @@
 # to run this test file, use 'pytest -k data_models'
 
-import pytest
+# import pytest
 from data_models.models import create_gcmd_str
 
 # models = [
