@@ -117,12 +117,15 @@ class CuratorWorkflowTests(StaticLiveServerTestCase):
             page.wait_for_url(
                 f"{self.live_server_url}{reverse('change-list', kwargs={'model':'campaign'})}"
             )
+
+            """1. CREATE A NEW CAMPAIGN"""
+
             # Navigate to new campaign creation
             page.locator("a", has_text="Add New Campaign +").click()
             expect(page.locator("h1", has_text="Add new Campaign draft")).to_be_visible()
 
             # Fill in Campaign input fields
-            page.fill("[name=model_form-short_name]", "test_campaign")
+            page.fill("[name=model_form-short_name]", "Test Campaign")
             page.fill("[name=model_form-start_date]", "2022-12-22")
             page.fill("[name=model_form-region_description]", "region description")
             page.fill("[name=model_form-lead_investigator]", "Ali Gator")
@@ -138,6 +141,56 @@ class CuratorWorkflowTests(StaticLiveServerTestCase):
             page.select_option("select#id_model_form-geophysical_concepts", label="Clouds")
             page.select_option("select#id_model_form-platform_types", label="Jet")
             page.select_option("select#id_model_form-repositories", label="Unpublished")
+
+            # Save new campaign and check successful creation
+            page.locator('button:has-text("Save")').click()
+            expect(page.locator("h1", has_text="Campaign Test Campaign")).to_be_visible()
+            expect(page.locator(".alert-success", has_text="Successfully saved")).to_be_visible()
+
+            """2. CREATE A DEPENDENT DEPLOYMENT"""
+
+            # Add New Deployment
+            page.locator("a", has_text="Add New Deployment +").click()
+            expect(page.locator("h1", has_text="Add new Deployment draft")).to_be_visible()
+
+            # Fill in Deployment fields
+            page.fill("[name=model_form-short_name]", "Test Deployment")
+            page.fill("[name=model_form-start_date]", "2022-12-23")
+            page.fill("[name=model_form-end_date]", "2022-12-24")
+
+            # Save new Deployment
+            page.locator('button:has-text("Save")').click()
+            expect(page.locator("h1", has_text="Deployment Test deployment")).to_be_visible()
+            expect(page.locator(".alert-success", has_text="Successfully saved")).to_be_visible()
+
+            """3. CREATE IOP (Intense Operation Period)"""
+
+            # Add New IOP
+            page.locator("a", has_text="Add New IOP +").click()
+            expect(page.locator("h1", has_text="Add new IOP draft")).to_be_visible()
+
+            # Fill in Deployment fields
+            page.fill("[name=model_form-short_name]", "Test IOP")
+            page.fill("[name=model_form-start_date]", "2022-12-23")
+            page.fill("[name=model_form-end_date]", "2022-12-24")
+            page.fill("[name=model_form-description]", "New Description")
+            page.fill("[name=model_form-region_description]", "New Region Description")
+
+            # Save new Deployment
+            page.locator('button:has-text("Save")').click()
+            expect(page.locator("h1", has_text="Iop Test IOP")).to_be_visible()
+            expect(page.locator(".alert-success", has_text="Successfully saved")).to_be_visible()
+
+            """4. CREATE Collection Period (CDPI)"""
+            # Navigate back to test deployment
+            page.locator("a.nav-link", has_text="Deployments").click()
+            expect(page.locator("h1", has_text="Deployment Drafts")).to_be_visible()
+            page.locator("a", has_text="Test Deployment").click()
+            expect(page.locator("h1", has_text="Deployment Test deployment")).to_be_visible()
+
+            # Add new Collection Period (CDPI)
+            page.locator("a", has_text="Add New CDPI +").click()
+            expect(page.locator("h1", has_text="Add new CollectionPeriod draft")).to_be_visible()
 
     def test_login(self):
         with BrowserContextManager(
