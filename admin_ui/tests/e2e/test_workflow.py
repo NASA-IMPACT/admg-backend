@@ -9,6 +9,9 @@ from ..factories import (
     GeophysicalConceptFactory,
     PlatformTypeFactory,
     RepositoryFactory,
+    InstrumentFactory,
+    GcmdPhenomenonFactory,
+    MeasurementRegionFactory,
 )
 
 from playwright.sync_api import Browser, StorageState, sync_playwright, expect
@@ -46,7 +49,7 @@ class CuratorWorkflowTests(StaticLiveServerTestCase):
 
         cls.playwright = sync_playwright().start()
 
-        cls.browser = cls.playwright.webkit.launch(timeout=10000)
+        cls.browser = cls.playwright.webkit.launch(timeout=10000)  # slow_mo=600
 
     def setUp(self):
         self.curator_user = UserFactory.create(username="curator")
@@ -55,6 +58,16 @@ class CuratorWorkflowTests(StaticLiveServerTestCase):
         self.repository_factory = RepositoryFactory.create(short_name="Unpublished")
         self.geophysical_concepts_factory = GeophysicalConceptFactory.create(short_name="Clouds")
         self.platform_type_factory = PlatformTypeFactory.create(short_name="Jet")
+        self.instrument_factory = InstrumentFactory.create(short_name="BBR")
+        self.gcmd_phenomenon_factory = GcmdPhenomenonFactory.create(
+            category="EARTH SCIENCE > AGRICULTURE > ANIMAL COMMODITIES",
+            gcmd_uuid="a943a917-29e0-47e5-a94a-497136f44678",
+        )
+        self.gcmd_phenomenon_factory = MeasurementRegionFactory.create(
+            example="Ionosphere",
+            short_name="Ionosphere",
+            gcmd_uuid="a943a917-29e0-47e5-a94a-497136f44678",
+        )
 
         self.storage = self.login(
             self.browser,
@@ -192,13 +205,60 @@ class CuratorWorkflowTests(StaticLiveServerTestCase):
             page.locator("a", has_text="Add New CDPI +").click()
             expect(page.locator("h1", has_text="Add new CollectionPeriod draft")).to_be_visible()
 
+            # page.select_option("select#id_model_form-platform", label="Jet")
+            # page.select_option("select#id_model_form-instruments", label="BBR")
+
+            page.select_option("select#id_model_form-auto_generated", label="No")
+
+            """5. Add a new Platform * Opens in a new tab"""
+            with context.expect_page() as page_info:
+                page.locator("a", has_text="+ Add new Platform").click(),
+            platform_page = page_info.value
+            expect(platform_page.locator("h1", has_text="Add new Platform draft")).to_be_visible()
+
+            # Fill in the platform details
+            platform_page.fill("[name=model_form-short_name]", "Brand New Platform")
+            platform_page.fill(
+                "[name=model_form-description]", "Really special and original description"
+            )
+            platform_page.select_option("select#id_model_form-stationary", label="No")
+
+            """6. Add a new Instrument Draft"""
+            # Navigate to instrument in new page
+            page.locator("a.nav-link", has_text="Instruments").click()
+            page.locator("a", has_text="Add New Instrument +").click()
+            expect(page.locator("h1", has_text="Add new Instrument draft")).to_be_visible()
+
+            # # Fill in the instrument details
+            page.fill("[name=model_form-short_name]", "Fancy New Instrument")
+            page.fill("[name=model_form-description]", "Brilliant and eloquent description")
+            page.fill("[name=model_form-technical_contact]", "A. Vailability")
+            page.select_option(
+                "select#id_model_form-gcmd_phenomena",
+                label="EARTH SCIENCE > AGRICULTURE > ANIMAL COMMODITIES",
+            )
+            page.fill("[name=model_form-spatial_resolution]", "High")
+            page.fill("[name=model_form-temporal_resolution]", "High")
+
+            page.fill("[name=model_form-radiometric_frequency]", "High")
+            page.select_option(
+                "select#id_model_form-measurement_regions",
+                label="Ionosphere",
+            )
+            page.locator('button:has-text("Save")').click()
+            expect(page.locator("h1", has_text="Instrument Fancy New Instrument")).to_be_visible()
+            expect(page.locator(".alert-success", has_text="Successfully saved")).to_be_visible()
+
+            """7. Run DOI fetcher ???"""
+
+            """8. Publish ???"""
+
     def test_login(self):
         with BrowserContextManager(
             self.browser, self.storage, base_url=self.live_server_url
         ) as context:
             page = context.new_page()
-            resp = page.goto("/")
-            print(resp.status)
+            page.goto("/")
             page.wait_for_url("/")
             assert (
                 page.locator("h1", has_text=f"Welcome, {self.curator_user.username}").is_visible()

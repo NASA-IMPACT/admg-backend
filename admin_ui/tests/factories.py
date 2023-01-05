@@ -12,6 +12,9 @@ from data_models.models import (
     GeophysicalConcept,
     PlatformType,
     Repository,
+    Instrument,
+    GcmdPhenomenon,
+    MeasurementRegion,
 )
 
 
@@ -45,6 +48,21 @@ class GeophysicalConceptFactory(factory.django.DjangoModelFactory):
 class PlatformTypeFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = PlatformType
+
+
+class GcmdPhenomenonFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = GcmdPhenomenon
+
+
+class MeasurementRegionFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = MeasurementRegion
+
+
+class InstrumentFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = Instrument
 
 
 class RepositoryFactory(factory.django.DjangoModelFactory):
