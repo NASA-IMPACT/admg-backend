@@ -59,7 +59,7 @@ POSSIBLE_SEARCHABLE_FIELDS = [
     'doi',
     'concept_id',
     'location',
-    'alias__short_name',
+    'aliases__short_name',
     'platform__short_name',
     'platform__long_name',
 ]
@@ -69,7 +69,7 @@ class BaseModel(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False, unique=True)
 
     def custom_search_fields(cls):
-        all_model_field_names = [field.name for field in cls._meta.fields]
+        all_model_field_names = [field.name for field in cls._meta.get_fields()]
         actual_searchable_names = [
             field
             for field in POSSIBLE_SEARCHABLE_FIELDS
