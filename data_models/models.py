@@ -96,7 +96,7 @@ class BaseModel(models.Model):
                 search=SearchQuery(search, search_type=search_type)
             )
 
-        return queryset.filter(**params)
+        return queryset.filter(**params).distinct('uuid')
 
     def __str__(self):
         return self.short_name
