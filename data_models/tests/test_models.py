@@ -1,33 +1,33 @@
 # to run this test file, use 'pytest -k data_models'
 
 # import pytest
-from data_models.models import create_gcmd_str
+from data_models import models
 
-# models = [
-#     "platform_type",
-#     "home_base",
-#     "repository",
-#     "focus_area",
-#     "season",
-#     "measurement_style",
-#     "measurement_type",
-#     "measurement_region",
-#     "geographical_region",
-#     "geophysical_concept",
-#     "campaign",
-#     "platform",
-#     "instrument",
-#     "deployment",
-#     "iop",
-#     "significant_event",
-#     "partner_org",
-#     "collection_period",
-#     "gcmd_phenomenon",
-#     "gcmd_project",
-#     "gcmd_platform",
-#     "gcmd_instrument",
-#     "alias",
-# ]
+models = [
+    "PlatformType",
+    "HomeBase",
+    "Repository",
+    "FocusArea",
+    "Season",
+    "MeasurementStyle",
+    "MeasurementType",
+    "MeasurementRegion",
+    "GeographicalRegion",
+    "GeophysicalConcept",
+    "Campaign",
+    "Platform",
+    "Instrument",
+    "Deployment",
+    "IOP",
+    "SignificantEvent",
+    "PartnerOrg",
+    "CollectionPeriod",
+    "GcmdPhenomenon",
+    "GcmdProject",
+    "GcmdPlatform",
+    "GcmdInstrument",
+    "Alias",
+]
 
 # searchable_names_defaults = ['short_name', 'long_name']
 
@@ -77,16 +77,43 @@ from data_models.models import create_gcmd_str
 
 
 class TestStandAloneFunctions:
-    # def test_remove_empties(self):
-    #     with_empties = ["str1", "str2", "", None, False, [], "str3"]
-    #     no_empties = ["str1", "str2", "str3"]
-
-    #     assert remove_empties(no_empties) == no_empties  # should output an identical list
-    #     assert (
-    #         remove_empties(with_empties) == no_empties
-    #     )  # should output the predefined no_empties list
 
     def test_create_gcmd_str(self):
         categories = ['cat1', 'cat2', 'cat3', None, ""]
 
-        assert create_gcmd_str(categories) == 'cat1 > cat2 > cat3'
+        assert models.create_gcmd_str(categories) == 'cat1 > cat2 > cat3'
+
+
+test will take in each model. each model will crossrefernce the test refernce data. it will be a dict, with the model name and a list of 
+
+for model_name in model_names:
+    model_name.objects.first().custom_search_fields()
+
+from data_models import models
+model_names = [
+    "PlatformType",
+    "HomeBase",
+    "Repository",
+    "FocusArea",
+    "Season",
+    "MeasurementStyle",
+    "MeasurementType",
+    "MeasurementRegion",
+    "GeographicalRegion",
+    "GeophysicalConcept",
+    "Campaign",
+    "Platform",
+    "Instrument",
+    "Deployment",
+    "IOP",
+    "SignificantEvent",
+    "PartnerOrg",
+    "CollectionPeriod",
+    "GcmdPhenomenon",
+    "GcmdProject",
+    "GcmdPlatform",
+    "GcmdInstrument",
+    "Alias",
+]
+
+{model:getattr(models, model).objects.first().custom_search_fields() for model in model_names}

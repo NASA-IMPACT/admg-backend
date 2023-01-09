@@ -41,10 +41,6 @@ def create_gcmd_str(categories):
     return " > ".join(category for category in categories if category)
 
 
-def remove_empties(list_of_strings):
-    return [i for i in list_of_strings if i]
-
-
 POSSIBLE_SEARCHABLE_FIELDS = [
     'short_name',
     'long_name',
