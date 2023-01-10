@@ -1,5 +1,5 @@
 # to run this test file, use 'pytest -k cmr'
-from cmr.cmr import query_and_process_cmr
+
 import pytest
 from django.contrib.contenttypes.models import ContentType
 from admg_webapp.users.tests.factories import UserFactory
@@ -14,53 +14,51 @@ from data_models.models import Instrument, Platform, Campaign, Deployment, Colle
 from api_app.models import Change
 from cmr.doi_matching import DoiMatcher
 import json
-import os
+from generate_cmr_test_data import generate_cmr_response
 
 
-def generate_cmr_response():
-    """Many of our processes rely on first getting information from the CMR API.
-    This function is only run once and it saves a sample CMR file to the repository.
-    All test functions that rely on CMR will use this file, and there is a separate test
-    that evaluates whether CMR still gives the same response.
+class TestTestData:
+    def test_cmr_consistency():
+        """in order to test the actual functions and not CMR itself, most of these tests rely on a
+        hardcopy of the CMR api response. however, if cmr ever experiences a change, we also want
+        to be alerted, as that could impact the application. this test compares our hard copy with
+        cmr's present output"""
 
-    To run this function and generate the file, use a manage.py shell
-    """
-
-    cmr_metadata = query_and_process_cmr('campaign', ['ACES'])
-    json.dump(cmr_metadata, open(os.path.dirname(__file__) + '/cmr_response_aces.json', 'w'))
+        saved_cmr_response = json.load(open('cmr/tests/testdata-cmr_response_aces.json', 'r'))
+        generated_cmr_response = generate_cmr_response()
+        assert saved_cmr_response == generated_cmr_response
 
 
 @pytest.mark.django_db
 class TestCMRRecommender:
     def setup_method(self):
         self.create_test_data()
-        # TODO: HOW DOES THIS WORK, MUST FIX
-        campaign = Change.objects.of_type(Campaign).get(update__short_name='ACES')
-        self.cmr_metadata = json.load(
-            open(os.path.dirname(__file__) + '/cmr_response_aces.json', 'r')
-        )
+        self.cmr_metadata = json.load(open('cmr/tests/testdata-cmr_response_aces.json', 'r'))
         self.num_test_dois = len(self.cmr_metadata)
+        campaign = Change.objects.of_type(Campaign).get(update__short_name='ACES')
         self.aces_uuid = campaign.uuid
 
         self.all_fields = [f.name for f in DOI._meta.fields]
         self.fields_to_compare = DoiMatcher().fields_to_compare
         self.fields_to_merge = DoiMatcher().fields_to_merge
+        # TODO: look at this more closely
         # this is not a perfect list, it includes long_name and uuid
         self.fields_to_ignore = set(set(self.all_fields) - set(self.fields_to_compare)) - set(
             self.fields_to_merge
         )
 
     def get_aces_drafts(self, action=None):
-        """Gets the list of aces objects
+        """Gets the list of ACES objects
 
         Args:
-            action (String, optional): Should be one of the built in action, such as
+            action (String, optional): Should be one of the built in actions, such as
             Change.Actions.CREATE or Change.Actions.UPDATE
             Defaults to None.
 
         Returns:
-            returns a queryset with a list of aces doi objects
+            returns a queryset with a list of ACES doi objects
         """
+
         if action:
             return Change.objects.of_type(DOI).filter(
                 update__campaigns__contains=str(self.aces_uuid), action=action
@@ -83,7 +81,10 @@ class TestCMRRecommender:
 
     @staticmethod
     def draft_updater(draft, overrides):
-        """overrides the test data created"""
+        """takes a fake draft with random data in each field and takes an override dictionary
+        then uses the data in the override dictionary to overwrite certain desired fields with
+        specific field data for testing purposes"""
+
         draft.update = {**draft.update, **overrides}
         draft.save()
 
@@ -106,21 +107,19 @@ class TestCMRRecommender:
         By using the factory method we make a Change.Actions.CREATE change object
         to use during testing
         """
+
+        # these statements will make unpublished change objects, but also published (with no change object history)
+        # supporting objects where necessary.
         instrument_draft = self.make_create_change_object(InstrumentFactory)
-
-        # this is to create some random instrument name and use it in
-        # test cases at a field to merge
-        instrument_draft_2 = self.make_create_change_object(InstrumentFactory)
-
+        instrument_draft_2 = self.make_create_change_object(
+            InstrumentFactory
+        )  # allows us to merge a random instrument as a second field
         platform_draft = self.make_create_change_object(PlatformFactory)
-
         campaign_draft = self.make_create_change_object(CampaignFactory)
-
         deployment_draft = self.make_create_change_object(DeploymentFactory)
-
         collection_period_draft = self.make_create_change_object(CollectionPeriodFactory)
 
-        # making sure no other objects are present
+        # removes all primary published objects while leaving supporting objects (such as seasons)
         Instrument.objects.all().delete()
         Platform.objects.all().delete()
         Campaign.objects.all().delete()
@@ -144,7 +143,7 @@ class TestCMRRecommender:
         self.draft_updater(
             platform_draft,
             {
-                'short_name': 'ALTUS',
+                'short_name': 'ALTUS',  # these are specific short_names found in the test data for ACES, cmr_response_aces.json
             },
         )
         self.draft_updater(
@@ -170,6 +169,8 @@ class TestCMRRecommender:
         admin_user = UserFactory(role=1)
 
         # publishing the test data as a admin user
+        # we do not publish instrument_draft_2 because it is used to test
+        # fields_to_merge, so it needs to be a Change object
         instrument_draft.publish(user=admin_user)
         platform_draft.publish(user=admin_user)
         campaign_draft.publish(user=admin_user)
