@@ -91,8 +91,9 @@ class BaseModel(models.Model):
             queryset = queryset.annotate(search=vector).filter(
                 search=SearchQuery(search, search_type=search_type)
             )
-
-        return queryset.filter(**params).distinct('uuid')
+        # TODO: adding this distinct massively slows down the application.
+        # How can we acheive the same result performantly?
+        return queryset.filter(**params)  # .distinct('uuid')
 
     def __str__(self):
         return self.short_name
