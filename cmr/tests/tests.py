@@ -220,6 +220,7 @@ class TestCMRRecommender:
         assert Change.objects.of_type(CollectionPeriod).count() == 1
 
         assert Change.objects.of_type(Instrument).get(update__short_name='GPS')
+        assert Change.objects.of_type(Instrument).get(update__short_name='fake')
         assert Change.objects.of_type(Platform).get(update__short_name='ALTUS')
         assert Change.objects.of_type(Campaign).get(update__short_name='ACES')
 
@@ -269,27 +270,30 @@ class TestCMRRecommender:
         assert that the hash values are identical.
         """
 
-        # run it for the first time
-        aces_doi_drafts = self.get_aces_drafts()
-        for draft in aces_doi_drafts:
-            # this sets each draft to in_progress
-            draft.save()
-        assert len(aces_doi_drafts) == 0
+        # TODO: remove all this?
+        # for draft in aces_doi_drafts:
+        #     # this sets each draft to in_progress
+        #     draft.save()
+
+        assert len(self.get_aces_drafts()) == 0
 
         self.bulk_add_to_db(self.make_cmr_recommendation())
 
         aces_doi_drafts = self.get_aces_drafts()
         assert len(aces_doi_drafts) == self.num_test_dois
 
-        # do nothing and run it again
+        # we are making a hash at this point because with unedited creates, running the doi recommender
+        # again should produce identical dois. additionally, if we add a field to ignore, it should create
+        # unchanged dois
         hash_dictionary = self.make_hash_dict(aces_doi_drafts)
         self.bulk_add_to_db(self.make_cmr_recommendation())
         self.are_hashes_identical(hash_dictionary, self.make_hash_dict(self.get_aces_drafts()))
 
+        # TODO: this should really test all the fields to ignore, not just one of them
         # change a field to ignore and run it again
         field_to_ignore = 'cmr_plats_and_insts'
         assert field_to_ignore in self.fields_to_ignore
-        for doi_draft in aces_doi_drafts:
+        for doi_draft in self.get_aces_drafts():
             doi_draft.update[field_to_ignore] = json.dumps(['random and horrible'])
             doi_draft.save()
 
