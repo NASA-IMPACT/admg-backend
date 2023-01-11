@@ -3,7 +3,7 @@
 Werkzeug==0.14.1  # pyup: < 0.15 # https://github.com/pallets/werkzeug
 ipdb==0.13.9  # https://github.com/gotcha/ipdb
 Sphinx==2.1.2  # https://github.com/sphinx-doc/sphinx
-psycopg2-binary==2.8.3  # https://github.com/psycopg/psycopg2
+psycopg2-binary==2.9.5  # https://github.com/psycopg/psycopg2
 
 # Testing
 # ------------------------------------------------------------------------------
@@ -22,6 +22,6 @@ pylint-django==2.0.11  # https://github.com/PyCQA/pylint-django
 # ------------------------------------------------------------------------------
 factory-boy==2.12.0  # https://github.com/FactoryBoy/factory_boy
 
-django-debug-toolbar==3.1  # https://github.com/jazzband/django-debug-toolbar
-django-extensions==2.1.9  # https://github.com/django-extensions/django-extensions
+django-debug-toolbar==3.8.1  # https://github.com/jazzband/django-debug-toolbar
+django-extensions==3.2.1  # https://github.com/django-extensions/django-extensions
 pytest-django==3.5.1  # https://github.com/pytest-dev/pytest-django
