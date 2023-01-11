@@ -51,11 +51,13 @@ class TestCMRRecommender:
         )
 
     def get_aces_drafts(self, action=None):
-        """Gets the list of aces objects
+        """Gets all DOI objects associated with the ACES campaign using the
+        associated UUID. If no action is provided, all associated DOIs are
+        returned.
 
         Args:
             action (String, optional): Should be one of the built in action, such as
-            Change.Actions.CREATE or Change.Actions.UPDATE
+            Change.Actions.CREATE ("Create") or Change.Actions.UPDATE ("Update")
             Defaults to None.
 
         Returns:
