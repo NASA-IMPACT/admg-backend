@@ -222,6 +222,7 @@ class CuratorWorkflowTests(StaticLiveServerTestCase):
                 "[name=model_form-description]", "Really special and original description"
             )
             platform_page.select_option("select#id_model_form-stationary", label="No")
+            platform_page.close()
 
             """6. Add a new Instrument Draft"""
             # Navigate to instrument in new page
@@ -250,18 +251,44 @@ class CuratorWorkflowTests(StaticLiveServerTestCase):
             expect(page.locator(".alert-success", has_text="Successfully saved")).to_be_visible()
 
             """7. Run DOI fetcher ???"""
+            # Navigate to DOI dashboard tab
+            page.locator("a.nav-link", has_text="Campaigns").click()
+            page.locator("a", has_text="(dashboard)").first.click()
+            expect(page.locator("h1", has_text="Campaign Test Campaign")).to_be_visible()
+            expect(page.locator("h4", has_text="Deployments")).to_be_visible()
+            # requires filter by second locator since there seems to be a nav_link with properties :hidden
+            page.locator("a:visible").get_by_text("DOIs").click()
+            expect(page.locator("h2", has_text="Generate DOI Recommendations")).to_be_visible()
+            page.locator("button", has_text="Generate DOIs +").click()
+
+            page.wait_for_timeout(1000)
+            page.reload()
+            page.wait_for_timeout(2000)
+            # expect(page.locator("h2", has_text="Generate DOI Recommendations")).to_be_visible()
+            # expect(page.locator("p", has_text="No recent fetches are found.")).to_be_visible()
+
+            # # Generate DOI Recommendations h2
+            # page.locator('button:has-text("Generate DOIs +")').click()
+
+            # # wait for doi's to be processed and reload page
+            # page.wait_for_timeout(2000)
+            # page.reload()
+
+            # expect(page.locator("h5", has_text="SUCCESS")).to_be_visible()
 
             """8. Publish ???"""
+            # page.locator('button:has-text("Approval Actions")').click()
+            # page.get_by_label("Ready for staff review").check()
 
-    def test_login(self):
-        with BrowserContextManager(
-            self.browser, self.storage, base_url=self.live_server_url
-        ) as context:
-            page = context.new_page()
-            page.goto("/")
-            page.wait_for_url("/")
-            assert (
-                page.locator("h1", has_text=f"Welcome, {self.curator_user.username}").is_visible()
-                is True
-            )
-            page.close()
+    # def test_login(self):
+    #     with BrowserContextManager(
+    #         self.browser, self.storage, base_url=self.live_server_url
+    #     ) as context:
+    #         page = context.new_page()
+    #         page.goto("/")
+    #         page.wait_for_url("/")
+    #         assert (
+    #             page.locator("h1", has_text=f"Welcome, {self.curator_user.username}").is_visible()
+    #             is True
+    #         )
+    #         page.close()

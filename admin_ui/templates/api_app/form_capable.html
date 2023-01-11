@@ -28,11 +28,13 @@ This template prepares a view for form rendering
         Details
       </a>
     </li>
+    {% if change.uuid and object.model_name == "Campaign" %}
     <li class="nav-item">
       <a class="nav-link" href="{% url 'doi-approval' change.uuid %}">
         DOIs
       </a>
     </li>
+    {% endif  %}
     <li class="nav-item">
       <a class="nav-link disabled" href="#">
         Edits 
