@@ -140,6 +140,7 @@ class CuratorWorkflowTests(StaticLiveServerTestCase):
             # Fill in Campaign input fields
             page.fill("[name=model_form-short_name]", "Test Campaign")
             page.fill("[name=model_form-start_date]", "2022-12-22")
+            page.fill("[name=model_form-end_date]", "2022-12-31")
             page.fill("[name=model_form-region_description]", "region description")
             page.fill("[name=model_form-lead_investigator]", "Ali Gator")
             page.fill("[name=model_form-focus_phenomena]", "test focus phenomenon")
@@ -226,7 +227,7 @@ class CuratorWorkflowTests(StaticLiveServerTestCase):
 
             """6. Add a new Instrument Draft"""
             # Navigate to instrument in new page
-            page.locator("a.nav-link", has_text="Instruments").click()
+            page.locator("a.nav-link:visible", has_text="Instruments").click()
             page.locator("a", has_text="Add New Instrument +").click()
             expect(page.locator("h1", has_text="Add new Instrument draft")).to_be_visible()
 
@@ -250,35 +251,57 @@ class CuratorWorkflowTests(StaticLiveServerTestCase):
             expect(page.locator("h1", has_text="Instrument Fancy New Instrument")).to_be_visible()
             expect(page.locator(".alert-success", has_text="Successfully saved")).to_be_visible()
 
-            """7. Run DOI fetcher ???"""
+            """7. Run DOI fetcher"""
             # Navigate to DOI dashboard tab
             page.locator("a.nav-link", has_text="Campaigns").click()
             page.locator("a", has_text="(dashboard)").first.click()
             expect(page.locator("h1", has_text="Campaign Test Campaign")).to_be_visible()
             expect(page.locator("h4", has_text="Deployments")).to_be_visible()
-            # requires filter by second locator since there seems to be a nav_link with properties :hidden
+            # Run DOI fetcher (filter out nav_links with properties :hidden)
             page.locator("a:visible").get_by_text("DOIs").click()
             expect(page.locator("h2", has_text="Generate DOI Recommendations")).to_be_visible()
             page.locator("button", has_text="Generate DOIs +").click()
 
-            page.wait_for_timeout(1000)
-            page.reload()
-            page.wait_for_timeout(2000)
-            # expect(page.locator("h2", has_text="Generate DOI Recommendations")).to_be_visible()
-            # expect(page.locator("p", has_text="No recent fetches are found.")).to_be_visible()
+            # expect(page.locator("h5", has_text="STARTED")).to_be_visible()
 
-            # # Generate DOI Recommendations h2
-            # page.locator('button:has-text("Generate DOIs +")').click()
-
-            # # wait for doi's to be processed and reload page
-            # page.wait_for_timeout(2000)
+            # Reload page to refresh results
+            # page.wait_for_timeout(1000)
             # page.reload()
-
+            # page.wait_for_timeout(2000)
             # expect(page.locator("h5", has_text="SUCCESS")).to_be_visible()
 
-            """8. Publish ???"""
-            # page.locator('button:has-text("Approval Actions")').click()
-            # page.get_by_label("Ready for staff review").check()
+            """8. Publish Campaign"""
+            # Navigate back to campaign
+            page.locator("a.nav-link", has_text="Campaigns").click()
+            page.locator("a", has_text="(dashboard)").first.click()
+
+            # Publication steps
+            # 8.1 Ready for staff Review
+            page.locator('button:has-text("Approval Actions")').click()
+            page.get_by_label("Ready for staff review").check()
+            page.locator('button', has_text="Submit").click()
+
+            # 8.2 Claim for Staff Review
+            page.locator('button:has-text("Approval Actions")').click()
+            page.get_by_label("Claim for Staff Review").check()
+            page.locator('button', has_text="Submit").click()
+
+            # 8.3 Ready for Admin Review
+            page.locator('button:has-text("Approval Actions")').click()
+            page.get_by_label("Ready for Admin Review").check()
+            page.locator('button', has_text="Submit").click()
+
+            # 8.4 Claim for Admin Review
+            page.locator('button:has-text("Approval Actions")').click()
+            page.get_by_label("Claim for Admin Review").check()
+            page.locator('button', has_text="Submit").click()
+
+            # 8.5 Publish to production
+            page.locator('button:has-text("Approval Actions")').click()
+            page.get_by_label("Publish to production").check()
+            page.locator('button', has_text="Submit").click()
+            page.fill("[name=notes]", "This Campaign is ready for production!")
+            page.wait_for_timeout(2000)
 
     # def test_login(self):
     #     with BrowserContextManager(

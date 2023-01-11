@@ -79,6 +79,7 @@ class UserFactory(factory.django.DjangoModelFactory):
     username = factory.Sequence(lambda n: "blah{0}".format(n))
     email = factory.Sequence(lambda n: "someone{0}@localhost".format(n))
     password = make_password("password")
+    role = 1  # 1: Admin 2:Staff (2 is default)
 
     class Meta:
         model = get_user_model()
