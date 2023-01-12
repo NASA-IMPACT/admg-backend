@@ -298,6 +298,17 @@ class TestCMRRecommender:
         Change a field to compare, cmr_short_name to 'randomtest' and save the drafts.
         run the recommender and add to db, assert that with exactly 6 unpublished create drafts exists.
         assert that the hash values are identical.
+
+
+        Context:
+        In the test database exists 6 unpublished CREATE drafts for ACES DOIs, 
+        meaning they are Change objects. This asserts the following test cases:
+        1. If a field in fields_to_compare is changed, that field is overwritten
+        2. If a field in fields_to_merge is changed, the new data coming from CMR
+            should be added to that field, and the existing data kept
+        3. If a field in fields_to_ignore is changed, nothing should happen
+        No new drafts should be created, if any changes are needed, they should
+        be done in the existing drafts.
         """
 
         # TODO: remove all this?
@@ -391,6 +402,20 @@ class TestCMRRecommender:
         assert that with exactly 6 drafts with Change.Actions.CREATE exists.
         assert that with exactly 6 drafts with Change.Actions.UPDATE exists.
         assert that Change.Actions.CREATE drafts is having cmr_short_name as 'randomtest'
+
+        Context:
+        In the test database exists 6 published CREATE drafts for ACES DOIs and 
+        6 unpublished UPDATE drafts, meaning the UPDATE drafts are Change objects. 
+        This asserts the following test cases:
+        1. If a field in fields_to_compare is changed, that field is overwritten 
+            in the existing UPDATE draft
+        2. If a field in fields_to_merge is changed, the new data coming from 
+            CMR should be added to that field, and the existing data kept in the 
+            existing UPDATE draft
+        3. If a field in fields_to_ignore is changed, nothing should happen, no 
+            new draft should be created
+        If any changes are needed, they should be done in the existing UPDATE
+        draft. If not, no new drafts should be made for that DOI
         """
         # make sure there were no prior doi drafts
         aces_doi_drafts = self.get_aces_drafts()
@@ -502,6 +527,19 @@ class TestCMRRecommender:
         run the recommender and add to db
         assert that 12 drafts exists.
         assert that if aces doi draft is having 'randomtest', its action is Change.Actions.UPDATE
+
+        Context:
+        In the test database exists 6 published CREATE drafts for ACES DOIs. 
+        This asserts the following test cases:
+        1. If a field in fields_to_compare is changed, an UPDATE draft is created,
+            that field is overwritten in the new UPDATE draft
+        2. If a field in fields_to_merge is changed, an UPDATE draft is created,
+            the new data coming from CMR should be added to that field, and the 
+            existing data kept in the new UPDATE draft
+        3. If a field in fields_to_ignore is changed, nothing should happen, no 
+            new draft should be created
+        If any changes are needed, an UPDATE draft should be created. If not, no
+        new drafts should be made for that DOI
         """
         admin_user = UserFactory(role=1)
 
