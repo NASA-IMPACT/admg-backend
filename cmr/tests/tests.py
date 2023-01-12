@@ -255,10 +255,11 @@ class TestCMRRecommender:
 
     def test_no_drafts(self):
         """
-        start with an empty database containing no DOI drafts.
-        run the recommender, assert that with exactly 6 unpublished create drafts exists
-        assert the unpublished create drafts status is Change.Statuses.CREATED
-        and action is Change.Actions.CREATE
+        Starts with an empty database, confirms there are no DOI drafts. Runs the
+        CMR Recommender, and asserts that the correct number of DOI objects have
+        been returned by the CMR Recommender. Adds these DOIs to the database,
+        asserts that the number of DOIs is correct and that their status is CREATED
+        and their action is CREATE. 
         """
         # tests that when we start with an empty database containing no DOI drafts and
         # run the recommender from scratch, we end up with exactly 6 unpublished create drafts
