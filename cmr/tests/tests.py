@@ -32,6 +32,12 @@ class TestTestData:
 @pytest.mark.django_db
 class TestCMRRecommender:
     def setup_method(self):
+        """Sets up everything needed for testing. Calls create_test_data to 
+        populate database with necessary objects. Defines all necessary variables
+        for comparison purposes. Categorizes DOI model fields into fields to compare,
+        fields to merge, and fields to ignore. To see a more in-depth description
+        of how these fields are chose, see the doi_matching.py file.
+        """
         self.create_test_data()
         self.cmr_metadata = json.load(open('cmr/tests/testdata-cmr_response_aces.json', 'r'))
         self.num_test_dois = len(self.cmr_metadata)
@@ -72,8 +78,8 @@ class TestCMRRecommender:
 
     @staticmethod
     def bulk_add_to_db(cmr_recommendations):
-        """This method adds a each doi draft to database. To do that we need to
-        call a function add_to_db() from DoiMatcher class from doi_matching.py
+        """Adds each DOI to the database by calling the add_to_db function inside
+        of a loop.
 
         Args:
             cmr_recommendations (list): List of metadata dicts.
@@ -83,16 +89,30 @@ class TestCMRRecommender:
 
     @staticmethod
     def draft_updater(draft, overrides):
-        """takes a fake draft with random data in each field and takes an override dictionary
-        then uses the data in the override dictionary to overwrite certain desired fields with
-        specific field data for testing purposes"""
+        """Takes a fake draft with random data in each field and an override dictionary.
+        Uuses the data in the override dictionary to overwrite certain desired fields with
+        specific field data for testing purposes
+
+        Args:
+            draft (): Change object that needs to be updated
+            overrides (dictionary): Dictionary containing data to be overwritten
+            into specific fields in the provided Change object 
+        """
 
         draft.update = {**draft.update, **overrides}
         draft.save()
 
     @staticmethod
     def make_create_change_object(factory):
-        """make a Change.Actions.CREATE change object to use during testing"""
+        """Creates a Change object with an action of "Create" of a particular 
+        content type based on the provided factory
+        
+        Args:
+            factory (): Factory method for desired object
+
+        Returns:
+            Change object with action of "Create"
+        """
         content_type = ContentType.objects.get_for_model(factory._meta.model)
 
         return Change.objects.create(
@@ -103,11 +123,13 @@ class TestCMRRecommender:
         )
 
     def create_test_data(self):
-        """In this method we create the test data.
-        For every draft, it will be having campaigns,instruments,platforms,
-        collection_periods
-        By using the factory method we make a Change.Actions.CREATE change object
-        to use during testing
+        """Creates the fake data needed for testing purposes. Factories
+        are used to create all objects necessary to test DOI fields. These objects
+        are created as drafts and are not published. To ensure these are all that
+        exist in the test database, all primary objects are deleted. Then the objects
+        created by the factory have their metadata overwritten with specific short 
+        names so that when the CMR Recommender is run it will suggest the appropriate
+        associations. These objects are then published.
         """
 
         # these statements will make unpublished change objects, but also published (with no change object history)
@@ -180,7 +202,9 @@ class TestCMRRecommender:
         collection_period_draft.publish(user=admin_user)
 
     def make_cmr_recommendation(self):
-        """This looks at the cmr data file and makes the cmr_recommendations
+        """Runs the DOI Matcher using the CMR metadata for ACES collected using 
+        generate_cmr_response, creating the metadata recommendations to populate
+        the DOI objects
 
         Returns:
             list of metadata dicts for dataproduct
@@ -189,31 +213,34 @@ class TestCMRRecommender:
 
     @staticmethod
     def are_hashes_identical(original_hashes, new_hashes):
-        """compare the hash values of existing aces doi drafts with new aces doi drafts
+        """Compares two dictionaries containing hash values to ensure the hashes
+        in both dictionaries are identical.
 
         Args:
-            original_hashes (hash values): existing queryset of aces doi drafts
-            new_hashes (hash values): new queryset of aces doi drafts
+            original_hashes (dict): existing qictionary of hash values
+            new_hashes (dict): new dictionary of hash values
         """
         assert len(original_hashes) == len(new_hashes)
         for uuid, original_hash in original_hashes.items():
             assert original_hash == new_hashes.get(uuid)
 
     def make_hash_dict(self, query_object):
-        """converts the aces drafts to hash values
+        """Gets hash values for draft objects and adds them to a dictionary using
+        the draft UUID as the key.
 
         Args:
-            query_object: queryset with a list of aces doi objects
+            query_object (Django Queryset): queryset with a list of draft objects
 
         Returns:
-            Integer values of objects
+            Dictionary of hash values assigned to UUIDs
 
         """
         return {draft.uuid: hash(draft) for draft in query_object}
 
     def test_test_data(self):
-        """This method is making sure that no random data is present.
-        Assert the created test data.
+        """Asserts that the only objects in the database are the objects created
+        for testing purposes by the create_test_data function. Also asserts
+        that the short names are correct for testing purposes.
         """
         assert Change.objects.of_type(Instrument).count() == 2
         assert Change.objects.of_type(Platform).count() == 1
