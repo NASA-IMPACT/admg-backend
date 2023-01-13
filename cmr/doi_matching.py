@@ -26,8 +26,13 @@ class DoiMatcher:
             'cmr_science_keywords',
             'cmr_abstract',
             'cmr_data_formats',
+            'doi',  # if there's a new doi, we want to know
         ]
+        # if a new doi is generated and it differs from an existing draft or published doi on fields_to_compare
+        # the draft DOI will contain the data from CMR, and NOT the data from the existing draft or pubished
         self.fields_to_merge = ['campaigns', 'instruments', 'platforms', 'collection_periods']
+        # if a new doi is generated and it differs from an existing draft or published doi on this field,
+        # the new draft doi should contain a merged version of the data from this field
 
     def universal_get(self, table_name, uuid):
         """Queries the database for a uuid within a table name, but searches
