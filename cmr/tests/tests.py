@@ -14,11 +14,11 @@ from data_models.models import Instrument, Platform, Campaign, Deployment, Colle
 from api_app.models import Change
 from cmr.doi_matching import DoiMatcher
 import json
-from generate_cmr_test_data import generate_cmr_response
+from cmr.tests.generate_cmr_test_data import generate_cmr_response
 
 
 class TestTestData:
-    def test_cmr_consistency():
+    def test_cmr_consistency(self):
         """in order to test the actual functions and not CMR itself, most of these tests rely on a
         hardcopy of the CMR api response. however, if cmr ever experiences a change, we also want
         to be alerted, as that could impact the application. this test compares our hard copy with
@@ -41,11 +41,22 @@ class TestCMRRecommender:
         self.all_fields = [f.name for f in DOI._meta.fields]
         self.fields_to_compare = DoiMatcher().fields_to_compare
         self.fields_to_merge = DoiMatcher().fields_to_merge
-        # TODO: look at this more closely
-        # this is not a perfect list, it includes long_name and uuid
-        self.fields_to_ignore = set(set(self.all_fields) - set(self.fields_to_compare)) - set(
-            self.fields_to_merge
-        )
+
+        # the following fields get ignored, and there will be no draft made if the only change was in this field
+        # see doi matcher for notes on why these are ignored
+        self.fields_to_ignore = {
+            'cmr_plats_and_insts': [
+                'altered data'
+            ],  # curation team doesn't really trust this field, so if they change it, we don't care
+            'date_queried': '2021-06-08T13:07:53.692300',  # date queried will always be different and that's irrelelvant
+            'long_name': 'altered long_name',  # long_name is a custom field allowed to be typed by a curator for human readability. if it's different
+            # that's because a curator created one and the created one should be kept
+        }
+
+        self.fields_to_not_test = [
+            'uuid',  # uuid will always be different and that's irrelelvant
+            'concept_id',  # concept_id will always be the same -- it's the primary key allowing objects to be compared
+        ]
 
     def get_aces_drafts(self, action=None):
         """Gets the list of ACES objects
@@ -209,6 +220,20 @@ class TestCMRRecommender:
         """
         return {draft.uuid: hash(draft) for draft in query_object}
 
+    def test_doi_field_coverage(self):
+        # when DOIs are processed by the recommender, each field is treated differently
+        # this test makes sure that we are still covering all the fields, in case there
+        # is a future change to the DOI model
+
+        fields_considered_by_matcher = set(
+            DoiMatcher().fields_to_compare
+            + DoiMatcher().fields_to_merge
+            + list(self.fields_to_ignore.keys())
+            + self.fields_to_not_test
+        )
+        actual_doi_fields = set([f.name for f in DOI._meta.get_fields()])
+        assert fields_considered_by_matcher == actual_doi_fields
+
     def test_test_data(self):
         """This method is making sure that no random data is present.
         Assert the created test data.
@@ -289,16 +314,18 @@ class TestCMRRecommender:
         self.bulk_add_to_db(self.make_cmr_recommendation())
         self.are_hashes_identical(hash_dictionary, self.make_hash_dict(self.get_aces_drafts()))
 
-        # TODO: this should really test all the fields to ignore, not just one of them
-        # change a field to ignore and run it again
-        field_to_ignore = 'cmr_plats_and_insts'
-        assert field_to_ignore in self.fields_to_ignore
-        for doi_draft in self.get_aces_drafts():
-            doi_draft.update[field_to_ignore] = json.dumps(['random and horrible'])
-            doi_draft.save()
+        # tests every single field to ignore to ensure they are ignored after being edited and having the recommender run again
+        for field_to_ignore, fake_data in self.fields_to_ignore.items():
+            # field_to_ignore = 'cmr_plats_and_insts'
+            # assert field_to_ignore in self.fields_to_ignore
+            for doi_draft in self.get_aces_drafts():
+                doi_draft.update[field_to_ignore] = json.dumps(fake_data)
+                doi_draft.save()
 
-        self.bulk_add_to_db(self.make_cmr_recommendation())
-        self.are_hashes_identical(hash_dictionary, self.make_hash_dict(self.get_aces_drafts()))
+            # run the recommender after updating each field, so we have clarity on which field is broken
+            # if this test fails
+            self.bulk_add_to_db(self.make_cmr_recommendation())
+            self.are_hashes_identical(hash_dictionary, self.make_hash_dict(self.get_aces_drafts()))
 
         test_concept_id = ''
         for test_doi in aces_doi_drafts:
