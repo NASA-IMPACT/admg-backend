@@ -11,6 +11,4 @@ RUN apt-get update --fix-missing && apt-get install -y gdal-bin libgdal-dev post
 
 COPY . /code/
 
-
-# run entrypoint.sh
-# ENTRYPOINT [ "/code/entrypoint.sh" ]
+ENTRYPOINT [ "/code/entrypoint.sh" ]
