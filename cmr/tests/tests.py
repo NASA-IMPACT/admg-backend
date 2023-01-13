@@ -32,6 +32,12 @@ class TestTestData:
 @pytest.mark.django_db
 class TestCMRRecommender:
     def setup_method(self):
+        """Sets up everything needed for testing. Calls create_test_data to 
+        populate database with necessary objects. Defines all necessary variables
+        for comparison purposes. Categorizes DOI model fields into fields to compare,
+        fields to merge, and fields to ignore. To see a more in-depth description
+        of how these fields are chose, see the doi_matching.py file.
+        """
         self.create_test_data()
         self.cmr_metadata = json.load(open('cmr/tests/testdata-cmr_response_aces.json', 'r'))
         self.num_test_dois = len(self.cmr_metadata)
@@ -59,11 +65,13 @@ class TestCMRRecommender:
         ]
 
     def get_aces_drafts(self, action=None):
-        """Gets the list of ACES objects
+        """Gets all DOI objects associated with the ACES campaign using the
+        associated UUID. If no action is provided, all associated DOIs are
+        returned.
 
         Args:
-            action (String, optional): Should be one of the built in actions, such as
-            Change.Actions.CREATE or Change.Actions.UPDATE
+            action (String, optional): Should be one of the built in action, such as
+            Change.Actions.CREATE ("Create") or Change.Actions.UPDATE ("Update")
             Defaults to None.
 
         Returns:
@@ -81,8 +89,8 @@ class TestCMRRecommender:
 
     @staticmethod
     def bulk_add_to_db(cmr_recommendations):
-        """This method adds a each doi draft to database. To do that we need to
-        call a function add_to_db() from DoiMatcher class from doi_matching.py
+        """Adds each DOI to the database by calling the add_to_db function inside
+        of a loop.
 
         Args:
             cmr_recommendations (list): List of metadata dicts.
@@ -92,16 +100,30 @@ class TestCMRRecommender:
 
     @staticmethod
     def draft_updater(draft, overrides):
-        """takes a fake draft with random data in each field and takes an override dictionary
-        then uses the data in the override dictionary to overwrite certain desired fields with
-        specific field data for testing purposes"""
+        """Takes a fake draft with random data in each field and an override dictionary.
+        Uuses the data in the override dictionary to overwrite certain desired fields with
+        specific field data for testing purposes
+
+        Args:
+            draft (): Change object that needs to be updated
+            overrides (dictionary): Dictionary containing data to be overwritten
+            into specific fields in the provided Change object 
+        """
 
         draft.update = {**draft.update, **overrides}
         draft.save()
 
     @staticmethod
     def make_create_change_object(factory):
-        """make a Change.Actions.CREATE change object to use during testing"""
+        """Creates a Change object with an action of "Create" of a particular 
+        content type based on the provided factory
+        
+        Args:
+            factory (): Factory method for desired object
+
+        Returns:
+            Change object with action of "Create"
+        """
         content_type = ContentType.objects.get_for_model(factory._meta.model)
 
         return Change.objects.create(
@@ -112,11 +134,13 @@ class TestCMRRecommender:
         )
 
     def create_test_data(self):
-        """In this method we create the test data.
-        For every draft, it will be having campaigns,instruments,platforms,
-        collection_periods
-        By using the factory method we make a Change.Actions.CREATE change object
-        to use during testing
+        """Creates the fake data needed for testing purposes. Factories
+        are used to create all objects necessary to test DOI fields. These objects
+        are created as drafts and are not published. To ensure these are all that
+        exist in the test database, all primary objects are deleted. Then the objects
+        created by the factory have their metadata overwritten with specific short 
+        names so that when the CMR Recommender is run it will suggest the appropriate
+        associations. These objects are then published.
         """
 
         # these statements will make unpublished change objects, but also published (with no change object history)
@@ -189,7 +213,9 @@ class TestCMRRecommender:
         collection_period_draft.publish(user=admin_user)
 
     def make_cmr_recommendation(self):
-        """This looks at the cmr data file and makes the cmr_recommendations
+        """Runs the DOI Matcher using the CMR metadata for ACES collected using 
+        generate_cmr_response, creating the metadata recommendations to populate
+        the DOI objects
 
         Returns:
             list of metadata dicts for dataproduct
@@ -198,24 +224,26 @@ class TestCMRRecommender:
 
     @staticmethod
     def are_hashes_identical(original_hashes, new_hashes):
-        """compare the hash values of existing aces doi drafts with new aces doi drafts
+        """Compares two dictionaries containing hash values to ensure the hashes
+        in both dictionaries are identical.
 
         Args:
-            original_hashes (hash values): existing queryset of aces doi drafts
-            new_hashes (hash values): new queryset of aces doi drafts
+            original_hashes (dict): existing qictionary of hash values
+            new_hashes (dict): new dictionary of hash values
         """
         assert len(original_hashes) == len(new_hashes)
         for uuid, original_hash in original_hashes.items():
             assert original_hash == new_hashes.get(uuid)
 
     def make_hash_dict(self, query_object):
-        """converts the aces drafts to hash values
+        """Gets hash values for draft objects and adds them to a dictionary using
+        the draft UUID as the key.
 
         Args:
-            query_object: queryset with a list of aces doi objects
+            query_object (Django Queryset): queryset with a list of draft objects
 
         Returns:
-            Integer values of objects
+            Dictionary of hash values assigned to UUIDs
 
         """
         return {draft.uuid: hash(draft) for draft in query_object}
@@ -235,8 +263,9 @@ class TestCMRRecommender:
         assert fields_considered_by_matcher == actual_doi_fields
 
     def test_test_data(self):
-        """This method is making sure that no random data is present.
-        Assert the created test data.
+        """Asserts that the only objects in the database are the objects created
+        for testing purposes by the create_test_data function. Also asserts
+        that the short names are correct for testing purposes.
         """
         assert Change.objects.of_type(Instrument).count() == 2
         assert Change.objects.of_type(Platform).count() == 1
@@ -251,10 +280,11 @@ class TestCMRRecommender:
 
     def test_no_drafts(self):
         """
-        start with an empty database containing no DOI drafts.
-        run the recommender, assert that with exactly 6 unpublished create drafts exists
-        assert the unpublished create drafts status is Change.Statuses.CREATED
-        and action is Change.Actions.CREATE
+        Starts with an empty database, confirms there are no DOI drafts. Runs the
+        CMR Recommender, and asserts that the correct number of DOI objects have
+        been returned by the CMR Recommender. Adds these DOIs to the database,
+        asserts that the number of DOIs is correct and that their status is CREATED
+        and their action is CREATE. 
         """
         # tests that when we start with an empty database containing no DOI drafts and
         # run the recommender from scratch, we end up with exactly 6 unpublished create drafts
@@ -293,6 +323,17 @@ class TestCMRRecommender:
         Change a field to compare, cmr_short_name to 'randomtest' and save the drafts.
         run the recommender and add to db, assert that with exactly 6 unpublished create drafts exists.
         assert that the hash values are identical.
+
+
+        Context:
+        In the test database exists 6 unpublished CREATE drafts for ACES DOIs, 
+        meaning they are Change objects. This asserts the following test cases:
+        1. If a field in fields_to_compare is changed, that field is overwritten
+        2. If a field in fields_to_merge is changed, the new data coming from CMR
+            should be added to that field, and the existing data kept
+        3. If a field in fields_to_ignore is changed, nothing should happen
+        No new drafts should be created, if any changes are needed, they should
+        be done in the existing drafts.
         """
 
         # TODO: remove all this?
@@ -388,6 +429,20 @@ class TestCMRRecommender:
         assert that with exactly 6 drafts with Change.Actions.CREATE exists.
         assert that with exactly 6 drafts with Change.Actions.UPDATE exists.
         assert that Change.Actions.CREATE drafts is having cmr_short_name as 'randomtest'
+
+        Context:
+        In the test database exists 6 published CREATE drafts for ACES DOIs and 
+        6 unpublished UPDATE drafts, meaning the UPDATE drafts are Change objects. 
+        This asserts the following test cases:
+        1. If a field in fields_to_compare is changed, that field is overwritten 
+            in the existing UPDATE draft
+        2. If a field in fields_to_merge is changed, the new data coming from 
+            CMR should be added to that field, and the existing data kept in the 
+            existing UPDATE draft
+        3. If a field in fields_to_ignore is changed, nothing should happen, no 
+            new draft should be created
+        If any changes are needed, they should be done in the existing UPDATE
+        draft. If not, no new drafts should be made for that DOI
         """
         # make sure there were no prior doi drafts
         aces_doi_drafts = self.get_aces_drafts()
@@ -499,6 +554,19 @@ class TestCMRRecommender:
         run the recommender and add to db
         assert that 12 drafts exists.
         assert that if aces doi draft is having 'randomtest', its action is Change.Actions.UPDATE
+
+        Context:
+        In the test database exists 6 published CREATE drafts for ACES DOIs. 
+        This asserts the following test cases:
+        1. If a field in fields_to_compare is changed, an UPDATE draft is created,
+            that field is overwritten in the new UPDATE draft
+        2. If a field in fields_to_merge is changed, an UPDATE draft is created,
+            the new data coming from CMR should be added to that field, and the 
+            existing data kept in the new UPDATE draft
+        3. If a field in fields_to_ignore is changed, nothing should happen, no 
+            new draft should be created
+        If any changes are needed, an UPDATE draft should be created. If not, no
+        new drafts should be made for that DOI
         """
         admin_user = UserFactory(role=1)
 
