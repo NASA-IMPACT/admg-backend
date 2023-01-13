@@ -23,7 +23,7 @@ services:
     tty: true
 
   db:
-    image: postgis/postgis:12.1
+    image: postgis/postgis:12-3.3
     volumes:
       - postgres_data:/var/lib/postgresql/data
     environment:
