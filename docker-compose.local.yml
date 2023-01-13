@@ -23,38 +23,39 @@ services:
     tty: true
 
   db:
-    image: postgis/postgis:13-master
+    image: postgis/postgis:12.1
     volumes:
       - postgres_data:/var/lib/postgresql/data
     environment:
       - POSTGRES_USER=user
       - POSTGRES_PASSWORD=password
       - POSTGRES_DB=admg_webapp
-  # rabbitmq:
-  #   container_name: rabbitmq
-  #   hostname: rabbitmq
-  #   image: rabbitmq:latest
-  #   ports:
-  #     - "5672:5672"
-  #   restart: on-failure
 
-  # celery_worker:
-  #   command: celery -A config worker -l info
-  #   container_name: celery_worker
-  #   hostname: celery_worker
-  #   build:
-  #     context: ./
-  #     dockerfile: Dockerfile.local
-  #   volumes:
-  #     - .:/code
-  #   restart: on-failure
-  #   env_file:
-  #     - ./.env
-  #   environment:
-  #     - MIGRATE=false
-  #   depends_on:
-  #     - web
-  #     - rabbitmq
+  rabbitmq:
+    container_name: rabbitmq
+    hostname: rabbitmq
+    image: rabbitmq:latest
+    ports:
+      - "5672:5672"
+    restart: on-failure
+
+  celery_worker:
+    command: celery -A config worker -l info
+    container_name: celery_worker
+    hostname: celery_worker
+    build:
+      context: ./
+      dockerfile: Dockerfile.local
+    volumes:
+      - .:/code
+    restart: on-failure
+    env_file:
+      - ./.env
+    environment:
+      - MIGRATE=false
+    depends_on:
+      - web
+      - rabbitmq
 
 volumes:
   postgres_data:
