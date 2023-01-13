@@ -16,9 +16,8 @@ RUN pip install flake8
 
 # install dependencies
 COPY requirements/ .
-# RUN pip install -r production.txt
-RUN pip install -r updated_requirements_base.txt
+RUN pip install -r production.txt
 
 COPY . .
 
-# ENTRYPOINT ["/home/app/web/entrypoint.sh"]
+ENTRYPOINT ["/home/app/web/entrypoint.sh"]
