@@ -13,6 +13,8 @@ from ..factories import (
     GcmdPhenomenonFactory,
     MeasurementRegionFactory,
 )
+from celery.contrib.testing.worker import start_worker
+from config.celery_app import app
 
 from playwright.sync_api import Browser, StorageState, sync_playwright, expect
 
@@ -48,8 +50,14 @@ class CuratorWorkflowTests(StaticLiveServerTestCase):
         print("setting up test data")
 
         cls.playwright = sync_playwright().start()
-
         cls.browser = cls.playwright.webkit.launch(timeout=10000)  # slow_mo=600
+        cls.celery_worker = start_worker(app, perform_ping_check=False)
+        cls.celery_worker.__enter__()
+
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+        cls.celery_worker.__exit__(None, None, None)
 
     def setUp(self):
         self.curator_user = UserFactory.create(username="curator")
@@ -144,6 +152,7 @@ class CuratorWorkflowTests(StaticLiveServerTestCase):
             page.fill("[name=model_form-region_description]", "region description")
             page.fill("[name=model_form-lead_investigator]", "Ali Gator")
             page.fill("[name=model_form-focus_phenomena]", "test focus phenomenon")
+            page.fill("[id=id_model_form-spatial_bounds]", "0,0,0,0")
 
             # Select boolean dropdowns
             page.select_option("select#id_model_form-ongoing", label="Yes")
@@ -262,13 +271,13 @@ class CuratorWorkflowTests(StaticLiveServerTestCase):
             expect(page.locator("h2", has_text="Generate DOI Recommendations")).to_be_visible()
             page.locator("button", has_text="Generate DOIs +").click()
 
-            # expect(page.locator("h5", has_text="STARTED")).to_be_visible()
+            expect(page.locator("h5", has_text="STARTED")).to_be_visible()
 
             # Reload page to refresh results
-            # page.wait_for_timeout(1000)
-            # page.reload()
-            # page.wait_for_timeout(2000)
-            # expect(page.locator("h5", has_text="SUCCESS")).to_be_visible()
+            # TODO: This 5 second wait time is arbitrary and possibly flaky!
+            page.wait_for_timeout(5000)
+            page.reload()
+            expect(page.locator("h5", has_text="SUCCESS")).to_be_visible()
 
             """8. Publish Campaign"""
             # Navigate back to campaign
@@ -300,7 +309,7 @@ class CuratorWorkflowTests(StaticLiveServerTestCase):
             page.locator('button:has-text("Approval Actions")').click()
             page.get_by_label("Publish to production").check()
             page.locator('button', has_text="Submit").click()
-            page.fill("[name=notes]", "This Campaign is ready for production!")
+            # page.fill("[name=notes]", "This Campaign is ready for production!")
             page.wait_for_timeout(2000)
 
     # def test_login(self):
