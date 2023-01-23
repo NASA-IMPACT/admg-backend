@@ -6,8 +6,8 @@ ENV PYTHONUNBUFFERED=1
 WORKDIR /code
 COPY requirements/ .
 # RUN pip install -r local.txt
-RUN pip install -r updated_requirements_baseandlocal.txt
 RUN apt-get update --fix-missing && apt-get install -y gdal-bin libgdal-dev postgis netcat
+RUN pip install -r updated_requirements_baseandlocal.txt
 
 COPY . /code/
 
