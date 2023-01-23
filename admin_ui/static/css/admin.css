@@ -3,6 +3,24 @@
   font-weight: 700;
 }
 
+header .nav .active {
+  font-weight: inherit;
+  border-bottom: 3px solid #443f3f;
+}
+
+header .nav .nav-link {
+  padding: 0.5rem 0;
+  margin: 0 0.75rem;
+}
+
+.nav-link.disabled {
+  cursor: default
+}
+
+.badge {
+  vertical-align: text-bottom;
+}
+
 .inline-link {
   text-decoration: underline;
 }
