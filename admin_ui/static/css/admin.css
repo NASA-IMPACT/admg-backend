@@ -13,6 +13,10 @@ header .nav .nav-link {
   margin: 0 0.75rem;
 }
 
+.nav-link.disabled {
+  cursor: default
+}
+
 .badge {
   vertical-align: text-bottom;
 }
