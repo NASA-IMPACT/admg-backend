@@ -81,10 +81,10 @@ jobs:
           playwright install --with-deps
 
       - name: Save Test Videos
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: videos
-          path: /videos
+          path: videos/
 
       - name: Check for missing migrations
         run: |
@@ -97,7 +97,7 @@ jobs:
           coverage json -o coverage.json
 
       - name: Save Code Coverage
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: code_coverage
           path: coverage.json
