@@ -1,7 +1,13 @@
 import os
 from typing import Optional
+
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from django.urls import reverse
+from celery.contrib.testing.worker import start_worker
+
+from admg_webapp.users.models import User
+from config.celery_app import app
+from playwright.sync_api import Browser, StorageState, sync_playwright, expect
 from ..factories import (
     UserFactory,
     SeasonsFactory,
@@ -13,10 +19,6 @@ from ..factories import (
     GcmdPhenomenonFactory,
     MeasurementRegionFactory,
 )
-from celery.contrib.testing.worker import start_worker
-from config.celery_app import app
-
-from playwright.sync_api import Browser, StorageState, sync_playwright, expect
 
 
 class BrowserContextManager:
@@ -54,7 +56,7 @@ class CuratorWorkflowTests(StaticLiveServerTestCase):
         cls.celery_worker.__exit__(None, None, None)
 
     def setUp(self):
-        self.curator_user = UserFactory.create(username="curator")
+        self.curator_user = UserFactory.create(username="curator", role=User.Roles.ADMIN)
         self.seasons_factory = SeasonsFactory.create(short_name="Summer")
         self.focus_area_factory = FocusAreaFactory.create(short_name="Weather")
         self.repository_factory = RepositoryFactory.create(short_name="Unpublished")
