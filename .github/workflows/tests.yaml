@@ -80,7 +80,7 @@ jobs:
         run: |
           playwright install --with-deps
 
-      - name: Save Code Coverage
+      - name: Save Test Videos
         uses: actions/upload-artifact@v2
         with:
           name: videos
