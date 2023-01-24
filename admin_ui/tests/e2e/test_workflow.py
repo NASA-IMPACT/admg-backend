@@ -270,7 +270,7 @@ class CuratorWorkflowTests(StaticLiveServerTestCase):
             # Polling of DOIs fetcher until complete (will time out after 10 sec)
             # check every 500 ms.
 
-            def poll_dois_fetcher():
+            def dois_complete():
                 fetch_complete = page.locator("h5", has_text="SUCCESS")
 
                 try:
@@ -282,9 +282,11 @@ class CuratorWorkflowTests(StaticLiveServerTestCase):
             retry_limit = 20
             retry_attempts = 0
 
-            while poll_dois_fetcher() is False and retry_limit > retry_attempts:
+            while not dois_complete() and retry_limit > retry_attempts:
                 retry_attempts += 1
                 page.reload()
+                print("DOIs have not completed fetching. Retrying...")
+
 
             expect(page.locator("h5", has_text="SUCCESS")).to_be_visible()
 
