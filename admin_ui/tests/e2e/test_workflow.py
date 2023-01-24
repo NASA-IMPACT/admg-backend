@@ -273,10 +273,25 @@ class CuratorWorkflowTests(StaticLiveServerTestCase):
 
             expect(page.locator("h5", has_text="STARTED")).to_be_visible()
 
-            # Reload page to refresh results
-            # TODO: This 5 second wait time is arbitrary and possibly flaky!
-            page.wait_for_timeout(5000)
-            page.reload()
+            # Polling of DOIs fetcher until complete (will time out after 10 sec)
+            # check every 500 ms.
+
+            def poll_dois_fetcher():
+                fetch_complete = page.locator("h5", has_text="SUCCESS")
+
+                try:
+                    fetch_complete.wait_for(timeout=500)
+                    return True
+                except:
+                    return False
+
+            retry_limit = 20
+            retry_attempts = 0
+
+            while poll_dois_fetcher() == False and retry_limit > retry_attempts:
+                retry_attempts += 1
+                page.reload()
+
             expect(page.locator("h5", has_text="SUCCESS")).to_be_visible()
 
             """8. Publish Campaign"""
