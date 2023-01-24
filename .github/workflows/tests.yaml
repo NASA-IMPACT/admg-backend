@@ -80,6 +80,12 @@ jobs:
         run: |
           playwright install --with-deps
 
+      - name: Save Code Coverage
+        uses: actions/upload-artifact@v2
+        with:
+          name: videos
+          path: videos
+
       - name: Check for missing migrations
         run: |
           python manage.py makemigrations --check --dry-run
