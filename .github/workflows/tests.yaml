@@ -84,7 +84,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: videos
-          path: videos
+          path: /videos
 
       - name: Check for missing migrations
         run: |
