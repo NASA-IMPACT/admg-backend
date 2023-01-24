@@ -27,15 +27,10 @@ class BrowserContextManager:
         self.storage_state = storage_state
         self.base_url = base_url
 
-        print(f"Storage cookies")
-        print(storage_state)
-
     def __enter__(self):
         self.context = self.browser.new_context(
             storage_state=self.storage_state, base_url=self.base_url, record_video_dir="videos/"
         )
-        print("Context cookies")
-        print(self.context.cookies())
         return self.context
 
     def __exit__(self, exc_type, exc_value, exc_traceback):
@@ -47,7 +42,6 @@ class CuratorWorkflowTests(StaticLiveServerTestCase):
     def setUpClass(cls):
         os.environ["DJANGO_ALLOW_ASYNC_UNSAFE"] = "true"
         super().setUpClass()
-        print("setting up test data")
 
         cls.playwright = sync_playwright().start()
         cls.browser = cls.playwright.webkit.launch(timeout=10000)  # slow_mo=600
@@ -282,13 +276,13 @@ class CuratorWorkflowTests(StaticLiveServerTestCase):
                 try:
                     fetch_complete.wait_for(timeout=500)
                     return True
-                except:
+                except:  # noqa: E722
                     return False
 
             retry_limit = 20
             retry_attempts = 0
 
-            while poll_dois_fetcher() == False and retry_limit > retry_attempts:
+            while poll_dois_fetcher() is False and retry_limit > retry_attempts:
                 retry_attempts += 1
                 page.reload()
 
@@ -326,16 +320,3 @@ class CuratorWorkflowTests(StaticLiveServerTestCase):
             page.locator('button', has_text="Submit").click()
             # page.fill("[name=notes]", "This Campaign is ready for production!")
             page.wait_for_timeout(2000)
-
-    # def test_login(self):
-    #     with BrowserContextManager(
-    #         self.browser, self.storage, base_url=self.live_server_url
-    #     ) as context:
-    #         page = context.new_page()
-    #         page.goto("/")
-    #         page.wait_for_url("/")
-    #         assert (
-    #             page.locator("h1", has_text=f"Welcome, {self.curator_user.username}").is_visible()
-    #             is True
-    #         )
-    #         page.close()
