@@ -287,7 +287,6 @@ class CuratorWorkflowTests(StaticLiveServerTestCase):
                 page.reload()
                 print("DOIs have not completed fetching. Retrying...")
 
-
             expect(page.locator("h5", has_text="SUCCESS")).to_be_visible()
 
             """8. Publish Campaign"""
