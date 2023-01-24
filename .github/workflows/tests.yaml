@@ -80,12 +80,6 @@ jobs:
         run: |
           playwright install --with-deps
 
-      - name: Save Test Videos
-        uses: actions/upload-artifact@v3
-        with:
-          name: videos
-          path: videos/
-
       - name: Check for missing migrations
         run: |
           python manage.py makemigrations --check --dry-run
@@ -95,6 +89,12 @@ jobs:
           coverage run -m pytest
           coverage report -m --skip-covered
           coverage json -o coverage.json
+
+      - name: Save Test Videos
+        uses: actions/upload-artifact@v3
+        with:
+          name: videos
+          path: videos/
 
       - name: Save Code Coverage
         uses: actions/upload-artifact@v3
