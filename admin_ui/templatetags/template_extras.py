@@ -1,6 +1,6 @@
 from django import template
 
-from admin_ui.config import MODEL_CONFIG_MAP
+from api_app.models import Change
 
 register = template.Library()
 
@@ -42,7 +42,7 @@ def classname(obj):
 @register.inclusion_tag('snippets/object_header_tabs.html')
 def object_header_tabs(change: Change):
     """ 
-    Reusable header for canonical object view based
+    Reusable header for canonical object.
     """
     published_uuid = (
         change.model_instance_uuid
