@@ -36,6 +36,10 @@ def keyvalue(dictionary, key):
 
 @register.filter
 def classname(obj):
+    """
+    Helper to retrieve the classname for a given model instance. Useful when needing to
+    provide a classname to a url tag.
+    """
     return obj.__class__.__name__
 
 
