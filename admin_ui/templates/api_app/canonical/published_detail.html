@@ -1,0 +1,22 @@
+{% extends "../layout-header_body.html" %}
+{% load template_extras %}
+
+{% block header %}
+  <div class="col">
+    <h1>{{ object.short_name }} Details</h1>
+  </div>
+  <a href="{% spaceless %}
+    {% if "back" in request.GET %} {{ request.GET.back }}
+    {% else %}{% url 'published-list' object|classname %}
+    {% endif %}
+    {% endspaceless %}">
+    &larr; Back
+  </a>
+{% endblock header %}
+
+{% block main %}
+  {% with main_class="col-lg-8" %}
+    {{ block.super }}
+  {% endwith %}
+  TODO: Show published object: {{ object }}
+{% endblock main %}

@@ -34,6 +34,11 @@ def keyvalue(dictionary, key):
     return dictionary[key]
 
 
+@register.filter
+def classname(obj):
+    return obj.__class__.__name__
+
+
 @register.inclusion_tag('snippets/object_header_tabs.html')
 def object_header_tabs(change: Change):
     """ 
