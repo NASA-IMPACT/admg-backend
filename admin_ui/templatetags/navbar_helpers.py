@@ -23,6 +23,16 @@ def model_nav_link(context, title, link_model):
         "links": LINKS,
     }
 
+@register.inclusion_tag("snippets/sidebar/activelink_model_navitem.html", takes_context=True)
+def canonical_nav_link(context, title, link_model):
+    return {
+        **context.flatten(),  # NOTE: Must pass in context for active_link to work
+        "title": title,
+        "view": "canonical-list",
+        "link_model": link_model,
+        "links": 'TODO',
+    }
+
 
 @register.inclusion_tag("snippets/sidebar/activelink_navitem.html", takes_context=True)
 def nav_link(context, title, view):

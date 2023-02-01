@@ -2,6 +2,12 @@
 {% load navbar_helpers %}
 
 <ul class="nav flex-column flex-nowrap overflow-hidden">
+  <li class="nav-item">{% canonical_nav_link "Campaigns" "campaign" %}</li>
+</ul>
+
+<br />
+
+<ul class="nav flex-column flex-nowrap overflow-hidden">
   <li class="nav-item">
     <a 
       class="nav-link text-truncate {% active_link 'summary' 'active' strict=True %}" 
