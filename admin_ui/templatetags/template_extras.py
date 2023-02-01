@@ -32,3 +32,18 @@ def verbose_name_plural(obj):
 @register.filter()
 def keyvalue(dictionary, key):
     return dictionary[key]
+
+
+@register.inclusion_tag('snippets/object_header_tabs.html')
+def object_header_tabs(change: Change):
+    """ 
+    Reusable header for canonical object view based
+    """
+    published_uuid = (
+        change.model_instance_uuid
+        if change.model_instance_uuid
+        else change.uuid
+        if change.status == change.Statuses.PUBLISHED
+        else None
+    )
+    return {"object": change, "published_uuid": published_uuid}

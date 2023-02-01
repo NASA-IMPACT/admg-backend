@@ -1,0 +1,50 @@
+{% load template_extras %}
+{% load active_link_tags %}
+
+<div class="col">
+  <ul class="nav">
+    <li class="nav-item">
+      <{% if published_uuid %}a{% else %}span{% endif %}
+      class="nav-link {% if not published_uuid %} disabled {% endif %}" 
+      {% if published_uuid %} href="{% url 'published-detail' pk=published_uuid model=view_model %}" {% endif %}
+      >
+        Published
+      </{% if published_uuid %}a{% else %}span{% endif %}>
+    </li>
+    {% if view_model == 'campaign' %}
+    <li class="nav-item">
+      <a 
+        class="nav-link {% active_link 'campaign-detail' pk=object.uuid %}" 
+        href="{% url 'campaign-detail' object.uuid %}"
+      >
+        Details
+      </a>
+    </li>
+    <li class="nav-item">
+      <a 
+        class="nav-link {% active_link 'doi-approval' pk=object.uuid %}" 
+        href="{% url 'doi-approval' object.uuid %}"
+      >
+        DOIs
+      </a>
+    </li>
+    {% endif %}
+    <li class="nav-item">
+      <a 
+        class="nav-link {% active_link 'change-update' pk=object.uuid %}" 
+        href="{% url 'change-update' object.uuid %}"
+      >
+        Edits 
+        <span class="badge badge-pill badge-danger ml-1">In Progress</span>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a 
+        class="nav-link" 
+        href="#"
+      >
+        History 
+      </a>
+    </li>
+  </ul>
+</div>
