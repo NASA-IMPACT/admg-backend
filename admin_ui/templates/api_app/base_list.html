@@ -1,23 +1,2 @@
 {% extends "./layout-header_body.html" %}
 {% load active_link_tags %}
-
-{% block header_tabs %}
-  {# Tabs #}
-  <div class="col pb-3">
-    <ul class="nav nav-tabs" role="tablist">
-      {% if url_name %}
-      <li class="nav-item">
-        <a class="nav-link {% if 'draft' in request.path %} active {% endif %}" href="{% url 'change-list' view_model %}" role="tab" aria-controls="details" aria-selected="true">
-          Drafts
-        </a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link {% if 'published' in request.path %} active {% endif %}" href="{% url 'published-list' view_model %}" role="tab" aria-controls="details" aria-selected="true">
-          Published Content
-        </a>
-      </li>
-      {% endif %}
-    </ul>
-  </div>
-{% endblock header_tabs %}
-
