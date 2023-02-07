@@ -10,7 +10,6 @@ from django.core import serializers
 from api_app.models import Change
 from cmr.cmr import query_and_process_cmr
 from cmr.utils import clean_table_name, purify_list
-from data_models.models import DOI
 
 logger = logging.getLogger(__name__)
 
@@ -19,6 +18,21 @@ class DoiMatcher:
     def __init__(self):
         self.uuid_to_aliases = {}
         self.table_to_valid_uuids = {}
+        self.fields_to_compare = [
+            'cmr_short_name',
+            'cmr_entry_title',
+            'cmr_projects',
+            'cmr_dates',
+            'cmr_science_keywords',
+            'cmr_abstract',
+            'cmr_data_formats',
+            'doi',  # if there's a new doi, we want to know
+        ]
+        # if a new doi is generated and it differs from an existing draft or published doi on fields_to_compare
+        # the draft DOI will contain the data from CMR, and NOT the data from the existing draft or pubished
+        self.fields_to_merge = ['campaigns', 'instruments', 'platforms', 'collection_periods']
+        # if a new doi is generated and it differs from an existing draft or published doi on this field,
+        # the new draft doi should contain a merged version of the data from this field
 
     def universal_get(self, table_name, uuid):
         """Queries the database for a uuid within a table name, but searches
@@ -267,7 +281,27 @@ class DoiMatcher:
 
         return supplemented_metadata_list
 
-    def add_to_db(self, doi):
+    def doi_mismatch(self, doi_recommendation, doi_draft):
+        """Takes a doi_recommendation that includes metadata from CMR and a doi_draft from
+        the admg database and compares specific fields to find a mismatch.
+
+        Args:
+            doi_recommendation (dict): metadata from cmr
+            doi_draft (dict): Change object of type model=doi
+
+        Returns:
+            bool: True if there was a mismatch
+        """
+
+        # TODO: does this actually get the right stuff from the doi recommendation object?
+        return any(
+            [
+                doi_recommendation.get(field) != doi_draft.update.get(field)
+                for field in self.fields_to_compare
+            ]
+        )
+
+    def add_to_db(self, doi_recommendation):
         """After cmr has been queried and each dataproduct has received recommended UUID
         matches, each of this is added to the database. Because DOIs might already exist
         as drafts or db objects, this function will create an update for existing DOIs or
@@ -275,7 +309,7 @@ class DoiMatcher:
         is prioritized, but previously existing UUID links are preserved.
 
         Args:
-            doi (dict): DOI metadata dictionary containing original CMR metadata and recommended
+            doi_recommendation (dict): DOI metadata dictionary containing original CMR metadata and recommended
                 UUID links.
 
         Raises:
@@ -288,67 +322,77 @@ class DoiMatcher:
             str: String indicating action taken by the function
         """
 
-        # search db for existing items with concept_id
-        existing_doi_uuids = self.valid_object_list_generator(
-            "doi", query_parameter="concept_id", query_value=doi["concept_id"]
+        # search db for create and update drafts with concept_id
+        doi_drafts = Change.objects.filter(
+            content_type__model='doi',
+            action__in=[Change.Actions.CREATE, Change.Actions.UPDATE],
+            update__concept_id=doi_recommendation['concept_id'],
         )
-        # this check can fail for some complicated reasons that will be addressed in a future PR
-        # if len(existing_doi_uuids)>1:
-        #     raise ValueError('There has been an internal database error')
 
-        # if none exist add normally as a draft
-        if not existing_doi_uuids:
+        if (
+            unpublished_update := doi_drafts.filter(action=Change.Actions.UPDATE)
+            .exclude(status=Change.Statuses.PUBLISHED)
+            .first()
+        ):
+            # there can only be one unpublished update at a time
+            if self.doi_mismatch(doi_recommendation, unpublished_update):
+                # merge the rec with the unpublished_update
+                # completely replace the fields to compare (metadata from cmr)
+                # append the recomendation fields (recommended by engine and hand modified by human)
+                for field in self.fields_to_compare:
+                    # replaces these fields completely, since they are new and 'correct' from cmr
+                    unpublished_update.update[field] = doi_recommendation[field]
+                for field in self.fields_to_merge:
+                    unpublished_update.update[field].append(doi_recommendation[field])
+                unpublished_update.status = Change.Statuses.CREATED
+                unpublished_update.save()
+
+        elif published_create := doi_drafts.filter(
+            action=Change.Actions.CREATE, status=Change.Statuses.PUBLISHED
+        ).first():
+            for field in self.fields_to_compare:
+                if published_create.update[field] != doi_recommendation[field]:
+                    # make a brand new update
+                    doi_obj = Change(
+                        content_type=ContentType.objects.get(model="doi"),
+                        model_instance_uuid=published_create.uuid,
+                        update=json.loads(json.dumps(doi_recommendation)),
+                        status=Change.Statuses.CREATED,
+                        action=Change.Actions.UPDATE,
+                    )
+                    doi_obj.save()
+                    break
+
+        elif (
+            unpublished_creates := doi_drafts.filter(action=Change.Actions.CREATE)
+            .exclude(status=Change.Statuses.PUBLISHED)
+            .first()
+        ):
+            # call the add to draft function
+            # there should only be one published create per concept_id, although maybe this is not true if stuff was deleted and
+            # then recreated. this is a very fringe possiblity though
+            # needs to be an update that points at published_creates.first().uuid
+            # we are going to make a brand new item, but we are going to populate the update field with stuff that used to be in the
+            # published_create update field and got merged with our recommendations
+            for field in self.fields_to_compare:
+                unpublished_creates.update[field] = doi_recommendation[field]
+            for field in self.fields_to_merge:
+                unpublished_creates.update[field].append(doi_recommendation[field])
+
+            unpublished_creates.status = Change.Statuses.CREATED
+            unpublished_creates.save()
+
+        # there were no matches of any kind, we will make a brand new create draft
+        else:
             doi_obj = Change(
                 content_type=ContentType.objects.get(model="doi"),
                 model_instance_uuid=None,
-                update=json.loads(json.dumps(doi)),
+                update=json.loads(json.dumps(doi_recommendation)),
                 status=Change.Statuses.CREATED,
                 action=Change.Actions.CREATE,
             )
             doi_obj.save()
-
             return "Draft created for DOI"
-
-        uuid = existing_doi_uuids[0]
-        existing_doi = self.universal_get("doi", uuid)
-        # if item exists as a draft, directly update using db functions with same methodology as above
-        if existing_doi.get("change_object"):
-            for field in ["campaigns", "instruments", "platforms", "collection_periods"]:
-                doi[field].extend(existing_doi.get(field))
-                doi[field] = list(set(doi[field]))
-
-            draft = Change.objects.get(uuid=uuid)
-            draft.update = doi
-            draft.save()
-
-            return f"DOI already exists as a draft. Existing draft updated. {uuid}"
-
-        # if db item exists, replace cmr metadata fields and append suggestion fields as an update
-        existing_doi = DOI.objects.all().filter(uuid=uuid).first()
-        existing_campaigns = [str(c.uuid) for c in existing_doi.campaigns.all()]
-        existing_instruments = [str(c.uuid) for c in existing_doi.instruments.all()]
-        existing_platforms = [str(c.uuid) for c in existing_doi.platforms.all()]
-        existing_collection_periods = [str(c.uuid) for c in existing_doi.collection_periods.all()]
-
-        doi["campaigns"].extend(existing_campaigns)
-        doi["instruments"].extend(existing_instruments)
-        doi["platforms"].extend(existing_platforms)
-        doi["collection_periods"].extend(existing_collection_periods)
-
-        for field in ["campaigns", "instruments", "platforms", "collection_periods"]:
-            doi[field] = list(set(doi[field]))
-
-        doi_obj = Change(
-            content_type=ContentType.objects.get(model="doi"),
-            model_instance_uuid=str(uuid),
-            update=json.loads(json.dumps(doi)),
-            status=Change.Statuses.CREATED,
-            action=Change.Actions.UPDATE,
-        )
-
-        doi_obj.save()
-
-        return f"DOI already exists in database. Update draft created. {uuid}"
 
     def generate_recommendations(self, table_name, uuid, development=False):
         """This is the overarching parent function which takes a table_name and a uuid and
@@ -387,7 +431,7 @@ class DoiMatcher:
             pickle.dump(metadata_list, open(f"metadata_{uuid}", "wb"))
 
         supplemented_metadata_list = self.supplement_metadata(metadata_list, development)
-
+        json.dump(supplemented_metadata_list, open('cmr_data.json', 'w'))
         for doi in supplemented_metadata_list:
             logger.debug(self.add_to_db(doi))
 
