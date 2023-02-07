@@ -24,7 +24,7 @@ def log(description, model_form):
     logger.info('-' * 20 + description + '-' * 20)
     logger.info(
         f"model form metadata: {model_form.data.get('model_form-additional_metadata','empty')}"
-    )
+    )  # this is what we typed and what gets displayed unchanged
     logger.info(
         f"initial model form metadata: {model_form.data.get('initial-model_form-additional_metadata','empty')}"
     )
@@ -246,7 +246,10 @@ class ChangeModelFormMixin(ModelFormMixin):
         form.instance.update.update(data_to_update)
         log("model_form after form.instance.update", model_form)
 
-        return self.form_valid(form, model_form)
+        valid_form = self.form_valid(form, model_form)
+        log("model_form after validation", model_form)
+
+        return valid_form
 
     def form_valid(self, form, model_form):
         # If we're running validation...
