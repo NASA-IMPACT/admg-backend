@@ -216,7 +216,7 @@ class ChangeModelFormMixin(ModelFormMixin):
             data=request.POST, prefix=self.destination_model_prefix, files=request.FILES
         )
         model_form.full_clean()
-        log("model_form after full clean", model_form)
+        log("model_form after full clean", form)
 
         validate_model_form = "_validate" in request.POST
         if not form.is_valid() or (validate_model_form and not model_form.is_valid()):
@@ -235,7 +235,7 @@ class ChangeModelFormMixin(ModelFormMixin):
             form.instance.update.update(
                 {k: v for k, v in request.GET.items() if k in model_form.fields}
             )
-        log("model_form before form.instance.update", model_form)
+        log("model_form before form.instance.update", form)
         data_to_update = {
             # Only update fields that can be altered by the form. Otherwise, retain
             # original values from form.instance.update
@@ -244,10 +244,10 @@ class ChangeModelFormMixin(ModelFormMixin):
             if not model_form.fields[k].disabled
         }
         form.instance.update.update(data_to_update)
-        log("model_form after form.instance.update", model_form)
+        log("model_form after form.instance.update", form)
 
         valid_form = self.form_valid(form, model_form)
-        log("model_form after validation", model_form)
+        log("model_form after validation", form)
 
         return valid_form
 
