@@ -23,12 +23,12 @@ logger = logging.getLogger(__name__)
 def log(description, model_form):
     logger.info('-' * 20 + description + '-' * 20)
     logger.info(
-        f"model form metadata: {model_form.data.get('model_form-additional_metadata'),'empty'}"
+        f"model form metadata: {model_form.data.get('model_form-additional_metadata','empty')}"
     )
     logger.info(
-        f"initial model form metadata: {model_form.data.get('initial-model_form-additional_metadata'),'empty'}"
+        f"initial model form metadata: {model_form.data.get('initial-model_form-additional_metadata','empty')}"
     )
-    logger.info(f"change-update: {model_form.data.get('change-update'),'empty'}")
+    logger.info(f"change-update: {model_form.data.get('change-update','empty')}")
     logger.info('-' * 60)
 
 
