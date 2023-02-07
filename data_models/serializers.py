@@ -30,7 +30,7 @@ def get_geojson_from_bb(bb_data):
     return json.dumps(retval)
 
 
-def change_bbox_to_polygon(validated_data, key="spatial_bounds"):
+def change_bbox_to_polygon(validated_data, key="spatial_boundsbounds"):
     """
     change the key to geojson polygon field
 
@@ -404,6 +404,11 @@ class CampaignSerializer(GetAliasSerializer, GetDoiSerializer):
     instruments = serializers.ListField(read_only=True)
     platforms = serializers.ListField(read_only=True)
     website_details = serializers.ListField(read_only=True)
+    spatial_bounds = serializers.ListField(read_only=True)
+
+    # add spatial bounds serializer that gets deployments spatial bounds
+    def get_spatial_bounds(self,obj):
+        return get_uuids(obj.deployments.spatial_bounds)
 
     def get_deployments(self, obj):
         return get_uuids(obj.deployments)
