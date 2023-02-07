@@ -7,6 +7,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.gis.db import models as geomodels
 from django.contrib.postgres.search import SearchQuery, SearchVector
 from django.db import models
+from django.contrib.gis.db.models import Extent
 
 # TODO: Mv to config
 FRONTEND_URL = "https://airborne-inventory.surge.sh/"
@@ -445,11 +446,11 @@ class Campaign(DataModel):
     region_description = models.TextField(
         help_text="Free text words identifying the region/domain for the campaign"
     )
-    spatial_bounds = geomodels.PolygonField(
-        blank=True,
-        null=True,
-        help_text="Latitude & Longitude for domain bounding box; enter as N, S, E, W",
-    )
+    # spatial_bounds = geomodels.PolygonField(
+    #     blank=True,
+    #     null=True,
+    #     help_text="Latitude & Longitude for domain bounding box; enter as N, S, E, W",
+    # )
     seasons = models.ManyToManyField(
         Season,
         related_name="campaigns",
@@ -568,6 +569,10 @@ class Campaign(DataModel):
                 }
             )
         return websites
+
+    @property
+    def get_spatial_bounds(self):
+        return Extent(self.deployments,"spatial_bounds__uuid")
 
     @property
     def significant_events(self):
