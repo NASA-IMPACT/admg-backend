@@ -202,19 +202,20 @@ class ChangeModelFormMixin(ModelFormMixin):
         POST variables and then check if it's valid.
         """
         form = self.get_form()
+        form.full_clean()
+
+        logger.info('-' * 60 + 'initial data' + '-' * 60)
         logger.info(f"Printing request {request.POST}")
         logger.info(f"Printing get items {request.GET.items}")
-        logger.info(f"1 Inside Post Method --> form: {form.data}")
-        form.full_clean()
+        logger.info(f"clean form.data: {form.data}")
+        logger.info('-' * 150)
 
         model_form = self.destination_model_form(
             data=request.POST, prefix=self.destination_model_prefix, files=request.FILES
         )
-
-        # logger.info(f"1 Inside Post Method--> model_form: {model_form.data}")
         model_form.full_clean()
-        log("model form full clean", model_form.data)
-        # logger.info(f"Model Form: {model_form.data}")
+        log("model_form after full clean", model_form)
+
         validate_model_form = "_validate" in request.POST
         if not form.is_valid() or (validate_model_form and not model_form.is_valid()):
             return self.form_invalid(form=form, model_form=model_form)
@@ -232,8 +233,7 @@ class ChangeModelFormMixin(ModelFormMixin):
             form.instance.update.update(
                 {k: v for k, v in request.GET.items() if k in model_form.fields}
             )
-        # logger.info(   f"2 Inside Post Method --> form: {form.data['initial-model_form-additional_metadata']}")
-        log("before data_to_update", model_form.data)
+        log("model_form before form.instance.update", model_form)
         data_to_update = {
             # Only update fields that can be altered by the form. Otherwise, retain
             # original values from form.instance.update
@@ -242,10 +242,7 @@ class ChangeModelFormMixin(ModelFormMixin):
             if not model_form.fields[k].disabled
         }
         form.instance.update.update(data_to_update)
-        log("after data_to_update", model_form.data)
-        # logger.info(f"3 After serialization Inside Post Method --> form: {form.data}")
-        # assert form.instance.update == model_form.data
-        # assert form.instance.update['additional_metadata'] == '"{\\"test8\\":\\"test8\\"}"'
+        log("model_form after form.instance.update", model_form)
 
         return self.form_valid(form, model_form)
 
