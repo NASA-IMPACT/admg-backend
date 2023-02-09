@@ -1,15 +1,19 @@
 # pull official base image
-FROM python:3.8.5 AS builder
+FROM --platform=amd64 ubuntu:focal AS builder
 
 ENV PYTHONUNBUFFERED=1
+
+RUN apt-get update --fix-missing -y && DEBIAN_FRONTEND=noninteractive apt-get install -y python3-pip gdal-bin libgdal-dev postgis netcat
 
 WORKDIR /code
 COPY requirements/ .
 RUN pip install -r local.txt
-RUN apt-get update --fix-missing && apt-get install -y gdal-bin libgdal-dev postgis netcat
 
 COPY . /code/
 
+RUN playwright install --with-deps
+
+RUN ln -s /usr/bin/python3 /usr/local/bin/python
 
 # run entrypoint.sh
 ENTRYPOINT [ "/code/entrypoint.sh" ]
