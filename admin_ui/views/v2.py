@@ -25,7 +25,6 @@ class CanonicalRecordList(mixins.DynamicModelMixin, SingleTableMixin, FilterView
         queryset = (
             Change.objects.filter(action=Change.Actions.CREATE)
             .of_type(self._model_config['model'])
-            .add_updated_at()
             .order_by("-updated_at")
         )
 
