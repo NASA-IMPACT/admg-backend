@@ -7,7 +7,7 @@ from rest_framework.views import APIView
 
 from oauth2_provider.contrib.rest_framework import TokenHasScope
 
-from admg_webapp.users.models import ADMIN, STAFF
+from admg_webapp.users.models import User
 from ..models import ApprovalLog, Change
 from ..serializers import ApprovalLogSerializer, ChangeSerializer
 from .view_utils import handle_exception
@@ -23,7 +23,7 @@ def _validate_update(request, uuid):
 
 class ApprovalLogListView(ListAPIView):
     permission_classes = [permissions.IsAuthenticated, TokenHasScope]
-    required_scopes = [STAFF]
+    required_scopes = [User.Roles.STAFF.label]
 
     queryset = ApprovalLog.objects.all()
     serializer_class = ApprovalLogSerializer
@@ -36,7 +36,7 @@ class ApprovalLogListView(ListAPIView):
 
 class ChangeListView(ListAPIView):
     permission_classes = [permissions.IsAuthenticated, TokenHasScope]
-    required_scopes = [STAFF]
+    required_scopes = [User.Roles.STAFF.label]
 
     queryset = Change.objects.all()
     serializer_class = ChangeSerializer
@@ -49,7 +49,7 @@ class ChangeListView(ListAPIView):
 
 class ChangeListUpdateView(RetrieveUpdateAPIView):
     permission_classes = [permissions.IsAuthenticated, TokenHasScope]
-    required_scopes = [STAFF]
+    required_scopes = [User.Roles.STAFF.label]
 
     lookup_field = "uuid"
     queryset = Change.objects.all()
@@ -79,7 +79,7 @@ notes_param = openapi.Schema(
 
 class ChangeValidationView(APIView):
     permission_classes = [permissions.IsAuthenticated, TokenHasScope]
-    required_scopes = [STAFF]
+    required_scopes = [User.Roles.STAFF.label]
 
     @handle_exception
     def post(self, request, *args, **kwargs):
@@ -90,7 +90,7 @@ class ChangeValidationView(APIView):
 
 class ChangeSubmitView(APIView):
     permission_classes = [permissions.IsAuthenticated, TokenHasScope]
-    required_scopes = [STAFF]
+    required_scopes = [User.Roles.STAFF.label]
 
     @handle_exception
     def post(self, request, *args, **kwargs):
@@ -101,7 +101,7 @@ class ChangeSubmitView(APIView):
 
 class ChangeClaimView(APIView):
     permission_classes = [permissions.IsAuthenticated, TokenHasScope]
-    required_scopes = [STAFF]
+    required_scopes = [User.Roles.STAFF.label]
 
     @handle_exception
     def post(self, request, *args, **kwargs):
@@ -112,7 +112,7 @@ class ChangeClaimView(APIView):
 
 class ChangeUnclaimView(APIView):
     permission_classes = [permissions.IsAuthenticated, TokenHasScope]
-    required_scopes = [STAFF]
+    required_scopes = [User.Roles.STAFF.label]
 
     @handle_exception
     def post(self, request, *args, **kwargs):
@@ -123,7 +123,7 @@ class ChangeUnclaimView(APIView):
 
 class ChangeReviewView(APIView):
     permission_classes = [permissions.IsAuthenticated, TokenHasScope]
-    required_scopes = [STAFF]
+    required_scopes = [User.Roles.STAFF.label]
 
     @handle_exception
     def post(self, request, *args, **kwargs):
@@ -134,7 +134,7 @@ class ChangeReviewView(APIView):
 
 class ChangeRejectView(APIView):
     permission_classes = [permissions.IsAuthenticated, TokenHasScope]
-    required_scopes = [STAFF]
+    required_scopes = [User.Roles.STAFF.label]
 
     @handle_exception
     def post(self, request, *args, **kwargs):
@@ -145,7 +145,7 @@ class ChangeRejectView(APIView):
 
 class ChangePublishView(APIView):
     permission_classes = [permissions.IsAuthenticated, TokenHasScope]
-    required_scopes = [ADMIN]
+    required_scopes = [User.Roles.ADMIN.label]
 
     @handle_exception
     def post(self, request, *args, **kwargs):
