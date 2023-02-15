@@ -36,12 +36,12 @@ services:
     restart: on-failure
 
   celery_worker:
-    command: celery -A config worker -l info
-    container_name: celery_worker
-    hostname: celery_worker
     build:
       context: ./
       dockerfile: Dockerfile.local
+    command: celery -A config worker -l info
+    container_name: celery_worker
+    hostname: celery_worker
     volumes:
       - .:/code
     restart: on-failure
