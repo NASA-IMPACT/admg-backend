@@ -47,8 +47,6 @@ def serialize_model_form(model_form: ModelForm):
             model_field.save(model_field.url, model_form.cleaned_data[name])
             update[name] = model_field.name
         elif isinstance(field, JSONField):
-            if not isinstance(model_form.cleaned_data[name], dict):
-                pass
             model_field_value = getattr(model_form.instance, name)
             update[name] = model_field_value
         else:
