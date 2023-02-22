@@ -22,7 +22,7 @@ class DoiMatcher:
 
     def universal_get(self, table_name, uuid):
         """Queries the database for a uuid within a table name, but searches
-        the database propper as well as change objects, preferentially returning
+        the database proper as well as change objects, preferentially returning
         results from the main db.
 
         Args:
@@ -43,8 +43,7 @@ class DoiMatcher:
 
         # if the published object isn't found, search the drafts
         except model.DoesNotExist:
-            model = apps.get_model("api_app", "change")
-            obj = model.objects.get(uuid=uuid)
+            obj - Change.objects.get(uuid=uuid)
             data = json.loads(serializers.serialize("json", [obj,]))[0][
                 "fields"
             ]["update"]
@@ -70,13 +69,13 @@ class DoiMatcher:
             uuid_list (list): List of strings of uuids for the valid objects from a table
         """
 
+        # TODO: Why does this exclude published things??
         valid_objects = Change.objects.filter(
             content_type__model=table_name, action=Change.Actions.CREATE
         ).exclude(action=Change.Actions.DELETE, status=Change.Statuses.PUBLISHED)
 
         if query_parameter:
-            query_parameter = "update__" + query_parameter
-            kwargs = {query_parameter: query_value}
+            kwargs = {f"update__{query_parameter}": query_value}
             valid_objects = valid_objects.filter(**kwargs)
 
         valid_object_uuids = [str(uuid) for uuid in valid_objects.values_list("uuid", flat=True)]
@@ -309,6 +308,7 @@ class DoiMatcher:
 
             return "Draft created for DOI"
 
+        # TODO: what if there was an edit draft made for a doi?
         uuid = existing_doi_uuids[0]
         existing_doi = self.universal_get("doi", uuid)
         # if item exists as a draft, directly update using db functions with same methodology as above
@@ -325,18 +325,9 @@ class DoiMatcher:
 
         # if db item exists, replace cmr metadata fields and append suggestion fields as an update
         existing_doi = DOI.objects.all().filter(uuid=uuid).first()
-        existing_campaigns = [str(c.uuid) for c in existing_doi.campaigns.all()]
-        existing_instruments = [str(c.uuid) for c in existing_doi.instruments.all()]
-        existing_platforms = [str(c.uuid) for c in existing_doi.platforms.all()]
-        existing_collection_periods = [str(c.uuid) for c in existing_doi.collection_periods.all()]
-
-        doi["campaigns"].extend(existing_campaigns)
-        doi["instruments"].extend(existing_instruments)
-        doi["platforms"].extend(existing_platforms)
-        doi["collection_periods"].extend(existing_collection_periods)
-
-        for field in ["campaigns", "instruments", "platforms", "collection_periods"]:
-            doi[field] = list(set(doi[field]))
+        for field_name in ["campaigns", "instruments", "platforms", "collection_periods"]:
+            doi[field_name].extend([str(field.uuid) for field in getattr(existing_doi, field_name).all()])
+            doi[field_name] = list(set(doi[field_name]))
 
         doi_obj = Change(
             content_type=ContentType.objects.get(model="doi"),
