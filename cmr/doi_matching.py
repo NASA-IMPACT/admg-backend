@@ -10,6 +10,7 @@ from django.core import serializers
 from api_app.models import Change
 from cmr.cmr import query_and_process_cmr
 from cmr.utils import clean_table_name, purify_list
+from data_models.models import DOI
 
 logger = logging.getLogger(__name__)
 
@@ -342,24 +343,40 @@ class DoiMatcher:
                 for field in self.fields_to_compare:
                     # replaces these fields completely, since they are new and 'correct' from cmr
                     unpublished_update.update[field] = doi_recommendation[field]
+
+                # this preserves any work done by the curator, while adding any new instruments ect
+                # one limitation is it might add back a removed instrument, but it's still a draft so
+                # this can be re-removed
                 for field in self.fields_to_merge:
-                    unpublished_update.update[field].append(doi_recommendation[field])
+                    unpublished_update.update[field].extend(doi_recommendation[field])
+                    unpublished_update.update[field] = list(set(unpublished_update.update[field]))
+
+                # this forces the status back to create, so it must be re-evaluated and re-reviewed
                 unpublished_update.status = Change.Statuses.CREATED
                 unpublished_update.save()
 
-        elif published_create := doi_drafts.filter(
-            action=Change.Actions.CREATE, status=Change.Statuses.PUBLISHED
-        ).first():
+        # now that we've checked for updates, we check for published
+        elif published_doi := DOI.objects.get(concept_id=doi_recommendation['concept_id']):
             for field in self.fields_to_compare:
-                if published_create.update[field] != doi_recommendation[field]:
+                if getattr(published_doi, field) != doi_recommendation[field]:
+                    # basically, if there is any difference at all in the fields to compare, we want to make an update draft
+
                     # make a brand new update
                     doi_obj = Change(
                         content_type=ContentType.objects.get(model="doi"),
-                        model_instance_uuid=published_create.uuid,
+                        model_instance_uuid=published_doi.uuid,
                         update=json.loads(json.dumps(doi_recommendation)),
                         status=Change.Statuses.CREATED,
                         action=Change.Actions.UPDATE,
                     )
+
+                    # this preserves any work done by the curator, while adding any new instruments ect
+                    # one limitation is it might add back a removed instrument, but it's still a draft so
+                    # this can be re-removed
+                    for field in self.fields_to_merge:
+                        doi_obj.update[field].extend(doi_recommendation[field])
+                        doi_obj.update[field] = list(set(doi_obj.update[field]))
+
                     doi_obj.save()
                     break
 
@@ -371,14 +388,11 @@ class DoiMatcher:
             # call the add to draft function
             # there should only be one published create per concept_id, although maybe this is not true if stuff was deleted and
             # then recreated. this is a very fringe possiblity though
-            # needs to be an update that points at published_creates.first().uuid
-            # we are going to make a brand new item, but we are going to populate the update field with stuff that used to be in the
-            # published_create update field and got merged with our recommendations
             for field in self.fields_to_compare:
                 unpublished_creates.update[field] = doi_recommendation[field]
             for field in self.fields_to_merge:
-                unpublished_creates.update[field].append(doi_recommendation[field])
-
+                unpublished_creates.update[field].extend(doi_recommendation[field])
+                unpublished_creates.update[field] = list(set(unpublished_creates.update[field]))
             unpublished_creates.status = Change.Statuses.CREATED
             unpublished_creates.save()
 
