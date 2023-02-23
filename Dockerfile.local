@@ -15,7 +15,7 @@ RUN apt-get install -y gdal-bin libgdal-dev postgis netcat
 # install requirements
 COPY requirements/ .
 RUN pip install --upgrade pip
-RUN pip install -r updated_requirements_baseandlocal.txt
+RUN pip install -r local.txt
 
 COPY . .
 
