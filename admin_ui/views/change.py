@@ -58,9 +58,7 @@ class SummaryView(NotificationSidebar, django_tables2.SingleTableView):
         return (
             Change.objects.of_type(*self.models)
             # Prefetch related ContentType (used when displaying output model type)
-            .select_related("content_type")
-            .add_updated_at()
-            .order_by("-updated_at")
+            .select_related("content_type").order_by("-updated_at")
         )
 
     def get_total_counts(self):
@@ -364,11 +362,7 @@ class ChangeListView(NotificationSidebar, mixins.DynamicModelMixin, SingleTableM
         return self._model_config["draft_filter"]
 
     def get_queryset(self):
-        queryset = (
-            Change.objects.of_type(self._model_config['model'])
-            .add_updated_at()
-            .order_by("-updated_at")
-        )
+        queryset = Change.objects.of_type(self._model_config['model']).order_by("-updated_at")
 
         if self._model_config['model'] == Platform:
             return queryset.annotate_from_relationship(
@@ -458,25 +452,21 @@ class GcmdSyncListView(NotificationSidebar, SingleTableMixin, FilterView):
         )
 
         queryset = (
-            (
-                Change.objects.of_type(GcmdInstrument, GcmdPlatform, GcmdProject, GcmdPhenomenon)
-                .select_related("content_type")
-                .annotate(
-                    short_name=functions.Coalesce(
-                        *[
-                            functions.NullIf(KeyTextTransform(attr, dictionary), Value(""))
-                            for attr in gcmd.short_name_priority
-                            for dictionary in ["update", "previous"]
-                        ]
-                    ),
-                    resolved_records=functions.Coalesce(SubqueryCount(resolved_records), Value(0)),
-                    affected_records=Count("recommendation", distinct=True),
-                )
-                .filter(Q(recommendation__submitted=False) | Q(status__lte=5))
+            Change.objects.of_type(GcmdInstrument, GcmdPlatform, GcmdProject, GcmdPhenomenon)
+            .select_related("content_type")
+            .annotate(
+                short_name=functions.Coalesce(
+                    *[
+                        functions.NullIf(KeyTextTransform(attr, dictionary), Value(""))
+                        for attr in gcmd.short_name_priority
+                        for dictionary in ["update", "previous"]
+                    ]
+                ),
+                resolved_records=functions.Coalesce(SubqueryCount(resolved_records), Value(0)),
+                affected_records=Count("recommendation", distinct=True),
             )
-            .add_updated_at()
-            .order_by("-updated_at")
-        )
+            .filter(Q(recommendation__submitted=False) | Q(status__lte=5))
+        ).order_by("-updated_at")
 
         return queryset
 
