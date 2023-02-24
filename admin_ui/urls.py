@@ -46,26 +46,27 @@ urlpatterns = [
         views.PublishedDeleteView.as_view(),
         name="published-delete",
     ),
-    
-    # Helper route to redirect user to appropriate view without prior knowledge of record's status (ie if it's been published). If published, return redirect to `/<uuid:canonical_uuid>/published`. Otherwise, redirect to `/<uuid:canonical_uuid>/edit`.
     path('v2/<str:model>', v2.CanonicalRecordList.as_view(), name="canonical-list"),
-    # path('v2/<uuid:cannonical_uuid>', ..., name=""),
-    
+    # Helper route to redirect user to appropriate view without prior knowledge of record's status (ie if it's been published). If published, return redirect to `/<uuid:canonical_uuid>/published`. Otherwise, redirect to `/<uuid:canonical_uuid>/edit`.
+    path(
+        'v2/<str:model>/<uuid:canonical_uuid>',
+        v2.redirect_helper,
+        name="canonical-redirect",
+    ),
     # Read-only view the published record for this concept. Render `400` response if record is not yet published.
-    path('v2/<uuid:canonical_uuid>/published', v2.CanonicalRecordPublished.as_view(), name="canonical-published-detail"),
-    
+    path(
+        'v2/<uuid:canonical_uuid>/published',
+        v2.CanonicalRecordPublished.as_view(),
+        name="canonical-published-detail",
+    ),
     # List all `Change` records for a given concept. Ordered by date created, descending.
     # path('v2/<uuid:canonical_uuid>/history', ..., name=""),
-    
     # Helper route to redirect user to latest edit.
     # path('v2/<uuid:canonical_uuid>/edit', ..., name=""),
-    
     # Read-only or edit view (depending on status) of an individual draft.
     # path('v2/<uuid:canonical_uuid>/edit/<uuid:draft_uuid>', ..., name=""),
-    
     # List DOIs related to a given draft, allow user to request/approve/reject DOIs
     # path('v2/<uuid:canonical_uuid>/dois', ..., name=""),
-    
     # Dashboard view for Campaign
     # path('v2/<uuid:canonical_uuid>/detail', ..., name=""),
 ]

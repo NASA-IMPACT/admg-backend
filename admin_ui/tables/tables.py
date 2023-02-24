@@ -480,13 +480,14 @@ class CampaignChangeListTable(LimitedTableBase):
         fields = all_fields
         sequence = all_fields
 
+    # TODO This seems to be causing issues
     def render_short_name(self, value, record):
         return format_html(
-            '<a href="{form_url}">{label}</a> <a href="{dashboard_url}" class="font-italic'
-            ' small">(dashboard)</a>',
-            form_url=reverse('change-update', args=[record.uuid]),
+            '<a href="{form_url}">{label}</a>',
+            form_url=reverse(
+                'canonical-redirect', kwargs={"canonical_uuid": record.uuid, "model": "test"}
+            ),
             label=record.update.get('short_name') or '---',
-            dashboard_url=reverse('campaign-detail', args=[record.uuid]),
         )
 
 

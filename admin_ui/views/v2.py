@@ -4,12 +4,29 @@ from django.views.generic.detail import DetailView
 from django.views.generic.list import ListView
 from django_filters.views import FilterView
 from django_tables2.views import SingleTableMixin
+from django.http import Http404, HttpResponse
+from django.shortcuts import redirect
+from django.urls import reverse
 
 from api_app.models import Change
 from data_models import models
 from .. import filters, forms, mixins, tables, utils
 
 
+# TODO add login requirement
+def redirect_helper(request, canonical_uuid, model):
+    try:
+        draft = Change.objects.get(uuid=canonical_uuid)
+        print("\n******", draft, "\n******")
+        if draft.status == Change.Statuses.PUBLISHED:
+            return redirect(reverse("canonical-published-detail", args=(canonical_uuid,)))
+        # TODO return redirect to edit view
+        return HttpResponse("Todo return redirect")
+    except Change.DoesNotExist:
+        raise Http404("Canonial UI does not exist")
+
+
+# Lists all the canonical records for a given model type
 @method_decorator(login_required, name="dispatch")
 class CanonicalRecordList(mixins.DynamicModelMixin, SingleTableMixin, FilterView):
     model = Change
@@ -25,6 +42,7 @@ class CanonicalRecordList(mixins.DynamicModelMixin, SingleTableMixin, FilterView
         queryset = (
             Change.objects.filter(action=Change.Actions.CREATE)
             .of_type(self._model_config['model'])
+            .select_related("content_type")
             .order_by("-updated_at")
         )
 
