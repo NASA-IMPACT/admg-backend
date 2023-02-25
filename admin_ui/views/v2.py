@@ -17,7 +17,6 @@ from .. import filters, forms, mixins, tables, utils
 def redirect_helper(request, canonical_uuid, model):
     try:
         draft = Change.objects.get(uuid=canonical_uuid)
-        print("\n******", draft, "\n******")
         if draft.status == Change.Statuses.PUBLISHED:
             return redirect(reverse("canonical-published-detail", args=(canonical_uuid,)))
         # TODO return redirect to edit view

@@ -40,12 +40,12 @@ def classname(obj):
     Helper to retrieve the classname for a given model instance. Useful when needing to
     provide a classname to a url tag.
     """
-    return obj.__class__.__name__
+    return obj.__class__.__name__.lower()
 
 
 @register.inclusion_tag('snippets/object_header_tabs.html')
 def object_header_tabs(change: Change):
-    """ 
+    """
     Reusable header for canonical object.
     """
     published_uuid = (
