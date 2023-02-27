@@ -121,11 +121,12 @@ class ShortNamefromUUIDColumn(ConditionalValueColumn):
 
 
 class DraftTableBase(tables.Table):
-    draft_action = tables.Column(verbose_name="Draft Action", accessor="action")
+    # draft_action = tables.Column(verbose_name="Draft Actions", accessor="action")
     status = tables.Column(verbose_name="Status", accessor="status")
+    published_at = tables.Column(verbose_name="Last Published Date", accessor='date_published')
     updated_at = tables.DateTimeColumn(verbose_name="Last Edit Date")
 
-    final_fields = ("draft_action", "status", "updated_at")
+    final_fields = ( "status","published_at","updated_at" )
 
     # render_column example method
     # def render_status(self, value, column):
@@ -139,8 +140,8 @@ class DraftTableBase(tables.Table):
             "thead": {"class": "table-primary"},
             "th": {"style": "min-width: 10em"},
         }
-        fields = ("draft_action", "status", "updated_at")
-        sequence = ("draft_action", "status", "updated_at")
+        fields = ( "status","published_at","updated_at" )
+        sequence = ( "status","published_at","updated_at" )
 
 
 class LimitedTableBase(DraftTableBase):
