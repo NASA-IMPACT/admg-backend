@@ -127,6 +127,11 @@ class DraftTableBase(tables.Table):
 
     final_fields = ("draft_action", "status", "updated_at")
 
+    # render_column example method
+    # def render_status(self, value, column):
+    #     column.attrs = {'th': {'bgcolor': 'lightgreen'}}
+    #     return value
+
     class Meta:
         model = Change
         attrs = {

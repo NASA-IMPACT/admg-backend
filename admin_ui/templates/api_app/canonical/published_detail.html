@@ -7,7 +7,7 @@
   </div>
   <a href="{% spaceless %}
     {% if "back" in request.GET %} {{ request.GET.back }}
-    {% else %}{% url 'published-list' object|classname %}
+    {% else %}{% url 'canonical-list' object|classname %}
     {% endif %}
     {% endspaceless %}">
     &larr; Back
@@ -19,4 +19,7 @@
     {{ block.super }}
   {% endwith %}
   TODO: Show published object: {{ object }}
+
+  <h4>Published Details View (Placeholder)</h4>
+
 {% endblock main %}

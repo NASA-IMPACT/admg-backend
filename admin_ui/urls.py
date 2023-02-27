@@ -62,7 +62,11 @@ urlpatterns = [
     # List all `Change` records for a given concept. Ordered by date created, descending.
     # path('v2/<uuid:canonical_uuid>/history', ..., name=""),
     # Helper route to redirect user to latest edit.
-    # path('v2/<uuid:canonical_uuid>/edit', ..., name=""),
+    path(
+        'v2/<uuid:canonical_uuid>/edit',
+        v2.CanonicalDraftEdit.as_view(),
+        name="canonical-draft-edit",
+    ),
     # Read-only or edit view (depending on status) of an individual draft.
     # path('v2/<uuid:canonical_uuid>/edit/<uuid:draft_uuid>', ..., name=""),
     # List DOIs related to a given draft, allow user to request/approve/reject DOIs
