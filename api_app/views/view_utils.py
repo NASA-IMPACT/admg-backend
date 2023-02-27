@@ -16,7 +16,6 @@ def requires_admin_approval(model_name, action=Change.Actions.UPDATE):
     def outer_wrapper(function):
         # unsed function variable because this adds request to the change model
         def inner_wrapper(self, request, *args, **kwargs):
-
             content_type = ContentType.objects.get(
                 app_label="data_models", model=model_name.lower()
             )

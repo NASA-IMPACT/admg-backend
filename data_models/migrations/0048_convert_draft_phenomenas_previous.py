@@ -13,7 +13,6 @@ def convert_phenomenas_to_phenomena(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [("data_models", "0047_convert_draft_phenomenas")]
 
     operations = [
