@@ -439,6 +439,7 @@ def format_validation_error(err: ValidationError) -> str:
     )
 
 
+@method_decorator(login_required, name="dispatch")
 @method_decorator(user_passes_test(lambda user: user.is_admg_admin()), name="dispatch")
 class GcmdSyncListView(NotificationSidebar, SingleTableMixin, FilterView):
     model = Change
@@ -486,6 +487,7 @@ class GcmdSyncListView(NotificationSidebar, SingleTableMixin, FilterView):
         return HttpResponseRedirect(reverse('gcmd-list'))
 
 
+@method_decorator(login_required, name="dispatch")
 @method_decorator(user_passes_test(lambda user: user.is_admg_admin()), name="dispatch")
 class ChangeGcmdUpdateView(NotificationSidebar, UpdateView):
     fields = ["content_type", "model_instance_uuid", "action", "update", "status"]
