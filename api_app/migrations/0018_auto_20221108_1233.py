@@ -14,7 +14,6 @@ def set_updated_at(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('api_app', '0017_change_updated_at'),
     ]
