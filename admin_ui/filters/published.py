@@ -46,7 +46,6 @@ class DeploymentFilter(CampaignFilter):
 
 
 def second_level_campaign_filter(model_name):
-
     Model = getattr(models, model_name)
 
     class FilterForDeploymentToCampaign(DeploymentFilter):

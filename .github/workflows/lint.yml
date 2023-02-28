@@ -21,8 +21,11 @@ jobs:
         run: pip install black flake8
 
       - name: Run linters
-        uses: wearerequired/lint-action@v1
+        uses: wearerequired/lint-action@v2
         with:
+          auto_fix: true
           black: true
+          black_auto_fix: true
           flake8: true
+          flake8_auto_fix: false  # flake8 doesn't support auto_fix
           flake8_args: "--ignore E1,E2,E3,E5,W1,W2,W3,W5" # black already handles formatting, this prevents conflicts
