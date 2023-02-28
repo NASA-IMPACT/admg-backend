@@ -91,40 +91,27 @@ class CanonicalDraftEdit(NotificationSidebar, mixins.ChangeModelFormMixin, Updat
     fields = ["content_type", "model_instance_uuid", "action", "update", "status"]
     prefix = "change"
     template_name = "api_app/canonical/change_update.html"
-    # queryset = (
-    #     Change.objects.select_related("content_type")
-    #     .prefetch_approvals()
-    #     .annotate_from_relationship(
-    #         of_type=Image, to_attr="logo_path", uuid_from="logo", identifier="image"
-    #     )
-    # )
-    pk_url_kwarg = 'canonical_uuid'
-    # TODO: Find most recent draft for a given canonical_uuid
-    # if canonical record is not published:
-    #       just return the draft record itself
-    # if canonical record is published:
-    #       then return the draft that is not published and where the model_instance_uuid equals our canonical_uuid
-    # ...
+    # model = Change
+
+    def get_model_form_content_type(self) -> ContentType:
+        return self.object.content_type
 
     def get_queryset(self):
-        c = Change.objects.get(uuid=self.kwargs[self.pk_url_kwarg])
-        if not c:
-            print("No change object found")
-        print(c)
-        print("\n******", "change must happen", "\n*****")
-        Model = c.content_type.model_class()
-        return Model.objects.all()
+        return Change.objects.all()
 
-    # def get_object(self, queryset=None):
-    #     change = Change.objects.get(uuid=self.kwargs[self.pk_url_kwarg])
-    #     print("\n******", "change must happen", "\n*****")
-    #     print(change)
-    #     if change.model_instance_uuid:
-    #         Model = change.content_type.model_class()
-    #         return Model.objects.all()
-    #         # return change
-    #     else:
-    #         HttpResponseBadRequest("Unable to find change object")
+    def get_object(self, queryset=None):
+        if not queryset:
+            queryset = self.get_queryset()
+        change = queryset.get(uuid=self.kwargs["canonical_uuid"])
+
+        # if the canonical record is not published, return the record itself
+        # if canonical record is published, return the record where the model_instance_uuid equals our canonical_uuid
+        if change.status == Change.Statuses.PUBLISHED:
+            change = Change.objects.exclude(status=change.Statuses.PUBLISHED).get(
+                model_instance_uuid=change.uuid
+            )
+
+        return change
 
     def get_success_url(self):
         url = reverse("change-update", args=[self.object.pk])
