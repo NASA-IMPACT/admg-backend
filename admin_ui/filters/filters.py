@@ -56,7 +56,6 @@ class DeploymentFilter(CampaignFilter):
     )
 
     def filter_campaign_name(self, queryset, field_name, search_string):
-
         campaigns = get_draft_campaigns(search_string)
         deployments = get_deployments(campaigns)
         return queryset.filter(
@@ -78,7 +77,6 @@ def second_level_campaign_filter(model_name):
         )
 
         def filter_campaign_name(self, queryset, field_name, search_string):
-
             # find instances that use deployment in the actual database instance
             model = getattr(models, model_name)
             return second_level_campaign_name_filter(queryset, search_string, model)
@@ -98,7 +96,6 @@ class DoiFilter(CampaignFilter):
     )
 
     def filter_campaign_name(self, queryset, field_name, search_string):
-
         campaigns = get_draft_campaigns(search_string)
         model_instances = DOI.objects.filter(campaigns__in=campaigns).values_list("uuid")
         return queryset.filter(
@@ -113,7 +110,6 @@ class DoiFilter(CampaignFilter):
 
 class CollectionPeriodFilter(CampaignFilter):
     def filter_campaign_name(self, queryset, field_name, search_string):
-
         return second_level_campaign_name_filter(queryset, search_string, CollectionPeriod)
 
     class Meta:
