@@ -100,6 +100,18 @@ class CanonicalDraftEdit(NotificationSidebar, mixins.ChangeModelFormMixin, Updat
     )
 
     # TODO: FIX missing object pk (passing in canonical uuid from parent but not getting pk yet)
+    def get_object(self, queryset=None
+    ):
+        change = Change.objects.select_related(
+            "model_instance_uuid","content_type"
+        )
+        print(dir(change),"\n")
+        print(change)
+        if change.model_instance_uuid:
+            return {'model_instance_uuid':change.model_instance_uuid,'content_type':change.content_type}
+
+        else:
+            HttpResponseBadRequest("Unable to find the document")
 
     # TODO: Find most recent draft for a given canonical_uuid
     # def get_object(self, queryset=None):
@@ -118,6 +130,8 @@ class CanonicalDraftEdit(NotificationSidebar, mixins.ChangeModelFormMixin, Updat
         context = super().get_context_data(**kwargs)
         return {
             **context,
+            "object_pk": self.get_object()['model_instance_uuid'],
+            "content_type": self.get_object()['content_type'],
             "transition_form": (
                 forms.TransitionForm(change=context["object"], user=self.request.user)
             ),
