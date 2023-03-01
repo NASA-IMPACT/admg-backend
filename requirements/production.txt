@@ -7,6 +7,6 @@ psycopg2==2.9.5  # https://github.com/psycopg/psycopg2
 
 # Django
 # ------------------------------------------------------------------------------
-django-anymail[amazon_ses]==8.6  # https://github.com/anymail/django-anymail
+django-anymail[amazon_ses]==9.0  # https://github.com/anymail/django-anymail
 
 sentry-sdk
