@@ -91,10 +91,6 @@ class CanonicalDraftEdit(NotificationSidebar, mixins.ChangeModelFormMixin, Updat
     fields = ["content_type", "model_instance_uuid", "action", "update", "status"]
     prefix = "change"
     template_name = "api_app/canonical/change_update.html"
-    # model = Change
-
-    def get_model_form_content_type(self) -> ContentType:
-        return self.object.content_type
 
     def get_queryset(self):
         return Change.objects.all()
@@ -119,80 +115,78 @@ class CanonicalDraftEdit(NotificationSidebar, mixins.ChangeModelFormMixin, Updat
             return f'{url}?back={self.request.GET["back"]}'
         return url
 
-    # def get_context_data(self, **kwargs):
-    #     context = super().get_context_data(**kwargs)
-    #     return {
-    #         **context,
-    #         # "object_pk": self.get_object()['model_instance_uuid'],
-    #         # "content_type": self.get_object()['content_type'],
-    #         "transition_form": (
-    #             forms.TransitionForm(change=context["object"], user=self.request.user)
-    #         ),
-    #         "campaign_subitems": ["Deployment", "IOP", "SignificantEvent", "CollectionPeriod"],
-    #         "related_fields": self._get_related_fields(),
-    #         "view_model": camel_to_snake(self.get_model_form_content_type().model_class().__name__),
-    #         "ancestors": context["object"].get_ancestors().select_related("content_type"),
-    #         "descendents": context["object"].get_descendents().select_related("content_type"),
-    #         "comparison_form": self._get_comparison_form(context['model_form']),
-    #     }
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        return {
+            **context,
+            "transition_form": (
+                forms.TransitionForm(change=context["object"], user=self.request.user)
+            ),
+            "campaign_subitems": ["Deployment", "IOP", "SignificantEvent", "CollectionPeriod"],
+            "related_fields": self._get_related_fields(),
+            "view_model": camel_to_snake(self.get_model_form_content_type().model_class().__name__),
+            "ancestors": context["object"].get_ancestors().select_related("content_type"),
+            "descendents": context["object"].get_descendents().select_related("content_type"),
+            "comparison_form": self._get_comparison_form(context['model_form']),
+        }
 
-    # def _get_comparison_form(self, model_form):
-    #     """
-    #     Generates a disabled form for the published model, used for generating
-    #     a diff view.
-    #     """
-    #     if self.object.action != self.object.Actions.UPDATE:
-    #         return None
+    def _get_comparison_form(self, model_form):
+        """
+        Generates a disabled form for the published model, used for generating
+        a diff view.
+        """
+        if self.object.action != self.object.Actions.UPDATE:
+            return None
 
-    #     published_form = self.destination_model_form(
-    #         instance=self.object.content_object, auto_id="readonly_%s"
-    #     )
+        published_form = self.destination_model_form(
+            instance=self.object.content_object, auto_id="readonly_%s"
+        )
 
-    #     # if published or trashed then the old data doesn't need to be from the database, it
-    #     # needs to be from the previous field of the change_object
-    #     if self.object.is_locked:
-    #         for key, val in self.object.previous.items():
-    #             published_form.initial[key] = val
+        # if published or trashed then the old data doesn't need to be from the database, it
+        # needs to be from the previous field of the change_object
+        if self.object.is_locked:
+            for key, val in self.object.previous.items():
+                published_form.initial[key] = val
 
-    #     comparison_obj = self.object.previous if self.object.is_locked else self.object.update
-    #     for field_name in comparison_obj:
-    #         if not utils.compare_values(
-    #             published_form[field_name].value(), model_form[field_name].value()
-    #         ):
-    #             attrs = model_form.fields[field_name].widget.attrs
-    #             attrs["class"] = f"{attrs.get('class', '')} changed-item".strip()
+        comparison_obj = self.object.previous if self.object.is_locked else self.object.update
+        for field_name in comparison_obj:
+            if not utils.compare_values(
+                published_form[field_name].value(), model_form[field_name].value()
+            ):
+                attrs = model_form.fields[field_name].widget.attrs
+                attrs["class"] = f"{attrs.get('class', '')} changed-item".strip()
 
-    #     return utils.disable_form_fields(published_form)
+        return utils.disable_form_fields(published_form)
 
-    # def get_model_form_content_type(self) -> ContentType:
-    #     return self.get_object().content_type
+    def get_model_form_content_type(self) -> ContentType:
+        return self.get_object().content_type
 
-    # def _get_related_fields(self) -> Dict:
-    #     related_fields = {}
-    #     content_type = self.get_model_form_content_type().model_class().__name__
-    #     if content_type in ["Campaign", "Platform", "Deployment", "Instrument", "PartnerOrg"]:
-    #         related_fields["alias"] = Change.objects.of_type(Alias).filter(
-    #             update__object_id=str(self.object.uuid)
-    #         )
-    #     if content_type == "Campaign":
-    #         related_fields["website"] = (
-    #             Change.objects.of_type(Website)
-    #             .filter(action=Change.Actions.CREATE, update__campaign=str(self.object.uuid))
-    #             .annotate_from_relationship(
-    #                 of_type=Website, to_attr="title", uuid_from="website", identifier="title"
-    #             )
-    #         )
-    #     return related_fields
+    def _get_related_fields(self) -> Dict:
+        related_fields = {}
+        content_type = self.get_model_form_content_type().model_class().__name__
+        if content_type in ["Campaign", "Platform", "Deployment", "Instrument", "PartnerOrg"]:
+            related_fields["alias"] = Change.objects.of_type(Alias).filter(
+                update__object_id=str(self.object.uuid)
+            )
+        if content_type == "Campaign":
+            related_fields["website"] = (
+                Change.objects.of_type(Website)
+                .filter(action=Change.Actions.CREATE, update__campaign=str(self.object.uuid))
+                .annotate_from_relationship(
+                    of_type=Website, to_attr="title", uuid_from="website", identifier="title"
+                )
+            )
+        return related_fields
 
-    # def get_model_form_intial(self):
-    #     return self.object.update
+    def get_model_form_intial(self):
+        return self.object.update
 
-    # def post(self, *args, **kwargs):
-    #     """
-    #     Handle POST requests: instantiate a form instance with the passed
-    #     POST variables and then check if it's valid.
-    #     """
-    #     self.object = self.get_object()
-    #     if self.object.status == Change.Statuses.PUBLISHED:
-    #         return HttpResponseBadRequest("Unable to submit published records.")
-    #     return super().post(*args, **kwargs)
+    def post(self, *args, **kwargs):
+        """
+        Handle POST requests: instantiate a form instance with the passed
+        POST variables and then check if it's valid.
+        """
+        self.object = self.get_object()
+        if self.object.status == Change.Statuses.PUBLISHED:
+            return HttpResponseBadRequest("Unable to submit published records.")
+        return super().post(*args, **kwargs)
