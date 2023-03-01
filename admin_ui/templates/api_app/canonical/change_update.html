@@ -1,26 +1,11 @@
 {% extends "../layout-header_body.html" %}
 {% load template_extras %}
-{% load render_table from django_tables2 %}
 
 {% block header %}
   <div class="col">
-    <h1>{{ object.short_name }} Campaigns</h1>
+    <h1>{{ object.short_name }} Details</h1>
   </div>
-  <div class='campaign-form-group'>
-    <select class='form_control' id="campaigns-status" name="campaigns-status">
-    {% comment %}TODO, get the correct statuses {% endcomment %}
-      <option value="default">Select Status</option>
-      <option value="all">All</option>
-      <option value="active">Active</option>
-      <option value="inactive">Inactive</option>
-    {% comment %}TODO, get the correct statuses {% endcomment %}
-    </select>
-    <label for="campaigns-short-name">Short Name:</label>
-    <input type="text" id="campaigns-short-name" name="campaigns-short-name" value="">
-    <form>
-      <button type="submit" id="filter-submit" name="filter-submit">Filter</button>
-    </form>
-  </div>
+  
   <a href="{% spaceless %}
     {% if "back" in request.GET %} {{ request.GET.back }}
     {% else %}{% url 'canonical-list' object|classname %}
@@ -30,7 +15,6 @@
   </a>
 {% endblock header %}
 
-
 {% block main %}
   {% with main_class="col-lg-8" %}
     {{ block.super }}
@@ -38,8 +22,5 @@
   TODO: Show change update object: {{ object }}
 
   <h4>Change Update (Placeholder)</h4>
-  <table>
-    {% render_table draft_table %}
-  </table>
 
 {% endblock main %}
