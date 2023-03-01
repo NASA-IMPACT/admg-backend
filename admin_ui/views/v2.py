@@ -92,37 +92,23 @@ class CanonicalDraftEdit(NotificationSidebar, mixins.ChangeModelFormMixin, Updat
     fields = ["content_type", "model_instance_uuid", "action", "update", "status"]
     prefix = "change"
     template_name = "api_app/canonical/change_update.html"
-    queryset = (
-        Change.objects.select_related("content_type")
-        .prefetch_approvals()
-        .annotate_from_relationship(
-            of_type=Image, to_attr="logo_path", uuid_from="logo", identifier="image"
-        )
-    )
-    pk_url_kwarg = 'canonical_uuid'
-    # TODO: Find most recent draft for a given canonical_uuid
-    # if canonical record is not published:
-    #       just return the draft record itself
-    # if canonical record is published:
-    #       then return the draft that is not published and where the model_instance_uuid equals our canonical_uuid
-    # ...
 
     def get_queryset(self):
-        c = Change.objects.get(uuid=self.kwargs[self.pk_url_kwarg])
-        Model = c.content_type.model_class()
-        return Model.objects.all()
+        return Change.objects.all()
 
-    def get_object(self, queryset=queryset):
-        change = Change.objects.get(uuid=self.kwargs[self.pk_url_kwarg])
-        if not change:
-            HttpResponseBadRequest("Unable to find change object")
-        else:
-            return change
-            
+    def get_object(self, queryset=None):
+        if not queryset:
+            queryset = self.get_queryset()
+        change = queryset.get(uuid=self.kwargs["canonical_uuid"])
 
-    def get_model_form_content_type(self) -> ContentType:
-        print('calling get model form content type \n')
-        return self.get_object().content_type
+        # if the canonical record is not published, return the record itself
+        # if canonical record is published, return the record where the model_instance_uuid equals our canonical_uuid
+        if change.status == Change.Statuses.PUBLISHED:
+            change = Change.objects.exclude(status=change.Statuses.PUBLISHED).get(
+                model_instance_uuid=change.uuid
+            )
+
+        return change
 
     def get_success_url(self):
         url = reverse("change-update", args=[self.object.pk])
@@ -197,15 +183,15 @@ class CanonicalDraftEdit(NotificationSidebar, mixins.ChangeModelFormMixin, Updat
             )
         return related_fields
 
-    # def get_model_form_intial(self):
-    #     return self.object.update
+    def get_model_form_intial(self):
+        return self.object.update
 
-    # def post(self, *args, **kwargs):
-    #     """
-    #     Handle POST requests: instantiate a form instance with the passed
-    #     POST variables and then check if it's valid.
-    #     """
-    #     self.object = self.get_object()
-    #     if self.object.status == Change.Statuses.PUBLISHED:
-    #         return HttpResponseBadRequest("Unable to submit published records.")
-    #     return super().post(*args, **kwargs)
+    def post(self, *args, **kwargs):
+        """
+        Handle POST requests: instantiate a form instance with the passed
+        POST variables and then check if it's valid.
+        """
+        self.object = self.get_object()
+        if self.object.status == Change.Statuses.PUBLISHED:
+            return HttpResponseBadRequest("Unable to submit published records.")
+        return super().post(*args, **kwargs)
