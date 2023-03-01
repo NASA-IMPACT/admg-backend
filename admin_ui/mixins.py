@@ -42,8 +42,6 @@ def formfield_callback(f, disabled_fields=[], **kwargs):
                 }
             )
 
-    if isinstance(f, model_fields.UUIDField):
-        kwargs.update({"widget": HiddenInput()})
     elif isinstance(f, model_fields.ImageField):
         kwargs.update({"widget": widgets.ImagePreviewWidget})
     elif isinstance(f, PolygonField):
