@@ -199,7 +199,7 @@ class ChangeCreateView(
 ):
     model = Change
     fields = ["content_type", "model_instance_uuid", "action", "update"]
-    template_name = "api_app/change_create.html"
+    template_name = "api_app/canonical/change_create.html"
 
     def get_initial(self):
         # Get initial form values from URL

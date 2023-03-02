@@ -43,7 +43,7 @@ def redirect_helper(request, canonical_uuid, model):
 @method_decorator(login_required, name="dispatch")
 class CanonicalRecordList(mixins.DynamicModelMixin, SingleTableMixin, FilterView):
     model = Change
-    template_name = "api_app/change_list.html"
+    template_name = "api_app/canonical/change_list.html"
 
     def get_table_class(self):
         return self._model_config["change_list_table"]

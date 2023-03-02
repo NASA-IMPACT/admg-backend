@@ -1,4 +1,7 @@
-{% extends "../layout-header_body.html" %}
+{% extends "./change_form.html" %}
+{% load static %}
+{% load crispy_forms_tags %}
+{% load humanize %}
 {% load template_extras %}
 
 {% block header %}
@@ -14,11 +17,19 @@
   </a>
 {% endblock header %}
 
+{% block actions %}
+  <div class="px-1">
+    <button class="btn btn-secondary" data-toggle="modal" data-target="#deletePopup">
+      Create Delete Draft
+    </button>
+  </div>
+{% endblock actions %}
+
 {% block main %}
   {% with main_class="col-lg-8" %}
     {{ block.super }}
   {% endwith %}
-  TODO: Show published object: {{ object }}
+
 
   <h4>Published Details View (Placeholder)</h4>
 
