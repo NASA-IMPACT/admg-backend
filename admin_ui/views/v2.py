@@ -120,10 +120,21 @@ class CanonicalDraftEdit(NotificationSidebar, mixins.ChangeModelFormMixin, Updat
         return super().get_model_type()
 
 
+    def get_model_form_content_type(self) -> ContentType:
+            print('calling get model form content type \n')
+            return self.get_object().content_type
+
+    breadcrumbs = [
+        {"name": "Home", "url": "/"},
+        {"name": "Canonical Records", "url": "/canonical/"},
+        {"name": "Edit", "url": ""},
+    ]
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         return {
             **context,
+            "breadcrumbs": self.breadcrumbs,
             "transition_form": (
                 forms.TransitionForm(change=context["object"], user=self.request.user)
             ),
@@ -132,9 +143,7 @@ class CanonicalDraftEdit(NotificationSidebar, mixins.ChangeModelFormMixin, Updat
             "view_model": camel_to_snake(self.get_model_form_content_type().model_class().__name__),
             "ancestors": context["object"].get_ancestors().select_related("content_type"),
             "descendents": context["object"].get_descendents().select_related("content_type"),
-            "comparison_form": self._get_comparison_form(context['model_form']),
-            "draft_table": DraftTableBase(Change.objects.select_related('content_type').filter(model_instance_uuid=self.kwargs[self.pk_url_kwarg])),
-            # TODO # query to get data for all draft records for this canonical record
+            "comparison_form": self._get_comparison_form(context['model_form'])
         }
 
 

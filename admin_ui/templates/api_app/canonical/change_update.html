@@ -1,9 +1,14 @@
-{% extends "../layout-header_body.html" %}
+{% extends "../change_form.html" %}
+{% comment %} {% extends "../layout-header_body.html" %} {% endcomment %}
 {% load template_extras %}
+{% load static %}
+{% load crispy_forms_tags %}
+{% load model_helpers %}
+{% load humanize %}
 
 {% block header %}
   <div class="col">
-    <h1>{{ object.short_name }} Details</h1>
+    <h1> Campaign {{object.short_name}} (campaign short name here) </h1>
   </div>
   
   <a href="{% spaceless %}
@@ -15,12 +20,198 @@
   </a>
 {% endblock header %}
 
+{% block body %}
+  <div class="container">
+      {# Sidebar #}
+
+{% endblock body %}
+
 {% block main %}
   {% with main_class="col-lg-8" %}
     {{ block.super }}
-  {% endwith %}
-  TODO: Show change update object: {{ object }}
 
-  <h4>Change Update (Placeholder)</h4>
-  {{model_form}}
-{% endblock main %}
+  {% endwith %}
+    <div>
+        <aside class="col col-lg-4">
+          {% if object.update.logo %}
+          <h3>Logo</h3>
+          <a href="{% url 'change-update' object.update.logo %}">
+            {% if object.logo_path %}
+            <img class="img-thumbnail" src="{{ object.logo_path | get_full_url }}" /> 
+            {% else %}
+            <span class="font-italic">(logo missing image)</span>
+            {% endif %}
+          </a>
+          <hr />
+          {% endif %}
+          <hr />
+        
+          <div id="accordian">
+            <div class="card">
+              <div class="card-header">
+                <h3>
+                  <button class="btn btn-secondary dropdown-toggle" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                    Activity (Accordian)
+                  </button>
+                </h3>
+              </div>
+              <div id="collapseOne" class="collapse" data-parent="#accordian">
+                <div class="card-body">
+                  {% comment %} {% include 'snippets/update_history.html' with updates=object.updates %} {% endcomment %}
+                  The Contents of the Activity Accordian
+                </div>
+              </div>
+            </div>
+            
+            <div class="card">
+              <div class="card-header">
+                <h3>
+                  <button class="btn btn-secondary dropdown-toggle" data-toggle="collapse" data-target="#collapseHistory" aria-expanded="true" aria-controls="collapseHistory">
+                    History (Accordian)
+                  </button>
+                </h3>
+              </div>
+              <div id="collapseHistory" class="collapse" data-parent="#accordian">
+                <div class="card-body">
+                  {% comment %} {% include 'snippets/update_history.html' with updates=object.updates %} {% endcomment %}
+                  The Contents of the History Accordian
+                </div>
+              </div>
+              </div>
+            </div>
+  
+            <div class="card">
+              <div class="card-header">
+                <h3>
+                  <button class="btn btn-secondary dropdown-toggle" data-toggle="collapse" data-target="#collapseDependentDrafts" aria-expanded="true" aria-controls="collapseDependentDrafts">
+                    Dependent Drafts (Accordian)
+                  </button>
+                </h3>
+              </div>
+              <div id="collapseDependentDrafts" class="collapse" data-parent="#accordian">
+                <div class="card-body">
+                  {% comment %} {% include 'snippets/update_history.html' with updates=object.updates %} {% endcomment %}
+                  The Contents of the Dependent Drafts
+                  {% include 'snippets/dependent_drafts.html' with descendents=descendents %}
+                </div>
+              </div>
+              </div>
+            </div>
+
+            <hr />
+            <div class="card">
+              <div class="card-header">
+                <h3>
+                  <button class="btn btn-secondary dropdown-toggle" data-toggle="collapse" data-target="#collapseRelatedFields" aria-expanded="true" aria-controls="collapseRelatedFields">
+                    Related Fields (Accordian)
+                  </button>
+                </h3>
+              </div>
+              <div id="collapseRelatedFields" class="collapse" data-parent="#accordian">
+                <div class="card-body">
+                  {% comment %} {% include 'snippets/update_history.html' with updates=object.updates %} {% endcomment %}
+                  The Contents of the Related Fields
+                  {% include 'snippets/related_fields.html' with related_fields=related_fields%}
+                  {% include 'snippets/add_related.html' with object=object %}
+                </div>
+              </div>
+              </div>
+            </div>
+
+            <hr />
+            <div class="card">
+              <div class="card-header">
+                <h3>
+                  <button class="btn btn-secondary dropdown-toggle" data-toggle="collapse" data-target="#collapseDebugData" aria-expanded="true" aria-controls="collapseDebugData">
+                    Debug Data Fields (Accordian)
+                  </button>
+                </h3>
+              </div>
+              <div id="collapseDebugData" class="collapse" data-parent="#accordian">
+                <div class="card-body">
+                  {% comment %} {% include 'snippets/update_history.html' with updates=object.updates %} {% endcomment %}
+                  The Contents of the Debug Data
+                </div>
+              </div>
+            </div>
+            <hr />
+          </div> 
+          {% comment %} end accordian {% endcomment %}
+          {% comment %} <pre>{{ object.update | pprint }}</pre> {% endcomment %}
+
+        </aside>
+
+        <div class="col-6">
+          {% block actions %}
+            {% if object.is_locked %}
+              {% if object.model_instance_uuid %}
+
+              <div class="px-1">
+                <a 
+                  class="btn btn-primary" 
+                  href="{% url 'published-detail' pk=object.model_instance_uuid model=view_model %}"
+                >
+                  View published version
+                </a>
+              </div>
+              {% endif %}
+
+            {% else %}
+            <div class="px-1">
+              {% include "snippets/approval_dropdown.html" %}
+            </div>
+
+            <div class="px-1">
+              <button 
+                class="btn btn-primary" 
+                form="model-form" 
+                formnovalidate
+              >
+                Save
+              </button>
+              {% if object.action == 'Create' %}
+              <button 
+                class="btn btn-secondary" 
+                form="model-form" 
+                name="_validate"
+              >
+                Validate
+              </button>
+              {% endif %}
+            </div>
+            {% endif %}
+          {% endblock actions %}
+        </div>
+    </div>
+  </div>
+
+{% endblock main%}
+
+{% block form_body %}
+  <div class="progress">
+      Progress Indicator < Here < There < Here < There
+  </div>
+  {% if comparison_form %}
+  <div class="row">
+      <div class="col-sm-6 lead font-weight-bold">
+        New Version
+      </div>
+      <div class="col-sm-6 lead font-weight-bold">
+        Old Version
+      </div>
+    </div>
+    {% for field1, field2 in model_form|zip:comparison_form %}
+      <div class="row">
+        <div class="col-sm-6">
+          {{ field1 | as_crispy_field }}
+        </div>
+        <div class="col-sm-6">
+          {{ field2 | as_crispy_field }}
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  {{ block.super }}
+  {% endif %}
+{% endblock form_body %}
