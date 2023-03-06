@@ -238,7 +238,6 @@ class WebsiteType(LimitedInfoPriority):
 
 
 class Alias(BaseModel):
-
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, blank=True)
     object_id = models.UUIDField()
     parent_fk = GenericForeignKey("content_type", "object_id")
@@ -613,7 +612,6 @@ class Campaign(DataModel):
 
 
 class Platform(DataModel):
-
     platform_type = models.ForeignKey(
         PlatformType,
         on_delete=models.SET_NULL,
@@ -855,7 +853,6 @@ class Deployment(DataModel):
 
 
 class IopSe(BaseModel):
-
     deployment = models.ForeignKey(
         Deployment,
         on_delete=models.CASCADE,
@@ -913,7 +910,6 @@ class IOP(IopSe):
 
 
 class SignificantEvent(IopSe):
-
     deployment = models.ForeignKey(
         Deployment,
         on_delete=models.CASCADE,
@@ -938,7 +934,6 @@ class SignificantEvent(IopSe):
 
 
 class CollectionPeriod(BaseModel):
-
     deployment = models.ForeignKey(
         Deployment, on_delete=models.CASCADE, related_name="collection_periods"
     )

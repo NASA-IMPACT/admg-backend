@@ -3,7 +3,6 @@ import factory
 
 
 class UserFactory(factory.django.DjangoModelFactory):
-
     username = factory.Faker("user_name")
 
     class Meta:
