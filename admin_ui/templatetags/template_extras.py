@@ -43,16 +43,41 @@ def classname(obj):
     return obj.__class__.__name__.lower()
 
 
-@register.inclusion_tag('snippets/object_header_tabs.html')
-def object_header_tabs(change: Change):
+@register.inclusion_tag('snippets/object_header_tabs.html', takes_context=True)
+def object_header_tabs(context, change: Change):
     """
     Reusable header for canonical object.
     """
-    published_uuid = (
-        change.model_instance_uuid
-        if change.model_instance_uuid
-        else change.uuid
-        if change.status == change.Statuses.PUBLISHED
-        else None
+    # TODO ask Anthony about the expected behavior here.
+    # I have only seen change models with a model_instance_uuid of "None"
+    print("\n*********", [f.name for f in change._meta.get_fields()], "\n*********")
+    canonical_uuid = (
+        # if we're passing in a model (i.e. a Campaign) instead of a change
+        change.uuid
+        # change.model_instance_uuid
+        # if hasattr(change, "model_instance_uuid")
+        # else change.uuid
+        # if change.status == change.Statuses.PUBLISHED
+        # else None
     )
-    return {"object": change, "published_uuid": published_uuid}
+    return {"object": change, "canonical_uuid": canonical_uuid, "request": context.get("request")}
+
+
+@register.inclusion_tag('snippets/draft_breadcrumb_trail.html', takes_context=True)
+def draft_breadcrumb_trail(context, change: Change):
+    """
+    Reusable header for canonical object.
+    """
+    # TODO there might be a cleaner way to get the string representation here
+    status = (
+        "Published"
+        if not hasattr(change, "model_instance_uuid")
+        else "Created"
+        if change.status == change.Statuses.CREATED
+        else "In Progress"
+        if change.status == change.Statuses.IN_PROGRESS
+        else "In Review"
+        if change.status == change.Statuses.IN_REVIEW
+        else "In Admin Review"
+    )
+    return {"object": change, "draft_status": status, "request": context.get("request")}

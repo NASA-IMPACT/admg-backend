@@ -27,6 +27,10 @@ being displayed) and a body (eg a form or table).
 
 </header>
 
+<div class="row align-items-center">
+  {% block breadcrumb_trail %}{% endblock breadcrumb_trail %}
+</div>
+
 <div class="row flex-row-reverse">
   <!-- TODO: Actions should only appear on edit forms -->
     {% block actions %}{% endblock actions %}

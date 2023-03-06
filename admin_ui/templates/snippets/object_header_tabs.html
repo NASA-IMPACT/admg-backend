@@ -31,8 +31,8 @@
     {% endif %}
     <li class="nav-item">
       <a 
-        class="nav-link {% active_link 'change-update' pk=object.uuid %}" 
-        href="{% url 'change-update' object.uuid %}"
+        class="nav-link {% active_link 'canonical-draft-edit' canonical_uuid %}" 
+        href="{% url 'canonical-draft-edit' canonical_uuid %}"
       >
         Edits 
         <span class="badge badge-pill badge-danger ml-1">In Progress</span>

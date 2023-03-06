@@ -261,7 +261,7 @@ class Change(models.Model):
     content_object = GenericForeignKey("content_type", "model_instance_uuid")
 
     status = models.IntegerField(choices=Statuses.choices, default=Statuses.IN_PROGRESS)
-    update = models.JSONField(default=dict, blank=True)
+    update = models.JSONField(default=dict, blank=True) 
     updated_at = models.DateTimeField(blank=True, null=True, db_index=True)
     field_status_tracking = models.JSONField(default=dict, blank=True)
     previous = models.JSONField(default=dict)
