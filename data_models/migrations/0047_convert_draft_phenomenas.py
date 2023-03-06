@@ -15,7 +15,6 @@ def convert_phenomenas_to_phenomena(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("data_models", "0046_auto_20220526_1047"),
         ("api_app", "0015_change_field_status_tracking"),
