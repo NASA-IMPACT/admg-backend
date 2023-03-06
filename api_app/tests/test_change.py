@@ -373,24 +373,28 @@ class TestChange:
         change.save()
         change.submit(staff_user)
         change.claim(staff_user_2)
+        assert change.status == Change.Statuses.IN_REVIEW
 
-        # test staff can't unclaim in reviewing they didnt' claim
+        # test staff can't unclaim in reviewing they didn't claim
         response = change.unclaim(staff_user)
         approval_log = change.get_latest_log()
         assert response["success"] is False
         assert change.status == Change.Statuses.IN_REVIEW
         assert approval_log.action == ApprovalLog.Actions.CLAIM
 
-        change.claim(staff_user_2)
         change.review(staff_user_2)
-        change.claim(admin_user)
+        assert change.status == Change.Statuses.AWAITING_ADMIN_REVIEW
+        assert change.get_latest_log().action == ApprovalLog.Actions.REVIEW
 
-        # test staff can unclaim an admin's IN ADMIN REVIEW
+        change.claim(admin_user)
+        assert change.status == Change.Statuses.IN_ADMIN_REVIEW
+        assert change.get_latest_log().action == ApprovalLog.Actions.CLAIM
+
+        # test staff can't unclaim an admin's IN ADMIN REVIEW
         response = change.unclaim(staff_user)
-        approval_log = change.get_latest_log()
         assert response["success"] is False
         assert change.status == Change.Statuses.IN_ADMIN_REVIEW
-        assert approval_log.action == ApprovalLog.Actions.CLAIM
+        assert change.get_latest_log().action == ApprovalLog.Actions.CLAIM
 
     def test_unpublished_unpublished(self, factory):
         """test that an existing, UNpublished update draft prevents the creation
