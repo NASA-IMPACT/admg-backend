@@ -1,15 +1,16 @@
 from django.contrib.contenttypes.models import ContentType
 from django.test import TestCase
 from django.urls import reverse
+from django.forms import ModelForm
 
 from admg_webapp.users.models import User
 from admin_ui.views.change import CampaignDetailView
 from api_app.models import Change
 from api_app.tests.test_change import TestChange
-from data_models.models import Campaign, Season
+from data_models.models import Campaign, Season, Instrument
 
 from . import factories
-from data_models.tests.factories import CampaignFactory
+from data_models.tests.factories import CampaignFactory, InstrumentFactory
 
 
 class TestChangeUpdateView(TestCase):
@@ -128,3 +129,52 @@ class TestCampaignDetailView(TestCase):
         )
         self.assertTrue(self.update_changes[-1].uuid in [change.uuid for change in latest])
         self.assertTrue(update_changes[-1].uuid in [change.uuid for change in latest])
+
+
+class MyForm(ModelForm):
+    class Meta:
+        model = Instrument
+        fields = ['additional_metadata']
+
+
+class MyFormTest(TestCase):
+    def setUp(self):
+        self.data = {'additional_metadata': {'key1': 'value1'}}
+        self.form = MyForm(data=self.data)
+
+    def test_form_valid(self):
+        self.assertTrue(self.form.is_valid())
+        obj = self.form.save()
+        self.assertEqual(Instrument.objects.count(), 1)
+        self.assertEqual(obj.additional_metadata, self.data['additional_metadata'])
+
+    def test_form_invalid(self):
+        data = {'additional_metadata': 'invalid'}
+        form = MyForm(data=data)
+        self.assertFalse(form.is_valid())
+
+
+class InstrumentTest(TestCase):
+    def setUp(self):
+        self.content_type = ContentType.objects.get_for_model(Instrument)
+        self.url = reverse("change-add", args=(self.content_type.name,))
+        self.user = factories.UserFactory.create()
+
+    def test_create_instrument_instance(self):
+        self.assertEqual(Change.objects.filter(content_type=self.content_type).count(), 0)
+        content_type = self.content_type.id
+        self.client.force_login(user=self.user)
+        self.client.post(
+            self.url,
+            {
+                "content_type": content_type,
+                "action": Change.Actions.CREATE,
+                "model_form-short_name": "something",
+                "model_form-additional_metadata": '{"testkey": "testvalue"}',
+            },
+            follow=True,
+        )
+        instrument = Change.objects.filter(content_type=self.content_type)
+        self.assertEqual(len(instrument), 1)
+        self.assertEqual(instrument.first().update['short_name'], "something")
+        self.assertEqual(instrument.first().update['additional_metadata'], {'testkey': 'testvalue'})
