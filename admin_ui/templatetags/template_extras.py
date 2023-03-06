@@ -60,16 +60,8 @@ def object_header_tabs(context, change: Change):
         # if change.status == change.Statuses.PUBLISHED
         # else None
     )
-    return {"object": change, "canonical_uuid": canonical_uuid, "request": context.get("request")}
 
-
-@register.inclusion_tag('snippets/draft_breadcrumb_trail.html', takes_context=True)
-def draft_breadcrumb_trail(context, change: Change):
-    """
-    Reusable header for canonical object.
-    """
-    # TODO there might be a cleaner way to get the string representation here
-    status = (
+    draft_status = (
         "Published"
         if not hasattr(change, "model_instance_uuid")
         else "Created"
@@ -80,4 +72,31 @@ def draft_breadcrumb_trail(context, change: Change):
         if change.status == change.Statuses.IN_REVIEW
         else "In Admin Review"
     )
-    return {"object": change, "draft_status": status, "request": context.get("request")}
+    return {
+        "object": change,
+        "draft_status": draft_status,
+        "canonical_uuid": canonical_uuid,
+        "request": context.get("request"),
+        "view_model": context.get("view_model"),
+    }
+
+
+@register.inclusion_tag('snippets/draft_breadcrumb_trail.html', takes_context=True)
+def draft_breadcrumb_trail(context, change: Change):
+    """
+    Reusable header for canonical object.
+    """
+    # TODO REMOVE THIS WHOLE DECORATOR SEE DUPLICATE ABOVE
+    draft_status = (
+        "Published"
+        if not hasattr(change, "model_instance_uuid")
+        else "Created"
+        if change.status == change.Statuses.CREATED
+        else "In Progress"
+        if change.status == change.Statuses.IN_PROGRESS
+        else "In Review"
+        if change.status == change.Statuses.IN_REVIEW
+        else "In Admin Review"
+    )
+
+    return {"object": change, "draft_status": draft_status, "request": context.get("request")}

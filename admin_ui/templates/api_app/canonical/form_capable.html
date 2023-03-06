@@ -18,10 +18,6 @@ This template prepares a view for form rendering
   {% object_header_tabs object %}
 {% endblock header_tabs %}
 
-{% block breadcrumb_trail %}
-  {% draft_breadcrumb_trail object %}
-{% endblock breadcrumb_trail %}
-
 {% block extrahead %}
 {{ block.super }}
 {{ form.media.css }}

@@ -11,6 +11,15 @@
         Published
       </{% if published_uuid %}a{% else %}span{% endif %}>
     </li>
+    <li class="nav-item">
+      <a 
+        class="nav-link {% active_link 'canonical-draft-edit' canonical_uuid %}" 
+        href="{% url 'canonical-draft-edit' canonical_uuid %}"
+      >
+        Edits 
+        <span class="badge badge-pill badge-warning ml-1">{% if draft_status == 'Created' %}Created{% elif draft_status == 'In Progress' %}In Progress{% elif draft_status == 'In Review' %}In Review{% elif draft_status == 'In Admin Review' %}In Admin Review{% else %}Published{% endif %}</span>
+      </a>
+    </li>
     {% if view_model == 'campaign' %}
     <li class="nav-item">
       <a 
@@ -29,15 +38,6 @@
       </a>
     </li>
     {% endif %}
-    <li class="nav-item">
-      <a 
-        class="nav-link {% active_link 'canonical-draft-edit' canonical_uuid %}" 
-        href="{% url 'canonical-draft-edit' canonical_uuid %}"
-      >
-        Edits 
-        <span class="badge badge-pill badge-danger ml-1">In Progress</span>
-      </a>
-    </li>
     <li class="nav-item">
       <a 
         class="nav-link" 
