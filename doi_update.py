@@ -6,6 +6,7 @@ from django.contrib.auth.models import User
 from api_app.models import Change
 from data_models.models import DOI
 
+
 def process_cmr(concept_id):
     """Queries CMR for a specific concept_id and returns
     the dictionary conatining cmr abstract and data_formats.
