@@ -89,7 +89,6 @@ class ShortNamefromUUIDColumn(ConditionalValueColumn):
             return False
 
     def get_short_name(self, potential_uuid):
-
         if not self.is_uuid(potential_uuid) or not self.model:
             return potential_uuid
 
@@ -295,7 +294,6 @@ class DOIChangeListTable(DraftTableBase):
 
 
 class DeploymentChangeListTable(LimitedTableBase):
-
     campaign = ShortNamefromUUIDColumn(
         verbose_name="Campaign",
         model=Campaign,
@@ -324,7 +322,6 @@ class DeploymentChangeListTable(LimitedTableBase):
 
 
 class PlatformTypeChangeListTable(LimitedTableBase):
-
     parent = ConditionalValueColumn(
         verbose_name="Parent", accessor="update__parent", update_accessor="content_object.parent"
     )

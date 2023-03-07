@@ -76,7 +76,7 @@ class SummaryView(django_tables2.SingleTableView):
             .values_list("content_type__model", "status")
             .annotate(aggregates.Count("content_type"))
         )
-        for (model, status_id, count) in model_status_counts:
+        for model, status_id, count in model_status_counts:
             review_counts.setdefault(model, {})[status_translations[status_id]] = count
 
         return review_counts

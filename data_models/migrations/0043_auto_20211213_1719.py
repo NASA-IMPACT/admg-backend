@@ -29,7 +29,6 @@ def populate_website_campaign(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("data_models", "0042_auto_20210524_1546"),
     ]

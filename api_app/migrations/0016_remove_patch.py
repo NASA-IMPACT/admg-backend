@@ -7,7 +7,6 @@ def transition_patch_to_update(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [('api_app', '0015_change_field_status_tracking')]
 
     operations = [

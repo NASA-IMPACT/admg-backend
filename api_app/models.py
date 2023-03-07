@@ -45,7 +45,6 @@ def is_not_admin(user):
 
 def is_admin(function):
     def wrapper(self, user, notes="", **kwargs):
-
         if not_admin := is_not_admin(user):
             if not kwargs.get("doi"):
                 return not_admin
@@ -60,7 +59,6 @@ def is_admin(function):
 def is_status(accepted_statuses_list):
     def decorator(function):
         def wrapper(self, user, notes=""):
-
             if self.status not in accepted_statuses_list:
                 status_strings = [status.label for status in accepted_statuses_list]
                 return generate_failure_response(
