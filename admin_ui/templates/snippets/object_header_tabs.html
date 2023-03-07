@@ -40,8 +40,8 @@
     {% endif %}
     <li class="nav-item">
       <a 
-        class="nav-link" 
-        href="#"
+      class="nav-link {% active_link 'change-history' pk=object.uuid %}" 
+      href="{% url 'change-history' object.uuid %}"
       >
         History 
       </a>

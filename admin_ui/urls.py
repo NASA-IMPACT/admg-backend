@@ -59,13 +59,22 @@ urlpatterns = [
         v2.CanonicalRecordPublished.as_view(),
         name="canonical-published-detail",
     ),
-    # List all `Change` records for a given concept. Ordered by date created, descending.
-    # path('v2/<uuid:canonical_uuid>/history', ..., name=""),
     # Helper route to redirect user to latest edit.
     path(
         'v2/<uuid:canonical_uuid>/edit',
         v2.CanonicalDraftEdit.as_view(),
         name="canonical-draft-edit",
+    ),
+    path(
+        'v2/<uuid:canonical_uuid>/edit/<uuid:draft_uuid>',
+        v2.DraftDetailView.as_view(),
+        name="draft-detail",
+    ),
+    # List all `Change` records for a given concept. Ordered by date created, descending.
+    path(
+        "campaigns/<uuid:canonical_uuid>/change-history",
+        v2.ChangeHistoryList.as_view(),
+        name="change-history",
     ),
     # Read-only or edit view (depending on status) of an individual draft.
     # path('v2/<uuid:canonical_uuid>/edit/<uuid:draft_uuid>', ..., name=""),

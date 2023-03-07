@@ -50,7 +50,7 @@ def object_header_tabs(context, change: Change):
     """
     # TODO ask Anthony about the expected behavior here.
     # I have only seen change models with a model_instance_uuid of "None"
-    print("\n*********", [f.name for f in change._meta.get_fields()], "\n*********")
+    print("\n ********* \n", [f.name for f in change._meta.get_fields()])
     canonical_uuid = (
         # if we're passing in a model (i.e. a Campaign) instead of a change
         change.uuid
@@ -79,24 +79,3 @@ def object_header_tabs(context, change: Change):
         "request": context.get("request"),
         "view_model": context.get("view_model"),
     }
-
-
-@register.inclusion_tag('snippets/draft_breadcrumb_trail.html', takes_context=True)
-def draft_breadcrumb_trail(context, change: Change):
-    """
-    Reusable header for canonical object.
-    """
-    # TODO REMOVE THIS WHOLE DECORATOR SEE DUPLICATE ABOVE
-    draft_status = (
-        "Published"
-        if not hasattr(change, "model_instance_uuid")
-        else "Created"
-        if change.status == change.Statuses.CREATED
-        else "In Progress"
-        if change.status == change.Statuses.IN_PROGRESS
-        else "In Review"
-        if change.status == change.Statuses.IN_REVIEW
-        else "In Admin Review"
-    )
-
-    return {"object": change, "draft_status": draft_status, "request": context.get("request")}

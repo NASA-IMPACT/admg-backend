@@ -6,11 +6,15 @@ from django.views.generic.detail import DetailView
 from django.views.generic.list import ListView
 from django_filters.views import FilterView
 from django_tables2.views import SingleTableMixin
+import django_tables2 as tables
 from django.http import Http404, HttpResponseBadRequest
 from django.shortcuts import redirect
 from django.urls import reverse
 from django.contrib.contenttypes.models import ContentType
 from django.views.generic.edit import UpdateView
+from django.db.models import Q
+from api_app.models import ApprovalLog
+
 
 from api_app.models import Change
 from data_models.models import (
@@ -73,6 +77,71 @@ class CanonicalRecordList(mixins.DynamicModelMixin, SingleTableMixin, FilterView
             "view_model": self._model_name,
             "display_name": self._model_config["display_name"],
         }
+
+
+class DraftHistoryTable(tables.Table):
+
+    submitted_by = tables.Column(empty_values=())
+    reviewed_by = tables.Column(empty_values=())
+    published_by = tables.Column(empty_values=())
+    published_date = tables.Column(empty_values=())
+
+    uuid = tables.Column(
+        linkify=(
+            "draft-detail",
+            {"draft_uuid": tables.A("uuid"), "canonical_uuid": tables.A("model_instance_uuid")},
+        ),
+    )
+
+    class Meta:
+        model = Change
+        template_name = "django_tables2/bootstrap.html"
+        fields = ("uuid", "submitted_by")
+
+    def render_submitted_by(self, record):
+        return (
+            record.approvallog_set.filter(action=ApprovalLog.Actions.PUBLISH).first().user.username
+        )
+
+    def render_reviewed_by(self, record):
+        return (
+            record.approvallog_set.filter(action=ApprovalLog.Actions.REVIEW).first().user.username
+        )
+
+    def render_published_by(self, record):
+        return (
+            record.approvallog_set.filter(action=ApprovalLog.Actions.PUBLISH).first().user.username
+        )
+
+    def render_published_date(self, record):
+        return record.approvallog_set.filter(action=ApprovalLog.Actions.PUBLISH).first().date
+
+
+@method_decorator(login_required, name="dispatch")
+class ChangeHistoryList(mixins.DynamicModelMixin, tables.SingleTableView):
+    model = Change
+    table_class = DraftHistoryTable
+    pk_url_kwarg = 'canonical_uuid'
+    template_name = "api_app/canonical/change_history.html"
+
+    def get_queryset(self):
+        return Change.objects.filter(
+            Q(uuid=self.kwargs[self.pk_url_kwarg])
+            | Q(model_instance_uuid=self.kwargs[self.pk_url_kwarg])
+        )
+
+
+class DraftDetailView(mixins.DynamicModelMixin, DetailView):
+    model = Change
+    table_class = DraftHistoryTable
+    pk_url_kwarg = 'draft_uuid'
+    template_name = "api_app/canonical/draft_detail.html"
+
+    # def get_queryset(self):
+    #     return Change.objects.filter(uuid=self.kwargs[self.pk_url_kwarg])
+
+    def get_object(self):
+        return self._model_config['model'].objects.get(uuid=self.kwargs[self.pk_url_kwarg])
 
 
 @method_decorator(login_required, name="dispatch")
