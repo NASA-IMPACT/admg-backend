@@ -97,6 +97,7 @@ class CanonicalRecordList(mixins.DynamicModelMixin, SingleTableMixin, FilterView
 
 class DraftHistoryTable(tables.Table):
 
+    draft_action = tables.Column(empty_values=())
     submitted_by = tables.Column(empty_values=())
     reviewed_by = tables.Column(empty_values=())
     published_by = tables.Column(empty_values=())
@@ -119,6 +120,12 @@ class DraftHistoryTable(tables.Table):
         model = Change
         template_name = "django_tables2/bootstrap.html"
         fields = ("uuid", "submitted_by")
+
+    def render_draft_action(self, record):
+        if approval := record.approvallog_set.first():
+            return approval.get_action_display()
+        else:
+            return "-"
 
     def render_submitted_by(self, record):
         if approval := record.approvallog_set.filter(action=ApprovalLog.Actions.PUBLISH).first():
@@ -161,7 +168,11 @@ class ChangeHistoryList(mixins.DynamicModelMixin, tables.SingleTableView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         view_model = Change.objects.get(uuid=self.kwargs[self.pk_url_kwarg]).model_name.lower()
-        return {**context, "view_model": view_model}
+        return {
+            **context,
+            "view_model": view_model,
+            "object": Change.objects.get(uuid=self.kwargs[self.pk_url_kwarg]),
+        }
 
 
 class DraftDetailView(DetailView):

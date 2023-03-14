@@ -6,9 +6,15 @@
 
 {% block header %}
 <div class="col">
-  <h1>Draft History for {{ object.short_name }}</h1>
+  <h1>Draft History for {{ object.content_object.short_name }}</h1>
 </div>
 {% endblock header %}
+
+{% block header_tabs %}
+  {% if object %}
+    {% object_header_tabs object %}
+  {% endif %}
+{% endblock header_tabs %}
 
 {% block main %}
   {% render_table table %}
