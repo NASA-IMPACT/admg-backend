@@ -5,7 +5,7 @@
   <ul class="nav">
     <li class="nav-item">
       <{% if published_uuid %}a{% else %}span{% endif %}
-      class="nav-link {% if not published_uuid %} disabled {% endif %}" 
+      class="nav-link {% if  draft_status == 'Published' %} active {% elif not published_uuid %} disabled {% endif %}" 
       {% if published_uuid %} href="{% url 'published-detail' pk=published_uuid model=view_model %}" {% endif %}
       >
         Published
@@ -13,26 +13,28 @@
     </li>
     <li class="nav-item">
       <a 
-        class="nav-link {% active_link 'canonical-draft-edit' canonical_uuid %}" 
-        href="{% url 'canonical-draft-edit' canonical_uuid %}"
+        class="nav-link {% if  draft_status == 'Published' %} disabled {% endif %} {% active_link 'canonical-draft-edit' canonical_uuid %}" 
+        href="{% url 'canonical-draft-edit' view_model canonical_uuid %}"
       >
         Edits 
-        <span class="badge badge-pill badge-warning ml-1">{% if draft_status == 'Created' %}Created{% elif draft_status == 'In Progress' %}In Progress{% elif draft_status == 'In Review' %}In Review{% elif draft_status == 'In Admin Review' %}In Admin Review{% else %}Published{% endif %}</span>
+        {% if draft_status != 'Published' %}
+        <span class="badge badge-pill text-white  {% if draft_status == 'Published' %} badge-success {% else %} badge-warning {% endif %}  ml-1">{% if draft_status == 'Created' %}Created{% elif draft_status == 'In Progress' %}In Progress{% elif draft_status == 'In Review' %}In Review{% elif draft_status == 'In Admin Review' %}In Admin Review{% else %}Published{% endif %}</span>
+        {% endif %}
       </a>
     </li>
     {% if view_model == 'campaign' %}
     <li class="nav-item">
       <a 
-        class="nav-link {% active_link 'campaign-detail' pk=object.uuid %}" 
-        href="{% url 'campaign-detail' object.uuid %}"
+        class="nav-link {% active_link 'campaign-detail' view_model object.uuid %}" 
+        href="{% url 'campaign-detail' view_model object.uuid %}"
       >
         Details
       </a>
     </li>
     <li class="nav-item">
       <a 
-        class="nav-link {% active_link 'doi-approval' pk=object.uuid %}" 
-        href="{% url 'doi-approval' object.uuid %}"
+        class="nav-link {% active_link 'doi-approval' view_model object.uuid %}" 
+        href="{% url 'doi-approval' view_model object.uuid %}"
       >
         DOIs
       </a>
@@ -40,8 +42,8 @@
     {% endif %}
     <li class="nav-item">
       <a 
-      class="nav-link {% active_link 'change-history' pk=object.uuid %}" 
-      href="{% url 'change-history' object.uuid %}"
+      class="nav-link {% active_link 'change-history' view_model object.uuid %}" 
+      href="{% url 'change-history' view_model object.uuid %}"
       >
         History 
       </a>

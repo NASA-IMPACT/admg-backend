@@ -4,6 +4,7 @@ from django.urls import reverse
 from django.utils.html import format_html
 from django_tables2 import A
 import django_tables2 as tables
+from api_app.urls import camel_to_snake
 
 from api_app.models import Change
 from data_models.models import (
@@ -490,7 +491,11 @@ class CampaignChangeListTable(LimitedTableBase):
         return format_html(
             '<a href="{form_url}">{label}</a>',
             form_url=reverse(
-                'canonical-redirect', kwargs={"canonical_uuid": record.uuid, "model": "test"}
+                'canonical-redirect',
+                kwargs={
+                    "canonical_uuid": record.uuid,
+                    "model": record.model_name.lower(),
+                },
             ),
             label=record.update.get('short_name') or '---',
         )

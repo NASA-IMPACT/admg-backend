@@ -13,6 +13,8 @@ from django.urls import reverse
 from django.contrib.contenttypes.models import ContentType
 from django.views.generic.edit import UpdateView
 from django.db.models import Q
+from django.views.generic.edit import CreateView
+from admin_ui.config import MODEL_CONFIG_MAP
 from api_app.models import ApprovalLog
 
 
@@ -20,9 +22,13 @@ from api_app.models import Change
 from data_models.models import (
     IOP,
     Alias,
-    Image,
+    Campaign,
+    CollectionPeriod,
+    Deployment,
+    Instrument,
     Platform,
     PlatformType,
+    SignificantEvent,
     Website,
 )
 from .. import forms, mixins, utils
@@ -35,10 +41,20 @@ def redirect_helper(request, canonical_uuid, model):
     try:
         draft = Change.objects.get(uuid=canonical_uuid)
         if draft.status == Change.Statuses.PUBLISHED:
-            return redirect(reverse("canonical-published-detail", args=(canonical_uuid,)))
+
+            return redirect(
+                reverse(
+                    "canonical-published-detail",
+                    kwargs={"canonical_uuid": canonical_uuid, "model": model},
+                )
+            )
         # TODO return redirect to edit view
         # return HttpResponse("Todo return redirect")
-        return redirect(reverse("canonical-draft-edit", args=(canonical_uuid,)))
+        return redirect(
+            reverse(
+                "canonical-draft-edit", kwargs={"canonical_uuid": canonical_uuid, "model": model}
+            )
+        )
     except Change.DoesNotExist:
         raise Http404("Canonial UI does not exist")
 
@@ -88,8 +104,14 @@ class DraftHistoryTable(tables.Table):
 
     uuid = tables.Column(
         linkify=(
-            "draft-detail",
-            {"draft_uuid": tables.A("uuid"), "canonical_uuid": tables.A("model_instance_uuid")},
+            lambda record: reverse(
+                "draft-detail",
+                kwargs={
+                    "model": record.model_name.lower(),
+                    "draft_uuid": record.uuid,
+                    "canonical_uuid": record.model_instance_uuid or record.uuid,
+                },
+            )
         ),
     )
 
@@ -99,22 +121,28 @@ class DraftHistoryTable(tables.Table):
         fields = ("uuid", "submitted_by")
 
     def render_submitted_by(self, record):
-        return (
-            record.approvallog_set.filter(action=ApprovalLog.Actions.PUBLISH).first().user.username
-        )
+        if approval := record.approvallog_set.filter(action=ApprovalLog.Actions.PUBLISH).first():
+            return approval.user.username
+        else:
+            return "-"
 
     def render_reviewed_by(self, record):
-        return (
-            record.approvallog_set.filter(action=ApprovalLog.Actions.REVIEW).first().user.username
-        )
+        if approval := record.approvallog_set.filter(action=ApprovalLog.Actions.REVIEW).first():
+            return approval.user.username
+        else:
+            return "-"
 
     def render_published_by(self, record):
-        return (
-            record.approvallog_set.filter(action=ApprovalLog.Actions.PUBLISH).first().user.username
-        )
+        if approval := record.approvallog_set.filter(action=ApprovalLog.Actions.PUBLISH).first():
+            return approval.user.username
+        else:
+            return "-"
 
     def render_published_date(self, record):
-        return record.approvallog_set.filter(action=ApprovalLog.Actions.PUBLISH).first().date
+        if approval := record.approvallog_set.filter(action=ApprovalLog.Actions.PUBLISH).first():
+            return approval.date
+        else:
+            return "not published yet"
 
 
 @method_decorator(login_required, name="dispatch")
@@ -130,29 +158,33 @@ class ChangeHistoryList(mixins.DynamicModelMixin, tables.SingleTableView):
             | Q(model_instance_uuid=self.kwargs[self.pk_url_kwarg])
         )
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        view_model = Change.objects.get(uuid=self.kwargs[self.pk_url_kwarg]).model_name.lower()
+        return {**context, "view_model": view_model}
 
-class DraftDetailView(mixins.DynamicModelMixin, DetailView):
+
+class DraftDetailView(DetailView):
     model = Change
-    table_class = DraftHistoryTable
     pk_url_kwarg = 'draft_uuid'
     template_name = "api_app/canonical/draft_detail.html"
-
-    # def get_queryset(self):
-    #     return Change.objects.filter(uuid=self.kwargs[self.pk_url_kwarg])
-
-    def get_object(self):
-        return self._model_config['model'].objects.get(uuid=self.kwargs[self.pk_url_kwarg])
 
 
 @method_decorator(login_required, name="dispatch")
 class CanonicalRecordPublished(DetailView):
-    template_name = "api_app/canonical/published_detail.html"
+    model = Change
     pk_url_kwarg = 'canonical_uuid'
+    template_name = "api_app/canonical/published_detail.html"
 
     def get_queryset(self):
         c = Change.objects.get(uuid=self.kwargs[self.pk_url_kwarg])
         Model = c.content_type.model_class()
         return Model.objects.all()
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        view_model = context["object"]._meta.model.__name__.lower()
+        return {**context, "view_model": view_model}
 
 
 @method_decorator(login_required, name="dispatch")
@@ -259,3 +291,187 @@ class CanonicalDraftEdit(NotificationSidebar, mixins.ChangeModelFormMixin, Updat
         if self.object.status == Change.Statuses.PUBLISHED:
             return HttpResponseBadRequest("Unable to submit published records.")
         return super().post(*args, **kwargs)
+
+
+@method_decorator(login_required, name="dispatch")
+class CreateChangeView(
+    NotificationSidebar, mixins.DynamicModelMixin, mixins.ChangeModelFormMixin, CreateView
+):
+    model = Change
+    fields = ["content_type", "model_instance_uuid", "action", "update"]
+    template_name = "api_app/canonical/change_create.html"
+
+    def get_initial(self):
+        # Get initial form values from URL
+        return {
+            "content_type": self.get_model_form_content_type(),
+            "action": (Change.Actions.CREATE),
+        }
+
+    def get_context_data(self, **kwargs):
+        return {
+            **super().get_context_data(**kwargs),
+            "content_type_name": (self.get_model_form_content_type().model_class().__name__),
+        }
+
+    def get_model_form_content_type(self) -> ContentType:
+        if not hasattr(self, "model_form_content_type"):
+            try:
+                self.model_form_content_type = ContentType.objects.get_for_model(
+                    MODEL_CONFIG_MAP[self._model_name]['model']
+                )
+            except (KeyError, ContentType.DoesNotExist) as e:
+                raise Http404(f'Unsupported model type: {self._model_name}') from e
+        return self.model_form_content_type
+
+
+@method_decorator(login_required, name="dispatch")
+class CreateUpdateView(
+    NotificationSidebar, mixins.DynamicModelMixin, mixins.ChangeModelFormMixin, CreateView
+):
+    model = Change
+    fields = ["content_type", "model_instance_uuid", "action", "update"]
+    template_name = "api_app/canonical/change_create.html"
+
+    def get_initial(self):
+        # Get initial form values from URL
+        return {
+            "content_type": self.get_model_form_content_type(),
+            "action": (
+                Change.Actions.UPDATE if self.request.GET.get("uuid") else Change.Actions.CREATE
+            ),
+            "model_instance_uuid": self.request.GET.get("uuid"),
+        }
+
+    def get_context_data(self, **kwargs):
+        return {
+            **super().get_context_data(**kwargs),
+            "content_type_name": (self.get_model_form_content_type().model_class().__name__),
+            "canonical_object": Change.objects.get(uuid=self.kwargs["canonical_uuid"]),
+            "object": Change.objects.get(uuid=self.kwargs["canonical_uuid"]),
+        }
+
+    def get_success_url(self):
+        url = reverse("change-update", args=[self.object.pk])
+        if self.request.GET.get("back"):
+            return f'{url}?back={self.request.GET["back"]}'
+        return url
+
+    def get_model_form_content_type(self) -> ContentType:
+        if not hasattr(self, "model_form_content_type"):
+            try:
+                self.model_form_content_type = ContentType.objects.get_for_model(
+                    MODEL_CONFIG_MAP[self._model_name]['model']
+                )
+            except (KeyError, ContentType.DoesNotExist) as e:
+                raise Http404(f'Unsupported model type: {self._model_name}') from e
+        return self.model_form_content_type
+
+    def get_model_form_intial(self):
+        # TODO: Not currently possible to handle reverse relationships such as adding
+        # models to a CollectionPeriod where the FK is on the Collection Period
+        return {k: v for k, v in self.request.GET.dict().items() if k != "uuid"}
+
+    def post(self, *args, **kwargs):
+        """
+        Handle POST requests: instantiate a form instance with the passed
+        POST variables and then check if it's valid.
+        """
+        self.object = None
+        return super().post(*args, **kwargs)
+
+
+class CampaignDetailView(NotificationSidebar, DetailView):
+    model = Change
+    template_name = "api_app/canonical/campaign_details.html"
+    queryset = Change.objects.of_type(Campaign)
+
+    def get_queryset(self):
+        return Change.objects.all()
+
+    def get_object(self, queryset=None):
+        if not queryset:
+            queryset = self.get_queryset()
+        change = queryset.get(uuid=self.kwargs["canonical_uuid"])
+
+        # if the canonical record is not published, return the record itself
+        # if canonical record is published, return the record where the model_instance_uuid equals our canonical_uuid
+        # TODO: Check with Anthony here. Don't we have three cases? 1.) No published draft 2.) published draft & no new draft
+        # 3.) publised draft & new unpublished draft
+        if change.status == Change.Statuses.PUBLISHED:
+            change = Change.objects.get(model_instance_uuid=change.uuid)
+            # change = Change.objects.exclude(status=change.Statuses.PUBLISHED).get(
+            #     model_instance_uuid=change.uuid
+            # )
+
+        return change
+
+    @staticmethod
+    def _filter_latest_changes(change_queryset):
+        """Returns the single latest Change draft for each model_instance_uuid in the
+        provided queryset."""
+        return change_queryset.order_by('model_instance_uuid', '-approvallog__date').distinct(
+            'model_instance_uuid'
+        )
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        deployments = CampaignDetailView._filter_latest_changes(
+            Change.objects.of_type(Deployment)
+            .filter(
+                update__campaign=str(
+                    context['object'].model_instance_uuid or self.kwargs["canonical_uuid"]
+                )
+            )
+            .prefetch_approvals()
+        )
+
+        collection_periods = CampaignDetailView._filter_latest_changes(
+            Change.objects.of_type(CollectionPeriod)
+            .filter(update__deployment__in=[str(d.model_instance_uuid) for d in deployments])
+            .select_related("content_type")
+            .prefetch_approvals()
+            .annotate_from_relationship(
+                of_type=Platform, uuid_from="platform", to_attr="platform_name"
+            )
+        )
+
+        # Build collection periods instruments (too difficult to do in SQL)
+        instrument_uuids = set()
+        for cp in collection_periods:
+            for uuid in cp.update["instruments"]:
+                instrument_uuids.add(uuid)
+
+        instrument_names = {
+            str(uuid): short_name
+            for uuid, short_name in Change.objects.of_type(Instrument)
+            .filter(uuid__in=instrument_uuids)
+            .values_list("uuid", "update__short_name")
+        }
+        for cp in collection_periods:
+            cp.instrument_names = sorted(
+                instrument_names.get(uuid) for uuid in cp.update.get("instruments")
+            )
+
+        return {
+            **context,
+            # By setting the view model, our nav sidebar knows to highlight the link for campaigns
+            'view_model': 'campaign',
+            "deployments": deployments,
+            "transition_form": forms.TransitionForm(
+                change=context["object"], user=self.request.user
+            ),
+            "significant_events": CampaignDetailView._filter_latest_changes(
+                Change.objects.of_type(SignificantEvent)
+                .filter(update__deployment__in=[str(d.model_instance_uuid) for d in deployments])
+                .select_related("content_type")
+                .prefetch_approvals()
+            ),
+            "iops": CampaignDetailView._filter_latest_changes(
+                Change.objects.of_type(IOP)
+                .filter(update__deployment__in=[str(d.model_instance_uuid) for d in deployments])
+                .select_related("content_type")
+                .prefetch_approvals()
+            ),
+            "collection_periods": collection_periods,
+        }

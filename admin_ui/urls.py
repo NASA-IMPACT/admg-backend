@@ -11,9 +11,19 @@ urlpatterns = [
     # Actions
     path("actions/deploy-admin", views.trigger_deploy, name="trigger-deploy"),
     path("", views.SummaryView.as_view(), name="summary"),
-    path("campaigns/<uuid:pk>/details", views.CampaignDetailView.as_view(), name="campaign-detail"),
+    # path("campaigns/<uuid:pk>/details", views.CampaignDetailView.as_view(), name="campaign-detail"),
+    path(
+        "v2/<str:model>/<uuid:canonical_uuid>/details",
+        v2.CampaignDetailView.as_view(),
+        name="campaign-detail",
+    ),
     path("campaigns/<uuid:pk>/doi-fetch", views.DoiFetchView.as_view(), name="doi-fetch"),
     path("campaigns/<uuid:pk>/doi-approval", views.DoiApprovalView.as_view(), name="doi-approval"),
+    path(
+        "v2/<str:model>/<uuid:pk>/doi-approval",
+        views.DoiApprovalView.as_view(),
+        name="doi-approval",
+    ),
     # NOTE: For 'model' arg of URL, snake_case of model class name is expected
     path("drafts/<str:model>", views.ChangeListView.as_view(), name="change-list"),
     path("drafts/<str:model>/add", views.ChangeCreateView.as_view(), name="change-add"),
@@ -55,26 +65,38 @@ urlpatterns = [
     ),
     # Read-only view the published record for this concept. Render `400` response if record is not yet published.
     path(
-        'v2/<uuid:canonical_uuid>/published',
+        'v2/<str:model>/<uuid:canonical_uuid>/published',
         v2.CanonicalRecordPublished.as_view(),
         name="canonical-published-detail",
     ),
     # Helper route to redirect user to latest edit.
     path(
-        'v2/<uuid:canonical_uuid>/edit',
+        'v2/<str:model>/<uuid:canonical_uuid>/edit',
         v2.CanonicalDraftEdit.as_view(),
         name="canonical-draft-edit",
     ),
     path(
-        'v2/<uuid:canonical_uuid>/edit/<uuid:draft_uuid>',
+        'v2/<str:model>/<uuid:canonical_uuid>/edit/<uuid:draft_uuid>',
         v2.DraftDetailView.as_view(),
         name="draft-detail",
     ),
     # List all `Change` records for a given concept. Ordered by date created, descending.
     path(
-        "campaigns/<uuid:canonical_uuid>/change-history",
+        "v2/<str:model>/<uuid:canonical_uuid>/change-history",
         v2.ChangeHistoryList.as_view(),
         name="change-history",
+    ),
+    # Create a new change draft from existing published record
+    path(
+        "v2/<str:model>/<uuid:canonical_uuid>/change-create",
+        v2.CreateUpdateView.as_view(),
+        name="change-create",
+    ),
+    # Create new Change view
+    path(
+        "v2/<str:model>/create",
+        v2.CreateChangeView.as_view(),
+        name="change-create",
     ),
     # Read-only or edit view (depending on status) of an individual draft.
     # path('v2/<uuid:canonical_uuid>/edit/<uuid:draft_uuid>', ..., name=""),

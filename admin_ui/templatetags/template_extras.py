@@ -50,7 +50,8 @@ def object_header_tabs(context, change: Change):
     """
     # TODO ask Anthony about the expected behavior here.
     # I have only seen change models with a model_instance_uuid of "None"
-    print("\n ********* \n", [f.name for f in change._meta.get_fields()])
+    print("\n******\n", change)
+    # print("\n ********* \n", [f.name for f in change._meta.get_fields()])
     canonical_uuid = (
         # if we're passing in a model (i.e. a Campaign) instead of a change
         change.uuid

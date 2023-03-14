@@ -3,7 +3,7 @@
 
 {% block header %}
 <div class="col">
-  <h1>{{ object.short_name }} Detailed Draft View</h1>
+  <h1>{{ object.update.short_name }} Detailed Draft View</h1>
 </div>
 {% endblock header %}
 
@@ -11,5 +11,5 @@
   <div class="mt-2 w-100">
     Detailed Draft View
   </div>
-
+  {{object.content_object}}
 {% endblock %}
