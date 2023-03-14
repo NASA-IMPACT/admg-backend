@@ -444,11 +444,6 @@ class Campaign(DataModel):
     region_description = models.TextField(
         help_text="Free text words identifying the region/domain for the campaign"
     )
-    # spatial_bounds = geomodels.PolygonField(
-    #     blank=True,
-    #     null=True,
-    #     help_text="Latitude & Longitude for domain bounding box; enter as N, S, E, W",
-    # )
     seasons = models.ManyToManyField(
         Season,
         related_name="campaigns",
