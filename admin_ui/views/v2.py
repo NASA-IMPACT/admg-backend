@@ -312,6 +312,9 @@ class CreateChangeView(
         return {
             **super().get_context_data(**kwargs),
             "content_type_name": (self.get_model_form_content_type().model_class().__name__),
+            "view_model": (
+                self.get_model_form_content_type().model_class().__name__.lower()
+            ),  # needs to be set for sidebar status
         }
 
     def get_model_form_content_type(self) -> ContentType:
