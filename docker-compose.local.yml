@@ -25,6 +25,8 @@ services:
       - POSTGRES_USER=user
       - POSTGRES_PASSWORD=password
       - POSTGRES_DB=admg_webapp
+    ports:
+      - "5432:5439"
 
   rabbitmq:
     container_name: rabbitmq
