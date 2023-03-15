@@ -1,9 +1,12 @@
+{% extends "./layout-header_body.html" %}
 {% load static %}
 {% load crispy_forms_tags %}
+{% load static %}
+{% load template_extras %}
 
 {% block header %}
 <div class="col">
-  <h1>{{ object.update.short_name }} Detailed Draft View</h1>
+  <h1 class="my-5">{{ object.update.short_name }} Details</h1>
 </div>
 {% endblock header %}
 

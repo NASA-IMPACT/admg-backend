@@ -29,15 +29,13 @@
 {% endblock actions %}
 
 {% block main %}
-  {% with main_class="col-lg-8" %}
-    {{ block.super }}
-  {% endwith %}
-
-
-  <h4>Published Details View (Placeholder)</h4>
- 
-  <div>{{ object.description_short }}</div>
-  <div>{{ object.short_name }}</div>
+<div class="card">
+  <div class="card-title">Published Details View (Placeholder)</div>
+  <div class="card-subtitle">{{ object.short_name }}</div>
+  <div class="card-body"> {%if object.description_short%} {{ object.description_short }} {% else %} There is no description for this change yet {% endif %}</div>
+</div>
+  
+  
   {# Sidebar #}
   <aside class="col-sm-4">
     {% if object.logo %}

@@ -180,6 +180,14 @@ class DraftDetailView(DetailView):
     pk_url_kwarg = 'draft_uuid'
     template_name = "api_app/canonical/draft_detail.html"
 
+    def get_context_data(self, **kwargs):
+        return {
+            **super().get_context_data(**kwargs),
+            "view_model": (
+                Change.objects.get(uuid=self.kwargs[self.pk_url_kwarg]).model_name.lower()
+            ),  # needs to be set for sidebar status
+        }
+
 
 @method_decorator(login_required, name="dispatch")
 class CanonicalRecordPublished(DetailView):
