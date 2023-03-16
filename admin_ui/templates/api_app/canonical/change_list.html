@@ -5,12 +5,12 @@
 
 {% block header %}
 <div class="col">
-  <h1>{{ display_name }} Drafts</h1>
+  <h1 class="my-5">{{ display_name }}s</h1>
 </div>
 {% if view_model %}
 <div class="col-auto">
   <a class="btn btn-primary" href="{% url 'change-create' view_model %}">
-    Add New {{ display_name }} +
+    New {{ display_name }}
   </a>
 </div>
 {% else %}
@@ -26,7 +26,7 @@
     {% if filter %}
       <form action="" method="get" class="form form-inline">
         {{ filter.form | crispy }}
-        <button class="btn btn-secondary btn-sm">Filter</button>
+        <button class="btn btn-secondary btn-sm mx-2">Filter</button>
         <a
           class="btn btn-light btn-sm" 
           {% if view_model %}

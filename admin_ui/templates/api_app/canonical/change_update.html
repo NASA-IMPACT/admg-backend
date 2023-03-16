@@ -7,15 +7,9 @@
 
 {% block header %}
   <div class="col">
-    <h1>{{ object.update.short_name }} Update</h1>
+    <a href="{% url 'canonical-list' view_model %}">&lt; Back to {{ view_model }}s</a>
+    <h1 class="my-5">{{ object.update.short_name }} Update</h1>
   </div>
-  <a href="{% spaceless %}
-    {% if "back" in request.GET %} {{ request.GET.back }}
-    {% else %}{% url 'canonical-list' object|classname %}
-    {% endif %}
-    {% endspaceless %}">
-    &larr; Back
-  </a>
 {% endblock header %}
 {% block actions %}
   {% if object.is_locked %}

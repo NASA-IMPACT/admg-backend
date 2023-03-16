@@ -6,22 +6,18 @@
 
 {% block header %}
   <div class="col">
-    <h1>{{ object.short_name }}</h1>
+    <a href="{% url 'canonical-list' view_model %}">&lt; Back to {{view_model }}</a>
+    <h1 class="my-5">{{ object.short_name }}</h1>
   </div>
-  <a href="{% spaceless %}
-    {% if "back" in request.GET %} {{ request.GET.back }}
-    {% else %}{% url 'canonical-list' object|classname %}
-    {% endif %}
-    {% endspaceless %}">
-    &larr; Back
-  </a>
 {% endblock header %}
 
 {% block actions %}
   <div class="px-1">
+    {% if not has_progress_draft %}
     <a href="{% url 'change-create' view_model object.uuid %}?back={{ request.path }}" class="btn btn-primary ml-3">
       Create Edit Draft
       </a>
+    {% endif %}
     <button class="btn btn-secondary" data-toggle="modal" data-target="#deletePopup">
       Delete
     </button>

@@ -40,8 +40,12 @@ from api_app.urls import camel_to_snake
 def redirect_helper(request, canonical_uuid, model):
     try:
         draft = Change.objects.get(uuid=canonical_uuid)
-        if draft.status == Change.Statuses.PUBLISHED:
-
+        has_progress_draft = (
+            Change.objects.exclude(status=Change.Statuses.PUBLISHED)
+            .filter(Q(uuid=draft.uuid) | Q(model_instance_uuid=draft.uuid))
+            .exists()
+        )
+        if draft.status == Change.Statuses.PUBLISHED and not has_progress_draft:
             return redirect(
                 reverse(
                     "canonical-published-detail",
@@ -203,7 +207,18 @@ class CanonicalRecordPublished(DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         view_model = context["object"]._meta.model.__name__.lower()
-        return {**context, "view_model": view_model}
+        return {
+            **context,
+            "view_model": view_model,
+            "has_progress_draft": (
+                Change.objects.exclude(status=Change.Statuses.PUBLISHED)
+                .filter(
+                    Q(uuid=self.kwargs[self.pk_url_kwarg])
+                    | Q(model_instance_uuid=self.kwargs[self.pk_url_kwarg])
+                )
+                .exists()
+            ),
+        }
 
 
 @method_decorator(login_required, name="dispatch")
@@ -347,60 +362,70 @@ class CreateChangeView(
         return self.model_form_content_type
 
 
-@method_decorator(login_required, name="dispatch")
-class CreateUpdateView(
-    NotificationSidebar, mixins.DynamicModelMixin, mixins.ChangeModelFormMixin, CreateView
-):
-    model = Change
-    fields = ["content_type", "model_instance_uuid", "action", "update"]
-    template_name = "api_app/canonical/change_create.html"
+class ModelObjectView(NotificationSidebar, mixins.DynamicModelMixin, DetailView):
+    fields = "__all__"
 
-    def get_initial(self):
-        # Get initial form values from URL
-        return {
-            "content_type": self.get_model_form_content_type(),
-            "action": (
-                Change.Actions.UPDATE if self.request.GET.get("uuid") else Change.Actions.CREATE
-            ),
-            "model_instance_uuid": self.request.GET.get("uuid"),
-        }
+    def _initialize_form(self, form_class, disable_all=False, **kwargs):
+        form_instance = form_class(**kwargs)
+
+        # prevent fields from being edited
+        if disable_all:
+            for fieldname in form_instance.fields:
+                form_instance.fields[fieldname].disabled = True
+
+        return form_instance
+
+    def _get_form(self, disable_all=False, **kwargs):
+        form_class = forms.published_modelform_factory(self._model_name)
+        return self._initialize_form(form_class, disable_all, **kwargs)
+
+    def get_object(self):
+        return self._model_config['model'].objects.get(uuid=self.kwargs['canonical_uuid'])
+
+    def get_queryset(self):
+        return self._model_config['model'].objects.all()
+
+    def get_context_data(self, **kwargs):
+        return {**super().get_context_data(**kwargs), "request": self.request}
+
+
+@method_decorator(login_required, name="dispatch")
+class CreateUpdateView(ModelObjectView):
+    template_name = "api_app/published_edit.html"
+
+    def post(self, request, **kwargs):
+        # set object because the super().get_context_data looks for a self.object
+        self.object = self.get_object()
+
+        # getting form with instance and data gives a lot of changed fields
+        # however, getting a form with initial and data only gives the required changed fields
+        old_form = self._get_form(instance=self.object)
+        new_form = self._get_form(data=request.POST, initial=old_form.initial, files=request.FILES)
+
+        if not len(new_form.changed_data):
+            context = self.get_context_data(**kwargs)
+            context["message"] = "Nothing changed"
+            return render(request, self.template_name, context)
+
+        change_object = Change.objects.create(
+            content_object=self.object,
+            status=Change.Statuses.CREATED,
+            action=Change.Actions.UPDATE,
+            update=utils.serialize_model_form(new_form),
+            previous=utils.serialize_model_form(old_form),
+        )
+        return redirect(
+            reverse("canonical-draft-edit", kwargs={"canonical_uuid": change_object.uuid})
+        )
 
     def get_context_data(self, **kwargs):
         return {
             **super().get_context_data(**kwargs),
-            "content_type_name": (self.get_model_form_content_type().model_class().__name__),
-            "canonical_object": Change.objects.get(uuid=self.kwargs["canonical_uuid"]),
-            "object": Change.objects.get(uuid=self.kwargs["canonical_uuid"]),
+            "model_form": self._get_form(instance=kwargs.get("object")),
+            "view_model": self._model_name,
+            "display_name": self._model_config["display_name"],
+            "url_name": self._model_config["singular_snake_case"],
         }
-
-    def get_success_url(self):
-        url = reverse("change-update", args=[self.object.pk])
-        if self.request.GET.get("back"):
-            return f'{url}?back={self.request.GET["back"]}'
-        return url
-
-    def get_model_form_content_type(self) -> ContentType:
-        if not hasattr(self, "model_form_content_type"):
-            try:
-                self.model_form_content_type = ContentType.objects.get_for_model(
-                    MODEL_CONFIG_MAP[self._model_name]['model']
-                )
-            except (KeyError, ContentType.DoesNotExist) as e:
-                raise Http404(f'Unsupported model type: {self._model_name}') from e
-        return self.model_form_content_type
-
-    def get_model_form_intial(self):
-        # TODO: Not currently possible to handle reverse relationships such as adding
-        # models to a CollectionPeriod where the FK is on the Collection Period
-        return {k: v for k, v in self.request.GET.dict().items() if k != "uuid"}
-
-    def post(self, *args, **kwargs):
-        """
-        Handle POST requests: instantiate a form instance with the passed
-        POST variables and then check if it's valid.
-        """
-        self.object = None
-        return super().post(*args, **kwargs)
 
 
 class CampaignDetailView(NotificationSidebar, DetailView):
@@ -414,19 +439,20 @@ class CampaignDetailView(NotificationSidebar, DetailView):
     def get_object(self, queryset=None):
         if not queryset:
             queryset = self.get_queryset()
-        change = queryset.get(uuid=self.kwargs["canonical_uuid"])
+        canonical_draft = queryset.get(uuid=self.kwargs["canonical_uuid"])
 
         # if the canonical record is not published, return the record itself
+        if canonical_draft.status != Change.Statuses.PUBLISHED:
+            return canonical_draft
+
         # if canonical record is published, return the record where the model_instance_uuid equals our canonical_uuid
         # TODO: Check with Anthony here. Don't we have three cases? 1.) No published draft 2.) published draft & no new draft
         # 3.) publised draft & new unpublished draft
-        if change.status == Change.Statuses.PUBLISHED:
-            change = Change.objects.get(model_instance_uuid=change.uuid)
-            # change = Change.objects.exclude(status=change.Statuses.PUBLISHED).get(
-            #     model_instance_uuid=change.uuid
-            # )
+        # if change.status == Change.Statuses.PUBLISHED:
 
-        return change
+        return Change.objects.exclude(status=Change.Statuses.PUBLISHED).get(
+            model_instance_uuid=canonical_draft.uuid
+        )
 
     @staticmethod
     def _filter_latest_changes(change_queryset):

@@ -5,16 +5,16 @@
   <ul class="nav">
     {% with request.resolver_match.url_name as url_name %}
     <li class="nav-item">
-      <{% if published_uuid %}a{% else %}span{% endif %}
-      class="nav-link {% if 'published' in url_name %}active{% elif not published_uuid %} disabled {% endif %}" 
-      {% if published_uuid %} href="{% url 'published-detail' pk=published_uuid model=view_model %}" {% endif %}
+      <a
+      class="nav-link {% if url_name == 'canonical-published-detail' %}active{% endif %} {% if not has_published_draft %}disabled{% endif %}" 
+      href="{% url 'canonical-published-detail' view_model canonical_uuid %}"
       >
         Published
-      </{% if published_uuid %}a{% else %}span{% endif %}>
+      </a>
     </li>
     <li class="nav-item">
       <a 
-        class="nav-link {% if  draft_status == 'Published' %} disabled {% endif %} {% if url_name == 'canonical-draft-edit' %}active{% endif %}" 
+        class="nav-link {% if not has_progress_draft %} disabled {% endif %} {% if url_name == 'canonical-draft-edit' %}active{% endif %}" 
         href="{% url 'canonical-draft-edit' view_model canonical_uuid %}"
       >
         Edits {{published_uuid}}

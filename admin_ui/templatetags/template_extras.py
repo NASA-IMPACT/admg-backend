@@ -1,4 +1,5 @@
 from django import template
+from django.db.models import Q
 
 from api_app.models import Change
 
@@ -48,23 +49,21 @@ def object_header_tabs(context, change: Change):
     """
     Reusable header for canonical object.
     """
-    # TODO ask Anthony about the expected behavior here.
-    # I have only seen change models with a model_instance_uuid of "None"
-    print("\n******\n", change)
-    # print("\n ********* \n", [f.name for f in change._meta.get_fields()])
+    has_progress_draft = (
+        Change.objects.exclude(status=Change.Statuses.PUBLISHED)
+        .filter(Q(uuid=change.uuid) | Q(model_instance_uuid=change.uuid))
+        .exists()
+    )
+
+    has_published_draft = Change.objects.filter(status=Change.Statuses.PUBLISHED).exists()
+
     canonical_uuid = (
-        # if we're passing in a model (i.e. a Campaign) instead of a change
-        change.uuid
-        # change.model_instance_uuid
-        # if hasattr(change, "model_instance_uuid")
-        # else change.uuid
-        # if change.status == change.Statuses.PUBLISHED
-        # else None
+        change.model_instance_uuid if hasattr(change, "model_instance_uuid") else change.uuid
     )
 
     draft_status = (
         "Published"
-        if not hasattr(change, "model_instance_uuid")
+        if not hasattr(change, "model_instance_uuid") or change.status == change.Statuses.PUBLISHED
         else "Created"
         if change.status == change.Statuses.CREATED
         else "In Progress"
@@ -77,6 +76,8 @@ def object_header_tabs(context, change: Change):
         "object": change,
         "draft_status": draft_status,
         "canonical_uuid": canonical_uuid,
+        "has_progress_draft": has_progress_draft,
+        "has_published_draft": has_published_draft,
         "request": context.get("request"),
         "view_model": context.get("view_model"),
     }
