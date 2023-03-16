@@ -57,8 +57,11 @@ def object_header_tabs(context, change: Change):
 
     has_published_draft = Change.objects.filter(status=Change.Statuses.PUBLISHED).exists()
 
+    # TODO handle the case where we don't have a model_instance_uuid
     canonical_uuid = (
-        change.model_instance_uuid if hasattr(change, "model_instance_uuid") else change.uuid
+        change.model_instance_uuid
+        if hasattr(change, "model_instance_uuid") and change.model_instance_uuid
+        else change.uuid
     )
 
     draft_status = (
