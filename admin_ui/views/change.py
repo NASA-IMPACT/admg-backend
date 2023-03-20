@@ -5,7 +5,7 @@ import django_tables2
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.contenttypes.models import ContentType
-from django.db.models import Count, OuterRef, Q, Value, aggregates, functions
+from django.db.models import CharField, Count, OuterRef, Q, Value, aggregates, functions
 from django.db.models.fields.json import KeyTextTransform
 from django.http import Http404, HttpResponseBadRequest, HttpResponseRedirect
 from django.urls import reverse
@@ -439,6 +439,7 @@ def format_validation_error(err: ValidationError) -> str:
     )
 
 
+@method_decorator(login_required, name="dispatch")
 @method_decorator(user_passes_test(lambda user: user.is_admg_admin()), name="dispatch")
 class GcmdSyncListView(NotificationSidebar, SingleTableMixin, FilterView):
     model = Change
@@ -460,7 +461,8 @@ class GcmdSyncListView(NotificationSidebar, SingleTableMixin, FilterView):
                         functions.NullIf(KeyTextTransform(attr, dictionary), Value(""))
                         for attr in gcmd.short_name_priority
                         for dictionary in ["update", "previous"]
-                    ]
+                    ],
+                    output_field=CharField(),
                 ),
                 resolved_records=functions.Coalesce(SubqueryCount(resolved_records), Value(0)),
                 affected_records=Count("recommendation", distinct=True),
@@ -486,6 +488,7 @@ class GcmdSyncListView(NotificationSidebar, SingleTableMixin, FilterView):
         return HttpResponseRedirect(reverse('gcmd-list'))
 
 
+@method_decorator(login_required, name="dispatch")
 @method_decorator(user_passes_test(lambda user: user.is_admg_admin()), name="dispatch")
 class ChangeGcmdUpdateView(NotificationSidebar, UpdateView):
     fields = ["content_type", "model_instance_uuid", "action", "update", "status"]
