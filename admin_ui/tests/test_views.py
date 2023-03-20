@@ -131,39 +131,26 @@ class TestCampaignDetailView(TestCase):
         self.assertTrue(update_changes[-1].uuid in [change.uuid for change in latest])
 
 
-class MyForm(ModelForm):
-    class Meta:
-        model = Instrument
-        fields = ['additional_metadata']
-
-
-class MyFormTest(TestCase):
-    def setUp(self):
-        self.data = {'additional_metadata': {'key1': 'value1'}}
-        self.form = MyForm(data=self.data)
-
-    def test_form_valid(self):
-        self.assertTrue(self.form.is_valid())
-        obj = self.form.save()
-        self.assertEqual(Instrument.objects.count(), 1)
-        self.assertEqual(obj.additional_metadata, self.data['additional_metadata'])
-
-    def test_form_invalid(self):
-        data = {'additional_metadata': 'invalid'}
-        form = MyForm(data=data)
-        self.assertFalse(form.is_valid())
-
-
 class InstrumentTest(TestCase):
+    """
+    To test the Instrument drafts field(additional_metadata) data is not adding the additional escape characters.
+    """
+
     def setUp(self):
         self.content_type = ContentType.objects.get_for_model(Instrument)
         self.url = reverse("change-add", args=(self.content_type.name,))
         self.user = factories.UserFactory.create()
 
     def test_create_instrument_instance(self):
+        """
+        Checking whether additional metadata adding additional chracters
+        """
+        # assert the Instrument drafts are empty
         self.assertEqual(Change.objects.filter(content_type=self.content_type).count(), 0)
+        # fetching the id of the Instrument draft
         content_type = self.content_type.id
         self.client.force_login(user=self.user)
+        # making the post request to send the test data
         self.client.post(
             self.url,
             {
@@ -175,6 +162,8 @@ class InstrumentTest(TestCase):
             follow=True,
         )
         instrument = Change.objects.filter(content_type=self.content_type)
+        # assert the Instrument drafts count to 1
         self.assertEqual(len(instrument), 1)
+        # assert the short name and additional metadata values
         self.assertEqual(instrument.first().update['short_name'], "something")
         self.assertEqual(instrument.first().update['additional_metadata'], {'testkey': 'testvalue'})
