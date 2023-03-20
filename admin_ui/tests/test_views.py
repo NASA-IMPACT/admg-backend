@@ -1,7 +1,6 @@
 from django.contrib.contenttypes.models import ContentType
 from django.test import TestCase
 from django.urls import reverse
-from django.forms import ModelForm
 
 from admg_webapp.users.models import User
 from admin_ui.views.change import CampaignDetailView
