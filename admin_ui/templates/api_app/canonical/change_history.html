@@ -6,7 +6,7 @@
 
 {% block header %}
 <div class="col">
-  <a href="{% url 'change-list' view_model %}">&lt; Back to {{ object.content_type.model_class | verbose_name_plural | title }}</a>
+  <a href="{% url 'canonical-list' view_model %}">&lt; Back to {{ object.content_type.model_class | verbose_name_plural | title }}</a>
   <h1 class="my-5">Draft History for {{ object.content_object.short_name }}</h1>
 </div>
 {% endblock header %}
