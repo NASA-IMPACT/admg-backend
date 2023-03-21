@@ -6,7 +6,7 @@
 
 {% block header %}
   <div class="col">
-    <a href="{% url 'canonical-list' view_model %}">&lt; Back to {{view_model }}</a>
+    <a href="{% url 'canonical-list' view_model %}">&lt; Back to {{ display_name }}</a>
     <h1 class="my-5">{{ object.short_name }}</h1>
   </div>
 {% endblock header %}

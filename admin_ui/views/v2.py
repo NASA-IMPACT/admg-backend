@@ -12,11 +12,10 @@ from django.shortcuts import redirect
 from django.urls import reverse
 from django.contrib.contenttypes.models import ContentType
 from django.views.generic.edit import UpdateView
-from django.db.models import Q
+from django.db.models import Q, OuterRef, Subquery, Case, When, F
 from django.views.generic.edit import CreateView
 from admin_ui.config import MODEL_CONFIG_MAP
 from api_app.models import ApprovalLog
-
 
 from api_app.models import Change
 from data_models.models import (
@@ -76,11 +75,58 @@ class CanonicalRecordList(mixins.DynamicModelMixin, SingleTableMixin, FilterView
         return self._model_config["draft_filter"]
 
     def get_queryset(self):
+        """
+        We are getting a list of all created records (so we can link to them).
+        However, we want to display the most recent related draft in the table.
+        """
+        # find the most recent drafts for each canonical CREATED draft
+        related_drafts = Change.objects.filter(model_instance_uuid=OuterRef("uuid")).order_by(
+            "status", "-updated_at"
+        )
+
         queryset = (
-            Change.objects.filter(action=Change.Actions.CREATE)
-            .of_type(self._model_config['model'])
-            .select_related("content_type")
-            .order_by("-updated_at")
+            (
+                Change.objects.filter(action=Change.Actions.CREATE).of_type(
+                    self._model_config['model']
+                )
+            )
+            .annotate(
+                related_status=Subquery(related_drafts.values("status")[:1]),
+                related_action=Subquery(related_drafts.values("action")[:1]),
+                related_updated_at=Subquery(related_drafts.values("updated_at")[:1]),
+                related_update=Subquery(related_drafts.values("update")[:1]),
+            )
+            .annotate(
+                latest_status=Case(
+                    When(
+                        related_status__isnull=True,
+                        then="status",
+                    ),
+                    default=F("related_status"),
+                ),
+                latest_action=Case(
+                    When(
+                        related_action__isnull=True,
+                        then="action",
+                    ),
+                    default=F("related_action"),
+                ),
+                latest_updated_at=Case(
+                    When(
+                        related_updated_at__isnull=True,
+                        then="updated_at",
+                    ),
+                    default=F("related_updated_at"),
+                ),
+                latest_update=Case(
+                    When(
+                        related_update__isnull=True,
+                        then="update",
+                    ),
+                    default=F("related_update"),
+                ),
+            )
+            .order_by("-latest_updated_at")
         )
 
         if self._model_config['model'] == Platform:
@@ -199,17 +245,20 @@ class CanonicalRecordPublished(DetailView):
     pk_url_kwarg = 'canonical_uuid'
     template_name = "api_app/canonical/published_detail.html"
 
-    def get_queryset(self):
-        c = Change.objects.get(uuid=self.kwargs[self.pk_url_kwarg])
-        Model = c.content_type.model_class()
-        return Model.objects.all()
+    # def get_queryset(self):
+    #     c = Change.objects.get(uuid=self.kwargs[self.pk_url_kwarg])
+    #     Model = c.content_type.model_class()
+    #     return Model.objects.all()
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         view_model = context["object"]._meta.model.__name__.lower()
         return {
             **context,
-            "view_model": view_model,
+            "view_model": (
+                Change.objects.get(uuid=self.kwargs[self.pk_url_kwarg]).model_name.lower()
+            ),
+            "display_name": Change.objects.get(uuid=self.kwargs[self.pk_url_kwarg]).model_name,
             "has_progress_draft": (
                 Change.objects.exclude(status=Change.Statuses.PUBLISHED)
                 .filter(
@@ -233,17 +282,18 @@ class CanonicalDraftEdit(NotificationSidebar, mixins.ChangeModelFormMixin, Updat
     def get_object(self, queryset=None):
         if not queryset:
             queryset = self.get_queryset()
-        change = queryset.get(uuid=self.kwargs["canonical_uuid"])
+        self.canonical_change = queryset.get(uuid=self.kwargs["canonical_uuid"])
 
         # if the canonical record is not published, return the record itself
+        if self.canonical_change.status != Change.Statuses.PUBLISHED:
+            return self.canonical_change
+
         # if canonical record is published, return the record where the model_instance_uuid equals our canonical_uuid
-        if change.status == Change.Statuses.PUBLISHED:
-            change = Change.objects.exclude(status=change.Statuses.PUBLISHED).get(
-                model_instance_uuid=change.uuid
-            )
+        return Change.objects.exclude(status=Change.Statuses.PUBLISHED).get(
+            model_instance_uuid=self.canonical_change.uuid
+        )
 
-        return change
-
+    # Change.objects.of_type(Campaign).annotate(canonical_uuid=Coalesce("model_instance_uuid", "uuid")).order_by("canonical_uuid", "status").distinct("canonical_uuid")
     def get_success_url(self):
         url = reverse("change-update", args=[self.object.pk])
         if self.request.GET.get("back"):
@@ -252,6 +302,7 @@ class CanonicalDraftEdit(NotificationSidebar, mixins.ChangeModelFormMixin, Updat
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        print("\n****", self.canonical_change)
         return {
             **context,
             "transition_form": (
@@ -263,6 +314,7 @@ class CanonicalDraftEdit(NotificationSidebar, mixins.ChangeModelFormMixin, Updat
             "ancestors": context["object"].get_ancestors().select_related("content_type"),
             "descendents": context["object"].get_descendents().select_related("content_type"),
             "comparison_form": self._get_comparison_form(context['model_form']),
+            "canonical_object": self.canonical_change,
         }
 
     def _get_comparison_form(self, model_form):
@@ -442,7 +494,11 @@ class CampaignDetailView(NotificationSidebar, DetailView):
         canonical_draft = queryset.get(uuid=self.kwargs["canonical_uuid"])
 
         # if the canonical record is not published, return the record itself
-        if canonical_draft.status != Change.Statuses.PUBLISHED:
+        # if canonical_draft.status != Change.Statuses.PUBLISHED:
+        #     return canonical_draft
+
+        # if the records has been published, return the canonical draft
+        if Change.objects.filter(status=Change.Statuses.PUBLISHED).exists():
             return canonical_draft
 
         # if canonical record is published, return the record where the model_instance_uuid equals our canonical_uuid

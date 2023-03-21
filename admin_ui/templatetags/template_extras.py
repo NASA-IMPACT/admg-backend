@@ -1,5 +1,6 @@
 from django import template
 from django.db.models import Q
+from typing import Optional
 
 from api_app.models import Change
 
@@ -45,10 +46,16 @@ def classname(obj):
 
 
 @register.inclusion_tag('snippets/object_header_tabs.html', takes_context=True)
-def object_header_tabs(context, change: Change):
+def object_header_tabs(context, change: Change, canonical_change: Optional[Change] = None):
+
     """
     Reusable header for canonical object.
     """
+
+    print(f'\n {canonical_change=}  {change=} ')
+    # use canonical change if present otherwise fall back to change
+    change = canonical_change if canonical_change else change
+
     has_progress_draft = (
         Change.objects.exclude(status=Change.Statuses.PUBLISHED)
         .filter(Q(uuid=change.uuid) | Q(model_instance_uuid=change.uuid))

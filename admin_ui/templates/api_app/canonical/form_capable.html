@@ -16,7 +16,7 @@ This template prepares a view for form rendering
 
 {% block header_tabs %}
   {% if object %}
-    {% object_header_tabs object %}
+      {% object_header_tabs object canonical_object %}
   {% endif %}
 {% endblock header_tabs %}
 

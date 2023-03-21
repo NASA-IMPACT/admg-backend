@@ -122,16 +122,11 @@ class ShortNamefromUUIDColumn(ConditionalValueColumn):
 
 
 class DraftTableBase(tables.Table):
-    draft_action = tables.Column(verbose_name="Draft Action", accessor="action")
-    status = tables.Column(verbose_name="Status", accessor="status")
-    updated_at = tables.DateTimeColumn(verbose_name="Last Edit Date")
+    draft_action = tables.Column(verbose_name="Draft Action", accessor="latest_action")
+    status = tables.Column(verbose_name="Status", accessor="latest_status")
+    updated_at = tables.DateTimeColumn(verbose_name="Last Edit Date", accessor="latest_updated_at")
 
     final_fields = ("draft_action", "status", "updated_at")
-
-    # render_column example method
-    # def render_status(self, value, column):
-    #     column.attrs = {'th': {'bgcolor': 'lightgreen'}}
-    #     return value
 
     class Meta:
         model = Change
@@ -153,7 +148,7 @@ class LimitedTableBase(DraftTableBase):
     )
     long_name = ConditionalValueColumn(
         verbose_name="Long Name",
-        accessor="update__long_name",
+        accessor="latest_update__long_name",
         update_accessor="content_object.long_name",
     )
 
@@ -458,35 +453,6 @@ class PartnerOrgChangeListTable(LimitedTableBase):
         fields = all_fields
         sequence = all_fields
 
-
-class WebsiteTypeChangeListTable(LimitedTableBase):
-    class Meta(LimitedTableBase.Meta):
-        all_fields = LimitedTableBase.initial_fields + LimitedTableBase.final_fields
-        fields = all_fields
-        sequence = all_fields
-
-
-class CampaignChangeListTable(LimitedTableBase):
-    short_name = ConditionalValueColumn(
-        verbose_name="Short Name",
-        accessor="update__short_name",
-        update_accessor="content_object.short_name",
-        linkify=("change-update", [tables.A("uuid")]),
-    )
-    funding_agency = ConditionalValueColumn(
-        verbose_name="Funding Agency",
-        accessor="update__funding_agency",
-        update_accessor="content_object.funding_agency",
-    )
-
-    class Meta(LimitedTableBase.Meta):
-        all_fields = (
-            LimitedTableBase.initial_fields + ("funding_agency",) + LimitedTableBase.final_fields
-        )
-        fields = all_fields
-        sequence = all_fields
-
-    # TODO This seems to be causing issues
     def render_short_name(self, value, record):
         return format_html(
             '<a href="{form_url}">{label}</a>',
@@ -498,6 +464,47 @@ class CampaignChangeListTable(LimitedTableBase):
                 },
             ),
             label=record.update.get('short_name') or '---',
+        )
+
+
+class WebsiteTypeChangeListTable(LimitedTableBase):
+    class Meta(LimitedTableBase.Meta):
+        all_fields = LimitedTableBase.initial_fields + LimitedTableBase.final_fields
+        fields = all_fields
+        sequence = all_fields
+
+
+class CampaignChangeListTable(LimitedTableBase):
+    short_name = ConditionalValueColumn(
+        verbose_name="Short Name",
+        accessor="latest_update__short_name",
+        update_accessor="content_object.short_name",
+        linkify=("change-update", [tables.A("uuid")]),
+    )
+    funding_agency = ConditionalValueColumn(
+        verbose_name="Funding Agency",
+        accessor="latest_update__funding_agency",
+        update_accessor="content_object.funding_agency",
+    )
+
+    class Meta(LimitedTableBase.Meta):
+        all_fields = (
+            LimitedTableBase.initial_fields + ("funding_agency",) + LimitedTableBase.final_fields
+        )
+        fields = all_fields
+        sequence = all_fields
+
+    def render_short_name(self, value, record):
+        return format_html(
+            '<a href="{form_url}">{label}</a>',
+            form_url=reverse(
+                'canonical-redirect',
+                kwargs={
+                    "canonical_uuid": record.uuid,
+                    "model": record.model_name.lower(),
+                },
+            ),
+            label=record.latest_update.get('short_name') or '---',
         )
 
 
@@ -515,12 +522,38 @@ class PlatformChangeListTable(LimitedTableBase):
         fields = all_fields
         sequence = all_fields
 
+    def render_short_name(self, value, record):
+        return format_html(
+            '<a href="{form_url}">{label}</a>',
+            form_url=reverse(
+                'canonical-redirect',
+                kwargs={
+                    "canonical_uuid": record.uuid,
+                    "model": record.model_name.lower(),
+                },
+            ),
+            label=record.update.get('short_name') or '---',
+        )
+
 
 class InstrumentChangeListTable(LimitedTableBase):
     class Meta(LimitedTableBase.Meta):
         all_fields = LimitedTableBase.initial_fields + LimitedTableBase.final_fields
         fields = all_fields
         sequence = all_fields
+
+    def render_short_name(self, value, record):
+        return format_html(
+            '<a href="{form_url}">{label}</a>',
+            form_url=reverse(
+                'canonical-redirect',
+                kwargs={
+                    "canonical_uuid": record.uuid,
+                    "model": record.model_name.lower(),
+                },
+            ),
+            label=record.update.get('short_name') or '---',
+        )
 
 
 # TODO: does this actually need to link to the campaign detail page?
@@ -797,3 +830,16 @@ class ImageChangeListTable(DraftTableBase):
         all_fields = ("title",) + DraftTableBase.final_fields
         fields = list(all_fields)
         sequence = all_fields
+
+    def render_short_name(self, value, record):
+        return format_html(
+            '<a href="{form_url}">{label}</a>',
+            form_url=reverse(
+                'canonical-redirect',
+                kwargs={
+                    "canonical_uuid": record.uuid,
+                    "model": record.model_name.lower(),
+                },
+            ),
+            label=record.update.get('short_name') or '---',
+        )
