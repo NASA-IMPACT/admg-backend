@@ -80,6 +80,12 @@ urlpatterns = [
         v2.DraftDetailView.as_view(),
         name="draft-detail",
     ),
+    # same view as edit but view only for historical
+    path(
+        'v2/<str:model>/<uuid:canonical_uuid>/historical-detail/<uuid:draft_uuid>',
+        v2.DraftDetailView.as_view(),
+        name="historical-detail",
+    ),
     # List all `Change` records for a given concept. Ordered by date created, descending.
     path(
         "v2/<str:model>/<uuid:canonical_uuid>/change-history",
@@ -98,10 +104,4 @@ urlpatterns = [
         v2.CreateChangeView.as_view(),
         name="change-create",
     ),
-    # Read-only or edit view (depending on status) of an individual draft.
-    # path('v2/<uuid:canonical_uuid>/edit/<uuid:draft_uuid>', ..., name=""),
-    # List DOIs related to a given draft, allow user to request/approve/reject DOIs
-    # path('v2/<uuid:canonical_uuid>/dois', ..., name=""),
-    # Dashboard view for Campaign
-    # path('v2/<uuid:canonical_uuid>/detail', ..., name=""),
 ]

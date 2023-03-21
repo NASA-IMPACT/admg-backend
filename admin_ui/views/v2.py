@@ -99,12 +99,12 @@ class CanonicalRecordList(mixins.DynamicModelMixin, SingleTableMixin, FilterView
             .order_by("-latest_updated_at")
         )
 
-        if self._model_config['model'] == Platform:
-            return queryset.annotate_from_relationship(
-                of_type=PlatformType, uuid_from="platform_type", to_attr="platform_type_name"
-            )
-        else:
-            return queryset
+        # if self._model_config['model'] == Platform:
+        #     return queryset.annotate_from_relationship(
+        #         of_type=PlatformType, uuid_from="platform_type", to_attr="platform_type_name"
+        #     )
+        # else:
+        return queryset
 
     def get_context_data(self, **kwargs):
         return {
@@ -116,7 +116,6 @@ class CanonicalRecordList(mixins.DynamicModelMixin, SingleTableMixin, FilterView
 
 
 class DraftHistoryTable(tables.Table):
-
     draft_action = tables.Column(empty_values=())
     submitted_by = tables.Column(empty_values=())
     reviewed_by = tables.Column(empty_values=())
@@ -126,7 +125,7 @@ class DraftHistoryTable(tables.Table):
     uuid = tables.Column(
         linkify=(
             lambda record: reverse(
-                "draft-detail",
+                "historical-detail",
                 kwargs={
                     "model": record.model_name.lower(),
                     "draft_uuid": record.uuid,
@@ -181,8 +180,8 @@ class ChangeHistoryList(mixins.DynamicModelMixin, tables.SingleTableView):
 
     def get_queryset(self):
         return Change.objects.filter(
-            Q(uuid=self.kwargs[self.pk_url_kwarg])
-            | Q(model_instance_uuid=self.kwargs[self.pk_url_kwarg])
+            Q(model_instance_uuid=self.kwargs[self.pk_url_kwarg])
+            | Q(uuid=self.kwargs[self.pk_url_kwarg])
         )
 
     def get_context_data(self, **kwargs):
@@ -192,6 +191,7 @@ class ChangeHistoryList(mixins.DynamicModelMixin, tables.SingleTableView):
             **context,
             "view_model": view_model,
             "object": Change.objects.get(uuid=self.kwargs[self.pk_url_kwarg]),
+            "canonical_uuid": self.kwargs[self.pk_url_kwarg],
         }
 
 
@@ -263,7 +263,6 @@ class CanonicalDraftEdit(NotificationSidebar, mixins.ChangeModelFormMixin, Updat
             model_instance_uuid=self.canonical_change.uuid
         )
 
-    # Change.objects.of_type(Campaign).annotate(canonical_uuid=Coalesce("model_instance_uuid", "uuid")).order_by("canonical_uuid", "status").distinct("canonical_uuid")
     def get_success_url(self):
         url = reverse("change-update", args=[self.object.pk])
         if self.request.GET.get("back"):

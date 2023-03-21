@@ -43,7 +43,7 @@
     {% endif %}
     <li class="nav-item">
       <a 
-      class="nav-link  {% if url_name == 'change-history' %}active{% endif %}" 
+      class="nav-link  {% if url_name == 'change-history' or url_name == 'historical-detail' %}active{% endif %}" 
       href="{% url 'change-history' view_model object.uuid %}"
       >
         History 

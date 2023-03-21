@@ -7,7 +7,7 @@
 {% block header %}
   <div class="col">
     <a href="{% url 'canonical-list' view_model %}">&lt; Back to {{ display_name }}</a>
-    <h1 class="my-5">{{ object.short_name }}</h1>
+    <h1 class="my-5">{{ object.update.short_name }}</h1>
   </div>
 {% endblock header %}
 
@@ -25,11 +25,7 @@
 {% endblock actions %}
 
 {% block main %}
-<div class="card">
-  <div class="card-title">Published Details View (Placeholder)</div>
-  <div class="card-subtitle">{{ object.short_name }}</div>
-  <div class="card-body"> {%if object.description_short%} {{ object.description_short }} {% else %} There is no description for this change yet {% endif %}</div>
-</div>
+<h1 class="my-5">This is the published Version of 🚀 {{ object.update.short_name }} 🚀</h1>
   
   
   {# Sidebar #}
