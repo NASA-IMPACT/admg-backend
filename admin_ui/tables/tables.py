@@ -122,6 +122,26 @@ class ShortNamefromUUIDColumn(ConditionalValueColumn):
 
 
 class DraftTableBase(tables.Table):
+    def get_status_display(status):
+        if status == 0:
+            return "Created"
+        if status == 1:
+            return "In Progress"
+        if status == 2:
+            return "Awaiting Review"
+        if status == 3:
+            return "In Review"
+        if status == 4:
+            return "Awaiting Admin Review"
+        if status == 5:
+            return "In Admin Review"
+        if status == 6:
+            return "Published"
+        if status == 7:
+            return "In Trash"
+        else:
+            return "---"
+
     draft_action = tables.Column(verbose_name="Draft Action", accessor="latest_action")
     status = tables.Column(verbose_name="Status", accessor="latest_status")
     updated_at = tables.DateTimeColumn(verbose_name="Last Edit Date", accessor="latest_updated_at")
@@ -137,6 +157,43 @@ class DraftTableBase(tables.Table):
         }
         fields = ("draft_action", "status", "updated_at")
         sequence = ("draft_action", "status", "updated_at")
+
+    def render_status(self, value, record):
+        if value == 0:
+            return format_html(
+                '<div  class="badge badge-pill text-white badge-warning">Created</div>',
+            )
+        if value == 1:
+            return format_html(
+                '<div class="badge badge-pill text-white badge-warning">In Progress</div>',
+            )
+        if value == 2:
+            return format_html(
+                '<div class="badge badge-pill text-white badge-warning">Awaiting Review</div>',
+            )
+        if value == 3:
+            return format_html(
+                '<div class="badge badge-pill text-white badge-warning">In Review</div>',
+            )
+        if value == 4:
+            return format_html(
+                '<div class="badge badge-pill text-white badge-warning">Awaiting Admin Review</div>',
+            )
+        if value == 5:
+            return format_html(
+                '<div class="badge badge-pill text-white badge-warning">In Admin Review</div>',
+            )
+        if value == 6:
+            return format_html(
+                '<div class="badge badge-pill text-white badge-success">Published</div>',
+            )
+
+        if value == 7:
+            return format_html(
+                '<div>In Trash</div>',
+            )
+        else:
+            return "---"
 
 
 class LimitedTableBase(DraftTableBase):
