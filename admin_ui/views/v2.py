@@ -80,9 +80,9 @@ class CanonicalRecordList(mixins.DynamicModelMixin, SingleTableMixin, FilterView
         However, we want to display the most recent related draft in the table.
         """
         # find the most recent drafts for each canonical CREATED draft
-        related_drafts = Change.objects.filter(model_instance_uuid=OuterRef("uuid")).order_by(
-            "status", "-updated_at"
-        )
+        related_drafts = Change.objects.filter(
+            Q(model_instance_uuid=OuterRef("uuid")) | Q(uuid=OuterRef("uuid"))
+        ).order_by("status", "-updated_at")
 
         queryset = (
             (
@@ -91,40 +91,10 @@ class CanonicalRecordList(mixins.DynamicModelMixin, SingleTableMixin, FilterView
                 )
             )
             .annotate(
-                related_status=Subquery(related_drafts.values("status")[:1]),
-                related_action=Subquery(related_drafts.values("action")[:1]),
-                related_updated_at=Subquery(related_drafts.values("updated_at")[:1]),
-                related_update=Subquery(related_drafts.values("update")[:1]),
-            )
-            .annotate(
-                latest_status=Case(
-                    When(
-                        related_status__isnull=True,
-                        then="status",
-                    ),
-                    default=F("related_status"),
-                ),
-                latest_action=Case(
-                    When(
-                        related_action__isnull=True,
-                        then="action",
-                    ),
-                    default=F("related_action"),
-                ),
-                latest_updated_at=Case(
-                    When(
-                        related_updated_at__isnull=True,
-                        then="updated_at",
-                    ),
-                    default=F("related_updated_at"),
-                ),
-                latest_update=Case(
-                    When(
-                        related_update__isnull=True,
-                        then="update",
-                    ),
-                    default=F("related_update"),
-                ),
+                latest_status=Subquery(related_drafts.values("status")[:1]),
+                latest_action=Subquery(related_drafts.values("action")[:1]),
+                latest_updated_at=Subquery(related_drafts.values("updated_at")[:1]),
+                latest_update=Subquery(related_drafts.values("update")[:1]),
             )
             .order_by("-latest_updated_at")
         )
