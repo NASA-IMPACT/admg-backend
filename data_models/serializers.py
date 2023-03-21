@@ -415,10 +415,6 @@ class CampaignSerializer(GetAliasSerializer, GetDoiSerializer):
     #     validated_data = change_bbox_to_polygon(validated_data)
     #     return super().create(validated_data)
 
-    # def update(self, instance, validated_data, **kwargs):
-    #     validated_data = change_bbox_to_polygon(validated_data)
-    #     return super().update(instance, validated_data, **kwargs)
-
     class Meta:
         model = models.Campaign
         fields = "__all__"
