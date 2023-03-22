@@ -6,7 +6,7 @@
 
 {% block header %}
 <div class="col">
-  <a href="{% url 'change-history' view_model object.uuid %}">&lt; Back to {{ display_name }}</a>
+  <a href="{% url 'change-history' view_model canonical_uuid %}">&lt; Back to {{ display_name }}</a>
   <h1 class="my-5">{{ object.update.short_name }}</h1>
 </div>
 {% endblock header %}

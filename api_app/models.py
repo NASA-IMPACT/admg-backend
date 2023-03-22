@@ -116,6 +116,13 @@ class ApprovalLog(models.Model):
         action = self.get_action_display()
         return f"{action}d" if action.endswith("e") else f"{action}ed"
 
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        # NOTE I'm not sure why this is working. Direct update function on queryset was not working.
+        draft = self.change
+        draft.updated_at = self.date
+        draft.save()
+
 
 class ChangeQuerySet(models.QuerySet):
     def of_type(self, *models):
@@ -261,7 +268,7 @@ class Change(models.Model):
     content_object = GenericForeignKey("content_type", "model_instance_uuid")
 
     status = models.IntegerField(choices=Statuses.choices, default=Statuses.IN_PROGRESS)
-    update = models.JSONField(default=dict, blank=True) 
+    update = models.JSONField(default=dict, blank=True)
     updated_at = models.DateTimeField(blank=True, null=True, db_index=True)
     field_status_tracking = models.JSONField(default=dict, blank=True)
     previous = models.JSONField(default=dict)
@@ -839,13 +846,17 @@ def create_approval_log_dispatcher(sender, instance, **kwargs):
     instance._add_create_edit_approval_log()
 
 
-@receiver(post_save, sender=ApprovalLog, dispatch_uid="set_change_updated_at")
-def set_change_updated_at(sender, instance, **kwargs):
-    """
-    Set `updated_at` on the related Change object to the value of
-    the ApprovalLog's `date` field.
-    """
-    Change.objects.filter(pk=instance.change.pk).update(updated_at=instance.date)
+# @receiver(post_save, sender=ApprovalLog, dispatch_uid="set_change_updated_at")
+# def set_change_updated_at(sender, instance, **kwargs):
+#     """
+#     Set `updated_at` on the related Change object to the value of
+#     the ApprovalLog's `date` field.
+#     """
+# qs = Change.objects.filter(uuid=instance.change.uuid)
+# print("\n**********\n", qs.count(), instance.date, instance.change.updated_at)
+# qs.update(updated_at=instance.date)
+# instance.change.updated_at = instance.date
+# instance.change.save()
 
 
 class Recommendation(models.Model):
