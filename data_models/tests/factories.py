@@ -258,7 +258,6 @@ class InstrumentFactory(LimitedInfoBaseFactory):
     spatial_resolution = factory.Faker("text")
     temporal_resolution = factory.Faker("text")
     radiometric_frequency = factory.Faker("text")
-    additional_metadata = factory.Faker("json")
     gcmd_phenomena = factory.PostGeneration(
         create_m2m_records("gcmd_phenomena", f"{__name__}.GcmdPhenomenonFactory")
     )
