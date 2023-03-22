@@ -16,6 +16,7 @@ from django.db.models import Q, OuterRef, Subquery, Case, When, F
 from django.views.generic.edit import CreateView
 from admin_ui.config import MODEL_CONFIG_MAP
 from api_app.models import ApprovalLog
+from admin_ui.views.published import ModelObjectView
 
 from api_app.models import Change
 from data_models.models import (
@@ -99,12 +100,12 @@ class CanonicalRecordList(mixins.DynamicModelMixin, SingleTableMixin, FilterView
             .order_by("-latest_updated_at")
         )
 
-        # if self._model_config['model'] == Platform:
-        #     return queryset.annotate_from_relationship(
-        #         of_type=PlatformType, uuid_from="platform_type", to_attr="platform_type_name"
-        #     )
-        # else:
-        return queryset
+        if self._model_config['model'] == Platform:
+            return queryset.annotate_from_relationship(
+                of_type=PlatformType, uuid_from="platform_type", to_attr="platform_type_name"
+            )
+        else:
+            return queryset
 
     def get_context_data(self, **kwargs):
         return {
@@ -259,9 +260,37 @@ class CanonicalDraftEdit(NotificationSidebar, mixins.ChangeModelFormMixin, Updat
             return self.canonical_change
 
         # if canonical record is published, return the record where the model_instance_uuid equals our canonical_uuid
-        return Change.objects.exclude(status=Change.Statuses.PUBLISHED).get(
-            model_instance_uuid=self.canonical_change.uuid
+        update_draft, is_created = Change.objects.exclude(
+            status=Change.Statuses.PUBLISHED
+        ).get_or_create(
+            model_instance_uuid=self.canonical_change.uuid,
+            content_type=self.canonical_change.content_type,
+            action=Change.Actions.UPDATE,
         )
+        # TODO Get old form content and populate new form if needed
+        # old_form = self.destination_model_form(instance=self.canonical_change)
+
+        # new_form = self._get_form(data=request.POST, initial=old_form.initial, files=request.FILES)
+
+        # if not len(new_form.changed_data):
+        # context = self.get_context_data(**kwargs)
+        # context["message"] = "Nothing changed"
+        # return render(request, self.template_name, context)
+
+        # change_object = Change.objects.create(
+        #     content_object=self.object,
+        #     update=utils.serialize_model_form(new_form),
+
+        # )
+
+        # if is_created:
+        #     update_draft.status = Change.Statuses.CREATED
+        #     # update_draft.update = self.canonical_change.update
+        #     # update_draft.previous = utils.serialize_model_form(old_form)
+        #     update_draft.previous = self.canonical_change.update
+        #     # update_draft.save()
+
+        return update_draft
 
     def get_success_url(self):
         url = reverse("change-update", args=[self.object.pk])
@@ -360,7 +389,10 @@ class CreateChangeView(
         # Get initial form values from URL
         return {
             "content_type": self.get_model_form_content_type(),
-            "action": (Change.Actions.CREATE),
+            "action": (
+                Change.Actions.UPDATE if self.request.GET.get("uuid") else Change.Actions.CREATE
+            ),
+            "model_instance_uuid": self.request.GET.get("uuid"),
         }
 
     def get_context_data(self, **kwargs):
@@ -381,6 +413,25 @@ class CreateChangeView(
             except (KeyError, ContentType.DoesNotExist) as e:
                 raise Http404(f'Unsupported model type: {self._model_name}') from e
         return self.model_form_content_type
+
+    def get_success_url(self):
+        url = reverse("change-update", args=[self.object.pk])
+        if self.request.GET.get("back"):
+            return f'{url}?back={self.request.GET["back"]}'
+        return url
+
+    def get_model_form_intial(self):
+        # TODO: Not currently possible to handle reverse relationships such as adding
+        # models to a CollectionPeriod where the FK is on the Collection Period
+        return {k: v for k, v in self.request.GET.dict().items() if k != "uuid"}
+
+    def post(self, *args, **kwargs):
+        """
+        Handle POST requests: instantiate a form instance with the passed
+        POST variables and then check if it's valid.
+        """
+        self.object = None
+        return super().post(*args, **kwargs)
 
 
 class ModelObjectView(NotificationSidebar, mixins.DynamicModelMixin, DetailView):

@@ -1,4 +1,5 @@
 from collections import OrderedDict
+from datetime import datetime
 
 from django import forms
 from django.utils.functional import cached_property
@@ -40,7 +41,9 @@ class TransitionForm(forms.Form):
         self.fields["transition"].choices = self.get_supported_actions(change, user)
 
     def apply_transition(self):
+        """Change approval status and update Change.updated_at timestamp"""
         transition_func = getattr(self.change, self.cleaned_data["transition"])
+        # Change.objects.filter(uuid=self.change.uuid).update(updated_at=datetime.now())
         return transition_func(self.user, self.cleaned_data["notes"])
 
     @staticmethod

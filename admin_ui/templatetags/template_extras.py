@@ -62,7 +62,9 @@ def object_header_tabs(context, change: Change, canonical_change: Optional[Chang
         .exists()
     )
 
-    has_published_draft = Change.objects.filter(status=Change.Statuses.PUBLISHED).exists()
+    has_published_draft = Change.objects.filter(
+        Q(uuid=change.uuid) | Q(model_instance_uuid=change.uuid), status=Change.Statuses.PUBLISHED
+    ).exists()
 
     # TODO handle the case where we don't have a model_instance_uuid
     canonical_uuid = (

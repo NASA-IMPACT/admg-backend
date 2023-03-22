@@ -69,7 +69,7 @@ urlpatterns = [
         v2.CanonicalRecordPublished.as_view(),
         name="canonical-published-detail",
     ),
-    # Helper route to redirect user to latest edit.
+    # Update for latest published draft.
     path(
         'v2/<str:model>/<uuid:canonical_uuid>/edit',
         v2.CanonicalDraftEdit.as_view(),
@@ -82,13 +82,13 @@ urlpatterns = [
     ),
     # same view as edit but view only for historical
     path(
-        'v2/<str:model>/<uuid:canonical_uuid>/historical-detail/<uuid:draft_uuid>',
+        'v2/<str:model>/<uuid:canonical_uuid>/history/<uuid:draft_uuid>',
         v2.DraftDetailView.as_view(),
         name="historical-detail",
     ),
     # List all `Change` records for a given concept. Ordered by date created, descending.
     path(
-        "v2/<str:model>/<uuid:canonical_uuid>/change-history",
+        "v2/<str:model>/<uuid:canonical_uuid>/history",
         v2.ChangeHistoryList.as_view(),
         name="change-history",
     ),
