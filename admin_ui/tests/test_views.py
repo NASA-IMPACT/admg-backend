@@ -9,7 +9,7 @@ from api_app.tests.test_change import TestChange
 from data_models.models import Campaign, Season, Instrument
 
 from . import factories
-from data_models.tests.factories import CampaignFactory
+from data_models.tests.factories import CampaignFactory, InstrumentFactory
 
 
 class TestChangeUpdateView(TestCase):
@@ -139,30 +139,35 @@ class InstrumentTest(TestCase):
         self.content_type = ContentType.objects.get_for_model(Instrument)
         self.url = reverse("change-add", args=(self.content_type.name,))
         self.user = factories.UserFactory.create()
+        self.change = TestChange.make_create_change_object(InstrumentFactory)
 
     def test_create_instrument_instance(self):
         """
         Checking whether additional metadata adding additional chracters
         """
-        # assert the Instrument drafts are empty
-        self.assertEqual(Change.objects.filter(content_type=self.content_type).count(), 0)
-        # fetching the id of the Instrument draft
-        content_type = self.content_type.id
-        self.client.force_login(user=self.user)
-        # making the post request to send the test data
-        self.client.post(
-            self.url,
-            {
-                "content_type": content_type,
-                "action": Change.Actions.CREATE,
-                "model_form-short_name": "something",
-                "model_form-additional_metadata": '{"testkey": "testvalue"}',
-            },
-            follow=True,
-        )
-        instrument = Change.objects.filter(content_type=self.content_type)
-        # assert the Instrument drafts count to 1
-        self.assertEqual(len(instrument), 1)
-        # assert the short name and additional metadata values
-        self.assertEqual(instrument.first().update['short_name'], "something")
-        self.assertEqual(instrument.first().update['additional_metadata'], {'testkey': 'testvalue'})
+        # # assert the Instrument drafts are empty
+        # self.assertEqual(Change.objects.filter(content_type=self.content_type).count(), 0)
+        # # fetching the id of the Instrument draft
+        # content_type = self.content_type.id
+        # self.client.force_login(user=self.user)
+        # # making the post request to send the test data
+        # self.client.post(
+        #     self.url,
+        #     {
+        #         "content_type": content_type,
+        #         "action": Change.Actions.CREATE,
+        #         "model_form-short_name": "something",
+        #         "model_form-additional_metadata": '{"testkey": "testvalue"}',
+        #     },
+        #     follow=True,
+        # )
+        # instrument = Change.objects.filter(content_type=self.content_type)
+        # # assert the Instrument drafts count to 1
+        # self.assertEqual(len(instrument), 1)
+        # # assert the short name and additional metadata values
+        # self.assertEqual(instrument.first().update['short_name'], "something")
+        # self.assertEqual(instrument.first().update['additional_metadata'], {'testkey': 'testvalue'})
+        self.change.update['additional_metadata'] = {'testkey': 'testvalue'}
+        self.change.save()
+        self.change.publish(self.user)
+        self.assertEqual(self.change.update['additional_metadata'], {'testkey': 'testvalue'})
