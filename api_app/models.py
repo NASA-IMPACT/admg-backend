@@ -116,12 +116,12 @@ class ApprovalLog(models.Model):
         action = self.get_action_display()
         return f"{action}d" if action.endswith("e") else f"{action}ed"
 
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-        # NOTE I'm not sure why this is working. Direct update function on queryset was not working.
-        draft = self.change
-        draft.updated_at = self.date
-        draft.save()
+    # def save(self, *args, **kwargs):
+    #     super().save(*args, **kwargs)
+    #     # NOTE I'm not sure why this is working. Direct update function on queryset was not working.
+    #     draft = self.change
+    #     draft.updated_at = self.date
+    #     draft.save()
 
 
 class ChangeQuerySet(models.QuerySet):

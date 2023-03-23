@@ -416,16 +416,16 @@ class CreateChangeView(
                 raise Http404(f'Unsupported model type: {self._model_name}') from e
         return self.model_form_content_type
 
+    def get_model_form_intial(self):
+        # TODO: Not currently possible to handle reverse relationships such as adding
+        # models to a CollectionPeriod where the FK is on the Collection Period
+        return {k: v for k, v in self.request.GET.dict().items() if k != "uuid"}
+
     def get_success_url(self):
         url = reverse("change-update", args=[self.object.pk])
         if self.request.GET.get("back"):
             return f'{url}?back={self.request.GET["back"]}'
         return url
-
-    def get_model_form_intial(self):
-        # TODO: Not currently possible to handle reverse relationships such as adding
-        # models to a CollectionPeriod where the FK is on the Collection Period
-        return {k: v for k, v in self.request.GET.dict().items() if k != "uuid"}
 
     def post(self, *args, **kwargs):
         """
