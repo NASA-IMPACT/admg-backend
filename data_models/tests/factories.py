@@ -234,7 +234,6 @@ class GcmdPlatformFactory(GcmdBaseFactory):
     # category = factory.Faker("word")
     # sub_category = factory.Faker("word")
 
-
     class Meta:
         model = models.GcmdPlatform
 
