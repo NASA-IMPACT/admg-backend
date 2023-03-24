@@ -19,11 +19,11 @@
   </header>
 
   <div class="row mx-3 my-5">
-    {% include 'snippets/draft_summary_box.html' with name="Campaigns" total=total_counts.campaign in_review=draft_status_counts.campaign.In_Review in_admin_review=draft_status_counts.campaign.In_Admin_Review published=draft_status_counts.campaign.Published %}
+    {% include 'snippets/draft_summary_box.html' with name="Campaigns" total=total_counts.campaign in_progress=draft_status_counts.campaign.In_Progress in_review=draft_status_counts.campaign.In_Review in_admin_review=draft_status_counts.campaign.In_Admin_Review published=draft_status_counts.campaign.Published %}
 
-    {% include 'snippets/draft_summary_box.html' with name="Platforms" total=total_counts.platform in_review=draft_status_counts.platform.In_Review in_admin_review=draft_status_counts.platform.In_Admin_Review published=draft_status_counts.platform.Published %}
+    {% include 'snippets/draft_summary_box.html' with name="Platforms" total=total_counts.platform in_progress=draft_status_counts.platform.In_Progress in_review=draft_status_counts.platform.In_Review in_admin_review=draft_status_counts.platform.In_Admin_Review published=draft_status_counts.platform.Published %}
 
-    {% include 'snippets/draft_summary_box.html' with name="Instruments" total=total_counts.instrument in_review=draft_status_counts.instrument.In_Review in_admin_review=draft_status_counts.instrument.In_Admin_Review published=draft_status_counts.instrument.Published %}
+    {% include 'snippets/draft_summary_box.html' with name="Instruments" total=total_counts.instrument in_progress=draft_status_counts.instrument.In_Progress in_review=draft_status_counts.instrument.In_Review in_admin_review=draft_status_counts.instrument.In_Admin_Review published=draft_status_counts.instrument.Published %}
   </div>
 
   <div class="row mx-3 my-5">

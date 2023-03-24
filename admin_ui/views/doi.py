@@ -1,23 +1,23 @@
+from api_app.views.generic_views import NotificationSidebar
 from api_app.models import ApprovalLog, Change
 from cmr import tasks
 from data_models.models import DOI, Campaign
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.contrib.contenttypes.models import ContentType
 from django.http import Http404, HttpResponseRedirect
 from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.generic.detail import SingleObjectMixin
-from django.views.generic.edit import CreateView, FormView
+from django.views.generic.edit import FormView
 from django.views.generic.list import MultipleObjectMixin
 from django_celery_results.models import TaskResult
 
-from .. import forms, mixins
+from .. import forms
 
 
 @method_decorator(login_required, name="dispatch")
-class DoiFetchView(View):
+class DoiFetchView(NotificationSidebar, View):
     queryset = Change.objects.of_type(Campaign)
 
     def get_object(self):
@@ -44,7 +44,7 @@ class DoiFetchView(View):
 
 
 @method_decorator(login_required, name="dispatch")
-class DoiApprovalView(SingleObjectMixin, MultipleObjectMixin, FormView):
+class DoiApprovalView(NotificationSidebar, SingleObjectMixin, MultipleObjectMixin, FormView):
     form_class = forms.DoiFormSet
     template_name = "api_app/campaign_dois.html"
     paginate_by = 10
@@ -72,6 +72,8 @@ class DoiApprovalView(SingleObjectMixin, MultipleObjectMixin, FormView):
             doi_tasks.update(TaskResult.objects.in_bulk(relevant_doi_fetches, field_name="task_id"))
         return super().get_context_data(
             **{
+                # By setting the view model, our nav sidebar knows to highlight the link for campaigns
+                'view_model': 'campaign',
                 "object_list": self.get_queryset(),
                 "form": None,
                 "formset": self.get_form(),
@@ -186,52 +188,3 @@ class DoiApprovalView(SingleObjectMixin, MultipleObjectMixin, FormView):
 
     def get_success_url(self):
         return reverse("doi-approval", args=[self.kwargs["pk"]])
-
-
-@method_decorator(login_required, name="dispatch")
-class ChangeCreateView(mixins.ChangeModelFormMixin, CreateView):
-    model = Change
-    fields = ["content_type", "model_instance_uuid", "action", "update"]
-    template_name = "api_app/change_create.html"
-
-    def get_initial(self):
-        # Get initial form values from URL
-        return {
-            "content_type": self.get_model_form_content_type(),
-            "action": Change.Actions.UPDATE
-            if self.request.GET.get("uuid")
-            else Change.Actions.CREATE,
-            "model_instance_uuid": self.request.GET.get("uuid"),
-        }
-
-    def get_context_data(self, **kwargs):
-        return {
-            **super().get_context_data(**kwargs),
-            "content_type_name": (self.get_model_form_content_type().model_class().__name__),
-        }
-
-    def get_success_url(self):
-        url = reverse("change-update", args=[self.object.pk])
-        if self.request.GET.get("back"):
-            return f'{url}?back={self.request.GET["back"]}'
-        return url
-
-    def get_model_form_content_type(self) -> ContentType:
-        if not hasattr(self, "model_form_content_type"):
-            self.model_form_content_type = ContentType.objects.get(
-                app_label="data_models", model__iexact=self.kwargs["model"]
-            )
-        return self.model_form_content_type
-
-    def get_model_form_intial(self):
-        # TODO: Not currently possible to handle reverse relationships such as adding
-        # models to a CollectionPeriod where the FK is on the Collection Period
-        return {k: v for k, v in self.request.GET.dict().items() if k != "uuid"}
-
-    def post(self, *args, **kwargs):
-        """
-        Handle POST requests: instantiate a form instance with the passed
-        POST variables and then check if it's valid.
-        """
-        self.object = None
-        return super().post(*args, **kwargs)

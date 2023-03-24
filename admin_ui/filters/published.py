@@ -1,9 +1,9 @@
 import django_filters
 from data_models import models
-from data_models.models import DOI, Deployment
+from data_models.models import DOI, CollectionPeriod, Deployment, Image, Website
 
 from .filters import CampaignFilter
-from .filter_utils import default_filter_configs, get_published_campaigns, get_deployments
+from .utils import default_filter_configs, get_published_campaigns, get_deployments
 
 # TODO: Look at .values with Cast function
 
@@ -26,6 +26,10 @@ class WebsiteFilter(django_filters.FilterSet):
     title = django_filters.CharFilter(label="Title", field_name="title", lookup_expr="icontains")
     url = django_filters.CharFilter(label="url", field_name="url", lookup_expr="icontains")
 
+    class Meta:
+        model = Website
+        fields = ["title", "url"]
+
 
 class DeploymentFilter(CampaignFilter):
     short_name = django_filters.CharFilter(
@@ -42,7 +46,6 @@ class DeploymentFilter(CampaignFilter):
 
 
 def second_level_campaign_filter(model_name):
-
     Model = getattr(models, model_name)
 
     class FilterForDeploymentToCampaign(DeploymentFilter):
@@ -79,5 +82,13 @@ class CollectionPeriodFilter(CampaignFilter):
         return queryset.filter(deployment__in=deployments)
 
     class Meta:
-        model = DOI
+        model = CollectionPeriod
         fields = ["campaign_name"]
+
+
+class ImageFilter(django_filters.FilterSet):
+    title = django_filters.CharFilter(label="Title", field_name="title", lookup_expr="icontains")
+
+    class Meta:
+        model = Image
+        fields = ["title"]

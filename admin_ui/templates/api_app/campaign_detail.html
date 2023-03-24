@@ -3,7 +3,7 @@
 
 {% block header %}
   <div class="col">
-    <a href="{% url 'campaign-list-draft' %}">&larr; Back</a>
+    <a href="{% url 'change-list' 'campaign' %}">&larr; Back</a>
     <h1>Campaign {% firstof object.update.short_name object.update.uuid %}</h1>
   </div>
 {% endblock header %}
@@ -15,7 +15,7 @@
 
   <div class="px-1">
     <a href="{% url 'change-update' object.uuid %}?back={{ request.path }}" class="btn btn-outline-secondary ml-3">
-      Edit campaign details
+      {% if object.is_locked %}View{% else %}Edit{% endif %} campaign details
     </a>
   </div>
 {% endblock actions %}
@@ -55,7 +55,7 @@
         </div>
       </li>
       {% for deployment in deployments %}
-      <li class="list-group-item list-group-item-action justify-content-between deployment cursor-pointer show-caret" data-id="{{ deployment.uuid }}">
+      <li class="list-group-item list-group-item-action justify-content-between deployment cursor-pointer show-caret" data-id="{{ deployment.model_instance_uuid }}">
         {% include "snippets/campaign_accordian_cards/deployment.html" with change=deployment %}
       </li>
       {% endfor %}
@@ -64,6 +64,7 @@
 
   <div class="campaign-summary col">
     <div id="accordion">
+      <!-- IOPs -->
       <div class="card">
         <div class="card-header d-flex justify-content-between" id="iops-header">
           <h5 class="mb-0">
@@ -84,6 +85,8 @@
           </ul>
         </div>
       </div>
+
+      <!-- Significant Events -->
       <div class="card">
         <div class="card-header d-flex justify-content-between" id="significant-events-header">
           <h5 class="mb-0">
@@ -93,9 +96,8 @@
             </button>
             <span id="significant-events-badge" class="badge badge-primary badge-pill"></span>
           </h5>
-          <a class="add-deployment-child btn btn-primary" href="{% url 'change-add' 'significantevent' %}?back={{ request.path }}">+</a>
+          <a class="add-deployment-child btn btn-primary" href="{% url 'change-add' 'significant_event' %}?back={{ request.path }}">+</a>
         </div>
-
         <div id="significant-events" class="collapse" aria-labelledby="significant-events-header" data-parent="#accordion">
           <ul class="list-group">
             {% for event in significant_events %}
@@ -106,8 +108,8 @@
           </ul>
         </div>
       </div>
-      
-      
+
+      <!-- CDPIs -->
       <div class="card">
         <div class="card-header d-flex justify-content-between" id="collection-periods-header">
           <h5 class="mb-0">
@@ -116,13 +118,13 @@
             </button>
             <span id="collection-periods-badge" class="badge badge-primary badge-pill"></span>
           </h5>
-          <a class="add-deployment-child btn btn-primary" href="{% url 'change-add' 'collectionperiod' %}?back={{ request.path }}">+</a>
+          <a class="add-deployment-child btn btn-primary" href="{% url 'change-add' 'collection_period' %}?back={{ request.path }}">+</a>
         </div>
         <div id="collection-periods" class="collapse show" aria-labelledby="collection-periods-header" data-parent="#accordion">
           <ul class="list-group">
-            {% for collectionperiod in collection_periods %}
-            <li class="list-group-item deployment-child" data-deployment="{{ collectionperiod.update.deployment }}">
-              {% include "snippets/campaign_accordian_cards/collectionperiod.html" with change=collectionperiod %}
+            {% for collection_period in collection_periods %}
+            <li class="list-group-item deployment-child" data-deployment="{{ collection_period.update.deployment }}">
+              {% include "snippets/campaign_accordian_cards/collection_period.html" with change=collection_period %}
             </li>
             {% endfor %}
           </ul>

@@ -111,6 +111,7 @@ class LimitedInfoPriorityBaseFactory(LimitedInfoBaseFactory):
 
 
 class AliasFactory(BaseFactory):
+    short_name = factory.Faker("text", max_nb_chars=20)
     parent_fk = factory.SubFactory(f"{__name__}.CampaignFactory")
 
     class Meta:
@@ -204,7 +205,7 @@ class GcmdInstrumentFactory(GcmdBaseFactory):
         model = models.GcmdInstrument
 
 
-class GcmdPhenomenaFactory(GcmdBaseFactory):
+class GcmdPhenomenonFactory(GcmdBaseFactory):
     category = factory.Faker("word")
     topic = factory.Faker("word")
     term = factory.Faker("word")
@@ -213,7 +214,7 @@ class GcmdPhenomenaFactory(GcmdBaseFactory):
     variable_3 = factory.Faker("word")
 
     class Meta:
-        model = models.GcmdPhenomena
+        model = models.GcmdPhenomenon
 
 
 class GcmdPlatformFactory(GcmdBaseFactory):
@@ -275,8 +276,8 @@ class InstrumentFactory(LimitedInfoBaseFactory):
     spatial_resolution = factory.Faker("text")
     temporal_resolution = factory.Faker("text")
     radiometric_frequency = factory.Faker("text")
-    gcmd_phenomenas = factory.PostGeneration(
-        create_m2m_records("gcmd_phenomenas", f"{__name__}.GcmdPhenomenaFactory")
+    gcmd_phenomena = factory.PostGeneration(
+        create_m2m_records("gcmd_phenomena", f"{__name__}.GcmdPhenomenonFactory")
     )
     measurement_regions = factory.PostGeneration(
         create_m2m_records("measurement_regions", f"{__name__}.MeasurementRegionFactory")
@@ -287,6 +288,7 @@ class InstrumentFactory(LimitedInfoBaseFactory):
 
 
 class IOPFactory(BaseFactory):
+    short_name = factory.Faker("text", max_nb_chars=20)
     start_date = factory.Faker("date")
     end_date = factory.Faker("date")
     description = factory.Faker("sentence")
@@ -341,6 +343,7 @@ class SeasonFactory(LimitedInfoPriorityBaseFactory):
 
 
 class SignificantEventFactory(BaseFactory):
+    short_name = factory.Faker("text", max_nb_chars=20)
     start_date = factory.Faker("date")
     end_date = factory.Faker("date")
     description = factory.Faker("sentence")
@@ -373,7 +376,7 @@ DATAMODELS_FACTORIES = [
     DOIFactory,
     FocusAreaFactory,
     GcmdInstrumentFactory,
-    GcmdPhenomenaFactory,
+    GcmdPhenomenonFactory,
     GcmdPlatformFactory,
     GcmdProjectFactory,
     GeographicalRegionFactory,

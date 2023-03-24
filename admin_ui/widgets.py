@@ -12,6 +12,8 @@ from django.urls import reverse
 from django.utils import translation
 from django.utils.safestring import mark_safe
 
+from api_app.models import Change
+from api_app.urls import camel_to_snake
 from data_models.models import Image
 from data_models.serializers import get_geojson_from_bb
 
@@ -98,21 +100,48 @@ class AddAnotherChoiceFieldWidget(forms.Select):
         return super().__init__(*args, **kwargs)
 
     def render(self, name, value, *args, **kwargs):
-        create_form_url = reverse("change-add", kwargs={"model": self.model._meta.model_name})
+        create_form_url = reverse(
+            "change-add", kwargs={"model": camel_to_snake(self.model._meta.object_name)}
+        )
 
         output = [
             super().render(name, value, *args, **kwargs),
-            f"<a class='add-another small' data-select_id='id_{name}' data-form_url='{create_form_url}?_popup=1' href='#'>"
-            f"&plus; Add new {self.model._meta.verbose_name.title()}"
-            "</a>",
+            f"<a class='add-another small' data-select_id='id_{name}'"
+            f" data-form_url='{create_form_url}?_popup=1' href='#'>&plus; Add new"
+            f" {self.model._meta.verbose_name.title()}</a>",
         ]
         if value:
-            update_form_url = reverse("change-update", kwargs={"pk": value})
-            output.append(
-                f"<a class='link-to small' data-select_id='id_{name}' href='{update_form_url}' target='_blank'>"
-                f"&#x29c9; View selected {self.model._meta.verbose_name.title()}"
-                "</a>"
+            # add a published url if available
+            try:
+                published = self.model.objects.get(pk=value)
+            except self.model.DoesNotExist:
+                pass
+            else:
+                published_url = reverse(
+                    "published-detail",
+                    kwargs={
+                        "pk": published.pk,
+                        "model": camel_to_snake(self.model._meta.object_name),
+                    },
+                )
+                output.append(
+                    f"<a class='link-to small' data-select_id='id_published_{name}'"
+                    f" href='{published_url}' target='_blank'>&#x29c9; View published"
+                    f" {self.model._meta.verbose_name.title().lower()}</a>"
+                )
+            # get most recent active draft
+            active_draft = (
+                Change.objects.filter(model_instance_uuid=value)
+                .exclude(status__in=(Change.Statuses.PUBLISHED, Change.Statuses.IN_TRASH))
+                .order_by("-updated_at")
+                .first()
             )
+            if active_draft:
+                update_form_url = reverse("change-update", kwargs={"pk": active_draft.pk})
+                output.append(
+                    f"<a class='link-to small' data-select_id='id_{name}' href='{update_form_url}'"
+                    " target='_blank'>&#x29c9; View latest draft</a>"
+                )
         return mark_safe("<br>".join(output))
 
     class Media:

@@ -16,7 +16,6 @@ def set_defaults(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("data_models", "0035_auto_20210422_1613"),
     ]

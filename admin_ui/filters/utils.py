@@ -1,9 +1,9 @@
 import django_filters
+from django.db.models.query_utils import Q
 
 from api_app.models import Change
 from data_models import models
 from data_models.models import Campaign, Deployment
-from django.db.models.query_utils import Q
 
 
 default_filter_configs = [{"field_name": "short_name", "label": "Short Name"}]

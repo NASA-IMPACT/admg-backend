@@ -6,7 +6,6 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("data_models", "0040_auto_20210429_2350"),
     ]
@@ -217,7 +216,7 @@ class Migration(migrations.Migration):
             field=models.TextField(
                 blank=True,
                 default="",
-                help_text="Free text notes for ADMG staff - not visible to public.",
+                help_text="Free text notes for ADMG staff - not visible to the public.",
             ),
         ),
         migrations.AlterField(
@@ -226,7 +225,7 @@ class Migration(migrations.Migration):
             field=models.TextField(
                 blank=True,
                 default="",
-                help_text="Free text notes on the deployment, this IS visible to public.",
+                help_text="Free text notes on the deployment, this IS visible to the public.",
             ),
         ),
         migrations.AlterField(
@@ -351,7 +350,7 @@ class Migration(migrations.Migration):
             field=models.TextField(
                 blank=True,
                 default="",
-                help_text="Free text notes for ADMG staff - not visible to public.",
+                help_text="Free text notes for ADMG staff - not visible to the public.",
             ),
         ),
         migrations.AlterField(
@@ -360,7 +359,7 @@ class Migration(migrations.Migration):
             field=models.TextField(
                 blank=True,
                 default="",
-                help_text="Free text notes on the deployment, this IS visible to public.",
+                help_text="Free text notes on the deployment, this IS visible to the public.",
             ),
         ),
         migrations.AlterField(
@@ -414,7 +413,7 @@ class Migration(migrations.Migration):
             field=models.TextField(
                 blank=True,
                 default="",
-                help_text="*these will be images that would be either uploaded or URL to image provided...we don’t have this fully in curation process yet.",
+                help_text="*these will be images that would be either uploaded directly or URL to image would be provided...we don’t have this fully in curation process yet.",
             ),
         ),
         migrations.AlterField(
@@ -434,7 +433,7 @@ class Migration(migrations.Migration):
             field=models.TextField(
                 blank=True,
                 default="",
-                help_text="*these will be images that would be either uploaded or URL to image provided...we don’t have this fully in curation process yet.",
+                help_text="*these will be images that would be either uploaded directly or URL to image would be provided...we don’t have this fully in curation process yet.",
             ),
         ),
         migrations.AlterField(
@@ -443,7 +442,7 @@ class Migration(migrations.Migration):
             field=models.TextField(
                 blank=True,
                 default="",
-                help_text="Free text notes for ADMG staff - not visible to public.",
+                help_text="Free text notes for ADMG staff - not visible to the public.",
             ),
         ),
         migrations.AlterField(
@@ -452,7 +451,7 @@ class Migration(migrations.Migration):
             field=models.TextField(
                 blank=True,
                 default="",
-                help_text="Free text notes on the deployment, this IS visible to public.",
+                help_text="Free text notes on the deployment, this IS visible to the public.",
             ),
         ),
         migrations.AlterField(
@@ -466,7 +465,7 @@ class Migration(migrations.Migration):
             field=models.TextField(
                 blank=True,
                 default="",
-                help_text="*these will be images that would be either uploaded or URL to image provided...we don’t have this fully in curation process yet.",
+                help_text="*these will be images that would be either uploaded directly or URL to image would be provided...we don’t have this fully in curation process yet.",
             ),
         ),
         migrations.AlterField(
@@ -475,7 +474,7 @@ class Migration(migrations.Migration):
             field=models.TextField(
                 blank=True,
                 default="",
-                help_text="Free text notes for ADMG staff - not visible to public.",
+                help_text="Free text notes for ADMG staff - not visible to the public.",
             ),
         ),
         migrations.AlterField(
@@ -484,7 +483,7 @@ class Migration(migrations.Migration):
             field=models.TextField(
                 blank=True,
                 default="",
-                help_text="Free text notes on the deployment, this IS visible to public.",
+                help_text="Free text notes on the deployment, this IS visible to the public.",
             ),
         ),
         migrations.AlterField(
@@ -493,7 +492,7 @@ class Migration(migrations.Migration):
             field=models.TextField(
                 blank=True,
                 default="",
-                help_text="Free text notes for ADMG staff - not visible to public.",
+                help_text="Free text notes for ADMG staff - not visible to the public.",
             ),
         ),
         migrations.AlterField(
@@ -502,7 +501,7 @@ class Migration(migrations.Migration):
             field=models.TextField(
                 blank=True,
                 default="",
-                help_text="Free text notes on the deployment, this IS visible to public.",
+                help_text="Free text notes on the deployment, this IS visible to the public.",
             ),
         ),
         migrations.AlterField(
@@ -511,7 +510,7 @@ class Migration(migrations.Migration):
             field=models.TextField(
                 blank=True,
                 default="",
-                help_text="Free text notes for ADMG staff - not visible to public.",
+                help_text="Free text notes for ADMG staff - not visible to the public.",
             ),
         ),
         migrations.AlterField(
@@ -520,7 +519,7 @@ class Migration(migrations.Migration):
             field=models.TextField(
                 blank=True,
                 default="",
-                help_text="Free text notes on the deployment, this IS visible to public.",
+                help_text="Free text notes on the deployment, this IS visible to the public.",
             ),
         ),
         migrations.AlterField(
@@ -529,7 +528,7 @@ class Migration(migrations.Migration):
             field=models.TextField(
                 blank=True,
                 default="",
-                help_text="Free text notes for ADMG staff - not visible to public.",
+                help_text="Free text notes for ADMG staff - not visible to the public.",
             ),
         ),
         migrations.AlterField(
@@ -538,7 +537,7 @@ class Migration(migrations.Migration):
             field=models.TextField(
                 blank=True,
                 default="",
-                help_text="Free text notes on the deployment, this IS visible to public.",
+                help_text="Free text notes on the deployment, this IS visible to the public.",
             ),
         ),
         migrations.AlterField(
@@ -681,7 +680,7 @@ class Migration(migrations.Migration):
             field=models.TextField(
                 blank=True,
                 default="",
-                help_text="Free text notes for ADMG staff - not visible to public.",
+                help_text="Free text notes for ADMG staff - not visible to the public.",
             ),
         ),
         migrations.AlterField(
@@ -690,7 +689,7 @@ class Migration(migrations.Migration):
             field=models.TextField(
                 blank=True,
                 default="",
-                help_text="Free text notes on the deployment, this IS visible to public.",
+                help_text="Free text notes on the deployment, this IS visible to the public.",
             ),
         ),
         migrations.AlterField(
@@ -799,7 +798,7 @@ class Migration(migrations.Migration):
             field=models.CharField(
                 blank=True,
                 default="",
-                help_text="DOI or URL for location of published IOP Science of Flight reports",
+                help_text="DOI or URL for location of published IOP Science or Flight reports",
                 max_length=1024,
                 verbose_name="Science/Flight Reports",
             ),
@@ -823,7 +822,7 @@ class Migration(migrations.Migration):
             field=models.TextField(
                 blank=True,
                 default="",
-                help_text="Free text notes for ADMG staff - not visible to public.",
+                help_text="Free text notes for ADMG staff - not visible to the public.",
             ),
         ),
         migrations.AlterField(
@@ -832,7 +831,7 @@ class Migration(migrations.Migration):
             field=models.TextField(
                 blank=True,
                 default="",
-                help_text="Free text notes on the deployment, this IS visible to public.",
+                help_text="Free text notes on the deployment, this IS visible to the public.",
             ),
         ),
         migrations.AlterField(
@@ -841,7 +840,7 @@ class Migration(migrations.Migration):
             field=models.TextField(
                 blank=True,
                 default="",
-                help_text="Free text notes for ADMG staff - not visible to public.",
+                help_text="Free text notes for ADMG staff - not visible to the public.",
             ),
         ),
         migrations.AlterField(
@@ -850,7 +849,7 @@ class Migration(migrations.Migration):
             field=models.TextField(
                 blank=True,
                 default="",
-                help_text="Free text notes on the deployment, this IS visible to public.",
+                help_text="Free text notes on the deployment, this IS visible to the public.",
             ),
         ),
         migrations.AlterField(
@@ -859,7 +858,7 @@ class Migration(migrations.Migration):
             field=models.TextField(
                 blank=True,
                 default="",
-                help_text="Free text notes for ADMG staff - not visible to public.",
+                help_text="Free text notes for ADMG staff - not visible to the public.",
             ),
         ),
         migrations.AlterField(
@@ -868,7 +867,7 @@ class Migration(migrations.Migration):
             field=models.TextField(
                 blank=True,
                 default="",
-                help_text="Free text notes on the deployment, this IS visible to public.",
+                help_text="Free text notes on the deployment, this IS visible to the public.",
             ),
         ),
         migrations.AlterField(
@@ -877,7 +876,7 @@ class Migration(migrations.Migration):
             field=models.TextField(
                 blank=True,
                 default="",
-                help_text="Free text notes for ADMG staff - not visible to public.",
+                help_text="Free text notes for ADMG staff - not visible to the public.",
             ),
         ),
         migrations.AlterField(
@@ -886,7 +885,7 @@ class Migration(migrations.Migration):
             field=models.TextField(
                 blank=True,
                 default="",
-                help_text="Free text notes on the deployment, this IS visible to public.",
+                help_text="Free text notes on the deployment, this IS visible to the public.",
             ),
         ),
         migrations.AlterField(
@@ -912,7 +911,7 @@ class Migration(migrations.Migration):
             field=models.TextField(
                 blank=True,
                 default="",
-                help_text="Free text notes for ADMG staff - not visible to public.",
+                help_text="Free text notes for ADMG staff - not visible to the public.",
             ),
         ),
         migrations.AlterField(
@@ -921,7 +920,7 @@ class Migration(migrations.Migration):
             field=models.TextField(
                 blank=True,
                 default="",
-                help_text="Free text notes on the deployment, this IS visible to public.",
+                help_text="Free text notes on the deployment, this IS visible to the public.",
             ),
         ),
         migrations.AlterField(
@@ -956,7 +955,7 @@ class Migration(migrations.Migration):
             field=models.TextField(
                 blank=True,
                 default="",
-                help_text="Free text notes for ADMG staff - not visible to public.",
+                help_text="Free text notes for ADMG staff - not visible to the public.",
             ),
         ),
         migrations.AlterField(
@@ -965,7 +964,7 @@ class Migration(migrations.Migration):
             field=models.TextField(
                 blank=True,
                 default="",
-                help_text="Free text notes on the deployment, this IS visible to public.",
+                help_text="Free text notes on the deployment, this IS visible to the public.",
             ),
         ),
         migrations.AlterField(
@@ -974,7 +973,7 @@ class Migration(migrations.Migration):
             field=models.TextField(
                 blank=True,
                 default="",
-                help_text="Free text notes for ADMG staff - not visible to public.",
+                help_text="Free text notes for ADMG staff - not visible to the public.",
             ),
         ),
         migrations.AlterField(
@@ -983,7 +982,7 @@ class Migration(migrations.Migration):
             field=models.TextField(
                 blank=True,
                 default="",
-                help_text="Free text notes on the deployment, this IS visible to public.",
+                help_text="Free text notes on the deployment, this IS visible to the public.",
             ),
         ),
         migrations.AlterField(
@@ -992,7 +991,7 @@ class Migration(migrations.Migration):
             field=models.TextField(
                 blank=True,
                 default="",
-                help_text="Free text notes for ADMG staff - not visible to public.",
+                help_text="Free text notes for ADMG staff - not visible to the public.",
             ),
         ),
         migrations.AlterField(
@@ -1001,7 +1000,7 @@ class Migration(migrations.Migration):
             field=models.TextField(
                 blank=True,
                 default="",
-                help_text="Free text notes on the deployment, this IS visible to public.",
+                help_text="Free text notes on the deployment, this IS visible to the public.",
             ),
         ),
         migrations.AlterField(
@@ -1094,7 +1093,7 @@ class Migration(migrations.Migration):
             field=models.TextField(
                 blank=True,
                 default="",
-                help_text="Free text notes for ADMG staff - not visible to public.",
+                help_text="Free text notes for ADMG staff - not visible to the public.",
             ),
         ),
         migrations.AlterField(
@@ -1103,7 +1102,7 @@ class Migration(migrations.Migration):
             field=models.TextField(
                 blank=True,
                 default="",
-                help_text="Free text notes for ADMG staff - not visible to public.",
+                help_text="Free text notes for ADMG staff - not visible to the public.",
             ),
         ),
         migrations.AlterField(
@@ -1112,7 +1111,7 @@ class Migration(migrations.Migration):
             field=models.TextField(
                 blank=True,
                 default="",
-                help_text="Free text notes on the deployment, this IS visible to public.",
+                help_text="Free text notes on the deployment, this IS visible to the public.",
             ),
         ),
     ]

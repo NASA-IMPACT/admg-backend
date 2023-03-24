@@ -1,6 +1,6 @@
 import json
 
-from admg_webapp.users.models import ADMIN, STAFF
+from admg_webapp.users.models import User
 from django.http import HttpResponse
 from django.utils.decorators import method_decorator
 from django.views.decorators.debug import sensitive_post_parameters
@@ -108,8 +108,8 @@ class CustomTokenView(TokenView):
                 # add role based scope in the token
                 role = token.user.get_role_display()
                 scope = ["read", "write", role]
-                if role == ADMIN:
-                    scope.append(STAFF)
+                if role == User.Roles.ADMIN.label:
+                    scope.append(User.Roles.STAFF.label)
                 token.scope = " ".join(scope)
                 token.save()
 

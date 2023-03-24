@@ -3,18 +3,22 @@
 {% load crispy_forms_tags %}
 {% load render_table from django_tables2 %}
 
-
 {% block header %}
 <div class="col">
   <h1>{{ display_name }} Drafts</h1>
 </div>
-
+{% if view_model %}
 <div class="col-auto">
-  <a class="btn btn-primary" href="{% url 'change-add' model %}">
+  <a class="btn btn-primary" href="{% url 'change-add' view_model %}">
     Add New {{ display_name }} +
   </a>
 </div>
-
+{% else %}
+<form action="{% url 'gcmd-list' %}" method="post">
+  {% csrf_token %}
+  <button class="btn btn-primary">Sync GCMD </button>
+</form>
+{% endif %}
 {% endblock header %}
 
 {% block main %}
@@ -23,16 +27,14 @@
       <form action="" method="get" class="form form-inline">
         {{ filter.form | crispy }}
         <button class="btn btn-secondary btn-sm">Filter</button>
-        <a 
+        <a
           class="btn btn-light btn-sm" 
-          href="{% spaceless %}
-            {% if model == "campaign" %}{% url 'campaign-list-draft' %}
-            {% elif model == "platform" %}{% url 'platform-list-draft' %}
-            {% elif model == "instrument" %}{% url 'instrument-list-draft' %}
-            {% elif model == "partnerorg" %}{% url 'partner_org-list-draft' %}
-            {% else %}{% url 'summary' %}
-            {% endif %}
-          {% endspaceless %}">
+          {% if view_model %}
+            href="{% url 'change-list' view_model %}"
+          {% else %}
+            href="{% url 'gcmd-list' %}"
+          {% endif %}
+        >
           Clear filters
         </a>
       </form>

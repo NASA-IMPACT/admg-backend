@@ -1,6 +1,6 @@
 import os
-import uuid
 import urllib.parse
+import uuid
 
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
@@ -10,6 +10,9 @@ from django.db import models
 
 # TODO: Mv to config
 FRONTEND_URL = "https://airborne-inventory.surge.sh/"
+NOTES_INTERNAL_HELP_TEXT = "Free text notes for ADMG staff, this is NOT visible to the public."
+NOTES_PUBLIC_HELP_TEXT = "Free text notes, this IS visible to the public."
+UNIMPLEMENTED_HELP_TEXT = "*these will be images that would be either uploaded directly or URL to image would be provided...we don’t have this fully in curation process yet."
 
 
 def select_related_distinct_data(queryset, related_data_string):
@@ -41,6 +44,31 @@ def create_gcmd_str(categories):
 class BaseModel(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False, unique=True)
 
+    @staticmethod
+    def search_fields():
+        return ["short_name", "long_name"]
+
+    @classmethod
+    def search(cls, params):
+        search_type = params.pop("search_type", "plain")
+        search = params.pop("search_term", None) or params.pop('search', None)
+        search_fields_param = params.pop("search_fields", None)
+        if search_fields_param:
+            search_fields = search_fields_param.split(",")
+        else:
+            search_fields = cls.search_fields()
+
+        queryset = cls.objects.all()
+
+        if search:
+            vector = SearchVector(*search_fields)
+
+            queryset = queryset.annotate(search=vector).filter(
+                search=SearchQuery(search, search_type=search_type)
+            )
+
+        return queryset.filter(**params)
+
     def __str__(self):
         return self.short_name
 
@@ -65,6 +93,10 @@ class Image(BaseModel):
     owner = models.CharField(max_length=512, default="", blank=True)
     source_url = models.TextField(blank=True, default="")
 
+    @staticmethod
+    def search_fields():
+        return ["title", "description"]
+
     def __str__(self):
         return self.title or self.image.name
 
@@ -72,16 +104,8 @@ class Image(BaseModel):
 class LimitedInfo(BaseModel):
     short_name = models.CharField(max_length=256, blank=False, unique=True)
     long_name = models.CharField(max_length=512, default="", blank=True)
-    notes_internal = models.TextField(
-        default="",
-        blank=True,
-        help_text="Free text notes for ADMG staff - not visible to public.",
-    )
-    notes_public = models.TextField(
-        default="",
-        blank=True,
-        help_text="Free text notes on the deployment, this IS visible to public.",
-    )
+    notes_internal = models.TextField(default="", blank=True, help_text=NOTES_INTERNAL_HELP_TEXT)
+    notes_public = models.TextField(default="", blank=True, help_text=NOTES_PUBLIC_HELP_TEXT)
 
     class Meta:
         abstract = True
@@ -97,11 +121,7 @@ class LimitedInfoPriority(LimitedInfo):
 
 class PlatformType(LimitedInfoPriority):
     parent = models.ForeignKey(
-        "PlatformType",
-        on_delete=models.CASCADE,
-        related_name="sub_types",
-        null=True,
-        blank=True,
+        "PlatformType", on_delete=models.CASCADE, related_name="sub_types", null=True, blank=True
     )
 
     gcmd_uuid = models.UUIDField(null=True, blank=True)
@@ -126,11 +146,7 @@ class PlatformType(LimitedInfoPriority):
 
 class MeasurementType(LimitedInfoPriority):
     parent = models.ForeignKey(
-        "MeasurementType",
-        on_delete=models.CASCADE,
-        related_name="sub_types",
-        null=True,
-        blank=True,
+        "MeasurementType", on_delete=models.CASCADE, related_name="sub_types", null=True, blank=True
     )
     example = models.CharField(max_length=1024, blank=True, default="")
 
@@ -155,6 +171,10 @@ class MeasurementStyle(LimitedInfoPriority):
 class HomeBase(LimitedInfoPriority):
     location = models.CharField(max_length=512, blank=True, default="")
     additional_info = models.CharField(max_length=2048, blank=True, default="")
+
+    @staticmethod
+    def search_fields():
+        return ["short_name", "long_name", "location"]
 
     class Meta(LimitedInfo.Meta):
         pass
@@ -206,6 +226,10 @@ class GeophysicalConcept(LimitedInfoPriority):
 class WebsiteType(LimitedInfoPriority):
     description = models.TextField(blank=True, default="")
 
+    @staticmethod
+    def search_fields():
+        return ["short_name", "long_name", "description"]
+
     def __str__(self):
         return self.long_name
 
@@ -214,7 +238,6 @@ class WebsiteType(LimitedInfoPriority):
 
 
 class Alias(BaseModel):
-
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, blank=True)
     object_id = models.UUIDField()
     parent_fk = GenericForeignKey("content_type", "object_id")
@@ -231,6 +254,10 @@ class Alias(BaseModel):
     #         app_label="data_models", model=self.model_name.lower()
     #     )
     #     return super(Alias, self).save(*args, **kwargs)
+
+    @staticmethod
+    def search_fields():
+        return ["short_name"]
 
     class Meta:
         verbose_name_plural = "Aliases"
@@ -249,21 +276,43 @@ class PartnerOrg(LimitedInfoPriority):
         pass
 
 
-class GcmdProject(BaseModel):
+class GcmdKeyword(BaseModel):
+    def _get_casei_model(self):
+        from kms.gcmd import keyword_to_casei_map
+
+        return keyword_to_casei_map[self.__class__.__name__.lower()]
+
+    def _get_casei_attribute(self):
+        from kms.gcmd import keyword_casei_attribute_map
+
+        return keyword_casei_attribute_map[self.__class__.__name__.lower()]
+
+    casei_model = property(_get_casei_model)
+    # Attribute on CASEI model where GCMD relationships are stored.
+    # Example: Instrument.gcmd_instruments, Instrument.gcmd_phenomenon, Proejct.gcmd_projects
+    casei_attribute = property(_get_casei_attribute)
+
+    class Meta:
+        abstract = True
+
+
+class GcmdProject(GcmdKeyword):
     short_name = models.CharField(max_length=256, blank=True, default="")
     long_name = models.CharField(max_length=512, blank=True, default="")
     bucket = models.CharField(max_length=256)
     gcmd_uuid = models.UUIDField(unique=True)
+    gcmd_path = ["bucket", "short_name", "long_name"]
 
     def __str__(self):
         categories = (self.short_name, self.long_name)
         return create_gcmd_str(categories)
 
     class Meta:
+        verbose_name = "GCMD Project"
         ordering = ("short_name",)
 
 
-class GcmdInstrument(BaseModel):
+class GcmdInstrument(GcmdKeyword):
     short_name = models.CharField(max_length=256, blank=True, default="")
     long_name = models.CharField(max_length=512, blank=True, default="")
     # these make more sense without 'instrument', however class and type are
@@ -273,6 +322,14 @@ class GcmdInstrument(BaseModel):
     instrument_type = models.CharField(max_length=256, blank=True, default="")
     instrument_subtype = models.CharField(max_length=256, blank=True, default="")
     gcmd_uuid = models.UUIDField(unique=True)
+    gcmd_path = [
+        "instrument_category",
+        "instrument_class",
+        "instrument_type",
+        "instrument_subtype",
+        "short_name",
+        "long_name",
+    ]
 
     def __str__(self):
         categories = (
@@ -286,26 +343,30 @@ class GcmdInstrument(BaseModel):
         return create_gcmd_str(categories)
 
     class Meta:
+        verbose_name = "GCMD Instrument"
         ordering = ("short_name",)
 
 
-class GcmdPlatform(BaseModel):
+class GcmdPlatform(GcmdKeyword):
     short_name = models.CharField(max_length=256, blank=True, default="")
     long_name = models.CharField(max_length=512, blank=True, default="")
-    category = models.CharField(max_length=256)
-    series_entry = models.CharField(max_length=256, blank=True, default="")
+    basis = models.CharField(max_length=256)
+    category = models.CharField(max_length=256, blank=True, default="")
+    subcategory = models.CharField(max_length=256, blank=True, default="")
     description = models.TextField(blank=True, default="")
     gcmd_uuid = models.UUIDField(unique=True)
+    gcmd_path = ["basis", "category", "subcategory", "short_name", "long_name"]
 
     def __str__(self):
         categories = (self.category, self.long_name, self.short_name)
         return create_gcmd_str(categories)
 
     class Meta:
+        verbose_name = "GCMD Platform"
         ordering = ("short_name",)
 
 
-class GcmdPhenomena(BaseModel):
+class GcmdPhenomenon(GcmdKeyword):
     category = models.CharField(max_length=256)
     topic = models.CharField(max_length=256, blank=True, default="")
     term = models.CharField(max_length=256, blank=True, default="")
@@ -313,6 +374,11 @@ class GcmdPhenomena(BaseModel):
     variable_2 = models.CharField(max_length=256, blank=True, default="")
     variable_3 = models.CharField(max_length=256, blank=True, default="")
     gcmd_uuid = models.UUIDField(unique=True)
+    gcmd_path = ["category", "topic", "term", "variable_1", "variable_2", "variable_3"]
+
+    @staticmethod
+    def search_fields():
+        return ["category", "topic"]
 
     def __str__(self):
         categories = (
@@ -325,6 +391,9 @@ class GcmdPhenomena(BaseModel):
         )
         return create_gcmd_str(categories)
 
+    class Meta:
+        verbose_name_plural = "Phenomena"
+
 
 class Website(BaseModel):
     campaign = models.ForeignKey("Campaign", related_name="websites", on_delete=models.CASCADE)
@@ -334,11 +403,11 @@ class Website(BaseModel):
     url = models.URLField(max_length=1024)
     title = models.TextField(default="", blank=True)
     description = models.TextField(default="", blank=True)
-    notes_internal = models.TextField(
-        default="",
-        blank=True,
-        help_text="Free text notes for ADMG staff - not visible to public.",
-    )
+    notes_internal = models.TextField(default="", blank=True, help_text=NOTES_INTERNAL_HELP_TEXT)
+
+    @staticmethod
+    def search_fields():
+        return ["title", "description"]
 
     def __str__(self):
         return self.title
@@ -352,31 +421,6 @@ class Website(BaseModel):
 class DataModel(LimitedInfo):
     class Meta:
         abstract = True
-
-    @staticmethod
-    def search_fields():
-        return ["short_name", "long_name"]
-
-    @classmethod
-    def search(cls, params):
-        search_type = params.pop("search_type", "plain")
-        search = params.pop("search", None)
-        search_fields_param = params.pop("search_fields", None)
-        if search_fields_param:
-            search_fields = search_fields_param.split(",")
-        else:
-            search_fields = cls.search_fields()
-
-        queryset = cls.objects.all()
-
-        if search:
-            vector = SearchVector(*search_fields)
-
-            queryset = queryset.annotate(search=vector).filter(
-                search=SearchQuery(search, search_type=search_type)
-            )
-
-        return queryset.filter(**params)
 
 
 class Campaign(DataModel):
@@ -561,19 +605,13 @@ class Campaign(DataModel):
 
     @staticmethod
     def search_fields():
-        return [
-            "short_name",
-            "long_name",
-            "description_short",
-            "focus_phenomena",
-        ]
+        return ["short_name", "long_name", "description_short", "focus_phenomena"]
 
     def get_absolute_url(self):
         return urllib.parse.urljoin(FRONTEND_URL, f"/campaign/{self.uuid}/")
 
 
 class Platform(DataModel):
-
     platform_type = models.ForeignKey(
         PlatformType,
         on_delete=models.SET_NULL,
@@ -689,10 +727,10 @@ class Instrument(DataModel):
         verbose_name="Facility Instrument Location",
         help_text="If Facility Instrument give location or put 'retired', otherwise N/A",
     )
-    gcmd_phenomenas = models.ManyToManyField(
-        GcmdPhenomena,
+    gcmd_phenomena = models.ManyToManyField(
+        GcmdPhenomenon,
         related_name="instruments",
-        verbose_name="Measurements / Variables from GCMD Science Keywords",
+        verbose_name="Measurements/Variables from GCMD Science Keywords",
         help_text="Select relevant measurements/variables items from GCMD Science Keywords for Earth Science",
     )
     funding_source = models.CharField(
@@ -781,6 +819,10 @@ class Instrument(DataModel):
     def get_absolute_url(self):
         return urllib.parse.urljoin(FRONTEND_URL, f"/instrument/{self.uuid}/")
 
+    @staticmethod
+    def search_fields():
+        return ["short_name", "long_name", "description"]
+
 
 class Deployment(DataModel):
     campaign = models.ForeignKey(Campaign, on_delete=models.CASCADE, related_name="deployments")
@@ -798,21 +840,9 @@ class Deployment(DataModel):
     )
 
     spatial_bounds = geomodels.PolygonField(blank=True, null=True)
-    study_region_map = models.TextField(
-        default="",
-        blank=True,
-        help_text="*these will be images that would be either uploaded or URL to image provided...we don’t have this fully in curation process yet.",
-    )
-    ground_sites_map = models.TextField(
-        default="",
-        blank=True,
-        help_text="*these will be images that would be either uploaded or URL to image provided...we don’t have this fully in curation process yet.",
-    )
-    flight_tracks = models.TextField(
-        default="",
-        blank=True,
-        help_text="*these will be images that would be either uploaded or URL to image provided...we don’t have this fully in curation process yet.",
-    )
+    study_region_map = models.TextField(default="", blank=True, help_text=UNIMPLEMENTED_HELP_TEXT)
+    ground_sites_map = models.TextField(default="", blank=True, help_text=UNIMPLEMENTED_HELP_TEXT)
+    flight_tracks = models.TextField(default="", blank=True, help_text=UNIMPLEMENTED_HELP_TEXT)
 
     def __str__(self):
         return self.short_name
@@ -823,7 +853,6 @@ class Deployment(DataModel):
 
 
 class IopSe(BaseModel):
-
     deployment = models.ForeignKey(
         Deployment,
         on_delete=models.CASCADE,
@@ -853,7 +882,7 @@ class IopSe(BaseModel):
         default="",
         blank=True,
         verbose_name="Science/Flight Reports",
-        help_text="DOI or URL for location of published IOP Science of Flight reports",
+        help_text="DOI or URL for location of published IOP Science or Flight reports",
     )
     reference_file = models.CharField(
         max_length=1024,
@@ -862,6 +891,10 @@ class IopSe(BaseModel):
         verbose_name="Reference Granule/File",
         help_text="Text filename of a specific granule file for reference",
     )
+
+    @staticmethod
+    def search_fields():
+        return ["short_name", "description"]
 
     class Meta:
         abstract = True
@@ -877,7 +910,6 @@ class IOP(IopSe):
 
 
 class SignificantEvent(IopSe):
-
     deployment = models.ForeignKey(
         Deployment,
         on_delete=models.CASCADE,
@@ -902,7 +934,6 @@ class SignificantEvent(IopSe):
 
 
 class CollectionPeriod(BaseModel):
-
     deployment = models.ForeignKey(
         Deployment, on_delete=models.CASCADE, related_name="collection_periods"
     )
@@ -940,10 +971,7 @@ class CollectionPeriod(BaseModel):
     )
 
     platform_owner = models.CharField(
-        max_length=256,
-        default="",
-        blank=True,
-        help_text="Organization that owns the platform",
+        max_length=256, default="", blank=True, help_text="Organization that owns the platform"
     )
     platform_technical_contact = models.CharField(
         max_length=256,
@@ -966,18 +994,14 @@ class CollectionPeriod(BaseModel):
         help_text="DOI or URL for location of lists of instruments used on this platform for the deployment",
     )
 
-    notes_internal = models.TextField(
-        default="",
-        blank=True,
-        help_text="Free text notes for ADMG staff - not visible to public.",
-    )
-    notes_public = models.TextField(
-        default="",
-        blank=True,
-        help_text="Free text notes on the deployment, this IS visible to public.",
-    )
+    notes_internal = models.TextField(default="", blank=True, help_text=NOTES_INTERNAL_HELP_TEXT)
+    notes_public = models.TextField(default="", blank=True, help_text=NOTES_PUBLIC_HELP_TEXT)
 
     auto_generated = models.BooleanField()
+
+    @staticmethod
+    def search_fields():
+        return ["campaign_deployment_base", "platform_owner"]
 
     def __str__(self):
         platform_id = f"({self.platform_identifier})" if self.platform_identifier else ""
@@ -996,6 +1020,9 @@ class DOI(BaseModel):
     cmr_projects = models.JSONField(default=None, blank=True, null=True)
     cmr_dates = models.JSONField(default=None, blank=True, null=True)
     cmr_plats_and_insts = models.JSONField(default=None, blank=True, null=True)
+    cmr_science_keywords = models.JSONField(default=None, blank=True, null=True)
+    cmr_abstract = models.TextField(blank=True, default="")
+    cmr_data_formats = models.JSONField(default=None, blank=True, null=True)
 
     date_queried = models.DateTimeField()
 
@@ -1009,6 +1036,10 @@ class DOI(BaseModel):
 
     def get_absolute_url(self):
         return urllib.parse.urljoin("https://doi.org", self.doi)
+
+    @staticmethod
+    def search_fields():
+        return ["concept_id", "long_name", "doi"]
 
     class Meta:
         verbose_name = "DOI"

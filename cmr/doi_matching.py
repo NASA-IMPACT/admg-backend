@@ -1,15 +1,18 @@
 import json
+import logging
 import pickle
 from datetime import datetime
 
-from api_app.models import Change
-from data_models.models import DOI
 from django.apps import apps
 from django.contrib.contenttypes.models import ContentType
 from django.core import serializers
 
+from api_app.models import Change
 from cmr.cmr import query_and_process_cmr
 from cmr.utils import clean_table_name, purify_list
+from data_models.models import DOI
+
+logger = logging.getLogger(__name__)
 
 
 class DoiMatcher:
@@ -34,7 +37,14 @@ class DoiMatcher:
         # attempt to find the uuid as a published object
         try:
             obj = model.objects.get(uuid=uuid)
-            data = json.loads(serializers.serialize("json", [obj,]))[
+            data = json.loads(
+                serializers.serialize(
+                    "json",
+                    [
+                        obj,
+                    ],
+                )
+            )[
                 0
             ]["fields"]
 
@@ -42,7 +52,14 @@ class DoiMatcher:
         except model.DoesNotExist:
             model = apps.get_model("api_app", "change")
             obj = model.objects.get(uuid=uuid)
-            data = json.loads(serializers.serialize("json", [obj,]))[0][
+            data = json.loads(
+                serializers.serialize(
+                    "json",
+                    [
+                        obj,
+                    ],
+                )
+            )[0][
                 "fields"
             ]["update"]
             data["uuid"] = uuid
@@ -370,10 +387,10 @@ class DoiMatcher:
         if development:
             try:
                 metadata_list = pickle.load(open(f"metadata_{uuid}", "rb"))
-                print("using cached CMR metadata")
+                logger.debug("using cached CMR metadata")
             except FileNotFoundError:
                 failed = True
-                print("cached CMR data unavailable")
+                logger.debug("cached CMR data unavailable")
 
         aliases = self.universal_alias(table_name, uuid)
 
@@ -386,6 +403,6 @@ class DoiMatcher:
         supplemented_metadata_list = self.supplement_metadata(metadata_list, development)
 
         for doi in supplemented_metadata_list:
-            print(self.add_to_db(doi))
+            logger.debug(self.add_to_db(doi))
 
         return supplemented_metadata_list
