@@ -226,20 +226,6 @@ class CanonicalRecordPublished(ModelObjectView):
     template_name = "api_app/canonical/published_detail.html"
     fields = ["content_type", "model_instance_uuid", "action", "update"]
 
-    # def _initialize_form(self, form_class, disable_all=False, **kwargs):
-    #     form_instance = form_class(**kwargs)
-
-    #     # prevent fields from being edited
-    #     if disable_all:
-    #         for fieldname in form_instance.fields:
-    #             form_instance.fields[fieldname].disabled = True
-
-    #     return form_instance
-
-    # def _get_form(self, disable_all=False, **kwargs):
-    #     form_class = forms.published_modelform_factory(self._model_name)
-    #     return self._initialize_form(form_class, disable_all, **kwargs)
-
     def get_model_form_content_type(self) -> ContentType:
         return Change.objects.get(uuid=self.kwargs[self.pk_url_kwarg]).content_type
 
