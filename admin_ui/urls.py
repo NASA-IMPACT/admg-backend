@@ -77,13 +77,13 @@ urlpatterns = [
     ),
     path(
         'v2/<str:model>/<uuid:canonical_uuid>/edit/<uuid:draft_uuid>',
-        v2.DraftDetailView.as_view(),
+        v2.HistoryDetailView.as_view(),
         name="draft-detail",
     ),
     # same view as edit but view only for historical
     path(
         'v2/<str:model>/<uuid:canonical_uuid>/history/<uuid:draft_uuid>',
-        v2.DraftDetailView.as_view(),
+        v2.HistoryDetailView.as_view(),
         name="historical-detail",
     ),
     # List all `Change` records for a given concept. Ordered by date created, descending.

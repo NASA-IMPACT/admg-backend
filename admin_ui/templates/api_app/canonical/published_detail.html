@@ -7,7 +7,7 @@
 {% block header %}
   <div class="col">
     <a href="{% url 'canonical-list' view_model %}">&lt; Back to {{ display_name }}</a>
-    <h1 class="my-5">{{ object.update.short_name }}</h1>
+    <h1 class="my-5">{{ object.short_name }}</h1>
   </div>
 {% endblock header %}
 
@@ -23,44 +23,8 @@
     </button>
   </div>
 {% endblock actions %}
+{# Sidebar #}
+{% block form %}
+  {{model_form | crispy }}
+{% endblock form %}
 
-{% block main %}
-<h1 class="my-5">This is the published Version of 🚀 {{ object.update.short_name }} 🚀</h1>
-  
-  
-  {# Sidebar #}
-  <aside class="col-sm-4">
-    {% if object.logo %}
-    <h3>Logo</h3>
-    <a href="{% url 'change-update' object.logo.pk %}">
-      <img class="img-thumbnail" src="{% get_media_prefix %}/{{ object.logo.image.url }}" />
-    </a>
-
-    <hr />
-    {% endif %}
-  </aside>
-
-  <!-- Modal -->
-  <div class="modal fade" id="deletePopup" tabindex="-1" role="dialog" aria-labelledby="deletePopupTitle" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" role="document">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="deletePopupLongTitle">
-            Confirmation
-          </h5>
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-          </button>
-        </div>
-        <div class="modal-body">
-          The action you are going to perform will create a delete draft for the object.
-          Only after admin approval will it be deleted.
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-
-        </div>
-      </div>
-    </div>
-  </div>
-{% endblock main %}

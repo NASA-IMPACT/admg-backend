@@ -196,39 +196,58 @@ class ChangeHistoryList(mixins.DynamicModelMixin, tables.SingleTableView):
         }
 
 
-class DraftDetailView(DetailView):
+class HistoryDetailView(ModelObjectView):
     model = Change
     pk_url_kwarg = 'draft_uuid'
-    template_name = "api_app/canonical/draft_detail.html"
+    template_name = "api_app/canonical/historical_detail.html"
     pk_url_kwarg = 'canonical_uuid'
+    fields = ["content_type", "model_instance_uuid", "action", "update"]
+
+    def get_model_form_content_type(self) -> ContentType:
+        return Change.objects.get(uuid=self.kwargs[self.pk_url_kwarg]).content_type
 
     def get_context_data(self, **kwargs):
         return {
             **super().get_context_data(**kwargs),
+            "model_form": self._get_form(instance=kwargs.get("object"), disable_all=True),
             "view_model": (
                 Change.objects.get(uuid=self.kwargs[self.pk_url_kwarg]).model_name.lower()
             ),
             "object": Change.objects.get(uuid=self.kwargs[self.pk_url_kwarg]),
+            "display_name": Change.objects.get(uuid=self.kwargs[self.pk_url_kwarg]).model_name,
             "canonical_uuid": self.kwargs[self.pk_url_kwarg],
         }
 
 
 @method_decorator(login_required, name="dispatch")
-class CanonicalRecordPublished(DetailView):
+class CanonicalRecordPublished(ModelObjectView):
     model = Change
     pk_url_kwarg = 'canonical_uuid'
     template_name = "api_app/canonical/published_detail.html"
+    fields = ["content_type", "model_instance_uuid", "action", "update"]
 
-    # def get_queryset(self):
-    #     c = Change.objects.get(uuid=self.kwargs[self.pk_url_kwarg])
-    #     Model = c.content_type.model_class()
-    #     return Model.objects.all()
+    # def _initialize_form(self, form_class, disable_all=False, **kwargs):
+    #     form_instance = form_class(**kwargs)
+
+    #     # prevent fields from being edited
+    #     if disable_all:
+    #         for fieldname in form_instance.fields:
+    #             form_instance.fields[fieldname].disabled = True
+
+    #     return form_instance
+
+    # def _get_form(self, disable_all=False, **kwargs):
+    #     form_class = forms.published_modelform_factory(self._model_name)
+    #     return self._initialize_form(form_class, disable_all, **kwargs)
+
+    def get_model_form_content_type(self) -> ContentType:
+        return Change.objects.get(uuid=self.kwargs[self.pk_url_kwarg]).content_type
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        view_model = context["object"]._meta.model.__name__.lower()
         return {
             **context,
+            "model_form": self._get_form(instance=kwargs.get("object"), disable_all=True),
             "view_model": (
                 Change.objects.get(uuid=self.kwargs[self.pk_url_kwarg]).model_name.lower()
             ),
@@ -249,6 +268,7 @@ class CanonicalDraftEdit(NotificationSidebar, mixins.ChangeModelFormMixin, Updat
     fields = ["content_type", "model_instance_uuid", "action", "update", "status"]
     prefix = "change"
     template_name = "api_app/canonical/change_update.html"
+    pk_url_kwarg = 'canonical_uuid'
 
     def get_queryset(self):
         return Change.objects.all()
@@ -296,7 +316,13 @@ class CanonicalDraftEdit(NotificationSidebar, mixins.ChangeModelFormMixin, Updat
         return update_draft
 
     def get_success_url(self):
-        url = reverse("change-update", args=[self.object.pk])
+        url = reverse(
+            "canonical-redirect",
+            kwargs={
+                "canonical_uuid": self.kwargs[self.pk_url_kwarg],
+                "model": Change.objects.get(uuid=self.kwargs[self.pk_url_kwarg]).content_type,
+            },
+        )
         if self.request.GET.get("back"):
             return f'{url}?back={self.request.GET["back"]}'
         return url

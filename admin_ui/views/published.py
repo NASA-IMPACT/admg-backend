@@ -53,7 +53,7 @@ class ModelObjectView(NotificationSidebar, mixins.DynamicModelMixin, DetailView)
         return self._initialize_form(form_class, disable_all, **kwargs)
 
     def get_object(self):
-        return self._model_config['model'].objects.get(uuid=self.kwargs['pk'])
+        return self._model_config['model'].objects.get(uuid=self.kwargs['canonical_uuid'])
 
     def get_queryset(self):
         return self._model_config['model'].objects.all()
