@@ -218,6 +218,7 @@ class GcmdPhenomenonFactory(GcmdBaseFactory):
 
 
 class GcmdPlatformFactory(GcmdBaseFactory):
+    basis = factory.Faker("word")
     short_name = factory.Faker("text", max_nb_chars=20)
     long_name = factory.Faker("text", max_nb_chars=50)
     series_entry = factory.Faker("word")
