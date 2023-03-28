@@ -100,12 +100,12 @@ class CanonicalRecordList(mixins.DynamicModelMixin, SingleTableMixin, FilterView
             .order_by("-latest_updated_at")
         )
 
-        if self._model_config['model'] == Platform:
-            return queryset.annotate_from_relationship(
-                of_type=PlatformType, uuid_from="platform_type", to_attr="platform_type_name"
-            )
-        else:
-            return queryset
+        # if self._model_config['model'] == Platform:
+        #     return queryset.annotate_from_relationship(
+        #         of_type=PlatformType, uuid_from="platform_type", to_attr="platform_type_name"
+        #     )
+        # else:
+        return queryset
 
     def get_context_data(self, **kwargs):
         return {
