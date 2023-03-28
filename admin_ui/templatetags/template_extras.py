@@ -52,10 +52,16 @@ def object_header_tabs(context, change: Change, canonical_change: Optional[Chang
     Reusable header for canonical object.
     """
 
-    print(f'\n {canonical_change=}  {change=} ')
+    # fetch latest change object
+    latest_change = (
+        change
+        if canonical_change
+        else (
+            Change.objects.filter(model_instance_uuid=change.uuid).order_by("-updated_at").first()
+        )
+    )
     # use canonical change if present otherwise fall back to change
     change = canonical_change if canonical_change else change
-
     has_progress_draft = (
         Change.objects.exclude(status=Change.Statuses.PUBLISHED)
         .filter(Q(uuid=change.uuid) | Q(model_instance_uuid=change.uuid))
@@ -75,13 +81,14 @@ def object_header_tabs(context, change: Change, canonical_change: Optional[Chang
 
     draft_status = (
         "Published"
-        if not hasattr(change, "model_instance_uuid") or change.status == change.Statuses.PUBLISHED
+        if not hasattr(latest_change, "status")
+        or latest_change.status == latest_change.Statuses.PUBLISHED
         else "Created"
-        if change.status == change.Statuses.CREATED
+        if latest_change.status == latest_change.Statuses.CREATED
         else "In Progress"
-        if change.status == change.Statuses.IN_PROGRESS
+        if latest_change.status == latest_change.Statuses.IN_PROGRESS
         else "In Review"
-        if change.status == change.Statuses.IN_REVIEW
+        if latest_change.status == latest_change.Statuses.IN_REVIEW
         else "In Admin Review"
     )
     return {

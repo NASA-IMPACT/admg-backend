@@ -277,28 +277,22 @@ class CanonicalDraftEdit(NotificationSidebar, mixins.ChangeModelFormMixin, Updat
             action=Change.Actions.UPDATE,
         )
         # TODO Get old form content and populate new form if needed
-        # old_form = self.destination_model_form(instance=self.canonical_change)
 
-        # new_form = self._get_form(data=request.POST, initial=old_form.initial, files=request.FILES)
-
-        # if not len(new_form.changed_data):
-        # context = self.get_context_data(**kwargs)
-        # context["message"] = "Nothing changed"
-        # return render(request, self.template_name, context)
-
-        # change_object = Change.objects.create(
-        #     content_object=self.object,
-        #     update=utils.serialize_model_form(new_form),
-
-        # )
-
-        # if is_created:
-        #     update_draft.status = Change.Statuses.CREATED
-        #     # update_draft.update = self.canonical_change.update
-        #     # update_draft.previous = utils.serialize_model_form(old_form)
-        #     update_draft.previous = self.canonical_change.update
-        #     # update_draft.save()
-
+        if is_created:
+            most_recent_published_draft = (
+                Change.objects.filter(
+                    status=Change.Statuses.PUBLISHED,
+                    model_instance_uuid=self.kwargs["canonical_uuid"],
+                )
+                .order_by("updated_at")
+                .last()
+            )
+            update_draft.status = Change.Statuses.CREATED
+            update_draft.update = most_recent_published_draft.update
+            update_draft.previous = most_recent_published_draft.update
+            update_draft.save()
+        if not is_created:
+            print(f"\n\n*******************\n\n{update_draft.status=}")
         return update_draft
 
     def get_success_url(self):
@@ -347,8 +341,10 @@ class CanonicalDraftEdit(NotificationSidebar, mixins.ChangeModelFormMixin, Updat
             for key, val in self.object.previous.items():
                 published_form.initial[key] = val
 
-        comparison_obj = self.object.previous if self.object.is_locked else self.object.update
-        for field_name in comparison_obj:
+        comparison_obj = self.destination_model_form(
+            data=self.object.previous if self.object.is_locked else self.object.update
+        )
+        for field_name in comparison_obj.fields:
             if not utils.compare_values(
                 published_form[field_name].value(), model_form[field_name].value()
             ):
