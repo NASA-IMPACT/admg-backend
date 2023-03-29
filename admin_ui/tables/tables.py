@@ -517,7 +517,7 @@ class PartnerOrgChangeListTable(LimitedTableBase):
                 'canonical-redirect',
                 kwargs={
                     "canonical_uuid": record.uuid,
-                    "model": record.model_name.lower(),
+                    "model": camel_to_snake(record.model_name),
                 },
             ),
             label=record.update.get('short_name') or '---',

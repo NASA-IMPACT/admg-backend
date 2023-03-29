@@ -116,6 +116,7 @@ class CanonicalRecordList(mixins.DynamicModelMixin, SingleTableMixin, FilterView
         }
 
 
+# TODO move this to tables.py
 class DraftHistoryTable(tables.Table):
     draft_action = tables.Column(empty_values=())
     submitted_by = tables.Column(empty_values=())
@@ -291,8 +292,7 @@ class CanonicalDraftEdit(NotificationSidebar, mixins.ChangeModelFormMixin, Updat
             update_draft.update = most_recent_published_draft.update
             update_draft.previous = most_recent_published_draft.update
             update_draft.save()
-        if not is_created:
-            print(f"\n\n*******************\n\n{update_draft.status=}")
+
         return update_draft
 
     def get_success_url(self):
