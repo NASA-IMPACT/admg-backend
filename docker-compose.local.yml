@@ -19,6 +19,16 @@ services:
     depends_on:
       - db
 
+  sass:
+    build:
+      context: ./
+      dockerfile: Dockerfile.local
+    command: python manage.py sass admin_ui/static/scss admin_ui/static/css --watch
+    volumes:
+      - .:/code
+    env_file:
+      - ./.env
+
   db:
     image: postgis/postgis:13-master
     volumes:
@@ -27,13 +37,15 @@ services:
       - POSTGRES_USER=user
       - POSTGRES_PASSWORD=password
       - POSTGRES_DB=admg_webapp
+    ports:
+      - "5439:5432"
 
   rabbitmq:
     container_name: rabbitmq
     hostname: rabbitmq
     image: rabbitmq:latest
     ports:
-      - "5672:5672"
+      - "5673:5672"
     restart: on-failure
 
   celery_worker:
