@@ -411,14 +411,6 @@ class CampaignSerializer(GetAliasSerializer, GetDoiSerializer):
     def get_websites(self, obj):
         return get_uuids(obj.websites)
 
-    def create(self, validated_data):
-        validated_data = change_bbox_to_polygon(validated_data)
-        return super().create(validated_data)
-
-    def update(self, instance, validated_data, **kwargs):
-        validated_data = change_bbox_to_polygon(validated_data)
-        return super().update(instance, validated_data, **kwargs)
-
     class Meta:
         model = models.Campaign
         fields = "__all__"
