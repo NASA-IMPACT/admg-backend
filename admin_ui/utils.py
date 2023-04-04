@@ -47,7 +47,7 @@ def serialize_model_form(model_form: ModelForm):
             model_field.save(model_field.url, model_form.cleaned_data[name])
             update[name] = model_field.name
         elif isinstance(field, JSONField):
-            model_field_value = getattr(model_form.instance, name)
+            model_field_value = model_form.cleaned_data[name]
             update[name] = model_field_value
         else:
             # Populate Change's form with values from destination model's form.
