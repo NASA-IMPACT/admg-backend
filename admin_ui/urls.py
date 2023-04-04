@@ -94,14 +94,14 @@ urlpatterns = [
     ),
     # Create a new change draft from existing published record
     path(
-        "v2/<str:model>/<uuid:canonical_uuid>/change-create",
+        "v2/<str:model>/<uuid:canonical_uuid>/create-update",
         v2.CreateUpdateView.as_view(),
-        name="change-create",
+        name="create-update",
     ),
     # Create new Change view
     path(
         "v2/<str:model>/create",
-        v2.CreateChangeView.as_view(),
-        name="change-create",
+        v2.CreateInitialDraftView.as_view(),
+        name="initial-create",
     ),
 ]

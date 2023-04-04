@@ -8,7 +8,7 @@ from django_filters.views import FilterView
 from django_tables2.views import SingleTableMixin
 import django_tables2 as tables
 from django.http import Http404, HttpResponseBadRequest
-from django.shortcuts import redirect
+from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.contrib.contenttypes.models import ContentType
 from django.views.generic.edit import UpdateView
@@ -251,6 +251,11 @@ class CanonicalRecordPublished(ModelObjectView):
 
 @method_decorator(login_required, name="dispatch")
 class CanonicalDraftEdit(NotificationSidebar, mixins.ChangeModelFormMixin, UpdateView):
+    """This view is in charge of editing existing drafts.
+    If the draft has a related published record, a diff view is returned to the user.
+    Otherwise a single form view is returned.
+    """
+
     fields = ["content_type", "model_instance_uuid", "action", "update", "status"]
     prefix = "change"
     template_name = "api_app/canonical/change_update.html"
@@ -269,30 +274,14 @@ class CanonicalDraftEdit(NotificationSidebar, mixins.ChangeModelFormMixin, Updat
             return self.canonical_change
 
         # if canonical record is published, return the record where the model_instance_uuid equals our canonical_uuid
-        update_draft, is_created = Change.objects.exclude(
-            status=Change.Statuses.PUBLISHED
-        ).get_or_create(
+
+        # try:
+        # TODO: include uuid in url
+        return Change.objects.exclude(status=Change.Statuses.PUBLISHED).get(
             model_instance_uuid=self.canonical_change.uuid,
             content_type=self.canonical_change.content_type,
             action=Change.Actions.UPDATE,
         )
-        # TODO Get old form content and populate new form if needed
-
-        if is_created:
-            most_recent_published_draft = (
-                Change.objects.filter(
-                    status=Change.Statuses.PUBLISHED,
-                    model_instance_uuid=self.kwargs["canonical_uuid"],
-                )
-                .order_by("updated_at")
-                .last()
-            )
-            update_draft.status = Change.Statuses.CREATED
-            update_draft.update = most_recent_published_draft.update
-            update_draft.previous = most_recent_published_draft.update
-            update_draft.save()
-
-        return update_draft
 
     def get_success_url(self):
         url = reverse(
@@ -471,7 +460,11 @@ class ModelObjectView(NotificationSidebar, mixins.DynamicModelMixin, DetailView)
 
 
 @method_decorator(login_required, name="dispatch")
-class CreateUpdateView(ModelObjectView):
+class CreateInitialDraftView(ModelObjectView):
+    """
+    This view handles creating new drafts.
+    """
+
     template_name = "api_app/published_edit.html"
 
     def post(self, request, **kwargs):
@@ -507,6 +500,137 @@ class CreateUpdateView(ModelObjectView):
             "display_name": self._model_config["display_name"],
             "url_name": self._model_config["singular_snake_case"],
         }
+
+
+@method_decorator(login_required, name="dispatch")
+class CreateUpdateView(NotificationSidebar, mixins.ChangeModelFormMixin, UpdateView):
+    """Creates an update of an existing published record.
+    Renders a comparison view between published record and new update draft.
+    We assume that this route will only be reachable if a published record exists.
+    """
+
+    fields = ["content_type", "model_instance_uuid", "action", "update", "status"]
+    prefix = "change"
+    template_name = "api_app/canonical/change_update.html"
+    pk_url_kwarg = 'canonical_uuid'
+
+    def get_queryset(self):
+        return Change.objects.all()
+
+    def get_object(self, queryset=None):
+        if not queryset:
+            queryset = self.get_queryset()
+        self.canonical_change = queryset.get(uuid=self.kwargs["canonical_uuid"])
+
+        # if the canonical record is not published, return the record itself
+        if self.canonical_change.status != Change.Statuses.PUBLISHED:
+            return self.canonical_change
+
+        # TODO: include uuid in url instead of looking up the record again
+        # create a new update draft from most recently published draft
+        most_recent_published_draft = (
+            Change.objects.filter(
+                status=Change.Statuses.PUBLISHED,
+                model_instance_uuid=self.kwargs["canonical_uuid"],
+            )
+            .order_by("updated_at")
+            .last()
+        )
+        most_recent_published_draft.status = Change.Statuses.CREATED
+        most_recent_published_draft.update = most_recent_published_draft.update
+        most_recent_published_draft.previous = most_recent_published_draft.update
+        return most_recent_published_draft
+
+    def get_success_url(self):
+        url = reverse(
+            "canonical-draft-edit",
+            kwargs={
+                "canonical_uuid": self.kwargs[self.pk_url_kwarg],
+                "model": Change.objects.get(uuid=self.kwargs[self.pk_url_kwarg]).content_type,
+            },
+        )
+        if self.request.GET.get("back"):
+            return f'{url}?back={self.request.GET["back"]}'
+        return url
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        return {
+            **context,
+            "transition_form": (
+                forms.TransitionForm(change=context["object"], user=self.request.user)
+            ),
+            "campaign_subitems": ["Deployment", "IOP", "SignificantEvent", "CollectionPeriod"],
+            "related_fields": self._get_related_fields(),
+            "view_model": camel_to_snake(self.get_model_form_content_type().model_class().__name__),
+            "ancestors": context["object"].get_ancestors().select_related("content_type"),
+            "descendents": context["object"].get_descendents().select_related("content_type"),
+            "comparison_form": self._get_comparison_form(context['model_form']),
+            "canonical_object": self.canonical_change,
+        }
+
+    def _get_comparison_form(self, model_form):
+        """
+        Generates a disabled form for the published model, used for generating
+        a diff view.
+        """
+        if self.object.action != self.object.Actions.UPDATE:
+            return None
+
+        published_form = self.destination_model_form(
+            instance=self.object.content_object, auto_id="readonly_%s"
+        )
+
+        # if published or trashed then the old data doesn't need to be from the database, it
+        # needs to be from the previous field of the change_object
+        if self.object.is_locked:
+            for key, val in self.object.previous.items():
+                published_form.initial[key] = val
+
+        comparison_obj = self.destination_model_form(
+            data=self.object.previous if self.object.is_locked else self.object.update
+        )
+        for field_name in comparison_obj.fields:
+            if not utils.compare_values(
+                published_form[field_name].value(), model_form[field_name].value()
+            ):
+                attrs = model_form.fields[field_name].widget.attrs
+                attrs["class"] = f"{attrs.get('class', '')} changed-item".strip()
+
+        return utils.disable_form_fields(published_form)
+
+    def get_model_form_content_type(self) -> ContentType:
+        return self.get_object().content_type
+
+    def _get_related_fields(self) -> Dict:
+        related_fields = {}
+        content_type = self.get_model_form_content_type().model_class().__name__
+        if content_type in ["Campaign", "Platform", "Deployment", "Instrument", "PartnerOrg"]:
+            related_fields["alias"] = Change.objects.of_type(Alias).filter(
+                update__object_id=str(self.object.uuid)
+            )
+        if content_type == "Campaign":
+            related_fields["website"] = (
+                Change.objects.of_type(Website)
+                .filter(action=Change.Actions.CREATE, update__campaign=str(self.object.uuid))
+                .annotate_from_relationship(
+                    of_type=Website, to_attr="title", uuid_from="website", identifier="title"
+                )
+            )
+        return related_fields
+
+    def get_model_form_intial(self):
+        return self.object.update
+
+    def post(self, *args, **kwargs):
+        """
+        Handle POST requests: instantiate a form instance with the passed
+        POST variables and then check if it's valid.
+        """
+        self.object = self.get_object()
+        if self.object.status == Change.Statuses.PUBLISHED:
+            return HttpResponseBadRequest("Unable to submit published records.")
+        return super().post(*args, **kwargs)
 
 
 class CampaignDetailView(NotificationSidebar, DetailView):

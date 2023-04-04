@@ -12,10 +12,10 @@
 {% endblock header %}
 
 {% block actions %}
-  <div class="px-1">
+  <div class="px-1 m-2">
     {% if not has_progress_draft %}
-    <a href="{% url 'canonical-draft-edit' view_model object.uuid %}?back={{ request.path }}" class="btn btn-primary ml-3">
-      Create Edit Draft
+    <a href="{% url 'create-update' view_model object.uuid %}?back={{ request.path }}" class="btn btn-primary mx-2">
+      Edit
       </a>
     {% endif %}
     <button class="btn btn-secondary" data-toggle="modal" data-target="#deletePopup">
