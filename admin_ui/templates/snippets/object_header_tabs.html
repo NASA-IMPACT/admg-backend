@@ -18,7 +18,9 @@
         href="{% url 'canonical-draft-edit' model=view_model canonical_uuid=canonical_uuid draft_uuid=object.uuid%}"
       >
         Edits {{published_uuid}}
-        {% if draft_status != 'Published' %}
+        {% if draft_status == 'Published' and url_name == 'create-update' %}
+        <span class="badge badge-pill text-white badge-danger ml-1">Unsaved</span>
+        {% elif draft_status != 'Published' %}
         <span class="badge badge-pill text-white  {% if draft_status == 'Published' %} badge-success {% else %} badge-warning {% endif %}  ml-1">{% if draft_status == 'Created' %}Created{% elif draft_status == 'In Progress' %}In Progress{% elif draft_status == 'In Review' %}In Review{% elif draft_status == 'In Admin Review' %}In Admin Review{% else %}Published{% endif %}</span>
         {% endif %}
       </a>

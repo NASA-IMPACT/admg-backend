@@ -7,8 +7,7 @@
 
 {% block header %}
   <div class="col">
-    <a href="{% url 'canonical-list' view_model %}">&lt; Back to {{ view_model }}s</a>
-    <h1 class="my-5">{{ object.update.short_name }} Update</h1>
+    <h1 class="my-5">{{ object.content_object.short_name }}</h1>
   </div>
 {% endblock header %}
 {% block actions %}
@@ -17,7 +16,7 @@
     <div class="px-1">
       <a 
         class="btn btn-primary" 
-        href="{% url 'canonical-published-detail' canonical_uuid=canonical_object.uuid model=view_model %}"
+        href="{% url 'canonical-published-detail' canonical_uuid=canonical_uuid model=view_model draft_uuid=draft_uuid %}"
       >
         View published version
       </a>
