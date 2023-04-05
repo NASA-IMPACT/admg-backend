@@ -15,7 +15,7 @@
     <li class="nav-item">
       <a 
         class="nav-link {% if not has_progress_draft %} disabled {% endif %} {% if url_name == 'canonical-draft-edit' or url_name == 'create-update' %}active{% endif %}" 
-        href="{% url 'canonical-draft-edit' view_model canonical_uuid %}"
+        href="{% url 'canonical-draft-edit' view_model canonical_uuid object.uuid%}"
       >
         Edits {{published_uuid}}
         {% if draft_status != 'Published' %}

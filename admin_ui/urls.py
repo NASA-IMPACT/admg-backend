@@ -71,14 +71,9 @@ urlpatterns = [
     ),
     # Update for latest published draft.
     path(
-        'v2/<str:model>/<uuid:canonical_uuid>/edit',
+        'v2/<str:model>/<uuid:canonical_uuid>/edit/<uuid:draft_uuid>',
         v2.CanonicalDraftEdit.as_view(),
         name="canonical-draft-edit",
-    ),
-    path(
-        'v2/<str:model>/<uuid:canonical_uuid>/edit/<uuid:draft_uuid>',
-        v2.HistoryDetailView.as_view(),
-        name="draft-detail",
     ),
     # same view as edit but view only for historical
     path(
@@ -101,7 +96,7 @@ urlpatterns = [
     # Create new Change view
     path(
         "v2/<str:model>/create",
-        v2.CreateInitialDraftView.as_view(),
-        name="initial-create",
+        v2.CreateInitialView.as_view(),
+        name="create-initial",
     ),
 ]

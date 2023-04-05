@@ -17,7 +17,7 @@
     <div class="px-1">
       <a 
         class="btn btn-primary" 
-        href="{% url 'published-detail' pk=object.model_instance_uuid model=view_model %}"
+        href="{% url 'canonical-published-detail' canonical_uuid=canonical_object.uuid model=view_model %}"
       >
         View published version
       </a>
