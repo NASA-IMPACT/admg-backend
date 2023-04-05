@@ -38,7 +38,7 @@ from api_app.urls import camel_to_snake
 
 
 # TODO add login requirement
-def redirect_helper(request, canonical_uuid, model):
+def redirect_helper(request, canonical_uuid, draft_uuid, model):
     try:
         draft = Change.objects.get(uuid=canonical_uuid)
         has_progress_draft = (
@@ -50,14 +50,19 @@ def redirect_helper(request, canonical_uuid, model):
             return redirect(
                 reverse(
                     "canonical-published-detail",
-                    kwargs={"canonical_uuid": canonical_uuid, "model": model},
+                    kwargs={
+                        "canonical_uuid": canonical_uuid,
+                        "model": model,
+                        "draft_uuid": draft_uuid,
+                    },
                 )
             )
         # TODO return redirect to edit view
         # return HttpResponse("Todo return redirect")
         return redirect(
             reverse(
-                "canonical-draft-edit", kwargs={"canonical_uuid": canonical_uuid, "model": model}
+                "canonical-draft-edit",
+                kwargs={"canonical_uuid": canonical_uuid, "model": model, "draft_uuid": draft_uuid},
             )
         )
     except Change.DoesNotExist:
@@ -93,6 +98,7 @@ class CanonicalRecordList(mixins.DynamicModelMixin, SingleTableMixin, FilterView
                 )
             )
             .annotate(
+                draft_uuid=Subquery(related_drafts.values("uuid")[:1]),
                 latest_status=Subquery(related_drafts.values("status")[:1]),
                 latest_action=Subquery(related_drafts.values("action")[:1]),
                 latest_updated_at=Subquery(related_drafts.values("updated_at")[:1]),
@@ -310,6 +316,7 @@ class CanonicalDraftEdit(NotificationSidebar, mixins.ChangeModelFormMixin, Updat
             "canonical-redirect",
             kwargs={
                 "canonical_uuid": self.kwargs[self.pk_url_kwarg],
+                "draft_uuid": self.object.pk,
                 "model": Change.objects.get(uuid=self.kwargs[self.pk_url_kwarg]).content_type,
             },
         )
@@ -539,9 +546,11 @@ class CreateUpdateView(mixins.DynamicModelMixin, mixins.ChangeModelFormMixin, Cr
         }
 
     def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
         return {
             **super().get_context_data(**kwargs),
             "content_type_name": (self.get_model_form_content_type().model_class().__name__),
+            "comparison_form": self._get_comparison_form(context['model_form']),
         }
 
     def get_success_url(self):
@@ -580,6 +589,37 @@ class CreateUpdateView(mixins.DynamicModelMixin, mixins.ChangeModelFormMixin, Cr
         form = ModelForm(instance=published_record)
 
         return form.initial
+
+    def _get_comparison_form(self, model_form):
+        """
+        Generates a disabled form for the published model, used for generating
+        a diff view.
+        """
+        if self.object.action != self.object.Actions.UPDATE:
+            print(f"\n******** {self.object.action=} RETURNING SOMETHING THAT IS NOT AN UPDATE\n")
+            return None
+
+        published_form = self.destination_model_form(
+            instance=self.object.content_object, auto_id="readonly_%s"
+        )
+
+        # if published or trashed then the old data doesn't need to be from the database, it
+        # needs to be from the previous field of the change_object
+        if self.object.is_locked:
+            for key, val in self.object.previous.items():
+                published_form.initial[key] = val
+
+        comparison_obj = self.destination_model_form(
+            data=self.object.previous if self.object.is_locked else self.object.update
+        )
+        for field_name in comparison_obj.fields:
+            if not utils.compare_values(
+                published_form[field_name].value(), model_form[field_name].value()
+            ):
+                attrs = model_form.fields[field_name].widget.attrs
+                attrs["class"] = f"{attrs.get('class', '')} changed-item".strip()
+
+        return utils.disable_form_fields(published_form)
 
     def post(self, *args, **kwargs):
         """

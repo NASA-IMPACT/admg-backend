@@ -59,13 +59,13 @@ urlpatterns = [
     path('v2/<str:model>', v2.CanonicalRecordList.as_view(), name="canonical-list"),
     # Helper route to redirect user to appropriate view without prior knowledge of record's status (ie if it's been published). If published, return redirect to `/<uuid:canonical_uuid>/published`. Otherwise, redirect to `/<uuid:canonical_uuid>/edit`.
     path(
-        'v2/<str:model>/<uuid:canonical_uuid>',
+        'v2/<str:model>/<uuid:canonical_uuid>/<uuid:draft_uuid>',
         v2.redirect_helper,
         name="canonical-redirect",
     ),
     # Read-only view the published record for this concept. Render `400` response if record is not yet published.
     path(
-        'v2/<str:model>/<uuid:canonical_uuid>/published',
+        'v2/<str:model>/<uuid:canonical_uuid>/published/<uuid:draft_uuid>',
         v2.CanonicalRecordPublished.as_view(),
         name="canonical-published-detail",
     ),

@@ -517,6 +517,7 @@ class PartnerOrgChangeListTable(LimitedTableBase):
                 'canonical-redirect',
                 kwargs={
                     "canonical_uuid": record.uuid,
+                    "draft_uuid": record.uuid,
                     "model": camel_to_snake(record.model_name),
                 },
             ),
@@ -552,12 +553,14 @@ class CampaignChangeListTable(LimitedTableBase):
         sequence = all_fields
 
     def render_short_name(self, value, record):
+        print(f"*****\n********{record.draft_uuid=} *****\n********")
         return format_html(
             '<a href="{form_url}">{label}</a>',
             form_url=reverse(
                 'canonical-redirect',
                 kwargs={
                     "canonical_uuid": record.uuid,
+                    "draft_uuid": record.uuid,
                     "model": record.model_name.lower(),
                 },
             ),
@@ -586,6 +589,7 @@ class PlatformChangeListTable(LimitedTableBase):
                 'canonical-redirect',
                 kwargs={
                     "canonical_uuid": record.uuid,
+                    "draft_uuid": record.uuid,
                     "model": record.model_name.lower(),
                 },
             ),
@@ -606,6 +610,7 @@ class InstrumentChangeListTable(LimitedTableBase):
                 'canonical-redirect',
                 kwargs={
                     "canonical_uuid": record.uuid,
+                    "draft_uuid": record.uuid,
                     "model": record.model_name.lower(),
                 },
             ),
@@ -895,6 +900,7 @@ class ImageChangeListTable(DraftTableBase):
                 'canonical-redirect',
                 kwargs={
                     "canonical_uuid": record.uuid,
+                    "draft_uuid": record.uuid,
                     "model": record.model_name.lower(),
                 },
             ),
