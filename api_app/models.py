@@ -5,6 +5,7 @@ from crum import get_current_user
 from django.apps import apps
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
+from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from django.db.models import expressions, functions, Subquery
 from django.db.models.fields.json import KeyTextTransform
@@ -843,7 +844,11 @@ def set_change_updated_at(sender, instance, **kwargs):
     Set `updated_at` on the related Change object to the value of
     the ApprovalLog's `date` field.
     """
-    Change.objects.filter(pk=instance.change.pk).update(updated_at=instance.date)
+    try:
+        if instance.change:  # Check if the 'change' field exists
+            Change.objects.filter(pk=instance.change.pk).update(updated_at=instance.date)
+    except ObjectDoesNotExist:
+        pass  # This allows the loaddata to run successfully
 
 
 class Recommendation(models.Model):
