@@ -795,13 +795,6 @@ class Instrument(DataModel):
     repositories = models.ManyToManyField(
         Repository, related_name="instruments", default="", blank=True
     )
-    additional_metadata = models.JSONField(
-        default=None,
-        blank=True,
-        null=True,
-        verbose_name="Additional Metadata",
-        help_text="An open item for potential extra metadata element(s)",
-    )
 
     @property
     def campaigns(self):
