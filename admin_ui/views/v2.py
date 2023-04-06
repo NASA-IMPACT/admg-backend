@@ -39,9 +39,6 @@ from api_app.urls import camel_to_snake
 
 # TODO add login requirement
 def redirect_helper(request, canonical_uuid, draft_uuid, model):
-    print(
-        f"\n\n************\nHitting redirect helper{Change.objects.get(uuid=canonical_uuid).status=}"
-    )
     try:
         draft = Change.objects.get(uuid=canonical_uuid)
         has_progress_draft = (
@@ -298,13 +295,9 @@ class CanonicalDraftEdit(NotificationSidebar, mixins.ChangeModelFormMixin, Updat
                 reverse(
                     "canonical-published-detail",
                     kwargs={
-                        **context,
                         "canonical_uuid": self.kwargs[self.pk_url_kwarg],
                         "draft_uuid": self.object.pk,
-                        "object": Change.objects.get(uuid=self.kwargs["draft_uuid"]),
-                        "model": camel_to_snake(
-                            self.get_model_form_content_type().model_class().__name__
-                        ),
+                        "model": self.kwargs["model"],
                     },
                 )
             )
@@ -314,7 +307,6 @@ class CanonicalDraftEdit(NotificationSidebar, mixins.ChangeModelFormMixin, Updat
         if not queryset:
             queryset = self.get_queryset()
         self.canonical_change = queryset.get(uuid=self.kwargs["canonical_uuid"])
-        # print(f"\n****************{self.canonical_change=}")
         # if the canonical record is not published, return the record itself
         if self.canonical_change.status != Change.Statuses.PUBLISHED:
             return self.canonical_change
@@ -355,10 +347,9 @@ class CanonicalDraftEdit(NotificationSidebar, mixins.ChangeModelFormMixin, Updat
             kwargs={
                 "canonical_uuid": self.kwargs[self.pk_url_kwarg],
                 "draft_uuid": self.object.pk,
-                "model": Change.objects.get(uuid=self.kwargs[self.pk_url_kwarg]).content_type,
+                "model": self.kwargs["model"],
             },
         )
-        print(f"\n\n\n***************{url=}\n\n\n")
         if self.request.GET.get("back"):
             return f'{url}?back={self.request.GET["back"]}'
         return url
@@ -618,7 +609,6 @@ class CreateUpdateView(mixins.DynamicModelMixin, mixins.ChangeModelFormMixin, Cr
         """
         self.object = self.get_object()
         if self.object.action != self.object.Actions.UPDATE:
-            print(f"\n******** {self.object.action=} RETURNING SOMETHING THAT IS NOT AN UPDATE\n")
             return None
 
         published_form = self.destination_model_form(

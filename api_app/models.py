@@ -116,13 +116,6 @@ class ApprovalLog(models.Model):
         action = self.get_action_display()
         return f"{action}d" if action.endswith("e") else f"{action}ed"
 
-    # def save(self, *args, **kwargs):
-    #     super().save(*args, **kwargs)
-    #     # NOTE I'm not sure why this is working. Direct update function on queryset was not working.
-    #     draft = self.change
-    #     draft.updated_at = self.date
-    #     draft.save(post_save=False)
-
 
 class ChangeQuerySet(models.QuerySet):
     def of_type(self, *models):
@@ -853,20 +846,6 @@ def set_change_updated_at(sender, instance, **kwargs):
     the ApprovalLog's `date` field.
     """
     Change.objects.filter(pk=instance.change.pk).update(updated_at=instance.date)
-
-
-# @receiver(post_save, sender=ApprovalLog, dispatch_uid="set_change_updated_at")
-# def set_change_updated_at(sender, instance, **kwargs):
-#     """
-#     Set `updated_at` on the related Change object to the value of
-#     the ApprovalLog's `date` field.
-#     """
-
-#     qs = Change.objects.filter(uuid=instance.change.uuid)
-#     print("\n**********\n", qs.count(), instance.date, instance.change.updated_at)
-#     qs.update(updated_at=instance.date)
-#     instance.change.updated_at = instance.date
-#     instance.change.save()
 
 
 class Recommendation(models.Model):
