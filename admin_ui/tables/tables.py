@@ -642,8 +642,8 @@ class ChangeSummaryTable(DraftTableBase):
                 'canonical-redirect',
                 kwargs={
                     "canonical_uuid": record.model_instance_uuid or record.uuid,
-                    # this property is coming from an annotation on the inital query
-                    "draft_uuid": record.draft_uuid,
+                    # TODO this change object has not property draft uuid
+                    "draft_uuid": record.uuid,
                     "model": record.model_name.lower(),
                 },
             ),
