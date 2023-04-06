@@ -39,6 +39,9 @@ from api_app.urls import camel_to_snake
 
 # TODO add login requirement
 def redirect_helper(request, canonical_uuid, draft_uuid, model):
+    print(
+        f"\n\n************\nHitting redirect helper{Change.objects.get(uuid=canonical_uuid).status=}"
+    )
     try:
         draft = Change.objects.get(uuid=canonical_uuid)
         has_progress_draft = (
@@ -271,6 +274,42 @@ class CanonicalDraftEdit(NotificationSidebar, mixins.ChangeModelFormMixin, Updat
     def get_queryset(self):
         return Change.objects.all()
 
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        has_progress_draft = (
+            Change.objects.exclude(status=Change.Statuses.PUBLISHED)
+            .filter(
+                model_instance_uuid=self.canonical_change.uuid,
+                content_type=self.canonical_change.content_type,
+                action=Change.Actions.UPDATE,
+            )
+            .exists()
+        )
+        has_published_draft = Change.objects.filter(
+            model_instance_uuid=self.canonical_change.uuid,
+            content_type=self.canonical_change.content_type,
+            action=Change.Actions.UPDATE,
+            status=Change.Statuses.PUBLISHED,
+        ).exists()
+
+        if not has_progress_draft and has_published_draft:
+            context = super().get_context_data(**kwargs)
+            return redirect(
+                reverse(
+                    "canonical-published-detail",
+                    kwargs={
+                        **context,
+                        "canonical_uuid": self.kwargs[self.pk_url_kwarg],
+                        "draft_uuid": self.object.pk,
+                        "object": Change.objects.get(uuid=self.kwargs["draft_uuid"]),
+                        "model": camel_to_snake(
+                            self.get_model_form_content_type().model_class().__name__
+                        ),
+                    },
+                )
+            )
+        return super().get(request, *args, **kwargs)
+
     def get_object(self, queryset=None):
         if not queryset:
             queryset = self.get_queryset()
@@ -293,7 +332,6 @@ class CanonicalDraftEdit(NotificationSidebar, mixins.ChangeModelFormMixin, Updat
             )
             .exists()
         ):
-            print(f"not exists")
             return (
                 Change.objects.filter(
                     status=Change.Statuses.PUBLISHED,
@@ -311,7 +349,7 @@ class CanonicalDraftEdit(NotificationSidebar, mixins.ChangeModelFormMixin, Updat
             action=Change.Actions.UPDATE,
         )
 
-    def get_success_url(self):
+    def get_success_url(self, **kwargs):
         url = reverse(
             "canonical-redirect",
             kwargs={
@@ -320,6 +358,7 @@ class CanonicalDraftEdit(NotificationSidebar, mixins.ChangeModelFormMixin, Updat
                 "model": Change.objects.get(uuid=self.kwargs[self.pk_url_kwarg]).content_type,
             },
         )
+        print(f"\n\n\n***************{url=}\n\n\n")
         if self.request.GET.get("back"):
             return f'{url}?back={self.request.GET["back"]}'
         return url
@@ -338,6 +377,8 @@ class CanonicalDraftEdit(NotificationSidebar, mixins.ChangeModelFormMixin, Updat
             "descendents": context["object"].get_descendents().select_related("content_type"),
             "comparison_form": self._get_comparison_form(context['model_form']),
             "canonical_object": self.canonical_change,
+            "canonical_uuid": self.kwargs[self.pk_url_kwarg],
+            "draft_uuid": self.object.pk,
         }
 
     def _get_comparison_form(self, model_form):
@@ -511,6 +552,7 @@ class CreateUpdateView(mixins.DynamicModelMixin, mixins.ChangeModelFormMixin, Cr
             kwargs={
                 "model": self._model_name,
                 "canonical_uuid": self.kwargs["canonical_uuid"],
+                # TODO: Check if this is really the right draft_UUID
                 "draft_uuid": self.object.pk,
             },
         )
