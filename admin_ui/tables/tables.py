@@ -632,6 +632,23 @@ class ChangeSummaryTable(DraftTableBase):
     updated_at = tables.DateTimeColumn(verbose_name="Last Edit Date", accessor="updated_at")
     status = tables.Column(verbose_name="Status", accessor="status")
 
+    def render_short_name(self, value, record):
+        print(f"\n\n**************{record=}************\n\n")
+        return format_html(
+            '<a href="{form_url}">{label}</a>',
+            form_url=reverse(
+                'canonical-redirect',
+                kwargs={
+                    "canonical_uuid": record.model_instance_uuid
+                    if hasattr(record, "model_instance_uuid") and record.model_instance_uuid
+                    else record.uuid,
+                    "draft_uuid": record.uuid,
+                    "model": record.model_name.lower(),
+                },
+            ),
+            label=record.update.get('short_name') or '---',
+        )
+
     class Meta:
         model = Change
         attrs = {"class": "table table-striped", "thead": {"class": "table-primary"}}
