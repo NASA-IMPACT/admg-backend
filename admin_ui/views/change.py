@@ -5,7 +5,7 @@ import django_tables2
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.contenttypes.models import ContentType
-from django.db.models import Count, OuterRef, Q, Value, aggregates, functions
+from django.db.models import Count, OuterRef, Q, Value, aggregates, functions, Subquery
 from django.db.models.fields.json import KeyTextTransform
 from django.http import Http404, HttpResponseBadRequest, HttpResponseRedirect
 from django.urls import reverse
@@ -55,10 +55,27 @@ class SummaryView(NotificationSidebar, django_tables2.SingleTableView):
     template_name = "api_app/summary.html"
 
     def get_queryset(self):
+        """
+        We're getting a list of all created records (so we can link to them) for all models.
+        However, we want to display the most recent related draft in the table.
+        """
+        related_drafts = Change.objects.filter(
+            Q(model_instance_uuid=OuterRef("uuid")) | Q(uuid=OuterRef("uuid"))
+        ).order_by("status", "-updated_at")
+
         return (
-            Change.objects.of_type(*self.models)
+            Change.objects.filter(action=Change.Actions.CREATE)
+            .of_type(*self.models)
+            .annotate(
+                draft_uuid=Subquery(related_drafts.values("uuid")[:1]),
+                latest_status=Subquery(related_drafts.values("status")[:1]),
+                latest_action=Subquery(related_drafts.values("action")[:1]),
+                latest_updated_at=Subquery(related_drafts.values("updated_at")[:1]),
+                latest_update=Subquery(related_drafts.values("update")[:1]),
+            )
             # Prefetch related ContentType (used when displaying output model type)
-            .select_related("content_type").order_by("-updated_at")
+            .select_related("content_type")
+            .order_by("-updated_at")
         )
 
     def get_total_counts(self):

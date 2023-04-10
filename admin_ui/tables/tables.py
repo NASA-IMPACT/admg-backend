@@ -633,7 +633,7 @@ class ChangeSummaryTable(DraftTableBase):
         verbose_name="Model Type", accessor="model_name", order_by="content_type__model"
     )
     updated_at = tables.DateTimeColumn(verbose_name="Last Edit Date", accessor="updated_at")
-    status = tables.Column(verbose_name="Status", accessor="status")
+    status = tables.Column(verbose_name="Status", accessor="latest_status")
 
     def render_short_name(self, value, record):
         return format_html(
