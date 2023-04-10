@@ -13,7 +13,7 @@ from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.contrib.contenttypes.models import ContentType
 from django.views.generic.edit import UpdateView
-from django.db.models import Q, OuterRef, Subquery, Case, When, F
+from django.db.models import Q, OuterRef, Subquery
 from django.views.generic.edit import CreateView
 from admin_ui.config import MODEL_CONFIG_MAP
 from api_app.models import ApprovalLog
