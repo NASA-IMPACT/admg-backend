@@ -142,11 +142,13 @@ class DraftTableBase(tables.Table):
         else:
             return "---"
 
-    draft_action = tables.Column(verbose_name="Draft Action", accessor="latest_action")
     status = tables.Column(verbose_name="Status", accessor="latest_status")
+    last_published = tables.DateTimeColumn(
+        verbose_name="Last Published", accessor="latest_published_at"
+    )
     updated_at = tables.DateTimeColumn(verbose_name="Last Edit Date", accessor="latest_updated_at")
 
-    final_fields = ("draft_action", "status", "updated_at")
+    final_fields = ("status", "last_published", "updated_at")
 
     class Meta:
         model = Change
@@ -155,8 +157,8 @@ class DraftTableBase(tables.Table):
             "thead": {"class": "table-primary"},
             "th": {"style": "min-width: 10em"},
         }
-        fields = ("draft_action", "status", "updated_at")
-        sequence = ("draft_action", "status", "updated_at")
+        fields = ("status", "updated_at")
+        sequence = ("status", "updated_at")
 
     def render_status(self, value, record):
         if value == 0:
@@ -632,8 +634,11 @@ class ChangeSummaryTable(DraftTableBase):
     content_type__model = tables.Column(
         verbose_name="Model Type", accessor="model_name", order_by="content_type__model"
     )
-    updated_at = tables.DateTimeColumn(verbose_name="Last Edit Date", accessor="updated_at")
     status = tables.Column(verbose_name="Status", accessor="latest_status")
+    updated_at = tables.DateTimeColumn(verbose_name="Last Edit Date", accessor="updated_at")
+    last_published = tables.DateTimeColumn(
+        verbose_name="Last Published", accessor="latest_published_at"
+    )
 
     def render_short_name(self, value, record):
         return format_html(
@@ -653,7 +658,7 @@ class ChangeSummaryTable(DraftTableBase):
     class Meta:
         model = Change
         attrs = {"class": "table table-striped", "thead": {"class": "table-primary"}}
-        fields = ["short_name", "content_type__model", "updated_at", "status"]
+        fields = ["short_name", "content_type__model", "status", "updated_at", "last_published"]
 
 
 class WebsiteChangeListTable(DraftTableBase):

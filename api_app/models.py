@@ -455,7 +455,7 @@ class Change(models.Model):
             self._check_model_and_uuid()
 
         # update timestamp on saved draft
-        self.updated_at = datetime.now(timezone.utc)
+        self.updated_at = datetime.now()
 
         # change object was freshly created and has no logs
         if not ApprovalLog.objects.filter(change=self).exists():

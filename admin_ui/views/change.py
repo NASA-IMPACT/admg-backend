@@ -54,6 +54,13 @@ class SummaryView(NotificationSidebar, django_tables2.SingleTableView):
     paginate_by = 10
     template_name = "api_app/summary.html"
 
+    # def get_queryset(self):
+    #     return (
+    #         Change.objects.of_type(*self.models)
+    #         # Prefetch related ContentType (used when displaying output model type)
+    #         .select_related("content_type").order_by("-updated_at")
+    #     )
+
     def get_queryset(self):
         """
         We're getting a list of all created records (so we can link to them) for all models.
@@ -63,19 +70,25 @@ class SummaryView(NotificationSidebar, django_tables2.SingleTableView):
             Q(model_instance_uuid=OuterRef("uuid")) | Q(uuid=OuterRef("uuid"))
         ).order_by("status", "-updated_at")
 
+        latest_published_draft = Change.objects.filter(
+            status=Change.Statuses.PUBLISHED,
+            model_instance_uuid=OuterRef("uuid"),
+        ).order_by("-updated_at")
+
         return (
-            Change.objects.filter(action=Change.Actions.CREATE)
-            .of_type(*self.models)
+            Change.objects.of_type(*self.models)
+            .filter(action=Change.Actions.CREATE)
             .annotate(
                 draft_uuid=Subquery(related_drafts.values("uuid")[:1]),
                 latest_status=Subquery(related_drafts.values("status")[:1]),
                 latest_action=Subquery(related_drafts.values("action")[:1]),
                 latest_updated_at=Subquery(related_drafts.values("updated_at")[:1]),
+                latest_published_at=Subquery(latest_published_draft.values("updated_at")[:1]),
                 latest_update=Subquery(related_drafts.values("update")[:1]),
             )
             # Prefetch related ContentType (used when displaying output model type)
             .select_related("content_type")
-            .order_by("-updated_at")
+            .order_by("-latest_updated_at")
         )
 
     def get_total_counts(self):

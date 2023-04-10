@@ -91,6 +91,11 @@ class CanonicalRecordList(mixins.DynamicModelMixin, SingleTableMixin, FilterView
             Q(model_instance_uuid=OuterRef("uuid")) | Q(uuid=OuterRef("uuid"))
         ).order_by("status", "-updated_at")
 
+        latest_published_draft = Change.objects.filter(
+            status=Change.Statuses.PUBLISHED,
+            model_instance_uuid=OuterRef("uuid"),
+        ).order_by("-updated_at")
+
         queryset = (
             (
                 Change.objects.filter(action=Change.Actions.CREATE).of_type(
@@ -102,6 +107,7 @@ class CanonicalRecordList(mixins.DynamicModelMixin, SingleTableMixin, FilterView
                 latest_status=Subquery(related_drafts.values("status")[:1]),
                 latest_action=Subquery(related_drafts.values("action")[:1]),
                 latest_updated_at=Subquery(related_drafts.values("updated_at")[:1]),
+                latest_published_at=Subquery(latest_published_draft.values("updated_at")[:1]),
                 latest_update=Subquery(related_drafts.values("update")[:1]),
             )
             .order_by("-latest_updated_at")
