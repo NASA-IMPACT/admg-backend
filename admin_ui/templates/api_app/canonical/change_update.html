@@ -12,17 +12,7 @@
 {% endblock header %}
 {% block actions %}
   {% if object.is_locked %}
-    {% if object.model_instance_uuid %}
-    <div class="px-1">
-      <a 
-        class="btn btn-primary" 
-        href="{% url 'canonical-published-detail' canonical_uuid=canonical_uuid model=view_model draft_uuid=draft_uuid %}"
-      >
-        View published version
-      </a>
-    </div>
-    {% endif %}
-
+    <div class="py-3"></div>
   {% else %}
   <div class="px-1">
     {% include "snippets/approval_dropdown.html" %}

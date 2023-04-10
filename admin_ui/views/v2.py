@@ -282,15 +282,13 @@ class CanonicalDraftEdit(NotificationSidebar, mixins.ChangeModelFormMixin, Updat
             )
             .exists()
         )
+
         has_published_draft = Change.objects.filter(
-            model_instance_uuid=self.canonical_change.uuid,
-            content_type=self.canonical_change.content_type,
-            action=Change.Actions.UPDATE,
+            Q(uuid=self.canonical_change.uuid) | Q(model_instance_uuid=self.canonical_change.uuid),
             status=Change.Statuses.PUBLISHED,
         ).exists()
 
         if not has_progress_draft and has_published_draft:
-            context = super().get_context_data(**kwargs)
             return redirect(
                 reverse(
                     "canonical-published-detail",

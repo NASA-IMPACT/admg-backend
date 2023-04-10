@@ -71,6 +71,7 @@ def object_header_tabs(context, change: Change, canonical_change: Optional[Chang
     has_published_draft = Change.objects.filter(
         Q(uuid=change.uuid) | Q(model_instance_uuid=change.uuid), status=Change.Statuses.PUBLISHED
     ).exists()
+    # print(f"\n\n*********************\n\n\n{has_published_draft=} {has_progress_draft=}")
 
     # TODO handle the case where we don't have a model_instance_uuid
     canonical_uuid = (
