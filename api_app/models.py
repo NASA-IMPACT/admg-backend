@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from uuid import UUID, uuid4
 
 from crum import get_current_user
@@ -453,6 +453,9 @@ class Change(models.Model):
         # post_save=False prevents self.previous from being set
         if not post_save:
             self._check_model_and_uuid()
+
+        # update timestamp on saved draft
+        self.updated_at = datetime.now(timezone.utc)
 
         # change object was freshly created and has no logs
         if not ApprovalLog.objects.filter(change=self).exists():
