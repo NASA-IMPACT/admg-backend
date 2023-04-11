@@ -1,4 +1,4 @@
-from datetime import date, datetime, timezone
+from datetime import date, datetime
 from uuid import UUID, uuid4
 
 from crum import get_current_user
@@ -10,6 +10,7 @@ from django.db.models import expressions, functions, Subquery
 from django.db.models.fields.json import KeyTextTransform
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.utils import timezone
 from rest_framework.response import Response
 from rest_framework.serializers import ValidationError
 
@@ -455,7 +456,7 @@ class Change(models.Model):
             self._check_model_and_uuid()
 
         # update timestamp on saved draft
-        self.updated_at = datetime.now()
+        self.updated_at = timezone.now()
 
         # change object was freshly created and has no logs
         if not ApprovalLog.objects.filter(change=self).exists():
