@@ -7,7 +7,8 @@ from django.apps import apps
 from django.contrib.contenttypes.models import ContentType
 from django.core import serializers
 
-from api_app.models import Change
+from admg_webapp.users.models import User
+from api_app.models import Change, ApprovalLog
 from cmr.cmr import query_and_process_cmr
 from cmr.utils import clean_table_name, purify_list
 from data_models.models import DOI
@@ -19,21 +20,17 @@ class DoiMatcher:
     def __init__(self):
         self.uuid_to_aliases = {}
         self.table_to_valid_uuids = {}
-        self.fields_to_compare = [
+        self.core_cmr_fields = [
             'cmr_short_name',
             'cmr_entry_title',
             'cmr_projects',
             'cmr_dates',
+            'cmr_plats_and_insts',
             'cmr_science_keywords',
             'cmr_abstract',
             'cmr_data_formats',
-            'doi',  # if there's a new doi, we want to know
+            'doi',
         ]
-        # if a new doi is generated and it differs from an existing draft or published doi on fields_to_compare
-        # the draft DOI will contain the data from CMR, and NOT the data from the existing draft or pubished
-        self.fields_to_merge = ['campaigns', 'instruments', 'platforms', 'collection_periods']
-        # if a new doi is generated and it differs from an existing draft or published doi on this field,
-        # the new draft doi should contain a merged version of the data from this field
 
     def universal_get(self, table_name, uuid):
         """Queries the database for a uuid within a table name, but searches
@@ -52,14 +49,7 @@ class DoiMatcher:
         # attempt to find the uuid as a published object
         try:
             obj = model.objects.get(uuid=uuid)
-            data = json.loads(
-                serializers.serialize(
-                    "json",
-                    [
-                        obj,
-                    ],
-                )
-            )[
+            data = json.loads(serializers.serialize("json", [obj,],))[
                 0
             ]["fields"]
 
@@ -67,14 +57,7 @@ class DoiMatcher:
         except model.DoesNotExist:
             model = apps.get_model("api_app", "change")
             obj = model.objects.get(uuid=uuid)
-            data = json.loads(
-                serializers.serialize(
-                    "json",
-                    [
-                        obj,
-                    ],
-                )
-            )[0][
+            data = json.loads(serializers.serialize("json", [obj,],))[0][
                 "fields"
             ]["update"]
             data["uuid"] = uuid
@@ -296,25 +279,63 @@ class DoiMatcher:
 
         return supplemented_metadata_list
 
-    def doi_mismatch(self, doi_recommendation, doi_draft):
+    def is_core_metadata_changed(self, recent_draft, recommendation):
         """Takes a doi_recommendation that includes metadata from CMR and a doi_draft from
         the admg database and compares specific fields to find a mismatch.
 
         Args:
-            doi_recommendation (dict): metadata from cmr
-            doi_draft (dict): Change object of type model=doi
+            recent_draft (dict): Change object of type model=doi
+            recommendation (dict): metadata from cmr
 
         Returns:
             bool: True if there was a mismatch
         """
 
-        # TODO: does this actually get the right stuff from the doi recommendation object?
         return any(
             [
-                doi_recommendation.get(field) != doi_draft.update.get(field)
-                for field in self.fields_to_compare
+                recommendation.get(field) != recent_draft.update.get(field)
+                for field in self.core_cmr_fields
             ]
         )
+
+    def create_merged_draft(self, recent_draft, doi_recommendation):
+        """Takes an existing doi draft and a newly generated doi_recommendation and
+        returns a merged object that represents the most up-to-date data, retaining
+        the originally curated fields but updating any core CMR values.
+        """
+
+        for field in self.core_cmr_fields:
+            doi_recommendation[field] = recent_draft.update[field]
+
+        return doi_recommendation
+
+    def make_create_draft(self, doi_recommendation):
+        doi_obj = Change(
+            content_type=ContentType.objects.get(model="doi"),
+            model_instance_uuid=None,
+            update=json.loads(json.dumps(doi_recommendation)),
+            status=Change.Statuses.CREATED,
+            action=Change.Actions.CREATE,
+        )
+        doi_obj.save()
+        return doi_obj
+
+    def make_update_draft(self, merged_draft, linked_object):
+        doi_obj = Change(
+            content_type=ContentType.objects.get(model="doi"),
+            model_instance_uuid=linked_object,
+            update=json.loads(json.dumps(merged_draft)),
+            status=Change.Statuses.CREATED,
+            action=Change.Actions.UPDATE,
+        )
+        doi_obj.save()
+        return doi_obj
+
+    def get_published_link(self, recent_draft):
+        if recent_draft.action == Change.Actions.UPDATE:
+            return recent_draft.model_instance_uuid
+        else:
+            return recent_draft.uuid
 
     def add_to_db(self, doi_recommendation):
         """After cmr has been queried and each dataproduct has received recommended UUID
@@ -337,90 +358,43 @@ class DoiMatcher:
             str: String indicating action taken by the function
         """
 
-        # search db for create and update drafts with concept_id
-        doi_drafts = Change.objects.filter(
-            content_type__model='doi',
-            action__in=[Change.Actions.CREATE, Change.Actions.UPDATE],
-            update__concept_id=doi_recommendation['concept_id'],
+        # search db for the most recently worked on draft that matches our concept_id
+        recent_draft = (
+            Change.objects.filter(
+                content_type__model='doi',
+                action__in=[Change.Actions.CREATE, Change.Actions.UPDATE],
+                update__concept_id=doi_recommendation['concept_id'],
+            )
+            .order_by("-updated_at")
+            .first()
         )
 
-        if (
-            unpublished_update := doi_drafts.filter(action=Change.Actions.UPDATE)
-            .exclude(status=Change.Statuses.PUBLISHED)
-            .first()
-        ):
-            # there can only be one unpublished update at a time
-            if self.doi_mismatch(doi_recommendation, unpublished_update):
-                # merge the rec with the unpublished_update
-                # completely replace the fields to compare (metadata from cmr)
-                # append the recomendation fields (recommended by engine and hand modified by human)
-                for field in self.fields_to_compare:
-                    # replaces these fields completely, since they are new and 'correct' from cmr
-                    unpublished_update.update[field] = doi_recommendation[field]
-
-                # this preserves any work done by the curator, while adding any new instruments ect
-                # one limitation is it might add back a removed instrument, but it's still a draft so
-                # this can be re-removed
-                for field in self.fields_to_merge:
-                    unpublished_update.update[field].extend(doi_recommendation[field])
-                    unpublished_update.update[field] = list(set(unpublished_update.update[field]))
-
-                # this forces the status back to create, so it must be re-evaluated and re-reviewed
-                unpublished_update.status = Change.Statuses.CREATED
-                unpublished_update.save()
-
-        # now that we've checked for updates, we check for published
-        elif published_doi := DOI.objects.get(concept_id=doi_recommendation['concept_id']):
-            for field in self.fields_to_compare:
-                if getattr(published_doi, field) != doi_recommendation[field]:
-                    # basically, if there is any difference at all in the fields to compare, we want to make an update draft
-
-                    # make a brand new update
-                    doi_obj = Change(
-                        content_type=ContentType.objects.get(model="doi"),
-                        model_instance_uuid=published_doi.uuid,
-                        update=json.loads(json.dumps(doi_recommendation)),
-                        status=Change.Statuses.CREATED,
-                        action=Change.Actions.UPDATE,
-                    )
-
-                    # this preserves any work done by the curator, while adding any new instruments ect
-                    # one limitation is it might add back a removed instrument, but it's still a draft so
-                    # this can be re-removed
-                    for field in self.fields_to_merge:
-                        doi_obj.update[field].extend(doi_recommendation[field])
-                        doi_obj.update[field] = list(set(doi_obj.update[field]))
-
-                    doi_obj.save()
-                    break
-
-        elif (
-            unpublished_creates := doi_drafts.filter(action=Change.Actions.CREATE)
-            .exclude(status=Change.Statuses.PUBLISHED)
-            .first()
-        ):
-            # call the add to draft function
-            # there should only be one published create per concept_id, although maybe this is not true if stuff was deleted and
-            # then recreated. this is a very fringe possiblity though
-            for field in self.fields_to_compare:
-                unpublished_creates.update[field] = doi_recommendation[field]
-            for field in self.fields_to_merge:
-                unpublished_creates.update[field].extend(doi_recommendation[field])
-                unpublished_creates.update[field] = list(set(unpublished_creates.update[field]))
-            unpublished_creates.status = Change.Statuses.CREATED
-            unpublished_creates.save()
-
-        # there were no matches of any kind, we will make a brand new create draft
-        else:
-            doi_obj = Change(
-                content_type=ContentType.objects.get(model="doi"),
-                model_instance_uuid=None,
-                update=json.loads(json.dumps(doi_recommendation)),
-                status=Change.Statuses.CREATED,
-                action=Change.Actions.CREATE,
-            )
-            doi_obj.save()
-            return "Draft created for DOI"
+        if not recent_draft:
+            # no DOI draft exists yet for this concept_id, so we create one
+            self.make_create_draft(doi_recommendation)
+        elif self.is_core_metadata_changed(recent_draft, doi_recommendation):
+            # a doi draft of some kind exists, and it's different from the new data
+            generic_admin_user = User.objects.get(username='nimda')
+            merged = self.create_merged_draft(recent_draft, doi_recommendation)
+            if recent_draft.status == Change.Statuses.PUBLISHED:
+                # recommendations have been previously approved and we are just updating
+                # to the latest CMR metadata
+                published_uuid = self.get_published_link(recent_draft)
+                doi_obj = self.make_update_draft(merged, published_uuid)
+                doi_obj.publish(generic_admin_user, notes='CMR metadata updated')
+            else:
+                # an update or create draft is in progress and recommendations are
+                # not yet approved, so we need to fix the in progress object
+                recent_draft.update = json.dumps(merged)
+                recent_draft.status = Change.Statuses.CREATED
+                recent_draft.save()
+                approval_log = ApprovalLog.objects.create(
+                    change=self,
+                    user=generic_admin_user,
+                    action=ApprovalLog.Actions.REJECT,
+                    notes="New CMR metadata added, needs to be re-reviewed",
+                )
+                approval_log.save()
 
     def generate_recommendations(self, table_name, uuid, development=False):
         """This is the overarching parent function which takes a table_name and a uuid and
