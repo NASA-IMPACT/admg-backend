@@ -844,11 +844,7 @@ def set_change_updated_at(sender, instance, **kwargs):
     Set `updated_at` on the related Change object to the value of
     the ApprovalLog's `date` field.
     """
-    try:
-        if instance.change:  # Check if the 'change' field exists
-            Change.objects.filter(pk=instance.change.pk).update(updated_at=instance.date)
-    except ObjectDoesNotExist:
-        pass  # This allows the loaddata to run successfully
+    Change.objects.filter(pk=instance.change.pk).update(updated_at=instance.date)
 
 
 class Recommendation(models.Model):
