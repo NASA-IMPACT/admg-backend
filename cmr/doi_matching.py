@@ -29,7 +29,14 @@ class DoiMatcher:
             'cmr_science_keywords',
             'cmr_abstract',
             'cmr_data_formats',
-            'doi',
+            'doi',  # TODO: do we want to not autopublish if this field is different?
+        ]
+        self.previously_curated_fields = [
+            'campaigns',
+            'instruments',
+            'platforms',
+            'collection_periods',
+            'long_name',
         ]
 
     def universal_get(self, table_name, uuid):
@@ -303,8 +310,8 @@ class DoiMatcher:
         returns a merged object that represents the most up-to-date data, retaining
         the originally curated fields but updating any core CMR values.
         """
-
-        for field in self.core_cmr_fields:
+        doi_recommendation = json.loads(json.dumps(doi_recommendation))
+        for field in self.previously_curated_fields:
             doi_recommendation[field] = recent_draft.update[field]
 
         return doi_recommendation
@@ -331,10 +338,11 @@ class DoiMatcher:
         doi_obj.save()
         return doi_obj
 
-    def get_published_link(self, recent_draft):
+    def get_published_uuid(self, recent_draft):
         if recent_draft.action == Change.Actions.UPDATE:
             return recent_draft.model_instance_uuid
         else:
+            # this must be a published create draft, who's uuid will match the published uuid
             return recent_draft.uuid
 
     def add_to_db(self, doi_recommendation):
@@ -347,12 +355,6 @@ class DoiMatcher:
         Args:
             doi_recommendation (dict): DOI metadata dictionary containing original CMR metadata and recommended
                 UUID links.
-
-        Raises:
-            ValueError: If objects have been added to the database outside of the expected
-                approval workflow, it is possible to have a nonsensical object creation
-                history and this error might be raised. This should only happen in local
-                and staging environments and should never occur in production.
 
         Returns:
             str: String indicating action taken by the function
@@ -372,6 +374,9 @@ class DoiMatcher:
         if not recent_draft:
             # no DOI draft exists yet for this concept_id, so we create one
             self.make_create_draft(doi_recommendation)
+
+        # TODO: handle delete drafts?
+
         elif self.is_core_metadata_changed(recent_draft, doi_recommendation):
             # a doi draft of some kind exists, and it's different from the new data
             generic_admin_user = User.objects.get(username='nimda')
@@ -379,17 +384,17 @@ class DoiMatcher:
             if recent_draft.status == Change.Statuses.PUBLISHED:
                 # recommendations have been previously approved and we are just updating
                 # to the latest CMR metadata
-                published_uuid = self.get_published_link(recent_draft)
+                published_uuid = self.get_published_uuid(recent_draft)
                 doi_obj = self.make_update_draft(merged, published_uuid)
                 doi_obj.publish(generic_admin_user, notes='CMR metadata updated')
             else:
                 # an update or create draft is in progress and recommendations are
                 # not yet approved, so we need to fix the in progress object
-                recent_draft.update = json.dumps(merged)
+                recent_draft.update = merged
                 recent_draft.status = Change.Statuses.CREATED
                 recent_draft.save()
                 approval_log = ApprovalLog.objects.create(
-                    change=self,
+                    change=recent_draft,
                     user=generic_admin_user,
                     action=ApprovalLog.Actions.REJECT,
                     notes="New CMR metadata added, needs to be re-reviewed",
