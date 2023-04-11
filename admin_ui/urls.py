@@ -96,7 +96,7 @@ urlpatterns = [
     # Create new Change view
     path(
         "v2/<str:model>/create",
-        v2.CreateInitialView.as_view(),
+        v2.CreateNewView.as_view(),
         name="create-initial",
     ),
 ]
