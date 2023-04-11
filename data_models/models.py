@@ -795,13 +795,6 @@ class Instrument(DataModel):
     repositories = models.ManyToManyField(
         Repository, related_name="instruments", default="", blank=True
     )
-    additional_metadata = models.JSONField(
-        default=None,
-        blank=True,
-        null=True,
-        verbose_name="Additional Metadata",
-        help_text="An open item for potential extra metadata element(s)",
-    )
 
     @property
     def campaigns(self):
@@ -1012,12 +1005,12 @@ class DOI(BaseModel):
 
     cmr_short_name = models.CharField(max_length=512, blank=True, default="")
     cmr_entry_title = models.TextField(blank=True, default="")
-    cmr_projects = models.JSONField(default=None, blank=True, null=True)
-    cmr_dates = models.JSONField(default=None, blank=True, null=True)
-    cmr_plats_and_insts = models.JSONField(default=None, blank=True, null=True)
-    cmr_science_keywords = models.JSONField(default=None, blank=True, null=True)
+    cmr_projects = models.TextField(default=None, blank=True, null=True)
+    cmr_dates = models.TextField(default=None, blank=True, null=True)
+    cmr_plats_and_insts = models.TextField(default=None, blank=True, null=True)
+    cmr_science_keywords = models.TextField(default=None, blank=True, null=True)
     cmr_abstract = models.TextField(blank=True, default="")
-    cmr_data_formats = models.JSONField(default=None, blank=True, null=True)
+    cmr_data_formats = models.TextField(default=None, blank=True, null=True)
 
     date_queried = models.DateTimeField()
 
