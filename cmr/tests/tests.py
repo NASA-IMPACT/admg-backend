@@ -32,7 +32,7 @@ class TestTestData:
 @pytest.mark.django_db
 class TestCMRRecommender:
     def setup_method(self):
-        """Sets up everything needed for testing. Calls create_test_data to 
+        """Sets up everything needed for testing. Calls create_test_data to
         populate database with necessary objects. Defines all necessary variables
         for comparison purposes. Categorizes DOI model fields into fields to compare,
         fields to merge, and fields to ignore. To see a more in-depth description
@@ -107,7 +107,7 @@ class TestCMRRecommender:
         Args:
             draft (): Change object that needs to be updated
             overrides (dictionary): Dictionary containing data to be overwritten
-            into specific fields in the provided Change object 
+            into specific fields in the provided Change object
         """
 
         draft.update = {**draft.update, **overrides}
@@ -115,9 +115,9 @@ class TestCMRRecommender:
 
     @staticmethod
     def make_create_change_object(factory):
-        """Creates a Change object with an action of "Create" of a particular 
+        """Creates a Change object with an action of "Create" of a particular
         content type based on the provided factory
-        
+
         Args:
             factory (): Factory method for desired object
 
@@ -138,7 +138,7 @@ class TestCMRRecommender:
         are used to create all objects necessary to test DOI fields. These objects
         are created as drafts and are not published. To ensure these are all that
         exist in the test database, all primary objects are deleted. Then the objects
-        created by the factory have their metadata overwritten with specific short 
+        created by the factory have their metadata overwritten with specific short
         names so that when the CMR Recommender is run it will suggest the appropriate
         associations. These objects are then published.
         """
@@ -213,7 +213,7 @@ class TestCMRRecommender:
         collection_period_draft.publish(user=admin_user)
 
     def make_cmr_recommendation(self):
-        """Runs the DOI Matcher using the CMR metadata for ACES collected using 
+        """Runs the DOI Matcher using the CMR metadata for ACES collected using
         generate_cmr_response, creating the metadata recommendations to populate
         the DOI objects
 
@@ -284,7 +284,7 @@ class TestCMRRecommender:
         CMR Recommender, and asserts that the correct number of DOI objects have
         been returned by the CMR Recommender. Adds these DOIs to the database,
         asserts that the number of DOIs is correct and that their status is CREATED
-        and their action is CREATE. 
+        and their action is CREATE.
         """
         # tests that when we start with an empty database containing no DOI drafts and
         # run the recommender from scratch, we end up with exactly 6 unpublished create drafts
@@ -326,7 +326,7 @@ class TestCMRRecommender:
 
 
         Context:
-        In the test database exists 6 unpublished CREATE drafts for ACES DOIs, 
+        In the test database exists 6 unpublished CREATE drafts for ACES DOIs,
         meaning they are Change objects. This asserts the following test cases:
         1. If a field in fields_to_compare is changed, that field is overwritten
         2. If a field in fields_to_merge is changed, the new data coming from CMR
@@ -431,15 +431,15 @@ class TestCMRRecommender:
         assert that Change.Actions.CREATE drafts is having cmr_short_name as 'randomtest'
 
         Context:
-        In the test database exists 6 published CREATE drafts for ACES DOIs and 
-        6 unpublished UPDATE drafts, meaning the UPDATE drafts are Change objects. 
+        In the test database exists 6 published CREATE drafts for ACES DOIs and
+        6 unpublished UPDATE drafts, meaning the UPDATE drafts are Change objects.
         This asserts the following test cases:
-        1. If a field in fields_to_compare is changed, that field is overwritten 
+        1. If a field in fields_to_compare is changed, that field is overwritten
             in the existing UPDATE draft
-        2. If a field in fields_to_merge is changed, the new data coming from 
-            CMR should be added to that field, and the existing data kept in the 
+        2. If a field in fields_to_merge is changed, the new data coming from
+            CMR should be added to that field, and the existing data kept in the
             existing UPDATE draft
-        3. If a field in fields_to_ignore is changed, nothing should happen, no 
+        3. If a field in fields_to_ignore is changed, nothing should happen, no
             new draft should be created
         If any changes are needed, they should be done in the existing UPDATE
         draft. If not, no new drafts should be made for that DOI
@@ -556,14 +556,14 @@ class TestCMRRecommender:
         assert that if aces doi draft is having 'randomtest', its action is Change.Actions.UPDATE
 
         Context:
-        In the test database exists 6 published CREATE drafts for ACES DOIs. 
+        In the test database exists 6 published CREATE drafts for ACES DOIs.
         This asserts the following test cases:
         1. If a field in fields_to_compare is changed, an UPDATE draft is created,
             that field is overwritten in the new UPDATE draft
         2. If a field in fields_to_merge is changed, an UPDATE draft is created,
-            the new data coming from CMR should be added to that field, and the 
+            the new data coming from CMR should be added to that field, and the
             existing data kept in the new UPDATE draft
-        3. If a field in fields_to_ignore is changed, nothing should happen, no 
+        3. If a field in fields_to_ignore is changed, nothing should happen, no
             new draft should be created
         If any changes are needed, an UPDATE draft should be created. If not, no
         new drafts should be made for that DOI
