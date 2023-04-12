@@ -74,7 +74,7 @@
                 name="choice-{{record.row.uuid}}"
                 value="True"
                 required
-                {% ifequal record.current_selection True %} checked {% endifequal %}
+                {% if record.current_selection %} checked {% endif %}
                 {% if action == 'Delete' %} disabled {% endif %}>
               <label for="connectChoice-{{record.row.short_name}}">Yes</label>
               <input
@@ -84,7 +84,7 @@
                 name="choice-{{record.row.uuid}}"
                 value="False"
                 required
-                {% ifequal record.current_selection False %} checked {% endifequal %}
+                {% if not record.current_selection %} checked {% endif %}
                 {% if action == 'Delete' %} disabled {% endif %}>
               <label for="ignoreChoice-{{record.row.short_name}}">No</label>
             </td>

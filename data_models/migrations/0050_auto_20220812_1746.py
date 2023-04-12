@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('data_models', '0049_update_doi_cmr_data_formats'),
     ]
