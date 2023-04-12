@@ -10,7 +10,7 @@ This template prepares a view for form rendering
 {% block header %}
   <div class="col">
     <a href="{% url 'canonical-list' view_model %}">&lt; Back to {{ object.content_type.model_class | verbose_name_plural | title }}</a>
-    <h1 class="my-5">{{ object.content_type.model_class | verbose_name | title }} {% firstof object.update.short_name object.update.uuid %}</h1>
+    <h1 class="my-5">{% firstof object.update.short_name object.update.uuid %}</h1>
   </div>
 {% endblock header %}
 

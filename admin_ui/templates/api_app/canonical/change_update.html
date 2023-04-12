@@ -5,11 +5,6 @@
 {% load humanize %}
 {% load template_extras %}
 
-{% block header %}
-  <div class="col">
-    <h1 class="my-5">{{ object.update.short_name }}</h1>
-  </div>
-{% endblock header %}
 {% block actions %}
   {% if object.is_locked %}
     <div class="py-3"></div>
