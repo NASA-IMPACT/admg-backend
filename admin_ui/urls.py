@@ -11,7 +11,6 @@ urlpatterns = [
     # Actions
     path("actions/deploy-admin", views.trigger_deploy, name="trigger-deploy"),
     path("", views.SummaryView.as_view(), name="summary"),
-    # path("campaigns/<uuid:pk>/details", views.CampaignDetailView.as_view(), name="campaign-detail"),
     path(
         "v2/<str:model>/<uuid:canonical_uuid>/details",
         v2.CampaignDetailView.as_view(),
