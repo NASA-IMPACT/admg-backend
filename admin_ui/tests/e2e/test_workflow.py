@@ -132,13 +132,13 @@ class CuratorWorkflowTests(StaticLiveServerTestCase):
             page.goto("/")
             page.locator("a.nav-link", has_text="Campaigns").click()
             page.wait_for_url(
-                f"{self.live_server_url}{reverse('change-list', kwargs={'model':'campaign'})}"
+                f"{self.live_server_url}{reverse('canonical-list', kwargs={'model':'campaign'})}"
             )
 
             """1. CREATE A NEW CAMPAIGN"""
 
             # Navigate to new campaign creation
-            page.locator("a", has_text="Add New Campaign +").click()
+            page.locator("a", has_text="New Campaign").click()
             expect(page.locator("h1", has_text="Add new Campaign draft")).to_be_visible()
 
             # Fill in Campaign input fields
@@ -163,7 +163,7 @@ class CuratorWorkflowTests(StaticLiveServerTestCase):
 
             # Save new campaign and check successful creation
             page.locator('button:has-text("Save")').click()
-            expect(page.locator("h1", has_text="Campaign Test Campaign")).to_be_visible()
+            expect(page.locator("h1", has_text="Test Campaign")).to_be_visible()
             expect(page.locator(".alert-success", has_text="Successfully saved")).to_be_visible()
 
             """2. CREATE A DEPENDENT DEPLOYMENT"""

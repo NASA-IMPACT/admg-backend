@@ -473,7 +473,7 @@ class CreateNewView(mixins.DynamicModelMixin, mixins.ChangeModelFormMixin, Creat
             "canonical-draft-edit",
             kwargs={
                 "canonical_uuid": self.object.pk,
-                "model": self.model,
+                "model": self._model_name,
                 "draft_uuid": self.object.pk,
             },
         )
@@ -500,50 +500,6 @@ class CreateNewView(mixins.DynamicModelMixin, mixins.ChangeModelFormMixin, Creat
         """
         self.object = None
         return super().post(*args, **kwargs)
-
-
-# @method_decorator(login_required, name="dispatch")
-# class CreateInitialView(ModelObjectView):
-#     """
-#     This view handles creating new drafts from existing published records.
-#     """
-
-#     template_name = "api_app/published_edit.html"
-
-#     def post(self, request, **kwargs):
-#         # set object because the super().get_context_data looks for a self.object
-#         self.object = self.get_object()
-
-#         # getting form with instance and data gives a lot of changed fields
-#         # however, getting a form with initial and data only gives the required changed fields
-#         old_form = self._get_form(instance=self.object)
-#         new_form = self._get_form(data=request.POST, initial=old_form.initial, files=request.FILES)
-
-#         if not len(new_form.changed_data):
-#             context = self.get_context_data(**kwargs)
-#             context["message"] = "Nothing changed"
-#             return render(request, self.template_name, context)
-
-#         change_object = Change.objects.create(
-#             content_object=self.object,
-#             status=Change.Statuses.CREATED,
-#             action=Change.Actions.UPDATE,
-#             update=utils.serialize_model_form(new_form),
-#             previous=utils.serialize_model_form(old_form),
-#         )
-#         return redirect(
-#             reverse("canonical-draft-edit", kwargs={"canonical_uuid": change_object.uuid})
-#         )
-
-#     def get_context_data(self, **kwargs):
-#         return {
-#             **super().get_context_data(**kwargs),
-#             "model_form": self._get_form(instance=kwargs.get("object")),
-#             "view_model": self._model_name,
-#             "display_name": self._model_config["display_name"],
-#             "url_name": self._model_config["singular_snake_case"],
-#             "canonical_uuid": self.object.uuid,
-#         }
 
 
 @method_decorator(login_required, name="dispatch")
