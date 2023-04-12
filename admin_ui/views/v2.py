@@ -1,22 +1,20 @@
 from typing import Dict
 
-from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.views.generic.detail import DetailView
-from django.views.generic.list import ListView
 from django_filters.views import FilterView
 from django_tables2.views import SingleTableMixin
 from django.forms import modelform_factory
 import django_tables2 as tables
 from django.http import Http404, HttpResponseBadRequest
-from django.shortcuts import redirect, render
+from django.shortcuts import redirect
 from django.urls import reverse
 from django.contrib.contenttypes.models import ContentType
 from django.views.generic.edit import UpdateView
 from django.db.models import Q, OuterRef, Subquery
 from django.views.generic.edit import CreateView
 from admin_ui.config import MODEL_CONFIG_MAP
-from api_app.models import ApprovalLog
 
 from admin_ui.views.published import ModelObjectView
 
@@ -36,6 +34,7 @@ from data_models.models import (
 from .. import forms, mixins, utils
 from api_app.views.generic_views import NotificationSidebar
 from api_app.urls import camel_to_snake
+from ..tables import DraftHistoryTable
 
 
 # TODO add login requirement
@@ -127,63 +126,6 @@ class CanonicalRecordList(mixins.DynamicModelMixin, SingleTableMixin, FilterView
             "view_model": self._model_name,
             "display_name": self._model_config["display_name"],
         }
-
-
-# TODO move this to tables.py
-class DraftHistoryTable(tables.Table):
-    draft_action = tables.Column(empty_values=())
-    submitted_by = tables.Column(empty_values=())
-    reviewed_by = tables.Column(empty_values=())
-    published_by = tables.Column(empty_values=())
-    published_date = tables.Column(empty_values=())
-
-    uuid = tables.Column(
-        linkify=(
-            lambda record: reverse(
-                "historical-detail",
-                kwargs={
-                    "model": record.model_name.lower(),
-                    "draft_uuid": record.uuid,
-                    "canonical_uuid": record.model_instance_uuid or record.uuid,
-                },
-            )
-        ),
-    )
-
-    class Meta:
-        model = Change
-        template_name = "django_tables2/bootstrap.html"
-        fields = ("uuid", "submitted_by")
-
-    def render_draft_action(self, record):
-        if approval := record.approvallog_set.first():
-            return approval.get_action_display()
-        else:
-            return "-"
-
-    def render_submitted_by(self, record):
-        if approval := record.approvallog_set.filter(action=ApprovalLog.Actions.PUBLISH).first():
-            return approval.user.username
-        else:
-            return "-"
-
-    def render_reviewed_by(self, record):
-        if approval := record.approvallog_set.filter(action=ApprovalLog.Actions.REVIEW).first():
-            return approval.user.username
-        else:
-            return "-"
-
-    def render_published_by(self, record):
-        if approval := record.approvallog_set.filter(action=ApprovalLog.Actions.PUBLISH).first():
-            return approval.user.username
-        else:
-            return "-"
-
-    def render_published_date(self, record):
-        if approval := record.approvallog_set.filter(action=ApprovalLog.Actions.PUBLISH).first():
-            return approval.date
-        else:
-            return "not published yet"
 
 
 @method_decorator(login_required, name="dispatch")

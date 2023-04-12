@@ -14,6 +14,7 @@ from data_models.models import (
     Platform,
     WebsiteType,
 )
+from api_app.models import ApprovalLog
 
 
 class ConditionalValueColumn(tables.Column):
@@ -930,3 +931,60 @@ class ImageChangeListTable(DraftTableBase):
             ),
             label=record.update.get('short_name') or '---',
         )
+
+
+# This table renders a list of historical drafts
+class DraftHistoryTable(tables.Table):
+    draft_action = tables.Column(empty_values=())
+    submitted_by = tables.Column(empty_values=())
+    reviewed_by = tables.Column(empty_values=())
+    published_by = tables.Column(empty_values=())
+    published_date = tables.Column(empty_values=())
+
+    uuid = tables.Column(
+        linkify=(
+            lambda record: reverse(
+                "historical-detail",
+                kwargs={
+                    "model": record.model_name.lower(),
+                    "draft_uuid": record.uuid,
+                    "canonical_uuid": record.model_instance_uuid or record.uuid,
+                },
+            )
+        ),
+    )
+
+    class Meta:
+        model = Change
+        template_name = "django_tables2/bootstrap.html"
+        fields = ("uuid", "submitted_by")
+
+    def render_draft_action(self, record):
+        if approval := record.approvallog_set.first():
+            return approval.get_action_display()
+        else:
+            return "-"
+
+    def render_submitted_by(self, record):
+        if approval := record.approvallog_set.filter(action=ApprovalLog.Actions.PUBLISH).first():
+            return approval.user.username
+        else:
+            return "-"
+
+    def render_reviewed_by(self, record):
+        if approval := record.approvallog_set.filter(action=ApprovalLog.Actions.REVIEW).first():
+            return approval.user.username
+        else:
+            return "-"
+
+    def render_published_by(self, record):
+        if approval := record.approvallog_set.filter(action=ApprovalLog.Actions.PUBLISH).first():
+            return approval.user.username
+        else:
+            return "-"
+
+    def render_published_date(self, record):
+        if approval := record.approvallog_set.filter(action=ApprovalLog.Actions.PUBLISH).first():
+            return approval.date
+        else:
+            return "not published yet"
