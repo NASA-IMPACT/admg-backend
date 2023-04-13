@@ -24,7 +24,7 @@ services:
       dockerfile: Dockerfile.local
     command: python manage.py sass admin_ui/static/scss admin_ui/static/css --watch
     volumes:
-      - .:/code
+      - .:/home/app/web
     env_file:
       - ./.env
 

@@ -27,6 +27,11 @@ def populate_website_campaign(apps, schema_editor):
     # Purge all CampaignWebsite drafts
     campaign_website_drafts.delete()
 
+    Website = apps.get_model("data_models", "Website")
+    Campaign = apps.get_model("data_models", "Campaign")
+
+    Website.objects.update(campaign_id=Campaign.objects.first().uuid)
+
 
 class Migration(migrations.Migration):
     dependencies = [

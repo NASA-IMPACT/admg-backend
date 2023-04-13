@@ -7,12 +7,12 @@ ENV PYTHONUNBUFFERED 1
 
 RUN apt-get update --fix-missing -y && DEBIAN_FRONTEND=noninteractive apt-get install -y python3-pip gdal-bin libgdal-dev postgis netcat
 
-WORKDIR /code
+WORKDIR /home/app/web
 COPY requirements/ .
 RUN pip install --upgrade pip
 RUN pip install -r local.txt
 
-COPY . /code/
+COPY . /home/app/web/
 
 RUN playwright install --with-deps
 
