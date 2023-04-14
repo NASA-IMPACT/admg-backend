@@ -56,14 +56,7 @@ class DoiMatcher:
         # attempt to find the uuid as a published object
         try:
             obj = model.objects.get(uuid=uuid)
-            data = json.loads(
-                serializers.serialize(
-                    "json",
-                    [
-                        obj,
-                    ],
-                )
-            )[
+            data = json.loads(serializers.serialize("json", [obj,],))[
                 0
             ]["fields"]
 
@@ -71,14 +64,7 @@ class DoiMatcher:
         except model.DoesNotExist:
             model = apps.get_model("api_app", "change")
             obj = model.objects.get(uuid=uuid)
-            data = json.loads(
-                serializers.serialize(
-                    "json",
-                    [
-                        obj,
-                    ],
-                )
-            )[0][
+            data = json.loads(serializers.serialize("json", [obj,],))[0][
                 "fields"
             ]["update"]
             data["uuid"] = uuid
@@ -319,40 +305,59 @@ class DoiMatcher:
             ]
         )
 
+    @staticmethod
+    def serialize_recommendation(doi_recommendation):
+        fields_to_convert = [
+            'cmr_short_name',
+            'cmr_entry_title',
+            'cmr_projects',
+            'cmr_dates',
+            'cmr_plats_and_insts',
+            'cmr_science_keywords',
+            'cmr_abstract',
+            'cmr_data_formats',
+        ]
+        for field in fields_to_convert:
+            doi_recommendation[field] = str(field)
+        return doi_recommendation
+
     def create_merged_draft(self, recent_draft, doi_recommendation):
         """Takes an existing doi draft and a newly generated doi_recommendation and
         returns a merged object that represents the most up-to-date data, retaining
         the originally curated fields but updating any core CMR values.
         """
-        doi_recommendation = json.loads(json.dumps(doi_recommendation))
+
         for field in self.previously_curated_fields:
             doi_recommendation[field] = recent_draft.update[field]
 
         return doi_recommendation
 
-    def make_create_draft(self, doi_recommendation):
+    @staticmethod
+    def make_create_draft(doi_recommendation):
         doi_obj = Change(
             content_type=ContentType.objects.get(model="doi"),
             model_instance_uuid=None,
-            update=json.loads(json.dumps(doi_recommendation)),
+            update=doi_recommendation,
             status=Change.Statuses.CREATED,
             action=Change.Actions.CREATE,
         )
         doi_obj.save()
         return doi_obj
 
-    def make_update_draft(self, merged_draft, linked_object):
+    @staticmethod
+    def make_update_draft(merged_draft, linked_object):
         doi_obj = Change(
             content_type=ContentType.objects.get(model="doi"),
             model_instance_uuid=linked_object,
-            update=json.loads(json.dumps(merged_draft)),
+            update=merged_draft,
             status=Change.Statuses.CREATED,
             action=Change.Actions.UPDATE,
         )
         doi_obj.save()
         return doi_obj
 
-    def get_published_uuid(self, recent_draft):
+    @staticmethod
+    def get_published_uuid(recent_draft):
         if recent_draft.action == Change.Actions.UPDATE:
             return recent_draft.model_instance_uuid
         else:
@@ -373,7 +378,7 @@ class DoiMatcher:
         Returns:
             str: String indicating action taken by the function
         """
-
+        doi_recommendation = self.serialize_recommendation(doi_recommendation)
         # search db for the most recently worked on draft that matches our concept_id
         recent_draft = (
             Change.objects.filter(
