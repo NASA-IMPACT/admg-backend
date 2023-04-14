@@ -56,14 +56,7 @@ class DoiMatcher:
         # attempt to find the uuid as a published object
         try:
             obj = model.objects.get(uuid=uuid)
-            data = json.loads(
-                serializers.serialize(
-                    "json",
-                    [
-                        obj,
-                    ],
-                )
-            )[
+            data = json.loads(serializers.serialize("json", [obj,],))[
                 0
             ]["fields"]
 
@@ -71,14 +64,7 @@ class DoiMatcher:
         except model.DoesNotExist:
             model = apps.get_model("api_app", "change")
             obj = model.objects.get(uuid=uuid)
-            data = json.loads(
-                serializers.serialize(
-                    "json",
-                    [
-                        obj,
-                    ],
-                )
-            )[0][
+            data = json.loads(serializers.serialize("json", [obj,],))[0][
                 "fields"
             ]["update"]
             data["uuid"] = uuid
@@ -332,7 +318,7 @@ class DoiMatcher:
             'cmr_data_formats',
         ]
         for field in fields_to_convert:
-            doi_recommendation[field] = str(field)
+            doi_recommendation[field] = str(doi_recommendation[field])
         return doi_recommendation
 
     def create_merged_draft(self, recent_draft, doi_recommendation):
