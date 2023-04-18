@@ -84,7 +84,7 @@ def update_dois(dois: Sequence[dict], user: get_user_model()):
         ]
     )
 
-    return ignored_updates
+    return change_status_to_edit + change_status_to_review, ignored_updates
 
 
 @method_decorator(login_required, name="dispatch")
@@ -194,15 +194,16 @@ class DoiApprovalView(NotificationSidebar, SingleObjectMixin, MultipleObjectMixi
             trash_dois(doi_uuids=[doi["uuid"] for doi in to_trash], user=self.request.user)
 
         if to_update:
-            ignored_updates = update_dois(dois=to_update)
+            updated_dois, ignored_dois = update_dois(dois=to_update)
 
         messages.info(
             self.request,
-            f"Updated {len(to_update) - len(ignored_updates)} and removed {len(to_trash)} DOIs.",
+            f"Updated {len(updated_dois)} and removed {len(to_trash)} DOIs.",
         )
-        if ignored_updates:
+
+        if ignored_dois:
             messages.warning(
-                self.request, f"Ignored changes to published {len(ignored_updates)} DOIs."
+                self.request, f"Ignored changes to published {len(ignored_dois)} DOIs."
             )
         return super().form_valid(formset)
 

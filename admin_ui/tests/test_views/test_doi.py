@@ -17,25 +17,22 @@ frozen_time = datetime(2023, 4, 1, 0, 0, 0, tzinfo=timezone.utc)
 
 class TestDoiApprovalView(TestCase):
     def setUp(self):
-        self.changes = [
-            factories.ChangeFactory.make_create_change_object(DOIFactory) for n in range(5)
-        ]
+        self.change = factories.ChangeFactory.make_create_change_object(DOIFactory)
         self.user = factories.UserFactory.create()
 
     def test_requires_auth(self):
-        url = reverse("doi-approval", args=(self.changes[0].uuid,))
+        url = reverse("doi-approval", args=(self.change.uuid,))
         response = self.client.get(url)
         self.assertEqual(302, response.status_code)
         self.assertEqual(f"{reverse('account_login')}?next={url}", response.url)
 
     @freeze_time(frozen_time)
     def test_update_dois_sets_updated_at(self):
-        doi = self.changes[0]
-        old_updated_at = doi.updated_at
+        old_updated_at = self.change.updated_at
         assert old_updated_at != frozen_time
 
-        doi_form_value = {"uuid": doi.uuid, "keep": True}
+        doi_form_value = {"uuid": self.change.uuid, "keep": True}
 
         update_dois(dois=[doi_form_value], user=self.user)
-        doi.refresh_from_db()
-        assert doi.updated_at == frozen_time
+        self.change.refresh_from_db()
+        assert self.change.updated_at == frozen_time
