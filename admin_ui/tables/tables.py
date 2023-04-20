@@ -955,6 +955,7 @@ class DraftHistoryTable(tables.Table):
         model = Change
         template_name = "django_tables2/bootstrap.html"
         fields = ("uuid", "submitted_by")
+        orderable = False
 
     def render_draft_action(self, record):
         if approval := record.approvallog_set.first():
