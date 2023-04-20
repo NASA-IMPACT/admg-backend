@@ -28,9 +28,10 @@ def populate_website_campaign(apps, schema_editor):
     campaign_website_drafts.delete()
 
     Website = apps.get_model("data_models", "Website")
-    Campaign = apps.get_model("data_models", "Campaign")
 
-    Website.objects.update(campaign_id=Campaign.objects.first().uuid)
+    # This capaign_id is missing at the time when it's needed in the transaction
+    # Just assigning a random value because this is deleted later.
+    Website.objects.update(campaign_id="6157efde-1667-4f3a-ac0a-432dc2f1167b")
 
 
 class Migration(migrations.Migration):
