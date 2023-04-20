@@ -298,6 +298,14 @@ class DoiMatcher:
             bool: True if there was a mismatch
         """
 
+        results = {}
+        for field in self.core_cmr_fields:
+            results[field] = {
+                'bool': recommendation.get(field) != recent_draft.update.get(field),
+                'values': (recommendation.get(field), recent_draft.update.get(field)),
+            }
+        json.dump(results, open(f'cmr_{recommendation["concept_id"]}.json', 'w'))
+
         return any(
             [
                 recommendation.get(field) != recent_draft.update.get(field)
@@ -328,7 +336,8 @@ class DoiMatcher:
         """
 
         for field in self.previously_curated_fields:
-            doi_recommendation[field] = recent_draft.update[field]
+            if recent_draft.update.get(field):
+                doi_recommendation[field] = recent_draft.update[field]
 
         return doi_recommendation
 
@@ -405,6 +414,7 @@ class DoiMatcher:
                 # to the latest CMR metadata
                 published_uuid = self.get_published_uuid(recent_draft)
                 doi_obj = self.make_update_draft(merged, published_uuid)
+                # TODO: is there an Approval Log being created at this part?
                 doi_obj.publish(generic_admin_user, notes='CMR metadata updated')
             else:
                 # an update or create draft is in progress and recommendations are
