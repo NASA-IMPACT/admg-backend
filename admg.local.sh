@@ -1,5 +1,6 @@
 case $1 in
   run) docker-compose -f docker-compose.local.yml up;;
+  build) docker-compose -f docker-compose.local.yml build;;
   test-setup) docker-compose -f docker-compose.local.yml up db rabbitmq;;
   user) docker-compose -f docker-compose.local.yml run web python manage.py createsuperuser;;
   test) docker-compose -f docker-compose.local.yml run web pytest admin_ui;;
