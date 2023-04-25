@@ -56,14 +56,7 @@ class DoiMatcher:
         # attempt to find the uuid as a published object
         try:
             obj = model.objects.get(uuid=uuid)
-            data = json.loads(
-                serializers.serialize(
-                    "json",
-                    [
-                        obj,
-                    ],
-                )
-            )[
+            data = json.loads(serializers.serialize("json", [obj,],))[
                 0
             ]["fields"]
 
@@ -71,14 +64,7 @@ class DoiMatcher:
         except model.DoesNotExist:
             model = apps.get_model("api_app", "change")
             obj = model.objects.get(uuid=uuid)
-            data = json.loads(
-                serializers.serialize(
-                    "json",
-                    [
-                        obj,
-                    ],
-                )
-            )[0][
+            data = json.loads(serializers.serialize("json", [obj,],))[0][
                 "fields"
             ]["update"]
             data["uuid"] = uuid
@@ -357,26 +343,26 @@ class DoiMatcher:
 
     @staticmethod
     def make_create_draft(doi_recommendation):
-        doi_obj = Change(
+        doi_obj = Change.objects.create(
             content_type=ContentType.objects.get(model="doi"),
             model_instance_uuid=None,
             update=doi_recommendation,
             status=Change.Statuses.CREATED,
             action=Change.Actions.CREATE,
         )
-        doi_obj.save()
+        doi_obj = Change.objects.get(uuid=doi_obj.uuid)
         return doi_obj
 
     @staticmethod
     def make_update_draft(merged_draft, linked_object):
-        doi_obj = Change(
+        doi_obj = Change.objects.create(
             content_type=ContentType.objects.get(model="doi"),
             model_instance_uuid=linked_object,
             update=merged_draft,
             status=Change.Statuses.CREATED,
             action=Change.Actions.UPDATE,
         )
-        doi_obj.save()
+        doi_obj = Change.objects.get(uuid=doi_obj.uuid)
         return doi_obj
 
     @staticmethod
