@@ -14,6 +14,7 @@ from rest_framework.response import Response
 from rest_framework.serializers import ValidationError
 
 from admg_webapp.users.models import User
+from api_app.utils import temp_disconnect_signal
 from data_models import serializers
 
 
@@ -232,7 +233,8 @@ class Change(models.Model):
         IN_PROGRESS = 1, "In Progress"
         # The change has been added to the review pile, but hasn't been claimed
         AWAITING_REVIEW = 2, "Awaiting Review"
-        # The change as been claimed, and can now be can now be reviewed or rejected. Rejection sends it back to the in_progress state
+        # The change as been claimed, and can now be can now be reviewed or rejected.
+        # Rejection sends it back to the in_progress state
         IN_REVIEW = 3, "In Review"
         # The change has been added to the admin review pile, but hasn't been claimed
         AWAITING_ADMIN_REVIEW = 4, "Awaiting Admin Review"
@@ -843,7 +845,10 @@ def set_change_updated_at(sender, instance, **kwargs):
     Set `updated_at` on the related Change object to the value of
     the ApprovalLog's `date` field.
     """
-    Change.objects.filter(pk=instance.change.pk).update(updated_at=instance.date)
+    with temp_disconnect_signal(post_save, create_approval_log_dispatcher, Change, "save"):
+        if instance.change:  # Check if the 'change' field exists
+            instance.change.updated_at = instance.date
+            instance.change.save()
 
 
 class Recommendation(models.Model):

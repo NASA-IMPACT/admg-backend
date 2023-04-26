@@ -11,7 +11,6 @@ from admg_webapp.users.models import User
 from api_app.models import Change, ApprovalLog
 from cmr.cmr import query_and_process_cmr
 from cmr.utils import clean_table_name, purify_list
-from data_models.models import DOI
 
 logger = logging.getLogger(__name__)
 
@@ -56,14 +55,7 @@ class DoiMatcher:
         # attempt to find the uuid as a published object
         try:
             obj = model.objects.get(uuid=uuid)
-            data = json.loads(
-                serializers.serialize(
-                    "json",
-                    [
-                        obj,
-                    ],
-                )
-            )[
+            data = json.loads(serializers.serialize("json", [obj,],))[
                 0
             ]["fields"]
 
@@ -71,14 +63,7 @@ class DoiMatcher:
         except model.DoesNotExist:
             model = apps.get_model("api_app", "change")
             obj = model.objects.get(uuid=uuid)
-            data = json.loads(
-                serializers.serialize(
-                    "json",
-                    [
-                        obj,
-                    ],
-                )
-            )[0][
+            data = json.loads(serializers.serialize("json", [obj,],))[0][
                 "fields"
             ]["update"]
             data["uuid"] = uuid
@@ -364,7 +349,6 @@ class DoiMatcher:
             status=Change.Statuses.CREATED,
             action=Change.Actions.CREATE,
         )
-        doi_obj = Change.objects.get(uuid=doi_obj.uuid)
         return doi_obj
 
     @staticmethod
@@ -376,7 +360,6 @@ class DoiMatcher:
             status=Change.Statuses.CREATED,
             action=Change.Actions.UPDATE,
         )
-        doi_obj = Change.objects.get(uuid=doi_obj.uuid)
         return doi_obj
 
     @staticmethod
