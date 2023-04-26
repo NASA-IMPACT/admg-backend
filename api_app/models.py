@@ -14,7 +14,7 @@ from rest_framework.response import Response
 from rest_framework.serializers import ValidationError
 
 from admg_webapp.users.models import User
-from api_app.utils import temp_disconnect_signal
+from api_app.signals import temp_disconnect_signal
 from data_models import serializers
 
 
