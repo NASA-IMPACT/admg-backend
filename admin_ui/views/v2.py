@@ -471,7 +471,6 @@ class CreateUpdateView(mixins.DynamicModelMixin, mixins.ChangeModelFormMixin, Cr
                 Change.objects.get(uuid=self.kwargs[self.pk_url_kwarg]).model_name.lower()
             ),
             "display_name": Change.objects.get(uuid=self.kwargs[self.pk_url_kwarg]).model_name,
-            "canonical_uuid": self.kwargs[self.pk_url_kwarg],
             "draft_uuid": self.object.pk,
         }
 
@@ -591,23 +590,19 @@ class CampaignDetailView(NotificationSidebar, DetailView):
     def get_object(self, queryset=None):
         if not queryset:
             queryset = self.get_queryset()
-        canonical_draft = queryset.get(uuid=self.kwargs["canonical_uuid"])
+        self.canonical_draft = queryset.get(uuid=self.kwargs["canonical_uuid"])
 
-        # if the canonical record is not published, return the record itself
-        # if canonical_draft.status != Change.Statuses.PUBLISHED:
-        #     return canonical_draft
+        unpublished_draft = Change.objects.exclude(
+            status=Change.Statuses.PUBLISHED,
+        ).filter(model_instance_uuid=self.kwargs["canonical_uuid"])
 
-        # if the records has been published, return the canonical draft
-        if Change.objects.filter(status=Change.Statuses.PUBLISHED).exists():
-            return canonical_draft
+        most_recent_published_draft = Change.objects.filter(
+            status=Change.Statuses.PUBLISHED,
+            model_instance_uuid=self.kwargs["canonical_uuid"],
+        ).order_by("updated_at")
 
-        # if canonical record is published, return the record where the model_instance_uuid equals our canonical_uuid
-        # TODO: Check with Anthony here. Don't we have three cases? 1.) No published draft 2.) published draft & no new draft
-        # 3.) publised draft & new unpublished draft
-        # if change.status == Change.Statuses.PUBLISHED:
-
-        return Change.objects.exclude(status=Change.Statuses.PUBLISHED).get(
-            model_instance_uuid=canonical_draft.uuid
+        return (
+            unpublished_draft.first() or most_recent_published_draft.last() or self.canonical_draft
         )
 
     @staticmethod
@@ -661,6 +656,7 @@ class CampaignDetailView(NotificationSidebar, DetailView):
             **context,
             # By setting the view model, our nav sidebar knows to highlight the link for campaigns
             'view_model': 'campaign',
+            'canonical_object': self.canonical_draft,
             "deployments": deployments,
             "transition_form": forms.TransitionForm(
                 change=context["object"], user=self.request.user

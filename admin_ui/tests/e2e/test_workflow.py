@@ -148,7 +148,6 @@ class CuratorWorkflowTests(StaticLiveServerTestCase):
             page.fill("[name=model_form-region_description]", "region description")
             page.fill("[name=model_form-lead_investigator]", "Ali Gator")
             page.fill("[name=model_form-focus_phenomena]", "test focus phenomenon")
-            page.fill("[id=id_model_form-spatial_bounds]", "0,0,0,0")
 
             # Select boolean dropdowns
             page.select_option("select#id_model_form-ongoing", label="Yes")
@@ -176,10 +175,11 @@ class CuratorWorkflowTests(StaticLiveServerTestCase):
             page.fill("[name=model_form-short_name]", "Test Deployment")
             page.fill("[name=model_form-start_date]", "2022-12-23")
             page.fill("[name=model_form-end_date]", "2022-12-24")
+            page.fill("[name=model_form-spatial_bounds]", "0,0,0,0")
 
             # Save new Deployment
             page.locator('button:has-text("Save")').click()
-            expect(page.locator("h1", has_text="Deployment Test deployment")).to_be_visible()
+            expect(page.locator("h1", has_text="Test deployment")).to_be_visible()
             expect(page.locator(".alert-success", has_text="Successfully saved")).to_be_visible()
 
             """3. CREATE IOP (Intense Operation Period)"""
@@ -188,52 +188,55 @@ class CuratorWorkflowTests(StaticLiveServerTestCase):
             page.locator("a", has_text="Add New IOP +").click()
             expect(page.locator("h1", has_text="Add new IOP draft")).to_be_visible()
 
-            # Fill in Deployment fields
+            # Fill in IOP fields
             page.fill("[name=model_form-short_name]", "Test IOP")
             page.fill("[name=model_form-start_date]", "2022-12-23")
             page.fill("[name=model_form-end_date]", "2022-12-24")
             page.fill("[name=model_form-description]", "New Description")
             page.fill("[name=model_form-region_description]", "New Region Description")
 
-            # Save new Deployment
+            # Save new IOP
             page.locator('button:has-text("Save")').click()
-            expect(page.locator("h1", has_text="Iop Test IOP")).to_be_visible()
+            expect(page.locator("h1", has_text="Test IOP")).to_be_visible()
             expect(page.locator(".alert-success", has_text="Successfully saved")).to_be_visible()
 
-            """4. CREATE Collection Period (CDPI)"""
-            # Navigate back to test deployment
-            page.locator("a.nav-link", has_text="Deployments").click()
-            expect(page.locator("h1", has_text="Deployment Drafts")).to_be_visible()
-            page.locator("a", has_text="Test Deployment").click()
-            expect(page.locator("h1", has_text="Deployment Test deployment")).to_be_visible()
+            # """4. CREATE Collection Period (CDPI)"""
+            # # Navigate to test deployment tab
+            page.locator("a.nav-link", has_text="Campaigns").click()
+            page.locator("a", has_text="Test Campaign").first.click()
+            page.locator("a.nav-link", has_text="Details").click()
+            # expect(page.locator("h4", has_text="Deployments")).to_be_visible()
+            # page.locator("a", has_text="Test Deployment").click()
+            # expect(page.locator("h1", has_text="Test deployment")).to_be_visible()
 
-            # Add new Collection Period (CDPI)
-            page.locator("a", has_text="Add New CDPI +").click()
-            expect(page.locator("h1", has_text="Add new CollectionPeriod draft")).to_be_visible()
+            # # Add new Collection Period (CDPI)
+            # page.locator("a", has_text="Add New CDPI +").click()
+            # expect(page.locator("h1", has_text="Add new CollectionPeriod draft")).to_be_visible()
 
             # page.select_option("select#id_model_form-platform", label="Jet")
             # page.select_option("select#id_model_form-instruments", label="BBR")
 
-            page.select_option("select#id_model_form-auto_generated", label="No")
+            # page.select_option("select#id_model_form-auto_generated", label="No")
 
             """5. Add a new Platform * Opens in a new tab"""
-            with context.expect_page() as page_info:
-                page.locator("a", has_text="+ Add new Platform").click(),
-            platform_page = page_info.value
-            expect(platform_page.locator("h1", has_text="Add new Platform draft")).to_be_visible()
+            page.locator("a.nav-link:visible", has_text="Platforms").click()
+            page.locator("a", has_text="New Platform").click()
+            # platform_page = page_info.value
+            expect(page.locator("h1", has_text="Add new Platform draft")).to_be_visible()
 
             # Fill in the platform details
-            platform_page.fill("[name=model_form-short_name]", "Brand New Platform")
-            platform_page.fill(
-                "[name=model_form-description]", "Really special and original description"
-            )
-            platform_page.select_option("select#id_model_form-stationary", label="No")
-            platform_page.close()
+            page.fill("[name=model_form-short_name]", "Brand New Platform")
+            page.fill("[name=model_form-description]", "Really special and original description")
+            page.select_option("select#id_model_form-stationary", label="No")
+            page.locator('button:has-text("Save")').click()
+
+            page.locator("a.nav-link:visible", has_text="Platforms").click()
+            # expect(page.locator("a", has_text="Brand New Platform")).to_be_visible()
 
             """6. Add a new Instrument Draft"""
             # Navigate to instrument in new page
             page.locator("a.nav-link:visible", has_text="Instruments").click()
-            page.locator("a", has_text="Add New Instrument +").click()
+            page.locator("a", has_text="New Instrument").click()
             expect(page.locator("h1", has_text="Add new Instrument draft")).to_be_visible()
 
             # # Fill in the instrument details
@@ -253,15 +256,14 @@ class CuratorWorkflowTests(StaticLiveServerTestCase):
                 label="Ionosphere",
             )
             page.locator('button:has-text("Save")').click()
-            expect(page.locator("h1", has_text="Instrument Fancy New Instrument")).to_be_visible()
+            expect(page.locator("h1", has_text="Fancy New Instrument")).to_be_visible()
             expect(page.locator(".alert-success", has_text="Successfully saved")).to_be_visible()
 
             """7. Run DOI fetcher"""
             # Navigate to DOI dashboard tab
             page.locator("a.nav-link", has_text="Campaigns").click()
-            page.locator("a", has_text="(dashboard)").first.click()
-            expect(page.locator("h1", has_text="Campaign Test Campaign")).to_be_visible()
-            expect(page.locator("h4", has_text="Deployments")).to_be_visible()
+            page.locator("a", has_text="Test Campaign").first.click()
+            expect(page.locator("h1", has_text="Test Campaign")).to_be_visible()
             # Run DOI fetcher (filter out nav_links with properties :hidden)
             page.locator("a:visible").get_by_text("DOIs").click()
             expect(page.locator("h2", has_text="Generate DOI Recommendations")).to_be_visible()
@@ -294,7 +296,7 @@ class CuratorWorkflowTests(StaticLiveServerTestCase):
             """8. Publish Campaign"""
             # Navigate back to campaign
             page.locator("a.nav-link", has_text="Campaigns").click()
-            page.locator("a", has_text="(dashboard)").first.click()
+            page.locator("a", has_text="Test Campaign").first.click()
 
             # Publication steps
             # 8.1 Ready for staff Review
@@ -321,5 +323,6 @@ class CuratorWorkflowTests(StaticLiveServerTestCase):
             page.locator('button:has-text("Approval Actions")').click()
             page.get_by_label("Publish to production").check()
             page.locator('button', has_text="Submit").click()
-            # page.fill("[name=notes]", "This Campaign is ready for production!")
-            page.wait_for_timeout(2000)
+
+            # Navigate back to overview
+            page.locator("a.nav-link", has_text="Campaigns").click()

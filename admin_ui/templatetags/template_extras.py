@@ -57,7 +57,9 @@ def object_header_tabs(context, change: Change, canonical_change: Optional[Chang
         change
         if canonical_change
         else (
-            Change.objects.filter(model_instance_uuid=change.uuid).order_by("-updated_at").first()
+            Change.objects.filter(Q(uuid=change.uuid) | Q(model_instance_uuid=change.uuid))
+            .order_by("-updated_at")
+            .first()
         )
     )
     # use canonical change if present otherwise fall back to change
