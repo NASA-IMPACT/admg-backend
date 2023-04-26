@@ -38,8 +38,6 @@ def update_dois(dois: Sequence[dict], user: get_user_model()):
             ignored_updates.append(doi)
             continue
 
-        stored_doi.updated_at = timezone.now()
-
         # Persist DOI updates
         for field, value in doi.items():
             if field in ["uuid", "keep"]:
@@ -48,12 +46,14 @@ def update_dois(dois: Sequence[dict], user: get_user_model()):
         # never been previously edited and checkmark and trash haven't been selected
         if stored_doi.status == Change.Statuses.CREATED and doi["keep"] is None:
             stored_doi.status = Change.Statuses.IN_PROGRESS
+            stored_doi.updated_at = timezone.now()
             change_status_to_edit.append(stored_doi)
         # checkmark was selected
         elif doi["keep"] is True:
             if stored_doi.status == Change.Statuses.IN_TRASH:
                 stored_doi.untrash(user=user, doi=True)
             stored_doi.status = Change.Statuses.AWAITING_REVIEW
+            stored_doi.updated_at = timezone.now()
             change_status_to_review.append(stored_doi)
 
     Change.objects.bulk_update(
