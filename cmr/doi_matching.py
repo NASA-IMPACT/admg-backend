@@ -55,14 +55,7 @@ class DoiMatcher:
         # attempt to find the uuid as a published object
         try:
             obj = model.objects.get(uuid=uuid)
-            data = json.loads(
-                serializers.serialize(
-                    "json",
-                    [
-                        obj,
-                    ],
-                )
-            )[
+            data = json.loads(serializers.serialize("json", [obj,],))[
                 0
             ]["fields"]
 
@@ -70,14 +63,7 @@ class DoiMatcher:
         except model.DoesNotExist:
             model = apps.get_model("api_app", "change")
             obj = model.objects.get(uuid=uuid)
-            data = json.loads(
-                serializers.serialize(
-                    "json",
-                    [
-                        obj,
-                    ],
-                )
-            )[0][
+            data = json.loads(serializers.serialize("json", [obj,],))[0][
                 "fields"
             ]["update"]
             data["uuid"] = uuid
@@ -102,9 +88,13 @@ class DoiMatcher:
             uuid_list (list): List of strings of uuids for the valid objects from a table
         """
 
-        valid_objects = Change.objects.filter(
+        create_drafts = Change.objects.filter(
             content_type__model=table_name, action=Change.Actions.CREATE
-        ).exclude(action=Change.Actions.DELETE, status=Change.Statuses.PUBLISHED)
+        )
+        published_delete_model_instance_uuids = Change.objects.filter(
+            action=Change.Actions.DELETE, status=Change.Statuses.PUBLISHED
+        ).values_list('model_instance_uuid', flat=True)
+        valid_objects = create_drafts.exclude(uuid__in=published_delete_model_instance_uuids)
 
         if query_parameter:
             query_parameter = "update__" + query_parameter
