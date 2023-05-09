@@ -429,19 +429,26 @@ class Change(models.Model):
             **({"content_type__model": "deployment"} if self.model_name == "Campaign" else {}),
         )
 
-    def check_prior_unpublished_update_exists(self):
-        """This checks to see there is an existing Update draft which has not yet been published
+    def check_prior_unpublished_update_delete_exists(self):
+        """This checks to see there is an existing Update draft or Delete draft bwhich has not yet been published
         and links to the same data_model as the current proposed draft. The intention is to allow
         a check to prevent two simultaneous update drafts
 
         Returns:
-            bool: True if there is existing update draft
+            bool: True if there is existing update draft or delete draft
         """
         if self.action == self.Actions.UPDATE:
             return bool(
                 Change.objects.filter(model_instance_uuid=self.model_instance_uuid)
                 .exclude(status=self.Statuses.PUBLISHED)
                 .exclude(uuid=self.uuid)
+            )
+
+        if self.action == self.Actions.DELETE:
+            return bool(
+                Change.objects.filter(model_instance_uuid=self.model_instance_uuid).exclude(
+                    uuid=self.uuid
+                )
             )
         return False
 
@@ -463,9 +470,11 @@ class Change(models.Model):
         if not self.field_status_tracking:
             self.generate_field_status_tracking_dict()
 
-        if self.check_prior_unpublished_update_exists():
+        if self.check_prior_unpublished_update_delete_exists():
             raise ValidationError(
-                {"model_instance_uuid": "Unpublished draft already exists for this model uuid."}
+                {
+                    "model_instance_uuid": "Unpublished Update/Delete draft already exists for this model uuid."
+                }
             )
 
         return super().save(*args, **kwargs)
@@ -843,7 +852,10 @@ def set_change_updated_at(sender, instance, **kwargs):
     Set `updated_at` on the related Change object to the value of
     the ApprovalLog's `date` field.
     """
-    Change.objects.filter(pk=instance.change.pk).update(updated_at=instance.date)
+    try:
+        Change.objects.filter(pk=instance.change.pk).update(updated_at=instance.date)
+    except Change.DoesNotExist:
+        pass
 
 
 class Recommendation(models.Model):
