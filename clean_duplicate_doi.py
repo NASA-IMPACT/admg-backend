@@ -6,7 +6,7 @@ published_campaign_uuids = [str(uuid) for uuid in Campaign.objects.values_list("
 dois_to_delete = []
 for doi in created_dois_drafts:
     if any(uuid in doi.update.get('campaigns', []) for uuid in published_campaign_uuids):
-    dois_to_delete.append(doi)
+        dois_to_delete.append(doi)
 
 for doi in dois_to_delete:
     doi.delete()
