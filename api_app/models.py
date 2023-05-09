@@ -445,6 +445,20 @@ class Change(models.Model):
             )
         return False
 
+    def check_prior_unpublished_delete_exists(self):
+        """This checks to see there is an existing Delete draft which has not yet been published
+        and links to the same data_model as the current proposed draft. The intention is to allow
+        a check to prevent two simultaneous delete drafts
+
+        Returns:
+            bool: True if there is existing delete draft"""
+        if self.action == self.Actions.DELETE:
+            return bool(
+            Change.objects.filter(model_instance_uuid=self.model_instance_uuid)
+            .exclude(uuid=self.uuid)
+            )
+        return False 
+    
     def save(self, *args, post_save=False, **kwargs):
         # do not check for validity of model_name and uuid if it has been approved or rejected.
         # Check is done for the first time only
@@ -466,6 +480,11 @@ class Change(models.Model):
         if self.check_prior_unpublished_update_exists():
             raise ValidationError(
                 {"model_instance_uuid": "Unpublished draft already exists for this model uuid."}
+            )
+        
+        if self.check_prior_unpublished_delete_exists():
+            raise ValidationError(
+                {"model_instance_uuid": "Unpublished Delete draft already exists for this model uuid."}
             )
 
         return super().save(*args, **kwargs)
@@ -843,7 +862,10 @@ def set_change_updated_at(sender, instance, **kwargs):
     Set `updated_at` on the related Change object to the value of
     the ApprovalLog's `date` field.
     """
-    Change.objects.filter(pk=instance.change.pk).update(updated_at=instance.date)
+    try:
+        Change.objects.filter(pk=instance.change.pk).update(updated_at=instance.date)
+    except Change.DoesNotExist:
+        pass
 
 
 class Recommendation(models.Model):
