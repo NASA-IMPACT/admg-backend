@@ -443,7 +443,7 @@ class Change(models.Model):
                 .exclude(status=self.Statuses.PUBLISHED)
                 .exclude(uuid=self.uuid)
             )
-        
+
         if self.action == self.Actions.DELETE:
             return bool(
                 Change.objects.filter(model_instance_uuid=self.model_instance_uuid).exclude(
@@ -451,7 +451,6 @@ class Change(models.Model):
                 )
             )
         return False
-
 
     def save(self, *args, post_save=False, **kwargs):
         # do not check for validity of model_name and uuid if it has been approved or rejected.
@@ -473,7 +472,9 @@ class Change(models.Model):
 
         if self.check_prior_unpublished_update_delete_exists():
             raise ValidationError(
-                {"model_instance_uuid": "Unpublished Update/Delete draft already exists for this model uuid."}
+                {
+                    "model_instance_uuid": "Unpublished Update/Delete draft already exists for this model uuid."
+                }
             )
 
         return super().save(*args, **kwargs)
