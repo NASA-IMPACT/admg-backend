@@ -1,0 +1,39 @@
+# ADMG backend Github Readme File - draft
+
+## Scope
+The scope of this document is to introduce The Catalog of Archived Suborbital Earth Science Investigations architecture. It is meant to be a guided roadmap for developers and backend users. Inside the readme file, users are able to find links to code documentation, the API, how to install the repo, testing, and useful diagrams. 
+
+## Catalog of Archived Suborbital Earth Science Investigation: Overview 
+The Catalog of Archived Suborbital Earth Science Investigations (CASEI), is a centralized airborne and field data inventory that streamlines discovery of non-satellite NASA Earth Science data by providing contextual information on events, motivations, and potential data caveats. With CASEI, users can search and browse NASA’s airborne and field data archives, regardless of which data repository (or DAAC) is responsible for their stewardship.
+
+CASEI has two major components. The first is the backend architecture written with Python and comprised of five components:
+Django’s models and relational databases
+APIs (serializers) to incorporate Common Metadata Repository (CMR) metadata and Airborne Science Program’s (ASP) information. Then returns the database information back to CMR and ASP.
+A maintenance interface (MI) for both entering and updating database content
+A public user data discovery portal or user interface (UI) for submitting queries with search terms, reviewing information, and accessing data product links
+
+The second part of CASEI is the curation of inventory content. All information in CASEI follows a common data model through a careful curation process along with multiple quality reviews to support the diverse data formats. First a curator compiles suborbital observation metadata for NASA Earth Science products by efficiently categorizing it into campaigns, platforms, and instruments. They follow a structured hierarchy, set of definitions, and decision tree to properly organize this data then submit it for a first and final admin review. All of this effort is conducted through the MI and once it is finally published it’s streamlined into the UI for user access.
+
+Link to CASEI User Interface: [link](https://impact.earthdata.nasa.gov/casei/) 
+
+## What is in this repository?
+Data Models (will add link to doc)
+API (will add link to the API)
+Curator Interface (will add link to another doc)
+CMR Recommender (will add link to another doc)
+GCMD Sync (will add link to another doc)
+
+## How to run the repository on my computer?
+Docker installation: [link](https://docs.google.com/document/d/1C2jFmRMo74tTWIij4qFzERk7LOg-FH9x4r6zkcZfYss/edit)
+Editing the .env (will add link to another doc)
+Building the project with Docker (will add link to another doc)
+Running python shell (will add link to another doc)
+
+## How to test the code inside the repository?
+Preparing test coverage (will add link to another doc)
+Run your tests with coverage (will add link to another doc)
+Generate coverage report (will add link to another doc)
+Export the coverage report with a supported format (will add link to another doc)
+
+## API Documentation
+Users can access the API documentation here: [link](https://admgstaging.nasa-impact.net/api/docs/) (will link the updated API doc this is just a placeholder)
