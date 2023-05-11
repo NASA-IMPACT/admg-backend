@@ -10,6 +10,9 @@ Table of Contents:
 
 .. toctree::
    :maxdepth: 2
+   :caption: Installation
+
+   installation
 
 
 Indices & Tables
