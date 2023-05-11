@@ -11,6 +11,9 @@ for change in changes:
         groups[change.model_instance_uuid].append(change)
 
 result = [set(group) for group in groups.values() if len(set(group)) > 1]
+sorted_by_date = [
+    sorted(list(group), key=lambda draft: draft.updated_at, reverse=True) for group in result
+]
 
 
 """ the following is the results of this script after running on prod data
@@ -41,3 +44,9 @@ result = [set(group) for group in groups.values() if len(set(group)) > 1]
     }
 ]
 """
+
+
+# this code deletes the older drafts, which is only useful for test db, not prod
+for group in sorted_by_date:
+    for draft in group[1:]:
+        draft.delete()
