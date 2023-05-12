@@ -846,9 +846,12 @@ def set_change_updated_at(sender, instance, **kwargs):
     the ApprovalLog's `date` field.
     """
     with temp_disconnect_signal(post_save, create_approval_log_dispatcher, Change, "save"):
-        if instance.change:  # Check if the 'change' field exists
-            instance.change.updated_at = instance.date
-            instance.change.save()
+        try:
+            if instance.change:  # Check if the 'change' field exists
+                instance.change.updated_at = instance.date
+                instance.change.save()
+        except Change.DoesNotExist:
+            pass
 
 
 class Recommendation(models.Model):
