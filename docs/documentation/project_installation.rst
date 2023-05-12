@@ -1,7 +1,8 @@
 Docker Installation
 ===================
-Docker installation
--------------------
+
+Installation
+------------
 Docker is an open platform for developing, shipping, and running applications. Docker allows the capability to separate applications from users' infrastructure which delivers software quickly. 
 
 Docker provides the ability to package and run an application in an isolated environment called a Container. Containers are lightweight, hold everything needed to run an application, and are capable of functioning alongside multiple containers. This is ideal for continuous integration and continuous delivery (CI/CD) workflows such as the ADMG project where we are constantly feeding NASA Earth Science metadata. 
@@ -13,7 +14,9 @@ Building the Docker on your local machine
 
 Once docker is installed go to VS Code. If you do not already have one, open up a new terminal (Ctrl +). Cd into the correct directory which would be admg-backend and run the following code. 
 
->> docker-compose -f docker-compose.local.yml up --build
+.. code-block:: python
+
+ docker-compose -f docker-compose.local.yml up --build
 
 Running this line of code, users should see a return of all the Docker objects being built. If you look at the Docker Desktop app you should see the following objects added.
 
@@ -22,7 +25,9 @@ Building the project with Docker
 
 Next run the following code inside the terminal
 
->> docker exc -it admg-webapp-1 bash
+.. code-block:: python
+
+ docker exc -it admg-webapp-1 bash
 
 Editing the .env
 ----------------

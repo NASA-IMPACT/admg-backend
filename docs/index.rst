@@ -33,6 +33,7 @@ Table of Contents:
    documentation/data_models
    documentation/change_objects
    documentation/cmr_recommender
+   documentation/gcmd_sync
 
 .. toctree::
    :maxdepth: 2
