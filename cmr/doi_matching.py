@@ -11,7 +11,6 @@ from admg_webapp.users.models import User
 from api_app.models import Change, ApprovalLog
 from cmr.cmr import query_and_process_cmr
 from cmr.utils import clean_table_name, purify_list
-from data_models.models import DOI
 
 logger = logging.getLogger(__name__)
 
