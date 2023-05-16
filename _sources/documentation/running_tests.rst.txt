@@ -1,0 +1,6 @@
+Running Tests
+=============
+Preparing test coverage (will add link to another doc)
+Run your tests with coverage (will add link to another doc)
+Generate coverage report (will add link to another doc)
+Export the coverage report with a supported format (will add link to another doc)
