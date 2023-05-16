@@ -3,7 +3,7 @@ Curation Interface
 Compiler Workflow
 -----------------
 
-Add Contents
+Add Content
 
 .. image:: images/Curation_Workflow.png
     :width: 400
@@ -11,7 +11,7 @@ Add Contents
 
 Reviewer Workflow
 -----------------
-Add Contents
+Add Content
 
 .. image:: images/CASEI_Campaign_Curator_Workflow.png
     :width: 400
@@ -19,7 +19,7 @@ Add Contents
 
 Admin Reviewer Workflow
 -----------------------
-Add Contents
+Add Content
 
 .. image:: images/CASEI_Campaign_Reviewer_Workflow.png
     :width: 400
