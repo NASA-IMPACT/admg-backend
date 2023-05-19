@@ -43,8 +43,8 @@ source_suffix = ".rst"
 master_doc = "index"
 
 # General information about the project.
-project = "admg_webapp"
-copyright = """2019, Carson Davis"""
+project = "CASEI"
+copyright = """2023, NASA IMPACT"""
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
