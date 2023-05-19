@@ -3,7 +3,7 @@ Curation Interface
 Compiler Workflow
 -----------------
 
-Add Content
+Width Updated...Add Content
 
 .. image:: images/Curation_Workflow.png
     :alt: Curation Process
