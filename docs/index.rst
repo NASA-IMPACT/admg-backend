@@ -13,22 +13,17 @@ Table of Contents:
    :caption: What is CASEI?
 
    documentation/casei_overview
+   documentation/curation_interface
 
 .. toctree::
    :maxdepth: 2
-   :caption: API Usage
+   :caption: Using the API
 
    documentation/api_doc
 
 .. toctree::
    :maxdepth: 2
-   :caption: Curation Process
-
-   documentation/curation_interface
-
-.. toctree::
-   :maxdepth: 2
-   :caption: Understanding Application
+   :caption: Understanding the Application
 
    documentation/data_models
    documentation/change_objects
@@ -37,7 +32,7 @@ Table of Contents:
 
 .. toctree::
    :maxdepth: 2
-   :caption: Installation and Tests
+   :caption: Running the Application Locally
 
    documentation/project_installation
    documentation/running_tests
