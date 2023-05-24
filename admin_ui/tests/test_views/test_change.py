@@ -8,7 +8,7 @@ from api_app.models import Change
 from api_app.tests.test_change import TestChange
 from data_models.models import Campaign, Season
 
-from . import factories
+from .. import factories
 from data_models.tests.factories import CampaignFactory
 
 
