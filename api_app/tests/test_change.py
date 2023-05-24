@@ -3,12 +3,11 @@ import json
 from uuid import uuid4
 
 import pytest
-
-# from django.contrib.contenttypes.models import ContentType
+from django.contrib.contenttypes.models import ContentType
 from rest_framework.serializers import ValidationError
 
 from admg_webapp.users.models import User
-from admin_ui.tests.factories import UserFactory, ChangeFactory
+from admin_ui.tests.factories import UserFactory
 from data_models.tests import factories
 
 from ..models import ApprovalLog, Change
@@ -55,23 +54,70 @@ class TestChange:
         admin_user_2 = UserFactory(role=User.Roles.ADMIN)
         return admin_user, admin_user_2, staff_user, staff_user_2
 
+    @staticmethod
+    def make_create_change_object(factory, custom_fields={}):
+        """make a Change.Actions.CREATE change object to use during testing"""
+        content_type = ContentType.objects.get_for_model(factory._meta.model)
+
+        # _meta.fields does not contain many to many
+        model_field_names = {
+            field.name
+            for field in factory._meta.get_model_class()._meta._forward_fields_map.values()
+        }
+        overrides = {
+            field: value for field, value in custom_fields.items() if field in model_field_names
+        }
+
+        return Change.objects.create(
+            content_type=content_type,
+            status=Change.Statuses.CREATED,
+            action=Change.Actions.CREATE,
+            update={**factory.as_change_dict(), **overrides},
+        )
+
+    @staticmethod
+    def make_update_change_object(factory, create_draft, fields_to_keep=[]):
+        """make a Change.Actions.CREATE change object to use during testing"""
+        content_type = ContentType.objects.get_for_model(factory._meta.model)
+
+        # we want the ability to keep the original's values, say short_name or concept_id
+        # models can't take any field though, so this checks that the fields are real
+        # TODO: move this to an error check?
+        model_field_names = {
+            field.name
+            for field in factory._meta.get_model_class()._meta._forward_fields_map.values()
+        }
+        overrides = {
+            field: create_draft.update[field]
+            for field in fields_to_keep
+            if field in model_field_names
+        }
+
+        return Change.objects.create(
+            content_type=content_type,
+            status=Change.Statuses.CREATED,
+            action=Change.Actions.UPDATE,
+            model_instance_uuid=create_draft.uuid,
+            update={**factory.as_change_dict(), **overrides},
+        )
+
     def test_change_query_check(self, factory):
         """test that nothing strange is happening between creating and querying a change object"""
-        change = ChangeFactory.make_create_change_object(factory)
+        change = self.make_create_change_object(factory)
         change_query = Change.objects.filter(uuid=change.uuid).first()
 
         assert change == change_query
 
     def test_make_create_change_object(self, factory):
         """test that a freshly created object has the correct code"""
-        change = ChangeFactory.make_create_change_object(factory)
+        change = self.make_create_change_object(factory)
 
         assert change.status == Change.Statuses.CREATED
         assert change.action == "Create"
 
     def test_approval_log_for_newly_created_change(self, factory):
         """test that creating a create change object generates the appropriate log"""
-        change = ChangeFactory.make_create_change_object(factory)
+        change = self.make_create_change_object(factory)
         approval_log = ApprovalLog.objects.get(change=change)
 
         assert approval_log.change == change
@@ -82,7 +128,7 @@ class TestChange:
         admin_user, _, staff_user, staff_user_2 = self.create_users()
 
         # create
-        change = ChangeFactory.make_create_change_object(factory)
+        change = self.make_create_change_object(factory)
         approval_log = change.get_latest_log()
         assert change.status == Change.Statuses.CREATED
         assert approval_log.action == ApprovalLog.Actions.CREATE
@@ -160,7 +206,7 @@ class TestChange:
         """check that error is thrown when staff member tries to trash or untrash an object"""
         admin_user, _, staff_user, _ = self.create_users()
 
-        change = ChangeFactory.make_create_change_object(factory)
+        change = self.make_create_change_object(factory)
         change.update["short_name"] = "test_short_name"
         change.save()
 
@@ -178,7 +224,7 @@ class TestChange:
         """check that error is thrown when admin tries to trash a published item"""
         admin_user, _, _, _ = self.create_users()
 
-        change = ChangeFactory.make_create_change_object(factory)
+        change = self.make_create_change_object(factory)
         change.update["short_name"] = "test_short_name"
         change.save()
         change.publish(admin_user)
@@ -195,7 +241,7 @@ class TestChange:
         """check that error is thrown when staff member tries to publish or claim awaiting admin review"""
         admin_user, _, staff_user, staff_user_2 = self.create_users()
 
-        change = ChangeFactory.make_create_change_object(factory)
+        change = self.make_create_change_object(factory)
         change.update["short_name"] = "test_short_name"
         change.save()
         change.submit(staff_user)
@@ -214,7 +260,7 @@ class TestChange:
         """test that the claim function throws errors if not used on AWAITING objects"""
         admin_user, _, staff_user, staff_user_2 = self.create_users()
 
-        change = ChangeFactory.make_create_change_object(factory)
+        change = self.make_create_change_object(factory)
         change.update["short_name"] = "test_short_name"
         change.save()
 
@@ -294,7 +340,7 @@ class TestChange:
         """test that admin can unclaim items claimed by other members"""
         admin_user, admin_user_2, staff_user, staff_user_2 = self.create_users()
 
-        change = ChangeFactory.make_create_change_object(factory)
+        change = self.make_create_change_object(factory)
         change.update["short_name"] = "test_short_name"
         change.save()
         change.submit(staff_user)
@@ -322,7 +368,7 @@ class TestChange:
         """test that staff can't unclaim items they didn't claim"""
         admin_user, _, staff_user, staff_user_2 = self.create_users()
 
-        change = ChangeFactory.make_create_change_object(factory)
+        change = self.make_create_change_object(factory)
         change.update["short_name"] = "test_short_name"
         change.save()
         change.submit(staff_user)
@@ -354,14 +400,14 @@ class TestChange:
         """test that an existing, UNpublished update draft prevents the creation
         of a second update draft which references the same data_models object"""
         admin_user, _, _, _ = self.create_users()
-        change = ChangeFactory.make_create_change_object(factory)
+        change = self.make_create_change_object(factory)
         change.publish(admin_user)
 
-        update = ChangeFactory.make_update_change_object(factory, change)
+        update = self.make_update_change_object(factory, change)
         update.save()
 
         with pytest.raises(ValidationError):
-            update_2 = ChangeFactory.make_update_change_object(factory, change)
+            update_2 = self.make_update_change_object(factory, change)
             update_2.save()
 
     def test_published_unpublished(self, factory):
@@ -369,14 +415,14 @@ class TestChange:
         of a second update draft which references the same data_models object"""
         admin_user, _, _, _ = self.create_users()
 
-        change = ChangeFactory.make_create_change_object(factory)
+        change = self.make_create_change_object(factory)
         change.publish(admin_user)
 
-        update = ChangeFactory.make_update_change_object(factory, change)
+        update = self.make_update_change_object(factory, change)
         update.save()
         update.publish(admin_user)
 
-        update_2 = ChangeFactory.make_update_change_object(factory, change)
+        update_2 = self.make_update_change_object(factory, change)
         update_2.publish(admin_user)
 
 
