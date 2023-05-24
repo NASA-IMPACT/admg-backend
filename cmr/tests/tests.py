@@ -1,6 +1,6 @@
 # to run this test file, use 'pytest -k cmr'
 
-import pytest
+# import pytest
 
 # from django.contrib.contenttypes.models import ContentType
 # from admg_webapp.users.tests.factories import UserFactory
@@ -19,12 +19,12 @@ import pytest
 # from data_models.models import Campaign
 
 
-class TestMyModel:
-    @pytest.mark.usefixtures('load_test_data')
-    def test_my_model_method(self):
-        # assert False
-        # assert Campaign.objects.count() == 97
-        assert True
+# class TestMyModel:
+#     @pytest.mark.usefixtures('load_test_data')
+#     def test_my_model_method(self):
+# assert False
+# assert Campaign.objects.count() == 97
+# assert True
 
 
 # class TestTestData:
