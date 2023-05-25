@@ -1,45 +1,53 @@
-from collections import deque
+from data_models.models import Campaign, DOI, CollectionPeriod
+from django.db.models import ForeignKey, ManyToManyField
+from django.contrib.contenttypes.fields import GenericRelation
 
 
-def get_all_related_objects(obj):
-    """
-    Get all objects related to the given object, including through multiple layers of relationships.
-    """
-    related_objects = []
+def get_related_fields(obj):
+    related_fields = [
+        f
+        for f in obj._meta.get_fields()
+        if isinstance(f, (ForeignKey, ManyToManyField, GenericRelation))
+    ]
+    return related_fields
 
-    # Create a queue to keep track of objects to process
-    queue = deque([obj])
 
-    while queue:
-        # Pop an object from the queue
-        current_obj = queue.popleft()
+def get_related_objs(obj):
+    related_fields = get_related_fields(obj)
+    related_obj_list = []
 
-        # Get all related fields
-        related_fields = [
-            f
-            for f in current_obj._meta.get_fields()
-            if (f.one_to_many or f.one_to_one) and f.auto_created and not f.concrete
-        ]
+    for related_field in related_fields:
+        related_name = related_field.name
+        if isinstance(related_field, (ManyToManyField, GenericRelation)):
+            related_objects = getattr(obj, related_name).all()
+            related_obj_list.extend(list(related_objects))
+        elif isinstance(related_field, ForeignKey):
+            related_obj = getattr(obj, related_name)
+            if related_obj is not None:  # Exclude unset (None) foreign keys
+                related_obj_list.append(related_obj)
+    return related_obj_list
 
-        # Traverse each related field to get all related objects
-        for related_field in related_fields:
-            related_name = related_field.get_accessor_name()
 
-            # Check if the field is one-to-one or one-to-many
-            if related_field.one_to_one:
-                try:
-                    related_obj = getattr(current_obj, related_name)
-                except related_field.related_model.DoesNotExist:
-                    related_obj = None
-                if related_obj and related_obj not in related_objects:
-                    related_objects.append(related_obj)
-                    queue.append(related_obj)
-            else:
-                # Get the related objects for this field
-                related_obj_list = list(getattr(current_obj, related_name).all())
-                for related_obj in related_obj_list:
-                    if related_obj and related_obj not in related_objects:
-                        related_objects.append(related_obj)
-                        queue.append(related_obj)
+def get_all_related_objs(obj):
+    related_obj_list = get_related_objs(obj)
+    master_list = []
+    for related_obj in related_obj_list:
+        if related_obj:
+            master_list.append(related_obj)
+            master_list.extend(get_all_related_objs(related_obj))
+    return master_list
 
-    return related_objects
+
+campaign_short_name = "ACES"
+campaign = Campaign.objects.get(short_name='ACES')
+
+collection_periods = CollectionPeriod.objects.filter(deployment__campaign=campaign)
+dois = DOI.objects.filter(campaigns=campaign)
+
+all = []
+
+for cp in collection_periods:
+    all.extend(get_all_related_objs(cp))
+
+for doi in dois:
+    all.extend(get_all_related_objs(doi))
