@@ -7,6 +7,7 @@ from data_models.models import DOI
 from cmr.doi_matching import DoiMatcher
 from cmr.process_metadata import process_data_product
 
+
 def query_cmr_for_concept_id(concept_id):
     """Queries CMR for a specific concept_id and returns
     cmr response.
@@ -24,6 +25,7 @@ def query_cmr_for_concept_id(concept_id):
     query_response.close()
     return cmr_data
 
+
 def convert_cmr_data_to_doi_recommendation(cmr_data):
     return process_data_product(cmr_data)
 
@@ -36,7 +38,8 @@ def update_entire_database():
         doi_recommendation = convert_cmr_data_to_doi_recommendation(cmr_data[0])
         try:
             matcher.add_to_db(doi_recommendation)
-        except :
+        except:
             print(doi.concept_id)
+
 
 update_entire_database()
