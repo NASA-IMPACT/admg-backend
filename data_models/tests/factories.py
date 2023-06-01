@@ -189,21 +189,17 @@ class FocusAreaFactory(LimitedInfoPriorityBaseFactory):
 
 
 class GcmdBaseFactory(BaseFactory):
+    uuid = factory.Faker("uuid4")
     gcmd_uuid = factory.Faker("uuid4")
 
 
 class GcmdInstrumentFactory(GcmdBaseFactory):
-    description = factory.Faker("paragraph")
-    technical_contact = factory.Faker("name")
-    spatial_resolution = factory.Faker("text")
-    temporal_resolution = factory.Faker("text")
-    radiometric_frequency = factory.Faker("text")
-    gcmd_phenomena = factory.PostGeneration(
-        create_m2m_records("gcmd_phenomena", f"{__name__}.GcmdPhenomenonFactory")
-    )
-    measurement_regions = factory.PostGeneration(
-        create_m2m_records("measurement_regions", f"{__name__}.MeasurementRegionFactory")
-    )
+    short_name = factory.Faker("text", max_nb_chars=20)
+    long_name = factory.Faker("text", max_nb_chars=50)
+    instrument_category = factory.Faker("word")
+    instrument_class = factory.Faker("word")
+    instrument_type = factory.Faker("word")
+    instrument_subtype = factory.Faker("word")
 
     class Meta:
         model = models.GcmdInstrument
@@ -211,6 +207,11 @@ class GcmdInstrumentFactory(GcmdBaseFactory):
 
 class GcmdPhenomenonFactory(GcmdBaseFactory):
     category = factory.Faker("word")
+    topic = factory.Faker("word")
+    term = factory.Faker("word")
+    variable_1 = factory.Faker("word")
+    variable_2 = factory.Faker("word")
+    variable_3 = factory.Faker("word")
 
     class Meta:
         model = models.GcmdPhenomenon
@@ -218,12 +219,29 @@ class GcmdPhenomenonFactory(GcmdBaseFactory):
 
 class GcmdPlatformFactory(GcmdBaseFactory):
     basis = factory.Faker("word")
+    short_name = factory.Faker("text", max_nb_chars=20)
+    long_name = factory.Faker("text", max_nb_chars=50)
+    series_entry = factory.Faker("word")
+    category = factory.Faker("word")
+    description = factory.Faker("text", max_nb_chars=250)
+
+    # These are new attributes that the GCMD api added to Platforms.
+    # 'category' is being replaced by basis.
+    # 'series_entry' is being replaced by category and sub_category.
+    # sub_category is not being used in GCMD api. It is a column but value is given for any of the records.
+    # It is confusing because they are getting rid of 'category' but also adding 'category' and 'sub_category'
+    # so the names of the attributes might get confusing.
+    # basis = factory.Faker("word")
+    # category = factory.Faker("word")
+    # sub_category = factory.Faker("word")
 
     class Meta:
         model = models.GcmdPlatform
 
 
 class GcmdProjectFactory(GcmdBaseFactory):
+    short_name = factory.Faker("text", max_nb_chars=20)
+    long_name = factory.Faker("text", max_nb_chars=50)
     bucket = factory.Faker("word")
 
     class Meta:

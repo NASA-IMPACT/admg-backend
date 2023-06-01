@@ -11,7 +11,6 @@ from admg_webapp.users.models import User
 from api_app.models import Change, ApprovalLog
 from cmr.cmr import query_and_process_cmr
 from cmr.utils import clean_table_name, purify_list
-from data_models.models import DOI
 
 logger = logging.getLogger(__name__)
 
@@ -103,9 +102,13 @@ class DoiMatcher:
             uuid_list (list): List of strings of uuids for the valid objects from a table
         """
 
-        valid_objects = Change.objects.filter(
+        create_drafts = Change.objects.filter(
             content_type__model=table_name, action=Change.Actions.CREATE
-        ).exclude(action=Change.Actions.DELETE, status=Change.Statuses.PUBLISHED)
+        )
+        published_delete_model_instance_uuids = Change.objects.filter(
+            action=Change.Actions.DELETE, status=Change.Statuses.PUBLISHED
+        ).values_list('model_instance_uuid', flat=True)
+        valid_objects = create_drafts.exclude(uuid__in=published_delete_model_instance_uuids)
 
         if query_parameter:
             query_parameter = "update__" + query_parameter
@@ -312,6 +315,14 @@ class DoiMatcher:
             bool: True if there was a mismatch
         """
 
+        results = {}
+        for field in self.core_cmr_fields:
+            results[field] = {
+                'bool': recommendation.get(field) != recent_draft.update.get(field),
+                'values': (recommendation.get(field), recent_draft.update.get(field)),
+            }
+        json.dump(results, open(f'cmr_{recommendation["concept_id"]}.json', 'w'))
+
         return any(
             [
                 recommendation.get(field) != recent_draft.update.get(field)
@@ -319,40 +330,58 @@ class DoiMatcher:
             ]
         )
 
+    @staticmethod
+    def serialize_recommendation(doi_recommendation):
+        fields_to_convert = [
+            'cmr_short_name',
+            'cmr_entry_title',
+            'cmr_projects',
+            'cmr_dates',
+            'cmr_plats_and_insts',
+            'cmr_science_keywords',
+            'cmr_abstract',
+            'cmr_data_formats',
+        ]
+        for field in fields_to_convert:
+            doi_recommendation[field] = str(doi_recommendation[field])
+        return doi_recommendation
+
     def create_merged_draft(self, recent_draft, doi_recommendation):
         """Takes an existing doi draft and a newly generated doi_recommendation and
         returns a merged object that represents the most up-to-date data, retaining
         the originally curated fields but updating any core CMR values.
         """
-        doi_recommendation = json.loads(json.dumps(doi_recommendation))
+
         for field in self.previously_curated_fields:
-            doi_recommendation[field] = recent_draft.update[field]
+            if recent_draft.update.get(field):
+                doi_recommendation[field] = recent_draft.update[field]
 
         return doi_recommendation
 
-    def make_create_draft(self, doi_recommendation):
-        doi_obj = Change(
+    @staticmethod
+    def make_create_draft(doi_recommendation):
+        doi_obj = Change.objects.create(
             content_type=ContentType.objects.get(model="doi"),
             model_instance_uuid=None,
-            update=json.loads(json.dumps(doi_recommendation)),
+            update=doi_recommendation,
             status=Change.Statuses.CREATED,
             action=Change.Actions.CREATE,
         )
-        doi_obj.save()
         return doi_obj
 
-    def make_update_draft(self, merged_draft, linked_object):
-        doi_obj = Change(
+    @staticmethod
+    def make_update_draft(merged_draft, linked_object):
+        doi_obj = Change.objects.create(
             content_type=ContentType.objects.get(model="doi"),
             model_instance_uuid=linked_object,
-            update=json.loads(json.dumps(merged_draft)),
+            update=merged_draft,
             status=Change.Statuses.CREATED,
             action=Change.Actions.UPDATE,
         )
-        doi_obj.save()
         return doi_obj
 
-    def get_published_uuid(self, recent_draft):
+    @staticmethod
+    def get_published_uuid(recent_draft):
         if recent_draft.action == Change.Actions.UPDATE:
             return recent_draft.model_instance_uuid
         else:
@@ -373,7 +402,7 @@ class DoiMatcher:
         Returns:
             str: String indicating action taken by the function
         """
-
+        doi_recommendation = self.serialize_recommendation(doi_recommendation)
         # search db for the most recently worked on draft that matches our concept_id
         recent_draft = (
             Change.objects.filter(
@@ -400,6 +429,7 @@ class DoiMatcher:
                 # to the latest CMR metadata
                 published_uuid = self.get_published_uuid(recent_draft)
                 doi_obj = self.make_update_draft(merged, published_uuid)
+                # TODO: is there an Approval Log being created at this part?
                 doi_obj.publish(generic_admin_user, notes='CMR metadata updated')
             else:
                 # an update or create draft is in progress and recommendations are
