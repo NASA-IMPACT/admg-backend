@@ -123,5 +123,3 @@ class TestDoiGeneration(TestCase):
         assert compare_queryset_with_list(
             ascends_doi_drafts, EXPECTED_DOIS_AFTER_SECOND_AND_THIRD_RUN
         )
-
-        assert 'got to the end of doi generation' == 'no'

@@ -14,4 +14,3 @@ class TestCMRTestData:
         saved_cmr_response = json.load(open('cmr/tests/cmr_response-ASCENDS.json', 'r'))
         generated_cmr_response = generate_cmr_response('ASCENDS Airborne')
         assert saved_cmr_response == generated_cmr_response
-        assert False
