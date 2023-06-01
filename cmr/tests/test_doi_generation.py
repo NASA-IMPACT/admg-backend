@@ -79,14 +79,17 @@ def get_campaign_doi_drafts(uuid):
     return Change.objects.of_type(DOI).filter(update__contains={'campaigns': [uuid]})
 
 
-def add_dois_based_on_saved_cmr_data(saved_cmr_metadata):
+def add_dois_based_on_saved_cmr_data():
     """
     This is equivalent to running DoiMatcher().generate_recommendation('campaign', uuid) except it bypasses
     the cmr api in favor of using previously saved cmr metadata
     """
-    cmr_recommendations = DoiMatcher().supplement_metadata(saved_cmr_metadata)
-    for doi in cmr_recommendations:
-        DoiMatcher().add_to_db(doi)
+    saved_metadata_list = json.load(open('cmr/tests/cmr_response-ASCENDS.json', 'r'))
+
+    matcher = DoiMatcher()
+    supplemented_metadata_list = matcher.supplement_metadata(saved_metadata_list, False)
+    for doi in supplemented_metadata_list:
+        matcher.add_to_db(doi)
 
 
 class TestDoiGeneration(TestCase):
@@ -95,7 +98,6 @@ class TestDoiGeneration(TestCase):
         """a known database was downloaded from prod. it has a campaign who's existing DOIs will be updated, and which
         will have new dois added"""
         ascends_uuid = str(Campaign.objects.get(short_name='ASCENDS Airborne').uuid)
-        saved_cmr_metadata = json.load(open('cmr/tests/cmr_response-ASCENDS.json', 'r'))
 
         # take initial stock of what ascends dois we have in the database
         ascends_doi_drafts = get_campaign_doi_drafts(ascends_uuid)
@@ -103,7 +105,7 @@ class TestDoiGeneration(TestCase):
         assert compare_queryset_with_list(ascends_doi_drafts, EXPECTED_DOIS_IN_INITIAL_DATABASE)
 
         # Run the DOI Matcher for the first time
-        add_dois_based_on_saved_cmr_data(saved_cmr_metadata)
+        add_dois_based_on_saved_cmr_data()
         ascends_doi_drafts = get_campaign_doi_drafts(ascends_uuid)
 
         # there was a problem for a while where some drafts didn't get an updated_at
@@ -115,7 +117,7 @@ class TestDoiGeneration(TestCase):
         )
 
         # if we re-run the matcher, absolutely nothing should change
-        add_dois_based_on_saved_cmr_data(saved_cmr_metadata)
+        add_dois_based_on_saved_cmr_data()
         ascends_doi_drafts = get_campaign_doi_drafts(ascends_uuid)
 
         assert compare_queryset_with_list(
