@@ -11,7 +11,6 @@ from admg_webapp.users.models import User
 from api_app.models import Change, ApprovalLog
 from cmr.cmr import query_and_process_cmr
 from cmr.utils import clean_table_name, purify_list
-from data_models.models import DOI
 
 logger = logging.getLogger(__name__)
 
@@ -103,9 +102,13 @@ class DoiMatcher:
             uuid_list (list): List of strings of uuids for the valid objects from a table
         """
 
-        valid_objects = Change.objects.filter(
+        create_drafts = Change.objects.filter(
             content_type__model=table_name, action=Change.Actions.CREATE
-        ).exclude(action=Change.Actions.DELETE, status=Change.Statuses.PUBLISHED)
+        )
+        published_delete_model_instance_uuids = Change.objects.filter(
+            action=Change.Actions.DELETE, status=Change.Statuses.PUBLISHED
+        ).values_list('model_instance_uuid', flat=True)
+        valid_objects = create_drafts.exclude(uuid__in=published_delete_model_instance_uuids)
 
         if query_parameter:
             query_parameter = "update__" + query_parameter
@@ -357,26 +360,24 @@ class DoiMatcher:
 
     @staticmethod
     def make_create_draft(doi_recommendation):
-        doi_obj = Change(
+        doi_obj = Change.objects.create(
             content_type=ContentType.objects.get(model="doi"),
             model_instance_uuid=None,
             update=doi_recommendation,
             status=Change.Statuses.CREATED,
             action=Change.Actions.CREATE,
         )
-        doi_obj.save()
         return doi_obj
 
     @staticmethod
     def make_update_draft(merged_draft, linked_object):
-        doi_obj = Change(
+        doi_obj = Change.objects.create(
             content_type=ContentType.objects.get(model="doi"),
             model_instance_uuid=linked_object,
             update=merged_draft,
             status=Change.Statuses.CREATED,
             action=Change.Actions.UPDATE,
         )
-        doi_obj.save()
         return doi_obj
 
     @staticmethod
