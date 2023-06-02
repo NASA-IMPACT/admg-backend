@@ -367,6 +367,7 @@ class DoiMatcher:
             status=Change.Statuses.CREATED,
             action=Change.Actions.CREATE,
         )
+        doi_obj = Change.objects.get(uuid=doi_obj.uuid)
         return doi_obj
 
     @staticmethod
@@ -378,6 +379,7 @@ class DoiMatcher:
             status=Change.Statuses.CREATED,
             action=Change.Actions.UPDATE,
         )
+        doi_obj = Change.objects.get(uuid=doi_obj.uuid)
         return doi_obj
 
     @staticmethod
@@ -482,6 +484,7 @@ class DoiMatcher:
             pickle.dump(metadata_list, open(f"metadata_{uuid}", "wb"))
 
         supplemented_metadata_list = self.supplement_metadata(metadata_list, development)
+        # TODO: should this execute when not in develop mode?
         json.dump(supplemented_metadata_list, open('cmr_data.json', 'w'))
         for doi in supplemented_metadata_list:
             logger.debug(self.add_to_db(doi))
