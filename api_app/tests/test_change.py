@@ -1,13 +1,39 @@
-# to run this test file, use 'pytest -k api_app'
-
+from datetime import datetime
 import json
+from uuid import uuid4
 
 import pytest
 from django.contrib.contenttypes.models import ContentType
+from rest_framework.serializers import ValidationError
 
-from admg_webapp.users.models import ADMIN_CODE, STAFF_CODE, User
+from admg_webapp.users.models import User
+from admin_ui.tests.factories import UserFactory
 from data_models.tests import factories
+
 from ..models import ApprovalLog, Change
+
+
+class TestChangeStatic:
+    def test_get_processed_value_uuid(self):
+        """Change model fields of UUID type should serialize to a string representation."""
+        u = uuid4()
+        assert Change._get_processed_value(u) == str(u)
+
+    def test_get_processed_value_date(self):
+        """Change model fields of date or datetime type should serialize to their ISO 8601 representation."""
+        d = datetime.now()
+        assert Change._get_processed_value(d) == d.isoformat()
+        assert Change._get_processed_value(d.date()) == d.date().isoformat()
+
+    def test_get_processed_value_list(self):
+        """
+        A list of Change model fields should be serialized
+        individually and returned as a list.
+        """
+        u = uuid4()
+        d = datetime.now()
+        s = "something"
+        assert Change._get_processed_value([u, d, s]) == [str(u), d.isoformat(), s]
 
 
 @pytest.mark.django_db
@@ -22,22 +48,57 @@ class TestChange:
 
     @staticmethod
     def create_users():
-        staff_user = User.objects.create(role=STAFF_CODE, username="staff")
-        staff_user_2 = User.objects.create(role=STAFF_CODE, username="staff_2")
-        admin_user = User.objects.create(role=ADMIN_CODE, username="admin")
-        admin_user_2 = User.objects.create(role=ADMIN_CODE, username="admin_2")
+        staff_user = UserFactory(role=User.Roles.STAFF)
+        staff_user_2 = UserFactory(role=User.Roles.STAFF)
+        admin_user = UserFactory(role=User.Roles.ADMIN)
+        admin_user_2 = UserFactory(role=User.Roles.ADMIN)
         return admin_user, admin_user_2, staff_user, staff_user_2
 
     @staticmethod
-    def make_create_change_object(factory):
+    def make_create_change_object(factory, custom_fields={}):
         """make a Change.Actions.CREATE change object to use during testing"""
         content_type = ContentType.objects.get_for_model(factory._meta.model)
+
+        # _meta.fields does not contain many to many
+        model_field_names = {
+            field.name
+            for field in factory._meta.get_model_class()._meta._forward_fields_map.values()
+        }
+        overrides = {
+            field: value for field, value in custom_fields.items() if field in model_field_names
+        }
 
         return Change.objects.create(
             content_type=content_type,
             status=Change.Statuses.CREATED,
-            action="Create",
-            update=factory.as_change_dict(),
+            action=Change.Actions.CREATE,
+            update={**factory.as_change_dict(), **overrides},
+        )
+
+    @staticmethod
+    def make_update_change_object(factory, create_draft, fields_to_keep=[]):
+        """make a Change.Actions.CREATE change object to use during testing"""
+        content_type = ContentType.objects.get_for_model(factory._meta.model)
+
+        # we want the ability to keep the original's values, say short_name or concept_id
+        # models can't take any field though, so this checks that the fields are real
+        # TODO: move this to an error check?
+        model_field_names = {
+            field.name
+            for field in factory._meta.get_model_class()._meta._forward_fields_map.values()
+        }
+        overrides = {
+            field: create_draft.update[field]
+            for field in fields_to_keep
+            if field in model_field_names
+        }
+
+        return Change.objects.create(
+            content_type=content_type,
+            status=Change.Statuses.CREATED,
+            action=Change.Actions.UPDATE,
+            model_instance_uuid=create_draft.uuid,
+            update={**factory.as_change_dict(), **overrides},
         )
 
     def test_change_query_check(self, factory):
@@ -172,7 +233,8 @@ class TestChange:
         assert response["success"] is False
         assert (
             response["message"]
-            == "action failed because status was not one of ['Created', 'In Progress', 'Awaiting Review', 'In Review', 'Awaiting Admin Review', 'In Admin Review']"
+            == "action failed because status was not one of ['Created', 'In Progress', 'Awaiting"
+            " Review', 'In Review', 'Awaiting Admin Review', 'In Admin Review']"
         )
 
     def test_staff_cant_publish(self, factory):
@@ -207,13 +269,15 @@ class TestChange:
         assert response["success"] is False
         assert (
             response["message"]
-            == "action failed because status was not one of ['Awaiting Review', 'Awaiting Admin Review']"
+            == "action failed because status was not one of ['Awaiting Review', 'Awaiting Admin"
+            " Review']"
         )
         response = change.claim(admin_user)
         assert response["success"] is False
         assert (
             response["message"]
-            == "action failed because status was not one of ['Awaiting Review', 'Awaiting Admin Review']"
+            == "action failed because status was not one of ['Awaiting Review', 'Awaiting Admin"
+            " Review']"
         )
 
         change.submit(staff_user)
@@ -224,13 +288,15 @@ class TestChange:
         assert response["success"] is False
         assert (
             response["message"]
-            == "action failed because status was not one of ['Awaiting Review', 'Awaiting Admin Review']"
+            == "action failed because status was not one of ['Awaiting Review', 'Awaiting Admin"
+            " Review']"
         )
         response = change.claim(admin_user)
         assert response["success"] is False
         assert (
             response["message"]
-            == "action failed because status was not one of ['Awaiting Review', 'Awaiting Admin Review']"
+            == "action failed because status was not one of ['Awaiting Review', 'Awaiting Admin"
+            " Review']"
         )
 
         change.review(staff_user_2)
@@ -241,13 +307,15 @@ class TestChange:
         assert response["success"] is False
         assert (
             response["message"]
-            == "action failed because status was not one of ['Awaiting Review', 'Awaiting Admin Review']"
+            == "action failed because status was not one of ['Awaiting Review', 'Awaiting Admin"
+            " Review']"
         )
         response = change.claim(admin_user)
         assert response["success"] is False
         assert (
             response["message"]
-            == "action failed because status was not one of ['Awaiting Review', 'Awaiting Admin Review']"
+            == "action failed because status was not one of ['Awaiting Review', 'Awaiting Admin"
+            " Review']"
         )
 
         change.publish(admin_user)
@@ -257,13 +325,15 @@ class TestChange:
         assert response["success"] is False
         assert (
             response["message"]
-            == "action failed because status was not one of ['Awaiting Review', 'Awaiting Admin Review']"
+            == "action failed because status was not one of ['Awaiting Review', 'Awaiting Admin"
+            " Review']"
         )
         response = change.claim(admin_user)
         assert response["success"] is False
         assert (
             response["message"]
-            == "action failed because status was not one of ['Awaiting Review', 'Awaiting Admin Review']"
+            == "action failed because status was not one of ['Awaiting Review', 'Awaiting Admin"
+            " Review']"
         )
 
     def test_admin_unclaim_all(self, factory):
@@ -303,24 +373,57 @@ class TestChange:
         change.save()
         change.submit(staff_user)
         change.claim(staff_user_2)
+        assert change.status == Change.Statuses.IN_REVIEW
 
-        # test staff can't unclaim in reviewing they didnt' claim
+        # test staff can't unclaim in reviewing they didn't claim
         response = change.unclaim(staff_user)
         approval_log = change.get_latest_log()
         assert response["success"] is False
         assert change.status == Change.Statuses.IN_REVIEW
         assert approval_log.action == ApprovalLog.Actions.CLAIM
 
-        change.claim(staff_user_2)
         change.review(staff_user_2)
-        change.claim(admin_user)
+        assert change.status == Change.Statuses.AWAITING_ADMIN_REVIEW
+        assert change.get_latest_log().action == ApprovalLog.Actions.REVIEW
 
-        # test staff can unclaim an admin's IN ADMIN REVIEW
+        change.claim(admin_user)
+        assert change.status == Change.Statuses.IN_ADMIN_REVIEW
+        assert change.get_latest_log().action == ApprovalLog.Actions.CLAIM
+
+        # test staff can't unclaim an admin's IN ADMIN REVIEW
         response = change.unclaim(staff_user)
-        approval_log = change.get_latest_log()
         assert response["success"] is False
         assert change.status == Change.Statuses.IN_ADMIN_REVIEW
-        assert approval_log.action == ApprovalLog.Actions.CLAIM
+        assert change.get_latest_log().action == ApprovalLog.Actions.CLAIM
+
+    def test_unpublished_unpublished(self, factory):
+        """test that an existing, UNpublished update draft prevents the creation
+        of a second update draft which references the same data_models object"""
+        admin_user, _, _, _ = self.create_users()
+        change = self.make_create_change_object(factory)
+        change.publish(admin_user)
+
+        update = self.make_update_change_object(factory, change)
+        update.save()
+
+        with pytest.raises(ValidationError):
+            update_2 = self.make_update_change_object(factory, change)
+            update_2.save()
+
+    def test_published_unpublished(self, factory):
+        """test that an existing, published update draft does not prevent the creation
+        of a second update draft which references the same data_models object"""
+        admin_user, _, _, _ = self.create_users()
+
+        change = self.make_create_change_object(factory)
+        change.publish(admin_user)
+
+        update = self.make_update_change_object(factory, change)
+        update.save()
+        update.publish(admin_user)
+
+        update_2 = self.make_update_change_object(factory, change)
+        update_2.publish(admin_user)
 
 
 @pytest.mark.django_db

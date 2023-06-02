@@ -45,7 +45,6 @@ class DraftCampaignDoiInline(CampaignDoiInline):
         return qs
 
     def formfield_for_dbfield(self, db_field, request, **kwargs):
-
         return super().formfield_for_dbfield(db_field, request, **kwargs)
 
 

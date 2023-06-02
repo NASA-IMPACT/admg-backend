@@ -238,7 +238,6 @@ class WebsiteType(LimitedInfoPriority):
 
 
 class Alias(BaseModel):
-
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, blank=True)
     object_id = models.UUIDField()
     parent_fk = GenericForeignKey("content_type", "object_id")
@@ -277,21 +276,43 @@ class PartnerOrg(LimitedInfoPriority):
         pass
 
 
-class GcmdProject(BaseModel):
+class GcmdKeyword(BaseModel):
+    def _get_casei_model(self):
+        from kms.gcmd import keyword_to_casei_map
+
+        return keyword_to_casei_map[self.__class__.__name__.lower()]
+
+    def _get_casei_attribute(self):
+        from kms.gcmd import keyword_casei_attribute_map
+
+        return keyword_casei_attribute_map[self.__class__.__name__.lower()]
+
+    casei_model = property(_get_casei_model)
+    # Attribute on CASEI model where GCMD relationships are stored.
+    # Example: Instrument.gcmd_instruments, Instrument.gcmd_phenomenon, Proejct.gcmd_projects
+    casei_attribute = property(_get_casei_attribute)
+
+    class Meta:
+        abstract = True
+
+
+class GcmdProject(GcmdKeyword):
     short_name = models.CharField(max_length=256, blank=True, default="")
     long_name = models.CharField(max_length=512, blank=True, default="")
     bucket = models.CharField(max_length=256)
     gcmd_uuid = models.UUIDField(unique=True)
+    gcmd_path = ["bucket", "short_name", "long_name"]
 
     def __str__(self):
         categories = (self.short_name, self.long_name)
         return create_gcmd_str(categories)
 
     class Meta:
+        verbose_name = "GCMD Project"
         ordering = ("short_name",)
 
 
-class GcmdInstrument(BaseModel):
+class GcmdInstrument(GcmdKeyword):
     short_name = models.CharField(max_length=256, blank=True, default="")
     long_name = models.CharField(max_length=512, blank=True, default="")
     # these make more sense without 'instrument', however class and type are
@@ -301,6 +322,14 @@ class GcmdInstrument(BaseModel):
     instrument_type = models.CharField(max_length=256, blank=True, default="")
     instrument_subtype = models.CharField(max_length=256, blank=True, default="")
     gcmd_uuid = models.UUIDField(unique=True)
+    gcmd_path = [
+        "instrument_category",
+        "instrument_class",
+        "instrument_type",
+        "instrument_subtype",
+        "short_name",
+        "long_name",
+    ]
 
     def __str__(self):
         categories = (
@@ -314,26 +343,30 @@ class GcmdInstrument(BaseModel):
         return create_gcmd_str(categories)
 
     class Meta:
+        verbose_name = "GCMD Instrument"
         ordering = ("short_name",)
 
 
-class GcmdPlatform(BaseModel):
+class GcmdPlatform(GcmdKeyword):
     short_name = models.CharField(max_length=256, blank=True, default="")
     long_name = models.CharField(max_length=512, blank=True, default="")
-    category = models.CharField(max_length=256)
-    series_entry = models.CharField(max_length=256, blank=True, default="")
+    basis = models.CharField(max_length=256)
+    category = models.CharField(max_length=256, blank=True, default="")
+    subcategory = models.CharField(max_length=256, blank=True, default="")
     description = models.TextField(blank=True, default="")
     gcmd_uuid = models.UUIDField(unique=True)
+    gcmd_path = ["basis", "category", "subcategory", "short_name", "long_name"]
 
     def __str__(self):
         categories = (self.category, self.long_name, self.short_name)
         return create_gcmd_str(categories)
 
     class Meta:
+        verbose_name = "GCMD Platform"
         ordering = ("short_name",)
 
 
-class GcmdPhenomenon(BaseModel):
+class GcmdPhenomenon(GcmdKeyword):
     category = models.CharField(max_length=256)
     topic = models.CharField(max_length=256, blank=True, default="")
     term = models.CharField(max_length=256, blank=True, default="")
@@ -341,6 +374,7 @@ class GcmdPhenomenon(BaseModel):
     variable_2 = models.CharField(max_length=256, blank=True, default="")
     variable_3 = models.CharField(max_length=256, blank=True, default="")
     gcmd_uuid = models.UUIDField(unique=True)
+    gcmd_path = ["category", "topic", "term", "variable_1", "variable_2", "variable_3"]
 
     @staticmethod
     def search_fields():
@@ -409,11 +443,6 @@ class Campaign(DataModel):
 
     region_description = models.TextField(
         help_text="Free text words identifying the region/domain for the campaign"
-    )
-    spatial_bounds = geomodels.PolygonField(
-        blank=True,
-        null=True,
-        help_text="Latitude & Longitude for domain bounding box; enter as N, S, E, W",
     )
     seasons = models.ManyToManyField(
         Season,
@@ -578,7 +607,6 @@ class Campaign(DataModel):
 
 
 class Platform(DataModel):
-
     platform_type = models.ForeignKey(
         PlatformType,
         on_delete=models.SET_NULL,
@@ -767,13 +795,6 @@ class Instrument(DataModel):
     repositories = models.ManyToManyField(
         Repository, related_name="instruments", default="", blank=True
     )
-    additional_metadata = models.JSONField(
-        default=None,
-        blank=True,
-        null=True,
-        verbose_name="Additional Metadata",
-        help_text="An open item for potential extra metadata element(s)",
-    )
 
     @property
     def campaigns(self):
@@ -820,7 +841,6 @@ class Deployment(DataModel):
 
 
 class IopSe(BaseModel):
-
     deployment = models.ForeignKey(
         Deployment,
         on_delete=models.CASCADE,
@@ -878,7 +898,6 @@ class IOP(IopSe):
 
 
 class SignificantEvent(IopSe):
-
     deployment = models.ForeignKey(
         Deployment,
         on_delete=models.CASCADE,
@@ -903,7 +922,6 @@ class SignificantEvent(IopSe):
 
 
 class CollectionPeriod(BaseModel):
-
     deployment = models.ForeignKey(
         Deployment, on_delete=models.CASCADE, related_name="collection_periods"
     )
@@ -987,12 +1005,12 @@ class DOI(BaseModel):
 
     cmr_short_name = models.CharField(max_length=512, blank=True, default="")
     cmr_entry_title = models.TextField(blank=True, default="")
-    cmr_projects = models.JSONField(default=None, blank=True, null=True)
-    cmr_dates = models.JSONField(default=None, blank=True, null=True)
-    cmr_plats_and_insts = models.JSONField(default=None, blank=True, null=True)
-    cmr_science_keywords = models.JSONField(default=None, blank=True, null=True)
+    cmr_projects = models.TextField(default=None, blank=True, null=True)
+    cmr_dates = models.TextField(default=None, blank=True, null=True)
+    cmr_plats_and_insts = models.TextField(default=None, blank=True, null=True)
+    cmr_science_keywords = models.TextField(default=None, blank=True, null=True)
     cmr_abstract = models.TextField(blank=True, default="")
-    cmr_data_formats = models.JSONField(default=None, blank=True, null=True)
+    cmr_data_formats = models.TextField(default=None, blank=True, null=True)
 
     date_queried = models.DateTimeField()
 

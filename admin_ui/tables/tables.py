@@ -6,7 +6,13 @@ from django_tables2 import A
 import django_tables2 as tables
 
 from api_app.models import Change
-from data_models.models import Campaign, Deployment, Instrument, Platform, WebsiteType
+from data_models.models import (
+    Campaign,
+    Deployment,
+    Instrument,
+    Platform,
+    WebsiteType,
+)
 
 
 class ConditionalValueColumn(tables.Column):
@@ -89,7 +95,6 @@ class ShortNamefromUUIDColumn(ConditionalValueColumn):
             return False
 
     def get_short_name(self, potential_uuid):
-
         if not self.is_uuid(potential_uuid) or not self.model:
             return potential_uuid
 
@@ -295,7 +300,6 @@ class DOIChangeListTable(DraftTableBase):
 
 
 class DeploymentChangeListTable(LimitedTableBase):
-
     campaign = ShortNamefromUUIDColumn(
         verbose_name="Campaign",
         model=Campaign,
@@ -324,7 +328,6 @@ class DeploymentChangeListTable(LimitedTableBase):
 
 
 class PlatformTypeChangeListTable(LimitedTableBase):
-
     parent = ConditionalValueColumn(
         verbose_name="Parent", accessor="update__parent", update_accessor="content_object.parent"
     )
@@ -476,7 +479,8 @@ class CampaignChangeListTable(LimitedTableBase):
 
     def render_short_name(self, value, record):
         return format_html(
-            '<a href="{form_url}">{label}</a> <a href="{dashboard_url}" class="font-italic small">(dashboard)</a>',
+            '<a href="{form_url}">{label}</a> <a href="{dashboard_url}" class="font-italic'
+            ' small">(dashboard)</a>',
             form_url=reverse('change-update', args=[record.uuid]),
             label=record.update.get('short_name') or '---',
             dashboard_url=reverse('campaign-detail', args=[record.uuid]),
@@ -516,7 +520,7 @@ class ChangeSummaryTable(DraftTableBase):
     content_type__model = tables.Column(
         verbose_name="Model Type", accessor="model_name", order_by="content_type__model"
     )
-    updated_at = tables.DateTimeColumn(verbose_name="Last Edit Date")
+    updated_at = tables.DateTimeColumn(verbose_name="Last Edit Date", accessor="updated_at")
     status = tables.Column(verbose_name="Status", accessor="status")
 
     class Meta:
@@ -698,6 +702,71 @@ class GcmdPhenomenonChangeListTable(DraftTableBase):
             "topic",
             "category",
         ) + DraftTableBase.final_fields
+        fields = list(all_fields)
+        sequence = all_fields
+
+
+class AffectedRecordValueColumn(tables.Column):
+    def __init__(self, resolved_accessor=None, **kwargs):
+        super().__init__(**kwargs)
+        self.resolved_accessor = resolved_accessor
+
+    def render(self, **kwargs):
+        total_records = kwargs.get("value")
+        resolved_records = A(self.resolved_accessor).resolve(kwargs.get("record"))
+
+        return f"{resolved_records} of {total_records} resolved"
+
+
+class GcmdSyncListTable(DraftTableBase):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    short_name = ConditionalValueColumn(
+        verbose_name="GCMD Keyword",
+        accessor="short_name",
+        update_accessor="content_object.short_name",
+        linkify=("change-gcmd", [tables.A("uuid")]),
+    )
+    category = ConditionalValueColumn(
+        verbose_name="Category",
+        accessor="content_type__model",
+        update_accessor="content_type__model",
+    )
+    draft_action = ConditionalValueColumn(
+        verbose_name="Type of Change",
+        accessor="action",
+        update_accessor="action",
+    )
+    status = ConditionalValueColumn(
+        verbose_name="Status",
+        accessor="status",
+        update_accessor="status",
+    )
+    affected_records = AffectedRecordValueColumn(
+        verbose_name="Affected Records",
+        accessor="affected_records",
+        resolved_accessor="resolved_records",
+    )
+
+    def render_category(self, value, record):
+        if value == "gcmdproject":
+            return "Project"
+        if value == "gcmdinstrument":
+            return "Instrument"
+        if value == "gcmdplatform":
+            return "Platform"
+        if value == "gcmdphenomenon":
+            return "Earth Science"
+
+    class Meta(DraftTableBase.Meta):
+        all_fields = (
+            "short_name",
+            "category",
+            "draft_action",
+            "status",
+            "affected_records",
+        )
         fields = list(all_fields)
         sequence = all_fields
 

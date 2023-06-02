@@ -7,25 +7,26 @@ services:
       dockerfile: Dockerfile.local
     command: python manage.py runserver 0.0.0.0:8001
     volumes:
-      - .:/code
+      - .:/home/app/web
     ports:
+      - 5678:5678
       - 8001:8001 # mapped to 8001 to prevent clashes with local django instances
-      - 8890:8888 # allows use of django shell notebooks during local development
     env_file:
       - ./.env
     environment:
       - MIGRATE=true
     depends_on:
       - db
-
   db:
-    image: postgis/postgis
+    image: postgis/postgis:12-3.3
     volumes:
       - postgres_data:/var/lib/postgresql/data
     environment:
       - POSTGRES_USER=user
       - POSTGRES_PASSWORD=password
       - POSTGRES_DB=admg_webapp
+    ports:
+      - 5432:5439
 
   rabbitmq:
     container_name: rabbitmq
@@ -36,14 +37,14 @@ services:
     restart: on-failure
 
   celery_worker:
-    command: celery -A config worker -l info
-    container_name: celery_worker
-    hostname: celery_worker
     build:
       context: ./
       dockerfile: Dockerfile.local
+    command: celery -A config worker -l info
+    container_name: celery_worker
+    hostname: celery_worker
     volumes:
-      - .:/code
+      - .:/home/app/web
     restart: on-failure
     env_file:
       - ./.env

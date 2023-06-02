@@ -13,7 +13,6 @@ def convert_data_format_to_json(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [('data_models', '0048_convert_draft_phenomenas_previous')]
 
     operations = [

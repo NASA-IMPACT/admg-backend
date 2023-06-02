@@ -18,6 +18,8 @@ jobs:
       DJANGO_SECRET_KEY: "secret key here"
       DJANGO_ADMIN_URL: admg/
       GH_TOKEN: faketokenhere
+      GCMD_SYNC_SOURCE_EMAIL: gcmdadmg@localhost
+      GCMD_SYNC_RECIPIENTS: gcmd@localhost
 
     services:
       postgres:
@@ -52,11 +54,13 @@ jobs:
           sudo apt-get install libgdal-dev
 
       - uses: actions/cache@v2
+        id: cache-dependencies
         with:
           path: ${{ env.pythonLocation }}
           key: ${{ env.pythonLocation }}-${{ hashFiles('requirements/base.txt') }}-${{ hashFiles('requirements/local.txt') }}
 
       - name: Install Dependencies
+        if: steps.cache-dependencies.outputs.cache-hit != 'true'
         run: |
           pip install \
             --upgrade \
@@ -70,4 +74,58 @@ jobs:
 
       - name: Run Tests
         run: |
-          pytest
+          coverage run -m pytest
+          coverage report -m --skip-covered
+          coverage json -o coverage.json
+
+      - name: Save Code Coverage
+        uses: actions/upload-artifact@v2
+        with:
+          name: code_coverage
+          path: coverage.json
+
+  compare-coverage:
+    runs-on: ubuntu-latest
+    needs: test
+    if: ${{ github.ref_name != 'dev'}}
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Get Commit Coverage
+        uses: actions/download-artifact@v3
+        with:
+          name: code_coverage
+          path: new_cov
+
+      - name: Get Dev Coverage
+        uses: dawidd6/action-download-artifact@v2
+        with:
+          branch: dev
+          name: code_coverage
+          path: dev_cov
+          if_no_artifact_found: fail
+
+      - name: Calculate Coverage
+        id: calculate_coverage
+        run: |
+          new_cov=$(cat ./new_cov/coverage.json)
+          echo "new_cov=${new_cov//'%'/'%25'}" >> $GITHUB_OUTPUT
+          dev_cov=$(cat ./dev_cov/coverage.json)
+          echo "dev_cov=${dev_cov//'%'/'%25'}" >> $GITHUB_OUTPUT
+
+      - name: Compare Coverage
+        id: compare_coverage
+        run: |
+          dev_total="${{fromJson(steps.calculate_coverage.outputs.dev_cov).totals.percent_covered}}"
+          new_total="${{fromJson(steps.calculate_coverage.outputs.new_cov).totals.percent_covered}}"
+          (( $(echo "$new_total < $dev_total" | bc -l) )) && result=failure || result=success
+          echo "result=${result}" >> $GITHUB_OUTPUT
+          echo "Coverage comparison: $result"
+
+      - name: Report result
+        if: ${{steps.compare_coverage.outputs.result=='failure'}}
+        uses: actions/github-script@v3
+        with:
+          script: |
+            core.setFailed('Test coverage on source branch is lower than on dev branch')
