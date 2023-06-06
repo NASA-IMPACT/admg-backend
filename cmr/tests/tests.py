@@ -17,12 +17,35 @@
 # import json
 # from cmr.tests.generate_cmr_test_data import generate_cmr_response
 # from data_models.models import Campaign
+# import pytest
+
+# from django.contrib.contenttypes.models import ContentType
+# from admg_webapp.users.tests.factories import UserFactory
+# from data_models.tests.factories import (
+#     InstrumentFactory,
+#     PlatformFactory,
+#     CampaignFactory,
+#     DeploymentFactory,
+#     CollectionPeriodFactory,
+# )
+# from data_models.models import Instrument, Platform, Campaign, Deployment, CollectionPeriod, DOI
+
+# from api_app.models import Change
+# from cmr.doi_matching import DoiMatcher
+# import json
+# from cmr.tests.generate_cmr_test_data import generate_cmr_response
 
 
 # class TestMyModel:
 #     @pytest.mark.usefixtures('load_test_data')
 #     def test_my_model_method(self):
 # assert False
+# assert Campaign.objects.count() == 97
+# assert True
+# class TestMyModel:
+#     # @pytest.mark.usefixtures('load_test_data')
+#     def test_my_model_method(self):
+#         assert False
 # assert Campaign.objects.count() == 97
 # assert True
 

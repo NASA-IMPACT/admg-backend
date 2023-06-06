@@ -445,28 +445,29 @@ class Change(models.Model):
             )
         return False
 
-    def save(self, *args, post_save=False, **kwargs):
+    def save(self, *args, post_save=False, check_status=True, **kwargs):
         # do not check for validity of model_name and uuid if it has been approved or rejected.
         # Check is done for the first time only
         # post_save=False prevents self.previous from being set
         if not post_save:
             self._check_model_and_uuid()
 
-        # change object was freshly created and has no logs
-        if not ApprovalLog.objects.filter(change=self).exists():
-            self.status = self.Statuses.CREATED
-            # the post_save function handles the creation of the approval log
-        # should only log changes made to the draft while in progress
-        elif self.status == self.Statuses.CREATED:
-            self.status = self.Statuses.IN_PROGRESS
+        if check_status:
+            # change object was freshly created and has no logs
+            if not ApprovalLog.objects.filter(change=self).exists():
+                self.status = self.Statuses.CREATED
+                # the post_save function handles the creation of the approval log
+            # should only log changes made to the draft while in progress
+            elif self.status == self.Statuses.CREATED:
+                self.status = self.Statuses.IN_PROGRESS
 
-        if not self.field_status_tracking:
-            self.generate_field_status_tracking_dict()
+            if not self.field_status_tracking:
+                self.generate_field_status_tracking_dict()
 
-        if self.check_prior_unpublished_update_exists():
-            raise ValidationError(
-                {"model_instance_uuid": "Unpublished draft already exists for this model uuid."}
-            )
+            if self.check_prior_unpublished_update_exists():
+                raise ValidationError(
+                    {"model_instance_uuid": "Unpublished draft already exists for this model uuid."}
+                )
 
         return super().save(*args, **kwargs)
 
@@ -843,10 +844,13 @@ def set_change_updated_at(sender, instance, **kwargs):
     Set `updated_at` on the related Change object to the value of
     the ApprovalLog's `date` field.
     """
-    try:
-        Change.objects.filter(pk=instance.change.pk).update(updated_at=instance.date)
-    except Change.DoesNotExist:
-        pass
+    with temp_disconnect_signal(post_save, create_approval_log_dispatcher, Change, "save"):
+        try:
+            if instance.change:  # Check if the 'change' field exists
+                instance.change.updated_at = instance.date
+                instance.change.save(check_status=False)
+        except Change.DoesNotExist:
+            pass
 
 
 class Recommendation(models.Model):
