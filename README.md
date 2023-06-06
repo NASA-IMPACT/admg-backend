@@ -89,7 +89,6 @@ axios(config)
 - Run docker-compose with docker-compose.local.yml instead of docker-compose.yml
   - `docker-compose -f docker-compose.local.yml up`
 
-
 ## Running Tests
 
 `docker-compose -f docker-compose.local.yml run web python manage.py test`
@@ -106,8 +105,7 @@ Generate coverage report:
 
 If you want to view coverage in your editor using, for example, VSCode's Coverage Gutters plugin, export the coverage report to a supported format:
 
-`docker-compose -f docker-compose.local.yml run web coverage xml -o coverage.xml`
-
+`docker-compose -f docker-compose.local.yml run web coverage lcov -o coverage.lcov`
 
 ## Sass
 
@@ -154,9 +152,9 @@ python manage.py sass admin_ui/static/scss admin_ui/static/css --watch
 5.  Start postgres
 
     To get a path that you can use to start Postgres:
-    
+
     ```
-    brew info posgresql 
+    brew info posgresql
     ```
 
     (It will probably look something like `pg_ctl -D /usr/local/var postgres start`)

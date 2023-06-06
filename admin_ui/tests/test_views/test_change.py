@@ -5,16 +5,15 @@ from django.urls import reverse
 from admg_webapp.users.models import User
 from admin_ui.views.change import CampaignDetailView
 from api_app.models import Change
-from api_app.tests.test_change import TestChange
 from data_models.models import Campaign, Season
 
-from . import factories
+from admin_ui.tests import factories
 from data_models.tests.factories import CampaignFactory
 
 
 class TestChangeUpdateView(TestCase):
     def setUp(self):
-        self.change = TestChange.make_create_change_object(CampaignFactory)
+        self.change = factories.ChangeFactory.make_create_change_object(CampaignFactory)
         self.user = factories.UserFactory.create()
         self.url = reverse("change-update", args=(self.change.uuid,))
 
@@ -80,7 +79,7 @@ class TestCampaignDetailView(TestCase):
     def setUp(self):
         # admin is needed to force publish without the intervening steps
         self.user = factories.UserFactory.create(role=User.Roles.ADMIN)
-        self.create_change = TestChange.make_create_change_object(CampaignFactory)
+        self.create_change = factories.ChangeFactory.make_create_change_object(CampaignFactory)
         self.create_change.publish(self.user)
 
         self.update_changes = []
@@ -110,7 +109,7 @@ class TestCampaignDetailView(TestCase):
         method should return the latest Change object for each Campaign.
         """
 
-        create_change = TestChange.make_create_change_object(CampaignFactory)
+        create_change = factories.ChangeFactory.make_create_change_object(CampaignFactory)
         create_change.publish(self.user)
 
         update_changes = []

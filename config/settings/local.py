@@ -80,7 +80,10 @@ if os.name == "nt":
 # everything below this line is required to get shell_plus --notebook to work from within a docker container
 SHELL_PLUS = "ipython"
 
-SHELL_PLUS_PRINT_SQL = True
+SHELL_PLUS_PRINT_SQL = env(
+    "SHELL_PLUS_PRINT_SQL",
+    default=True,
+)
 
 NOTEBOOK_ARGUMENTS = [
     # "--ip",

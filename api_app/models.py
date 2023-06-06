@@ -14,6 +14,7 @@ from rest_framework.response import Response
 from rest_framework.serializers import ValidationError
 
 from admg_webapp.users.models import User
+from api_app.signals import temp_disconnect_signal
 from data_models import serializers
 
 
@@ -232,7 +233,8 @@ class Change(models.Model):
         IN_PROGRESS = 1, "In Progress"
         # The change has been added to the review pile, but hasn't been claimed
         AWAITING_REVIEW = 2, "Awaiting Review"
-        # The change as been claimed, and can now be can now be reviewed or rejected. Rejection sends it back to the in_progress state
+        # The change as been claimed, and can now be can now be reviewed or rejected.
+        # Rejection sends it back to the in_progress state
         IN_REVIEW = 3, "In Review"
         # The change has been added to the admin review pile, but hasn't been claimed
         AWAITING_ADMIN_REVIEW = 4, "Awaiting Admin Review"
@@ -445,28 +447,29 @@ class Change(models.Model):
             )
         return False
 
-    def save(self, *args, post_save=False, **kwargs):
+    def save(self, *args, post_save=False, check_status=True, **kwargs):
         # do not check for validity of model_name and uuid if it has been approved or rejected.
         # Check is done for the first time only
         # post_save=False prevents self.previous from being set
         if not post_save:
             self._check_model_and_uuid()
 
-        # change object was freshly created and has no logs
-        if not ApprovalLog.objects.filter(change=self).exists():
-            self.status = self.Statuses.CREATED
-            # the post_save function handles the creation of the approval log
-        # should only log changes made to the draft while in progress
-        elif self.status == self.Statuses.CREATED:
-            self.status = self.Statuses.IN_PROGRESS
+        if check_status:
+            # change object was freshly created and has no logs
+            if not ApprovalLog.objects.filter(change=self).exists():
+                self.status = self.Statuses.CREATED
+                # the post_save function handles the creation of the approval log
+            # should only log changes made to the draft while in progress
+            elif self.status == self.Statuses.CREATED:
+                self.status = self.Statuses.IN_PROGRESS
 
-        if not self.field_status_tracking:
-            self.generate_field_status_tracking_dict()
+            if not self.field_status_tracking:
+                self.generate_field_status_tracking_dict()
 
-        if self.check_prior_unpublished_update_exists():
-            raise ValidationError(
-                {"model_instance_uuid": "Unpublished draft already exists for this model uuid."}
-            )
+            if self.check_prior_unpublished_update_exists():
+                raise ValidationError(
+                    {"model_instance_uuid": "Unpublished draft already exists for this model uuid."}
+                )
 
         return super().save(*args, **kwargs)
 
@@ -843,7 +846,13 @@ def set_change_updated_at(sender, instance, **kwargs):
     Set `updated_at` on the related Change object to the value of
     the ApprovalLog's `date` field.
     """
-    Change.objects.filter(pk=instance.change.pk).update(updated_at=instance.date)
+    with temp_disconnect_signal(post_save, create_approval_log_dispatcher, Change, "save"):
+        try:
+            if instance.change:  # Check if the 'change' field exists
+                instance.change.updated_at = instance.date
+                instance.change.save(check_status=False)
+        except Change.DoesNotExist:
+            pass
 
 
 class Recommendation(models.Model):
