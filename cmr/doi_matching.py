@@ -482,7 +482,6 @@ class DoiMatcher:
             pickle.dump(metadata_list, open(f"metadata_{uuid}", "wb"))
 
         supplemented_metadata_list = self.supplement_metadata(metadata_list, development)
-        json.dump(supplemented_metadata_list, open('cmr_data.json', 'w'))
         for doi in supplemented_metadata_list:
             logger.debug(self.add_to_db(doi))
 
