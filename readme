@@ -1,0 +1,32 @@
+# ADMG backend Github Readme File - draft
+
+## Scope
+The scope of this document is to introduce The Catalog of Archived Suborbital Earth Science Investigations architecture. It is meant to be a guided roadmap for developers and backend users. Inside the readme file, users are able to find links to code documentation, the API, how to install the repo, testing, and useful diagrams. 
+
+## What is CASEI?
+Link the casei_overview file inside the documentation folder
+
+## Using the API
+Link to api_doc file inside the documentation folder
+
+## Running the Project
+Link to project_installation inside the documentation folder
+
+# Data Models
+Link to data_models inside the documentation folder
+
+# Change Objects
+Link to change_objects inside the documentation folder
+
+# Curator Interface
+Link to curator_interface inside the documentation folder
+
+# CMR Recommender
+Link to cmr_recommender inside the documentation folder
+
+# GCMD Sync
+Link to gcmd_sync inside the documentation folder
+
+## Running Tests
+Link to running_tests inside the documentation folder
+
