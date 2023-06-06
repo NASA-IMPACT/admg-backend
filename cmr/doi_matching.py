@@ -367,6 +367,7 @@ class DoiMatcher:
             status=Change.Statuses.CREATED,
             action=Change.Actions.CREATE,
         )
+        doi_obj = Change.objects.get(uuid=doi_obj.uuid)
         return doi_obj
 
     @staticmethod
@@ -378,6 +379,7 @@ class DoiMatcher:
             status=Change.Statuses.CREATED,
             action=Change.Actions.UPDATE,
         )
+        doi_obj = Change.objects.get(uuid=doi_obj.uuid)
         return doi_obj
 
     @staticmethod
