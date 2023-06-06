@@ -5,7 +5,6 @@ from crum import get_current_user
 from django.apps import apps
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
-from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from django.db.models import expressions, functions, Subquery
 from django.db.models.fields.json import KeyTextTransform
