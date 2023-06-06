@@ -212,6 +212,10 @@ class ChangeQuerySet(models.QuerySet):
 
 
 class Change(models.Model):
+    # this field is updated by the manage.py loaddata command and allows us to skip certain tests
+    # which would fail due to the ordering of a dumpdata output.
+    loading_data = False
+
     # use these field values when assigning the field status in the field_status_tracking dict
     FIELD_UNVIEWED = 1
     FIELD_INCORRECT = 2
@@ -451,7 +455,7 @@ class Change(models.Model):
         # do not check for validity of model_name and uuid if it has been approved or rejected.
         # Check is done for the first time only
         # post_save=False prevents self.previous from being set
-        if not post_save:
+        if not post_save and not self.loading_data:
             self._check_model_and_uuid()
 
         if check_status:
