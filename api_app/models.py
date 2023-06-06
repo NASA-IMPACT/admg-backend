@@ -430,7 +430,7 @@ class Change(models.Model):
         )
 
     def check_prior_unpublished_update_delete_exists(self):
-        """This checks to see there is an existing Update draft or Delete draft bwhich has not yet been published
+        """This checks to see there is an existing Update draft or Delete draft which has not yet been published
         and links to the same data_model as the current proposed draft. The intention is to allow
         a check to prevent two simultaneous update drafts
 
