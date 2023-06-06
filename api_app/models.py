@@ -847,7 +847,7 @@ def set_change_updated_at(sender, instance, **kwargs):
     try:
         if instance.change:  # Check if the 'change' field exists
             Change.objects.filter(pk=instance.change.pk).update(updated_at=instance.date)
-    except ObjectDoesNotExist:
+    except Change.DoesNotExist:
         pass  # This allows the loaddata to run successfully
 
 
