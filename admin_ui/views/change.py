@@ -144,7 +144,9 @@ class CampaignDetailView(NotificationSidebar, DetailView):
 
         collection_periods = CampaignDetailView._filter_latest_changes(
             Change.objects.of_type(CollectionPeriod)
-            .filter(update__deployment__in=[str(d.model_instance_uuid) for d in deployments])
+            .filter(
+                update__deployment__in=[str(d.model_instance_uuid or d.uuid) for d in deployments]
+            )
             .select_related("content_type")
             .prefetch_approvals()
             .annotate_from_relationship(
@@ -179,13 +181,21 @@ class CampaignDetailView(NotificationSidebar, DetailView):
             ),
             "significant_events": CampaignDetailView._filter_latest_changes(
                 Change.objects.of_type(SignificantEvent)
-                .filter(update__deployment__in=[str(d.model_instance_uuid) for d in deployments])
+                .filter(
+                    update__deployment__in=[
+                        str(d.model_instance_uuid or d.uuid) for d in deployments
+                    ]
+                )
                 .select_related("content_type")
                 .prefetch_approvals()
             ),
             "iops": CampaignDetailView._filter_latest_changes(
                 Change.objects.of_type(IOP)
-                .filter(update__deployment__in=[str(d.model_instance_uuid) for d in deployments])
+                .filter(
+                    update__deployment__in=[
+                        str(d.model_instance_uuid or d.uuid) for d in deployments
+                    ]
+                )
                 .select_related("content_type")
                 .prefetch_approvals()
             ),
