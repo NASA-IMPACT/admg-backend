@@ -5,7 +5,7 @@ import django_tables2
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.contenttypes.models import ContentType
-from django.db.models import CharField, Count, OuterRef, Q, Value, aggregates, functions
+from django.db.models import Case, CharField, Count, OuterRef, Q, Value, When, aggregates, functions
 from django.db.models.fields.json import KeyTextTransform
 from django.http import Http404, HttpResponseBadRequest, HttpResponseRedirect
 from django.urls import reverse
@@ -125,9 +125,17 @@ class CampaignDetailView(NotificationSidebar, DetailView):
     @staticmethod
     def _filter_latest_changes(change_queryset):
         """Returns the single latest Change draft for each model_instance_uuid in the
-        provided queryset."""
-        return change_queryset.order_by('model_instance_uuid', '-approvallog__date').distinct(
-            'model_instance_uuid'
+        provided queryset or uuid if the Change is a create draft and has not been
+        published."""
+        return (
+            change_queryset.annotate(
+                canonical_uuid=Case(
+                    When(model_instance_uuid__isnull=True, then='uuid'),
+                    When(model_instance_uuid__isnull=False, then='model_instance_uuid'),
+                )
+            )
+            .order_by("canonical_uuid", "-approvallog__date")
+            .distinct("canonical_uuid")
         )
 
     def get_context_data(self, **kwargs):
@@ -428,8 +436,10 @@ class ChangeTransition(NotificationSidebar, FormMixin, ProcessFormView, DetailVi
             obj = self.get_object()
             messages.success(
                 self.request,
-                f"Transitioned \"{obj.model_name}: {obj.update.get('short_name', obj.uuid)}\" "
-                f"to \"{obj.get_status_display()}\".",
+                (
+                    f"Transitioned \"{obj.model_name}: {obj.update.get('short_name', obj.uuid)}\" "
+                    f"to \"{obj.get_status_display()}\"."
+                ),
             )
 
         return super().form_valid(form)
