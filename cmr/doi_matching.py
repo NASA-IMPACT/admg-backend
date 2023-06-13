@@ -346,6 +346,26 @@ class DoiMatcher:
             doi_recommendation[field] = str(doi_recommendation[field])
         return doi_recommendation
 
+    def _convert_field_name_to_model(field_name):
+        """
+        takes a field name such as `campaigns` or `collection_periods` and turns it into a model
+        such as Campaign or CollectionPeriod
+        """
+
+        # depluralize the field name
+        field_name = field_name[:-1] if field_name.endswith('s') else field_name
+        model_name = field_name.replace("_", "")
+
+        return apps.get_model("data_models", model_name)
+
+    def _linked_object_exists(self, field_name, uuid):
+        """
+        searches a model for a uuid to confirm whether it exists
+        this allows us to refrain from adding deleted objects to update drafts
+        """
+        model = self._convert_field_name_to_model(field_name)
+        return bool(model.objects.filter(uuid=uuid).count())
+
     def create_merged_draft(self, recent_draft, doi_recommendation):
         """Takes an existing doi draft and a newly generated doi_recommendation and
         returns a merged object that represents the most up-to-date data, retaining
@@ -353,10 +373,23 @@ class DoiMatcher:
         """
 
         for field in self.previously_curated_fields:
-            if recent_draft.update.get(field):
-                doi_recommendation[field] = recent_draft.update[field]
+            field_value = recent_draft.update.get(field)
+            if not field_value:
+                continue
 
-        return doi_recommendation
+            if field in [
+                'campaigns',
+                'instruments',
+                'platforms',
+                'collection_periods',
+            ] and not self._linked_object_exists(field, recent_draft.uuid):
+                continue
+
+            # recommendations have fields updated/added only if they
+            # exist in the prior draft
+            # in the case of linked fields, still exist in the proper database
+
+            doi_recommendation[field] = field_value
 
     @staticmethod
     def make_create_draft(doi_recommendation):
