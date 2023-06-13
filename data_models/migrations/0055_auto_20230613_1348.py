@@ -12,8 +12,9 @@ fields_to_convert = [
     "cmr_dates",
     "cmr_plats_and_insts",
     "cmr_science_keywords",
-    "cmr_data_formats"
+    "cmr_data_formats",
 ]
+
 
 def convert_cmr_data_to_json(apps, schema_editor):
     DOI = apps.get_model("data_models", "DOI")
@@ -23,29 +24,26 @@ def convert_cmr_data_to_json(apps, schema_editor):
         for field in fields_to_convert:
             logger.info(f"Converting {field} on {doi.uuid} to JSON")
             d = getattr(doi, field)
-            if d is None or d=="":
+            if d is None or d == "":
                 logger.info(f"Field {field} is empty, setting to null")
                 json_data = "null"
             else:
                 try:
                     json_data = json.loads(d)
                 except json.decoder.JSONDecodeError:
-                    logger.info(f"Failed to parse JSON, attempting to convert to JSON from serialized python object {d}")
+                    logger.info(
+                        f"Failed to parse JSON, attempting to convert to JSON from serialized python object {d}"
+                    )
                     json_data = ast.literal_eval(d)
             setattr(doi, field, json.dumps(json_data))
         doi.save()
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('data_models', '0054_remove_instrument_additional_metadata'),
     ]
 
     operations = [
-        migrations.RunPython(
-            convert_cmr_data_to_json, reverse_code=migrations.RunPython.noop
-        )
-
+        migrations.RunPython(convert_cmr_data_to_json, reverse_code=migrations.RunPython.noop)
     ]
-
