@@ -14,7 +14,6 @@ class UnpublishedListCreateAPIView(GetPermissionsMixin, ListCreateAPIView):
     """
 
     parser_class = (MultiPartParser,)
-    # filter(Q(income__gte=5000) | Q(income__isnull=True))
     queryset = Change.objects.filter(
         status=Change.Statuses.IN_ADMIN_REVIEW, action=Change.Actions.CREATE
     )
