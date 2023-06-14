@@ -318,6 +318,11 @@ class Change(models.Model):
         }
 
     @property
+    def canonical_uuid(self):
+        # returns model instance uuid or uuid
+        return self.model_instance_uuid or self.uuid
+
+    @property
     def model_name(self):
         # TODO: Verify that this works with API
         cls = self.content_type.model_class()

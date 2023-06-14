@@ -40,7 +40,7 @@ EMAIL_PORT = 1025
 # https://django-debug-toolbar.readthedocs.io/en/latest/installation.html#prerequisites
 # TODO: The debug toolbar was massively slowing down the application on local, so
 # it's disabled by default
-if env('DJANGO_DEBUG_TOOLBAR', default=False):
+if env('DJANGO_DEBUG_TOOLBAR', default=True):
     INSTALLED_APPS += ["debug_toolbar"]  # noqa F405
     # https://django-debug-toolbar.readthedocs.io/en/latest/installation.html#middleware
     MIDDLEWARE += ["debug_toolbar.middleware.DebugToolbarMiddleware"]  # noqa F405
