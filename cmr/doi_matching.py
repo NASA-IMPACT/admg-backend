@@ -8,7 +8,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.core import serializers
 
 from admg_webapp.users.models import User
-from data_models import DOI
+from data_models.models import DOI
 from api_app.models import Change, ApprovalLog
 from cmr.cmr import query_and_process_cmr
 from cmr.utils import clean_table_name, purify_list
