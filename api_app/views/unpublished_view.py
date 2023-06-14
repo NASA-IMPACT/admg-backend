@@ -1,4 +1,4 @@
-from rest_framework.generics import ListCreateAPIView
+from rest_framework.generics import ListAPIView
 from rest_framework.parsers import MultiPartParser
 
 from api_app.serializers import UnpublishedSerializer
@@ -8,7 +8,7 @@ from .view_utils import handle_exception
 from .generic_views import GetPermissionsMixin
 
 
-class UnpublishedListCreateAPIView(GetPermissionsMixin, ListCreateAPIView):
+class UnpublishedListCreateAPIView(GetPermissionsMixin, ListAPIView):
     """
     List images and create an image object
     """
