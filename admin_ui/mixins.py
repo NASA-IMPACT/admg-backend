@@ -57,7 +57,15 @@ def formfield_callback(f, disabled_fields=[], **kwargs):
     elif isinstance(f, model_fields.BooleanField):
         # Adding choices assigns a "yes/no" option and creates a dropdown widget
         f.choices = ((True, "Yes"), (False, "No"))
-
+    elif isinstance(f, model_fields.ManyToManyField):
+        if f.remote_field.model == models.CollectionPeriod:
+            kwargs.update(
+                {
+                    "queryset": models.CollectionPeriod.objects.select_related(
+                        "deployment", "deployment__campaign", "platform"
+                    )
+                }
+            )
     return f.formfield(disabled=f.name in disabled_fields, **kwargs)
 
 
@@ -135,12 +143,21 @@ class ChangeModelFormMixin(ModelFormMixin):
         if model_type == models.Campaign:
             return {
                 "short_name": "Abbreviation for field investigation name (typically an acronym)",
-                "long_name": "Full name of field investigation (typically the acronym fully spelled out)",
+                "long_name": (
+                    "Full name of field investigation (typically the acronym fully spelled out)"
+                ),
             }
         elif model_type == models.Deployment:
             return {
-                "short_name": "Format as “dep_YYYY[i]” with YYYY as the year in which deployment begins, and optional lowercase character (i=a, b, …) appended only if there are multiple deployments in a single calendar year for the campaign",
-                "long_name": "If there are named sub-campaigns, the name used for this deployment (e.g. CAMEX-3).  This may not exist.",
+                "short_name": (
+                    "Format as “dep_YYYY[i]” with YYYY as the year in which deployment begins, and"
+                    " optional lowercase character (i=a, b, …) appended only if there are multiple"
+                    " deployments in a single calendar year for the campaign"
+                ),
+                "long_name": (
+                    "If there are named sub-campaigns, the name used for this deployment (e.g."
+                    " CAMEX-3).  This may not exist."
+                ),
             }
         elif model_type == models.Platform:
             return {
@@ -154,7 +171,10 @@ class ChangeModelFormMixin(ModelFormMixin):
             }
         elif model_type == models.SignificantEvent:
             return {
-                "short_name": "ADMG's text identifier for the SE - format as 'XXX_SE_#' with XXX as the campaign shortname and # as the integer number of the SE within the campaign"
+                "short_name": (
+                    "ADMG's text identifier for the SE - format as 'XXX_SE_#' with XXX as the"
+                    " campaign shortname and # as the integer number of the SE within the campaign"
+                )
             }
         else:
             return {}

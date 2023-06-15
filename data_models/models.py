@@ -1005,7 +1005,7 @@ class DOI(BaseModel):
 
     cmr_short_name = models.CharField(max_length=512, blank=True, default="")
     cmr_entry_title = models.TextField(blank=True, default="")
-    cmr_projects = models.JSONField(default=None, blank=True, null=True, serialize=False)
+    cmr_projects = models.JSONField(default=None, blank=True, null=True)
     cmr_dates = models.JSONField(default=None, blank=True, null=True)
     cmr_plats_and_insts = models.JSONField(default=None, blank=True, null=True)
     cmr_science_keywords = models.JSONField(default=None, blank=True, null=True)

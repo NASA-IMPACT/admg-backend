@@ -57,6 +57,9 @@ class IOPPublishedTable(tables.Table):
     start_date = tables.Column(verbose_name="Start Date", accessor="start_date")
     end_date = tables.Column(verbose_name="End Date", accessor="end_date")
 
+    def __init__(self, data, *args, **kwargs):
+        super().__init__(data.select_related("deployment"), *args, **kwargs)
+
     class Meta(LimitedTableBase.Meta):
         fields = ["short_name", "deployment", "start_date", "end_date"]
         sequence = fields
@@ -77,6 +80,9 @@ class SignificantEventPublishedTable(tables.Table):
     )
     start_date = tables.Column(verbose_name="Start Date", accessor="start_date")
     end_date = tables.Column(verbose_name="End Date", accessor="end_date")
+
+    def __init__(self, data, *args, **kwargs):
+        super().__init__(data.select_related("deployment"), *args, **kwargs)
 
     class Meta(LimitedTableBase.Meta):
         model = SignificantEvent
@@ -99,6 +105,9 @@ class CollectionPeriodPublishedTable(tables.Table):
     instruments = ShortNamefromUUIDColumn(
         verbose_name="Instruments", model=Instrument, accessor="instruments"
     )
+
+    def __init__(self, data, *args, **kwargs):
+        super().__init__(data.select_related("deployment", "platform").prefetch_related("instruments"), *args, **kwargs)
 
     class Meta(LimitedTableBase.Meta):
         model = CollectionPeriod
@@ -123,6 +132,9 @@ class DOIPublishedTable(tables.Table):
         verbose_name="Instruments", model=Instrument, accessor="instruments"
     )
 
+    def __init__(self, data, *args, **kwargs):
+        super().__init__(data.prefetch_related("campaigns", "platforms", "instruments"), *args, **kwargs)
+
     class Meta(LimitedTableBase.Meta):
         model = DOI
         fields = ("concept_id", "long_name", "campaigns", "platforms", "instruments")
@@ -138,6 +150,9 @@ class DeploymentPublishedTable(LimitedTableBase):
     campaign = ShortNamefromUUIDColumn(verbose_name="Campaign", model=Campaign, accessor="campaign")
     start_date = tables.Column(verbose_name="Start Date", accessor="start_date")
     end_date = tables.Column(verbose_name="End Date", accessor="end_date")
+
+    def __init__(self, data, *args, **kwargs):
+        super().__init__(data.select_related("campaign"), *args, **kwargs)
 
     class Meta(LimitedTableBase.Meta):
         fields = LimitedTableBase.initial_fields + ("campaign", "start_date", "end_date")

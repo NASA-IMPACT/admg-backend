@@ -1,5 +1,5 @@
 # pull official base image
-FROM python:3.11.1 AS builder
+FROM --platform=linux/amd64 python:3.11.1 AS builder
 
 # set environment variables
 ENV PYTHONDONTWRITEBYTECODE 1
@@ -9,8 +9,7 @@ ENV PYTHONUNBUFFERED 1
 WORKDIR /home/app/web
 
 # install dependencies
-RUN apt-get update --fix-missing
-RUN apt-get install -y gdal-bin libgdal-dev postgis netcat
+RUN apt-get update --fix-missing && apt-get install -y gdal-bin libgdal-dev postgis netcat
 
 # install requirements
 COPY requirements/ .
