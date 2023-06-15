@@ -1,0 +1,12 @@
+__pycache__
+.github
+.pytest_cache
+env
+out
+staticfiles
+.dockerignore
+.env
+.env.*
+*.json
+docker-compose*
+Dockerfile*
