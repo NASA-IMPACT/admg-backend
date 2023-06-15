@@ -136,9 +136,7 @@ class ShortNamefromUUIDColumn(ConditionalValueColumn):
                         for change_object in change_objects
                     }
                 )
-        return [
-            short_names[potential_uuid] for potential_uuid in potential_uuids
-        ]
+        return [short_names[potential_uuid] for potential_uuid in potential_uuids]
 
     def render(self, **kwargs):
         value = self.get_backup_value(**kwargs)

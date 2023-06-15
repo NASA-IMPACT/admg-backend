@@ -107,7 +107,11 @@ class CollectionPeriodPublishedTable(tables.Table):
     )
 
     def __init__(self, data, *args, **kwargs):
-        super().__init__(data.select_related("deployment", "platform").prefetch_related("instruments"), *args, **kwargs)
+        super().__init__(
+            data.select_related("deployment", "platform").prefetch_related("instruments"),
+            *args,
+            **kwargs
+        )
 
     class Meta(LimitedTableBase.Meta):
         model = CollectionPeriod
@@ -133,7 +137,9 @@ class DOIPublishedTable(tables.Table):
     )
 
     def __init__(self, data, *args, **kwargs):
-        super().__init__(data.prefetch_related("campaigns", "platforms", "instruments"), *args, **kwargs)
+        super().__init__(
+            data.prefetch_related("campaigns", "platforms", "instruments"), *args, **kwargs
+        )
 
     class Meta(LimitedTableBase.Meta):
         model = DOI
