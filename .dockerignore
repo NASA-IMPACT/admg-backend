@@ -10,3 +10,4 @@ staticfiles
 *.json
 docker-compose*
 Dockerfile*
+.backup

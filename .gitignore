@@ -290,3 +290,5 @@ cmr/config.py
 *.sql
 hosts/*
 !hosts/*.sample
+
+.backup
