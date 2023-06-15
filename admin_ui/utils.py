@@ -1,4 +1,4 @@
-from django.forms import FileField, ModelForm
+from django.forms import FileField, JSONField, ModelForm
 
 
 def compare_values(old_item, new_item):
@@ -46,7 +46,8 @@ def serialize_model_form(model_form: ModelForm):
                 continue
             model_field.save(model_field.url, model_form.cleaned_data[name])
             update[name] = model_field.name
-
+        elif isinstance(field, JSONField):
+            update[name] = model_form.cleaned_data[name]
         else:
             # Populate Change's form with values from destination model's form.
             # We're not saving the cleaned_data because we want the raw text, not
