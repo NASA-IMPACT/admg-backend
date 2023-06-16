@@ -111,10 +111,37 @@ class ShortNamefromUUIDColumn(ConditionalValueColumn):
             # this really should never happen
             return potential_uuid
 
+    def get_short_names(self, potential_uuids):
+        short_names = {}
+        lookup_uuids = []
+        for potential_uuid in potential_uuids:
+            if not self.is_uuid(potential_uuid):
+                short_names[str(potential_uuid)] = potential_uuid
+                continue
+            else:
+                lookup_uuids.append(str(potential_uuid))
+        if lookup_uuids:
+            model_objects = self.model.objects.filter(uuid__in=lookup_uuids)
+            short_names.update(
+                {str(model_object.uuid): model_object.short_name for model_object in model_objects}
+            )
+            missing_uuids = set(lookup_uuids) - set(short_names.keys())
+            if missing_uuids:
+                change_objects = Change.objects.filter(uuid__in=missing_uuids)
+                short_names.update(
+                    {
+                        str(change_object.uuid): change_object.update.get(
+                            "short_name", change_object.uuid
+                        )
+                        for change_object in change_objects
+                    }
+                )
+        return [short_names[str(potential_uuid)] for potential_uuid in potential_uuids]
+
     def render(self, **kwargs):
         value = self.get_backup_value(**kwargs)
         if isinstance(value, list):
-            return ", ".join(self.get_short_name(potential_uuid) for potential_uuid in value)
+            return ", ".join(self.get_short_names(value))
         else:
             return self.get_short_name(value)
 
@@ -479,8 +506,10 @@ class CampaignChangeListTable(LimitedTableBase):
 
     def render_short_name(self, value, record):
         return format_html(
-            '<a href="{form_url}">{label}</a> <a href="{dashboard_url}" class="font-italic'
-            ' small">(dashboard)</a>',
+            (
+                '<a href="{form_url}">{label}</a> <a href="{dashboard_url}" class="font-italic'
+                ' small">(dashboard)</a>'
+            ),
             form_url=reverse('change-update', args=[record.uuid]),
             label=record.update.get('short_name') or '---',
             dashboard_url=reverse('campaign-detail', args=[record.uuid]),
