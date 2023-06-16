@@ -342,7 +342,9 @@ class ChangeUpdateView(NotificationSidebar, mixins.ChangeModelFormMixin, UpdateV
         if content_type == "Campaign":
             related_fields["website"] = (
                 Change.objects.of_type(Website)
-                .filter(action=Change.Actions.CREATE, update__campaign=str(self.object.canonical_uuid))
+                .filter(
+                    action=Change.Actions.CREATE, update__campaign=str(self.object.canonical_uuid)
+                )
                 .annotate_from_relationship(
                     of_type=Website, to_attr="title", uuid_from="website", identifier="title"
                 )
