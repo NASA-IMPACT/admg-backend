@@ -319,7 +319,11 @@ class Change(models.Model):
 
     @property
     def canonical_uuid(self):
-        # returns model instance uuid or uuid
+        """
+        The canonical ID of a draft. The canonical ID is the UUID that is used for the published version
+        of the draft. Using a canonical ID makes it possible to refer to the final UUID of a record,
+        regardless of whether various drafts pertaining to a published record have differing UUIDs. 
+        """
         return self.model_instance_uuid or self.uuid
 
     @property
