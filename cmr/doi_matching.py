@@ -426,7 +426,7 @@ class DoiMatcher:
             # this must be a published create draft, who's uuid will match the published uuid
             return recent_draft.uuid
 
-    def _get_recent_draft(doi_recommendation):
+    def _get_recent_draft(self, doi_recommendation):
         """
         past versions of the database did not make update drafts that contained all the fields, just the changed fields
         this means that some doi update drafts will not have a concept_id to match against
