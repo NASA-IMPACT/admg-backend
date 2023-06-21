@@ -34,7 +34,7 @@ class ImageSerializer(serializers.ModelSerializer):
 class UnpublishedSerializer(serializers.ModelSerializer):
     class Meta:
         model = Change
-        fields = ["update", "uuid"]
+        fields = ["update", "uuid", "content_type", "status"]
 
 
 class ValidationSerializer(serializers.Serializer):

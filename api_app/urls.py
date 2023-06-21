@@ -20,7 +20,7 @@ from .views.change_view import (
 from .views.generic_views import GenericCreateGetAllView, GenericPutPatchDeleteView
 from .views.image_view import ImageListCreateAPIView, ImageRetrieveDestroyAPIView
 from .views.validation_view import JsonValidationView
-from .views.unpublished_view import UnpublishedListCreateAPIView
+from .views.unpublished_view import UnpublishedChangesView
 
 info = api_info
 
@@ -78,7 +78,7 @@ for url in urls:
 urlpatterns += [
     path("approval_log", ApprovalLogListView.as_view(), name="approval_log_list"),
     path("change_request", ChangeListView.as_view(), name="change_request_list"),
-    path("unpublished_drafts", UnpublishedListCreateAPIView.as_view(), name="unpublished"),
+    path("unpublished_drafts", UnpublishedChangesView.as_view(), name="unpublished"),
     path(
         "change_request/<str:uuid>",
         ChangeListUpdateView.as_view(),
