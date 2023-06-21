@@ -31,6 +31,12 @@ class ImageSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class UnpublishedSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Change
+        fields = ["update", "uuid", "content_type", "status"]
+
+
 class ValidationSerializer(serializers.Serializer):
     model_name = serializers.CharField(help_text="String of the model name: Season", min_length=128)
     data = serializers.JSONField(
