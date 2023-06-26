@@ -14,7 +14,7 @@ First users click on the "Sync GCMD Button" thus generating a scheduled sync_gcm
 
 Next a GET request is ran to retreive metadata from the GCMD KMS API.
 
-`<https://gcmd.earthdata.nasa.gov/kms/concepts/concept_scheme/<scheme>>`
+`<https://gcmd.earthdata.nasa.gov/kms/concepts/concept_scheme/<scheme>>`_
 
 Next a loop runs through each keyword and checks if it contains a UUID in the database. If it does then it checks if the Keyword Properties match the database record. If it matches then no actions happens and it continues the loop until it is DONE. If it does not match the database record then it creates an "Update" Draft for that keyword.
 

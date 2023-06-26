@@ -105,7 +105,7 @@
 <h2>Diagram Breakdown<a class="headerlink" href="#diagram-breakdown" title="Permalink to this heading"></a></h2>
 <p>First users click on the “Sync GCMD Button” thus generating a scheduled sync_gcmd task asking for each GCMD scheme.</p>
 <p>Next a GET request is ran to retreive metadata from the GCMD KMS API.</p>
-<p><cite>&lt;https://gcmd.earthdata.nasa.gov/kms/concepts/concept_scheme/&lt;scheme&gt;&gt;</cite></p>
+<p><a href="#id1"><span class="problematic" id="id2">`&lt;https://gcmd.earthdata.nasa.gov/kms/concepts/concept_scheme/&lt;scheme&gt;&gt;`_</span></a></p>
 <p>Next a loop runs through each keyword and checks if it contains a UUID in the database. If it does then it checks if the Keyword Properties match the database record. If it matches then no actions happens and it continues the loop until it is DONE. If it does not match the database record then it creates an “Update” Draft for that keyword.</p>
 <p>If they do not contain a UUID then users create a “Create” draft for that keyword. Then it checks if there are recommended objects realted to the keyword. If yes it moves on with the process and if not it autopublishes the draft.</p>
 <p>The GCMD Sync process continues to create a set of all UUIDs of returned keywords. Then it retrieves all GCMD items that are of the relevant type.</p>
