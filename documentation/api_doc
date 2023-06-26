@@ -118,6 +118,6 @@ You can also search by a specific list of fields, just join them with a comma. I
 
 [link](https://admg.nasa-impact.net/api/campaign/search_term=ice&search_fields=short_name,description)
 
-Link to API: 
+Link on how to query fields in the API: 
 [ Base URL: admgstaging.nasa-impact.net/api ]
-[link](https://admgstaging.nasa-impact.net/api/docs/?format=openapi)
+[link](https://admgstaging.nasa-impact.net/api/docs/?)
