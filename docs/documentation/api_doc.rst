@@ -4,26 +4,22 @@ API documentation
 
 Introduction
 ------------
-The CASEI API provides access to the metadata stored in the CASEI PostgreSQL database. The database consists of multiple tables, each containing fields and foreign keys. 
-Each API endpoint corresponds to a specific table in the database. You can find the available models and fields at the bottom of this page.
+CASEI is built on top of a PostgreSQL database with multiple tables that each contain fields and foreign keys. Each endpoint in the API will point to a corresponding table. 
+All the available models and fields can be seen at the bottom of this page.
 
-Retrieving Data from Table Endpoints
-------------------------------------
-To retrieve data from a table endpoint, make a request to the corresponding URL. For example, accessing the URL `<https://admg.nasa-impact.net/api/campaign>`_ 
-will return a list of all metadata items in the "campaign" table, representing the available campaigns in the inventory.. 
+Requesting a bare table endpoint, such as `<https://admg.nasa-impact.net/api/campaign>` will return a list of all the metadata items in the table, in this case, 
+for every campaign in the inventory. Specific objects can be retrieved by adding a known UUID after the table name, and if you don't know the UUID, string match searching is available for most fields. 
+Further details on all search types as well as example queries can be found below.
 
-If you have the UUID of a specific object, you can retrieve it by appending the UUID to the table name in the URL. Alternatively, string match searching is available for most fields, 
-allowing you to search for specific data based on partial matches. More information on the available search types and example queries can be found below.
+Running Full Table Queries
+--------------------------
+As mentioned above, the most basic query returns the full data from a table. For example `<https://admg.nasa-impact.net/api/campaign>` will return a list of all published campaign items in the database.
 
-Performing Full Table Queries
------------------------------
-To retrieve the complete data from a table, simply access the corresponding endpoint. For instance, accessing `<https://admg.nasa-impact.net/api/campaign>`_ will return a list of all published campaign 
-items in the database.
-
-Here's a contrived example that demonstrates the results of a campaign query. The ellipsis (...) indicates the presence of additional metadata and campaigns. You can see summarized metadata for two campaigns, namely OLYMPEX and ACES.
+Below is a contrived example of the results from a campaign query, with ... indicating the continuation of additional metadata and additional campaigns. 
+Here you can see abbreviated metadata for two campaigns, OLYMPEX and ACES.
 
 .. code-block:: python
-    
+
     { 
         "success": True, 
         "message": ", 
@@ -48,22 +44,23 @@ Here's a contrived example that demonstrates the results of a campaign query. Th
             }, 
         ...
         ]
-    }
+    }   
 
 UUIDs and Related Objects
 -------------------------
-In the example results from the Campaign table, we encountered several UUIDs: one that identifies each campaign, and another UUID within the "partner_orgs" list for the OLYMPEX campaign.
+In the example results from the Campaign table, we saw several UUIDs listed: one uuid that identifies each campaign, and on OLYMPEX a UUID in the partner_orgs list.
 
-Each item in the CASEI database has its own unique UUID, and related objects linked from other tables are referenced using their respective UUIDs. For instance, a Campaign might have been conducted in collaboration with a Partner Org. However, the Partner Org is not represented as a simple string value. It is an independent object with its own table and additional metadata. Therefore, the Campaign API response includes the UUID of the relevant Partner Org.
+This is because every item has its own identifying UUID, and related objects linked from other tables are always specified using a UUID. 
+For example, each Campaign might have been conducted in conjunction with a Partner Org. However, Partner Org is not a simple string value. 
+It is an independent object with its own table and additional metadata. So the Campaign API response will list Partner Org as a UUID to the relevant object.
 
-If you wish to view the details of a specific Partner Org, you need to query the "partner_org" endpoint with the provided UUID. Based on the metadata shown above, you can make the following query:
+If you would like to see the details on that Partner Org, you must query the partner_org endpoint with the given UUID. Using the metadata shown above, we would make the following query:
 
-`<https://admg.nasa-impact.net/api/partner_org/d6ffd2fa-1230-4971-a0a4-832b27b3a6c1>`_.
-
-This query will retrieve the metadata for the related Partner Org, in this case, ECCC (Environment and Climate Change Canada).
+`<https://admg.nasa-impact.net/api/partner_org/d6ffd2fa-1230-4971-a0a4-832b27b3a6c1>`
+This would return the metadata for the related Partner Org, in this case, ECCC.
 
 .. code-block:: python
-
+    
     {
     "success": true,
     "message": "",
@@ -83,22 +80,21 @@ This query will retrieve the metadata for the related Partner Org, in this case,
         }
     }
 
-As you can see, the Partner Org has its own informative metadata, including a long name, aliases, a website, and even a list of all the campaigns it is associated with.
+As you can see, the Partner Org has its own useful metadata such as a long name, aliases, a website, and even a handy list of all the campaigns it appears on.
 
-You may have observed that the Campaign table has a plural field named "partner_orgs," while the table name itself is singular, "partner_org,".
-In CASEI, table names are always singular, but related fields can be either singular or plural depending on the number of items linked.
+Observant readers will have noticed that campaign had a plural field called partner_orgs but the table name was the singular partner_org. Table names are always singular, but related fields can be a singular or plural version of the table name depending on whether only one or many items are linked.
 
-But what if you do not have the UUID of the item you wish to query?
+But what if you don't know the UUID of the item you want to query?
 
 String Match Queries
 --------------------
-In most cases, you may not have the UUIDs of the Campaign or Partner Org you are interested in. Instead, you are more likely to know the short name, long name, or perhaps a keyword from the description.
+In practice, it is unlikely that you will know the UUID of the Campaign or Partner Org you are interested in. Instead you will probably know the short name, long name, or maybe a keyword from the description.
 
-CASEI supports string matching queries, allowing you to search for relevant data using basic string matching techniques. Since all data types are serialized into strings, most fields can be searched using simple string matching. Even native date types can be searched by converting them into searchable strings, such as "2022-01-15".
+Because all datatypes are serialized into strings, most fields can be searched using basic string matching. A native datetype becomes the searchable string 2022-01-15.
 
-By default, the search is case-insensitive and follows a containment logic. For instance, a field value of "yellow clouds" will match the search string "cloud".
+By default, searches are not case sensitive and use a contain logic. For example, the field value of the yellow clouds will match to the search string cloud.
 
-When constructing a query, you can utilize the following parameters:
+The following parameters are used when constructing a query.
 
 .. code-block:: rst
 
@@ -116,7 +112,7 @@ When constructing a query, you can utilize the following parameters:
 
 Example Queries
 ---------------
-We have already seen a few examples above, but let's explore common use cases with additional queries.
+We've seen a few examples already above, but in this section we will demonstrate all the common use cases.
 
 Querying an entire table
 ++++++++++++++++++++++++
