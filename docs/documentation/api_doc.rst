@@ -7,13 +7,13 @@ Introduction
 CASEI is built on top of a PostgreSQL database with multiple tables that each contain fields and foreign keys. Each endpoint in the API will point to a corresponding table. 
 All the available models and fields can be seen at the bottom of this page.
 
-Requesting a bare table endpoint, such as `<https://admg.nasa-impact.net/api/campaign>` will return a list of all the metadata items in the table, in this case, 
+Requesting a bare table endpoint, such as `<https://admg.nasa-impact.net/api/campaign>`_ will return a list of all the metadata items in the table, in this case, 
 for every campaign in the inventory. Specific objects can be retrieved by adding a known UUID after the table name, and if you don't know the UUID, string match searching is available for most fields. 
 Further details on all search types as well as example queries can be found below.
 
 Running Full Table Queries
 --------------------------
-As mentioned above, the most basic query returns the full data from a table. For example `<https://admg.nasa-impact.net/api/campaign>` will return a list of all published campaign items in the database.
+As mentioned above, the most basic query returns the full data from a table. For example `<https://admg.nasa-impact.net/api/campaign>`_ will return a list of all published campaign items in the database.
 
 Below is a contrived example of the results from a campaign query, with ... indicating the continuation of additional metadata and additional campaigns. 
 Here you can see abbreviated metadata for two campaigns, OLYMPEX and ACES.
@@ -56,7 +56,7 @@ It is an independent object with its own table and additional metadata. So the C
 
 If you would like to see the details on that Partner Org, you must query the partner_org endpoint with the given UUID. Using the metadata shown above, we would make the following query:
 
-`<https://admg.nasa-impact.net/api/partner_org/d6ffd2fa-1230-4971-a0a4-832b27b3a6c1>`
+`<https://admg.nasa-impact.net/api/partner_org/d6ffd2fa-1230-4971-a0a4-832b27b3a6c1>`_
 This would return the metadata for the related Partner Org, in this case, ECCC.
 
 .. code-block:: python

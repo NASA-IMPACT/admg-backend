@@ -25,7 +25,7 @@ For this example we will show the curation of a NASA campaign.
 
 Users can use this link as a reference for inventory terms and definitions.
 
-`<https://docs.google.com/document/d/1sHxrqtC2k-X4ETvoes9ORlpclrOOrtE70OHmerGADZM/edit>`
+`<https://docs.google.com/document/d/1sHxrqtC2k-X4ETvoes9ORlpclrOOrtE70OHmerGADZM/edit>`_
 
 Compiler Process
 ----------------
