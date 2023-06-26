@@ -15,8 +15,10 @@ Reporting test coverage
 -----------------------
 
 Generate coverage report:
+
 .. code-block:: python
-    "docker-compose -f docker-compose.local.yml run web coverage report -m --skip-covered"
+    
+    docker-compose -f docker-compose.local.yml run web coverage report -m --skip-covered
 
 Exporting test coverage
 -----------------------
