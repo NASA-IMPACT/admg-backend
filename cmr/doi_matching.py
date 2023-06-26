@@ -8,6 +8,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.core import serializers
 
 from admg_webapp.users.models import User
+from data_models.models import DOI
 from api_app.models import Change, ApprovalLog
 from cmr.cmr import query_and_process_cmr
 from cmr.utils import clean_table_name, purify_list
@@ -303,12 +304,12 @@ class DoiMatcher:
 
         return supplemented_metadata_list
 
-    def is_core_metadata_changed(self, recent_draft, recommendation):
+    def is_core_metadata_changed(self, comparison_data, recommendation):
         """Takes a doi_recommendation that includes metadata from CMR and a doi_draft from
         the admg database and compares specific fields to find a mismatch.
 
         Args:
-            recent_draft (dict): Change object of type model=doi
+            comparison_data (dict):
             recommendation (dict): metadata from cmr
 
         Returns:
@@ -318,14 +319,13 @@ class DoiMatcher:
         results = {}
         for field in self.core_cmr_fields:
             results[field] = {
-                'bool': recommendation.get(field) != recent_draft.update.get(field),
-                'values': (recommendation.get(field), recent_draft.update.get(field)),
+                'bool': recommendation.get(field) != comparison_data.get(field),
+                'values': (recommendation.get(field), comparison_data.get(field)),
             }
-        json.dump(results, open(f'cmr_{recommendation["concept_id"]}.json', 'w'))
 
         return any(
             [
-                recommendation.get(field) != recent_draft.update.get(field)
+                recommendation.get(field) != comparison_data.get(field)
                 for field in self.core_cmr_fields
             ]
         )
@@ -366,30 +366,33 @@ class DoiMatcher:
         model = self._convert_field_name_to_model(field_name)
         return bool(model.objects.filter(uuid=uuid).count())
 
-    def create_merged_draft(self, recent_draft, doi_recommendation):
+    def create_merged_draft(self, comparison_data, doi_recommendation):
         """Takes an existing doi draft and a newly generated doi_recommendation and
         returns a merged object that represents the most up-to-date data, retaining
         the originally curated fields but updating any core CMR values.
         """
 
         for field in self.previously_curated_fields:
-            field_value = recent_draft.update.get(field)
+            field_value = comparison_data.get(field)
             if not field_value:
-                continue
-
-            if field in [
+                validated_field_value = None
+            elif field in [
                 'campaigns',
                 'instruments',
                 'platforms',
                 'collection_periods',
-            ] and not self._linked_object_exists(field, recent_draft.uuid):
-                continue
+            ]:
+                validated_field_value = [
+                    uuid for uuid in field_value if self._linked_object_exists(field, uuid)
+                ]
 
             # recommendations have fields updated/added only if they
             # exist in the prior draft
             # in the case of linked fields, still exist in the proper database
 
-            doi_recommendation[field] = field_value
+            doi_recommendation[field] = validated_field_value
+
+        return doi_recommendation
 
     @staticmethod
     def make_create_draft(doi_recommendation):
@@ -423,6 +426,79 @@ class DoiMatcher:
             # this must be a published create draft, who's uuid will match the published uuid
             return recent_draft.uuid
 
+    def _get_recent_draft(self, doi_recommendation):
+        """
+        past versions of the database did not make update drafts that contained all the fields, just the changed fields
+        this means that some doi update drafts will not have a concept_id to match against
+        this function checks create drafts instead and then finds any linked update drafts that are more recent
+        the reason this uses create drafts instead of published DOIs is because using published DOIs would miss any
+        unpublished create drafts
+        """
+
+        create_associated_with_concept_id = (
+            Change.objects.of_type(DOI)
+            .filter(
+                action=[Change.Actions.CREATE], update__concept_id=doi_recommendation['concept_id']
+            )
+            .order_by("-updated_at")
+            .first()
+        )
+        if not create_associated_with_concept_id:
+            recent_draft = None
+        elif create_associated_with_concept_id.action != Change.Statuses.PUBLISHED:
+            # unpublished create will have no updates or deletes, therefor return the create
+            recent_draft = create_associated_with_concept_id
+        else:
+            # published create might have a list of associated drafts, return the most recent
+            recent_draft = (
+                Change.objects.of_type(DOI)
+                .filter(model_instance_uuid=create_associated_with_concept_id.uuid)
+                .order_by("-updated_at")
+                .first()
+            )
+
+        return recent_draft
+
+    def _convert_doi_to_dict(self, doi):
+        simple_fields = [
+            'cmr_short_name',
+            'cmr_entry_title',
+            'cmr_projects',
+            'cmr_dates',
+            'cmr_plats_and_insts',
+            'cmr_science_keywords',
+            'cmr_abstract',
+            'cmr_data_formats',
+            'doi',
+            'long_name',
+        ]
+        uuid_fields = [
+            'campaigns',
+            'instruments',
+            'platforms',
+            'collection_periods',
+        ]
+        doi_data = {}
+        for field_name in simple_fields:
+            doi_data[field_name] = getattr(doi, field_name)
+        for field_name in uuid_fields:
+            doi_data[field_name] = [
+                str(uuid) for uuid in getattr(doi, 'campaigns').values_list('uuid', flat=True)
+            ]
+        return doi_data
+
+    def _create_comparison_data(self, recent_draft):
+        if recent_draft.status != Change.Statuses.PUBLISHED:
+            # we know from examining the db that there are no unpublished doi_drafts
+            # that are missing metadata
+            comparison_doi_data = recent_draft.update
+        else:
+            # historical drafts might be missing data though, so we supplement them
+            doi = DOI.objects.get(uuid=recent_draft.model_instance_uuid)
+            comparison_doi_data = self._convert_doi_to_dict(doi)
+
+        return comparison_doi_data
+
     def add_to_db(self, doi_recommendation):
         """After cmr has been queried and each dataproduct has received recommended UUID
         matches, each of this is added to the database. Because DOIs might already exist
@@ -439,32 +515,24 @@ class DoiMatcher:
         """
         doi_recommendation = self.serialize_recommendation(doi_recommendation)
         # search db for the most recently worked on draft that matches our concept_id
-        recent_draft = (
-            Change.objects.filter(
-                content_type__model='doi',
-                action__in=[Change.Actions.CREATE, Change.Actions.UPDATE],
-                update__concept_id=doi_recommendation['concept_id'],
-            )
-            .order_by("-updated_at")
-            .first()
-        )
+        recent_draft = self._get_recent_draft(doi_recommendation)
+
+        if recent_draft:
+            doi_comparison_data = self._create_comparison_data(recent_draft)
 
         if not recent_draft:
             # no DOI draft exists yet for this concept_id, so we create one
             self.make_create_draft(doi_recommendation)
 
-        # TODO: handle delete drafts?
-
-        elif self.is_core_metadata_changed(recent_draft, doi_recommendation):
+        elif self.is_core_metadata_changed(doi_comparison_data, doi_recommendation):
             # a doi draft of some kind exists, and it's different from the new data
             generic_admin_user = User.objects.get(username='nimda')
-            merged = self.create_merged_draft(recent_draft, doi_recommendation)
+            merged = self.create_merged_draft(doi_comparison_data, doi_recommendation)
             if recent_draft.status == Change.Statuses.PUBLISHED:
                 # recommendations have been previously approved and we are just updating
                 # to the latest CMR metadata
                 published_uuid = self.get_published_uuid(recent_draft)
                 doi_obj = self.make_update_draft(merged, published_uuid)
-                # TODO: is there an Approval Log being created at this part?
                 doi_obj.publish(generic_admin_user, notes='CMR metadata updated')
             else:
                 # an update or create draft is in progress and recommendations are
