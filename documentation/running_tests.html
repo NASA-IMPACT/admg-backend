@@ -56,7 +56,7 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Understanding the Application</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="data_models.html">Data Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="data_models.html">Understanding Data Models</a></li>
 <li class="toctree-l1"><a class="reference internal" href="change_objects.html">Understanding the Change Objects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="cmr_recommender.html">CMR Recommender</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gcmd_sync.html">GCMD Sync</a></li>
@@ -64,7 +64,12 @@
 <p class="caption" role="heading"><span class="caption-text">Running the Application Locally</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="project_installation.html">Docker Installation</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Running Tests</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Running Tests</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#running-tests-with-coverage">Running Tests with coverage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#reporting-test-coverage">Reporting test coverage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#exporting-test-coverage">Exporting test coverage</a></li>
+</ul>
+</li>
 </ul>
 
         </div>
@@ -93,10 +98,32 @@
              
   <section id="running-tests">
 <h1>Running Tests<a class="headerlink" href="#running-tests" title="Permalink to this heading"></a></h1>
-<p>Preparing test coverage (will add link to another doc)
-Run your tests with coverage (will add link to another doc)
-Generate coverage report (will add link to another doc)
-Export the coverage report with a supported format (will add link to another doc)</p>
+<p>Users can run the code below for testing this project.
+.. code-block:: python</p>
+<blockquote>
+<div><p>docker-compose -f docker-compose.local.yml run web python manage.py test</p>
+</div></blockquote>
+<section id="running-tests-with-coverage">
+<h2>Running Tests with coverage<a class="headerlink" href="#running-tests-with-coverage" title="Permalink to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">docker</span><span class="o">-</span><span class="n">compose</span> <span class="o">-</span><span class="n">f</span> <span class="n">docker</span><span class="o">-</span><span class="n">compose</span><span class="o">.</span><span class="n">local</span><span class="o">.</span><span class="n">yml</span> <span class="n">run</span> <span class="n">web</span> <span class="n">coverage</span> <span class="n">run</span> <span class="o">-</span><span class="n">m</span> <span class="n">pytest</span>
+</pre></div>
+</div>
+</section>
+<section id="reporting-test-coverage">
+<h2>Reporting test coverage<a class="headerlink" href="#reporting-test-coverage" title="Permalink to this heading"></a></h2>
+<p>Generate coverage report:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">docker</span><span class="o">-</span><span class="n">compose</span> <span class="o">-</span><span class="n">f</span> <span class="n">docker</span><span class="o">-</span><span class="n">compose</span><span class="o">.</span><span class="n">local</span><span class="o">.</span><span class="n">yml</span> <span class="n">run</span> <span class="n">web</span> <span class="n">coverage</span> <span class="n">report</span> <span class="o">-</span><span class="n">m</span> <span class="o">--</span><span class="n">skip</span><span class="o">-</span><span class="n">covered</span>
+</pre></div>
+</div>
+</section>
+<section id="exporting-test-coverage">
+<h2>Exporting test coverage<a class="headerlink" href="#exporting-test-coverage" title="Permalink to this heading"></a></h2>
+<p>If you want to view coverage in your editor using, for example, VSCode’s Coverage Gutters plugin, export the coverage report to a supported format:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">docker</span><span class="o">-</span><span class="n">compose</span> <span class="o">-</span><span class="n">f</span> <span class="n">docker</span><span class="o">-</span><span class="n">compose</span><span class="o">.</span><span class="n">local</span><span class="o">.</span><span class="n">yml</span> <span class="n">run</span> <span class="n">web</span> <span class="n">coverage</span> <span class="n">xml</span> <span class="o">-</span><span class="n">o</span> <span class="n">coverage</span><span class="o">.</span><span class="n">xml</span>
+</pre></div>
+</div>
+<p>Export the coverage report with a supported format</p>
+</section>
 </section>
 
 

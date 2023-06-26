@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Data Models &mdash; CASEI 0.1 documentation</title>
+  <title>Understanding Data Models &mdash; CASEI 0.1 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../_static/sphinx-toolbox-code.css" type="text/css" />
@@ -57,7 +57,13 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Understanding the Application</span></p>
 <ul class="current">
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Data Models</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Understanding Data Models</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#casei-data-models">CASEI Data Models</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#model-inheritance">Model Inheritance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#meta-inheritance">Meta Inheritance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#relational-databases">Relational Databases</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="change_objects.html">Understanding the Change Objects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="cmr_recommender.html">CMR Recommender</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gcmd_sync.html">GCMD Sync</a></li>
@@ -82,7 +88,7 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
-      <li class="breadcrumb-item active">Data Models</li>
+      <li class="breadcrumb-item active">Understanding Data Models</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../_sources/documentation/data_models.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -92,10 +98,108 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="data-models">
-<h1>Data Models<a class="headerlink" href="#data-models" title="Permalink to this heading"></a></h1>
+  <section id="understanding-data-models">
+<h1>Understanding Data Models<a class="headerlink" href="#understanding-data-models" title="Permalink to this heading"></a></h1>
+<p>In a django project models are the definitive source of information about your data. It contains the essential fields and behaviors of the data you’re storing. Generally, each model maps to a single database table. Here we will explain project models, capabilities, and how they relate throughout the project.</p>
+<section id="casei-data-models">
+<h2>CASEI Data Models<a class="headerlink" href="#casei-data-models" title="Permalink to this heading"></a></h2>
+<p>CASEI has two groups of django models which are the Core Models and Limited Fields. The core models are Campaign, Platform, Instrument, Deployment. These models are considered the primary information in regards to ADMG’s hierarchical classification for producing contextual airborne metadata. The core models derive directly from the BaseModel or from DataModel. Then the Limited Fields are data tables for secondary airborne information. The Limited Fields also derive from following classes LimitedInfo, LimitedInfoPriority, and GcmdKeyword that all extend from the BaseModel.</p>
+<p>One of many models used in this project is Season.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Season</span><span class="p">(</span><span class="n">LimitedInfoPriority</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">Meta</span><span class="p">(</span><span class="n">LimitedInfo</span><span class="o">.</span><span class="n">Meta</span><span class="p">):</span>
+    <span class="k">pass</span>
+</pre></div>
+</div>
+<p>Season is the name of the model or database table. Then inside the table are fields that store data relating to the model.</p>
+<p>For example, if you viewed Seasons in the MI it contains two fields Season Short Name and Season Long Name. Users could input data into the fields such as “austral spring” and “southern hemisphere spring months.” Now once we save the data is stored underneath the fields defined in the Season model. This is just one example but every metadata entry inside the MI is built inside models.py file. They are all database tables containing customized fields capable of storing data for the project.</p>
+</section>
+<section id="model-inheritance">
+<h2>Model Inheritance<a class="headerlink" href="#model-inheritance" title="Permalink to this heading"></a></h2>
+<p>Referencing the code above, the Season class has the LimitedInfoPriority model in parenthesis next to it. What does this exactly mean? Season is a derived class thus inheriting information from the LimitedInfoPriority class (inside the parenthesis). Then the LimitedInfoPriority class ultimately inherits from another class then so on until it reaches a Base Model. This may sound confusing, but the main point is that Season is receiving its fields from a parent class called Base model through a capability called Model inheritance.</p>
+<p>In django, Model inheritance works almost identically to the way normal class inheritance works in Python. The base class should be a subclass of django.db.models.Model. For our project the base model is BaseModel which subclasses from django.db models.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">BaseModel</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+</pre></div>
+</div>
+</section>
+<section id="meta-inheritance">
+<h2>Meta Inheritance<a class="headerlink" href="#meta-inheritance" title="Permalink to this heading"></a></h2>
+<p>The project’s base model uses django’s “abstract base classes” which stores common information into a number of other models. You write your base class and put abstract=True in the Meta class. This model will then not be used to create any database table. Instead, when it is used as a base class for other models, its fields will be added to those of the child class. The Meta model is an inner class to contain metadata that are not a fields.</p>
+<p>For example at the bottom of the BaseModel class contains a Meta class where the abstract equals true:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">BaseModel</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+<span class="n">uuid</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">UUIDField</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">editable</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">unique</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="nd">@staticmethod</span>
+<span class="k">def</span> <span class="nf">search_fields</span><span class="p">():</span>
+    <span class="k">return</span> <span class="p">[</span><span class="s2">&quot;short_name&quot;</span><span class="p">,</span> <span class="s2">&quot;long_name&quot;</span><span class="p">]</span>
+
+<span class="nd">@classmethod</span>
+<span class="k">def</span> <span class="nf">search</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
+    <span class="n">search_type</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;search_type&quot;</span><span class="p">,</span> <span class="s2">&quot;plain&quot;</span><span class="p">)</span>
+    <span class="n">search</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;search_term&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="n">params</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;search&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">search_fields_param</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;search_fields&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">search_fields_param</span><span class="p">:</span>
+    <span class="n">search_fields</span> <span class="o">=</span> <span class="n">search_fields_param</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+    <span class="n">search_fields</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">search_fields</span><span class="p">()</span>
+
+    <span class="n">queryset</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">search</span><span class="p">:</span>
+    <span class="n">vector</span> <span class="o">=</span> <span class="n">SearchVector</span><span class="p">(</span><span class="o">*</span><span class="n">search_fields</span><span class="p">)</span>
+
+    <span class="n">queryset</span> <span class="o">=</span> <span class="n">queryset</span><span class="o">.</span><span class="n">annotate</span><span class="p">(</span><span class="n">search</span><span class="o">=</span><span class="n">vector</span><span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+        <span class="n">search</span><span class="o">=</span><span class="n">SearchQuery</span><span class="p">(</span><span class="n">search</span><span class="p">,</span> <span class="n">search_type</span><span class="o">=</span><span class="n">search_type</span><span class="p">)</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">queryset</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="o">**</span><span class="n">params</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">short_name</span>
+
+<span class="k">class</span> <span class="nc">Meta</span><span class="p">:</span>
+    <span class="n">abstract</span> <span class="o">=</span> <span class="kc">True</span>
+</pre></div>
+</div>
+<p>The BaseModel model cannot be used as a normal Django model, since it is an abstract base class. It does not generate a database table or have an object, and cannot be instantiated or saved directly. The project’s base model gives child models the ability to produce a UUID which is generated once data is Created in the MI and methods to search for data inside the classes based upon field names.</p>
+<p>Fields inherited from abstract base classes can be overridden with another field or value, or be removed with None. If you look at every model they inherit either from base model or another child class that derives from the base then adds more fields to the model. This inheritance provides a way to factor out common information at the Python level, while still only creating one database table per child model at the database level.</p>
+<p>Lets take a look at the LimitedInfo model</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">LimitedInfo</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+    <span class="n">short_name</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span> <span class="n">blank</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">unique</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">long_name</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">512</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">blank</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">notes_internal</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">TextField</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">blank</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">help_text</span><span class="o">=</span><span class="n">NOTES_INTERNAL_HELP_TEXT</span><span class="p">)</span>
+    <span class="n">notes_public</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">TextField</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">blank</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">help_text</span><span class="o">=</span><span class="n">NOTES_PUBLIC_HELP_TEXT</span><span class="p">)</span>
+
+<span class="k">class</span> <span class="nc">Meta</span><span class="p">:</span>
+    <span class="n">abstract</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">ordering</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;short_name&quot;</span><span class="p">,)</span>
+</pre></div>
+</div>
+<p>The LimitedInfo model derives from the BaseModel obtaining its Meta class but this doesn’t mean the class automatically becomes an abstract class themselves. To make an abstract base class inherit from another abstract base class, you need to explicitly set abstract=True on the child. The Meta options from the first listed class will be inherited by default unless the Meta inheritance explicitly declared.</p>
+<p>But this cycles back to Seasons model. The Seasons directly inherits the LimitedInfo’s meta class meaning it uses its fields and the functionality of the BaseModel.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Meta</span><span class="p">(</span><span class="n">LimitedInfo</span><span class="o">.</span><span class="n">Meta</span><span class="p">):</span>
+</pre></div>
+</div>
+<p>Previously mentioned the Seasons table on the MI’s webpage has the fields Season Short Name and Season Long Name then it has a notes internal and notes public. If you look at the LimitedInfo model again it is all the fields that are defined in that class. The core models contain</p>
+<p>This is just one example but django’s model processes are the building blocks of the CASEI project.</p>
+</section>
+<section id="relational-databases">
+<h2>Relational Databases<a class="headerlink" href="#relational-databases" title="Permalink to this heading"></a></h2>
+<p>Clearly, the power of relational databases lies in relating tables to each other. Django offers ways to define the three most common types of database relationships: many-to-one, many-to-many, and one-to-one.</p>
+<p>Many of the Limited Fields have a many-to-many relationship.</p>
+<p>To define a many-to-many relationship, use ManyToManyField. ADMG uses it by including it as a class attribute of the models.</p>
+<p>Usually ManyToManyField requires a positional argument: the class to which the model is related. For example in the Campaigns model has seasons when it took place. To connect the season model to the Campaign it is defined by the following code</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">seasons</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ManyToManyField</span><span class="p">(</span>
+    <span class="n">Season</span><span class="p">,</span>
+    <span class="n">related_name</span><span class="o">=</span><span class="s2">&quot;campaigns&quot;</span><span class="p">,</span>
+    <span class="n">verbose_name</span><span class="o">=</span><span class="s2">&quot;Season(s) of Study&quot;</span><span class="p">,</span>
+    <span class="n">help_text</span><span class="o">=</span><span class="s2">&quot;Season(s) of campaign data collection - Include all that are appropriate&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>Refer to the visual below to view the data models and how they connect by fields.</p>
 <img alt="Data Model Classes" src="../_images/data_models_classes.png" />
 <img alt="Data Model Classes with fields" src="../_images/data_models_erd.png" />
+</section>
 </section>
 
 

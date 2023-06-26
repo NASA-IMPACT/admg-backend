@@ -50,9 +50,12 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="casei_overview.html">Catalog of Archived Suborbital Earth Science Investigations</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Curation Interface</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#compiler-workflow">Compiler Workflow</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#reviewer-workflow">Reviewer Workflow</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#admin-reviewer-workflow">Admin Reviewer Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#compiler-process">Compiler Process</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#compiling">Compiling</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#staff-review">Staff Review</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#admin-review">Admin Review</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -62,7 +65,7 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Understanding the Application</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="data_models.html">Data Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="data_models.html">Understanding Data Models</a></li>
 <li class="toctree-l1"><a class="reference internal" href="change_objects.html">Understanding the Change Objects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="cmr_recommender.html">CMR Recommender</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gcmd_sync.html">GCMD Sync</a></li>
@@ -99,20 +102,38 @@
              
   <section id="curation-interface">
 <h1>Curation Interface<a class="headerlink" href="#curation-interface" title="Permalink to this heading"></a></h1>
-<section id="compiler-workflow">
-<h2>Compiler Workflow<a class="headerlink" href="#compiler-workflow" title="Permalink to this heading"></a></h2>
-<p>Width Updated…Add Content</p>
+<p>In the introduction to CASEI we mentioned that all inventory content is entered and updated in the Maintanence Interface (MI) through a curation process. Here users can</p>
+<p>view this entire process in detail.</p>
+<p>All of NASA’s airborne science information exists independently and separately online. The process of compiling, reviewing, and publishing in the MI links all information together thus creating contextual metadata in our database and Catalog of Archived Suborbital Earth Science Investigations website.</p>
+<p>All objects start as drafts which can create, update, or delete a published object</p>
+<p>For this example we will show the curation of a NASA campaign.</p>
+<p>Users can use this link as a reference for inventory terms and definitions.</p>
+<p><cite>&lt;https://docs.google.com/document/d/1sHxrqtC2k-X4ETvoes9ORlpclrOOrtE70OHmerGADZM/edit&gt;</cite></p>
+<section id="compiler-process">
+<h2>Compiler Process<a class="headerlink" href="#compiler-process" title="Permalink to this heading"></a></h2>
+<section id="compiling">
+<h3>Compiling<a class="headerlink" href="#compiling" title="Permalink to this heading"></a></h3>
+<p>Step 1: First curators compile campaign information across different authoritative sources (i.e. scientific journals, presentations, NASA websites, etc.) into a document.</p>
+<p>Step 2: Curators take the collected information and inputs it into different metadata fields in the MI. Thus creating a <em>campaign draft</em>.</p>
+<p>Step 3: During NASA campaigns different types of platforms are deployed along with instruments to collect data. Through intventory terms and consistant definitions the Airborne Data Management Group views this as viable information that is related to the campaign. Curators input this information into different metadata fields related to the Deployment that was conducted, the Intensive Operation Period where instrument(s) and platform(s) operate with the goal of observing phenomena in support of the campaign, any Significant Events that happened during the campaign, then they link C-D-P-I’s (Campaign, Deployment, Platform, and Instruments) together.</p>
+<p>Step 4: The curator runs the DOI fetcher that collects campaign DOI’s.</p>
+<p>Step 5: Next curators validate each field and saves the draft.</p>
+<p>Step 6: Then submits the draft to transfer for a Staff Review thus changes the status to “Awaiting Review.”</p>
+</section>
+<section id="staff-review">
+<h3>Staff Review<a class="headerlink" href="#staff-review" title="Permalink to this heading"></a></h3>
+<p>Step 1: Next another ADMG curator claims the draft for a Staff Review. Changing the status to “In Review.”</p>
+<p>Step 2: Next the ADMG curator performs a quality check by reviewing the compiler’s content notes and the fields within the MI. Here the reviewer edits any errors or adds more information.</p>
+<p>Step 3: Next the reviewer submits the draft for an Admin Review. The status is now “Awaiting Admin Review”</p>
+</section>
+<section id="admin-review">
+<h3>Admin Review<a class="headerlink" href="#admin-review" title="Permalink to this heading"></a></h3>
+<p>Step 1: Finally a different curator claims the Admin Review. Status is now “Under Admin Review.”</p>
+<p>Step 2: The admin reviewer does a throrough quality check of each field, adds an admin description, verify that all links work, and check each dependent drafts.</p>
+<p>Step 3: Publishes campaign dois if there are any collected.</p>
+<p>Step 4: Then publishes the metadata. Now users have a campaign that is “Published.”</p>
 <img alt="Curation Process" src="../_images/Curation_Workflow.png" />
 </section>
-<section id="reviewer-workflow">
-<h2>Reviewer Workflow<a class="headerlink" href="#reviewer-workflow" title="Permalink to this heading"></a></h2>
-<p>Add Content</p>
-<img alt="Campaign Workflow" src="../_images/CASEI_Campaign_Curator_Workflow.png" />
-</section>
-<section id="admin-reviewer-workflow">
-<h2>Admin Reviewer Workflow<a class="headerlink" href="#admin-reviewer-workflow" title="Permalink to this heading"></a></h2>
-<p>Add Content</p>
-<img alt="Reviewer Workflow" src="../_images/CASEI_Campaign_Reviewer_Workflow.png" />
 </section>
 </section>
 

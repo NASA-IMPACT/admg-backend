@@ -56,7 +56,7 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Understanding the Application</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="documentation/data_models.html">Data Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="documentation/data_models.html">Understanding Data Models</a></li>
 <li class="toctree-l1"><a class="reference internal" href="documentation/change_objects.html">Understanding the Change Objects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="documentation/cmr_recommender.html">CMR Recommender</a></li>
 <li class="toctree-l1"><a class="reference internal" href="documentation/gcmd_sync.html">GCMD Sync</a></li>
@@ -99,9 +99,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="documentation/casei_overview.html">Catalog of Archived Suborbital Earth Science Investigations</a></li>
 <li class="toctree-l1"><a class="reference internal" href="documentation/curation_interface.html">Curation Interface</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="documentation/curation_interface.html#compiler-workflow">Compiler Workflow</a></li>
-<li class="toctree-l2"><a class="reference internal" href="documentation/curation_interface.html#reviewer-workflow">Reviewer Workflow</a></li>
-<li class="toctree-l2"><a class="reference internal" href="documentation/curation_interface.html#admin-reviewer-workflow">Admin Reviewer Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="documentation/curation_interface.html#compiler-process">Compiler Process</a></li>
 </ul>
 </li>
 </ul>
@@ -111,8 +109,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="documentation/api_doc.html">API documentation</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="documentation/api_doc.html#introduction">Introduction</a></li>
-<li class="toctree-l2"><a class="reference internal" href="documentation/api_doc.html#retrieving-data-from-table-endpoints">Retrieving Data from Table Endpoints</a></li>
-<li class="toctree-l2"><a class="reference internal" href="documentation/api_doc.html#performing-full-table-queries">Performing Full Table Queries</a></li>
+<li class="toctree-l2"><a class="reference internal" href="documentation/api_doc.html#running-full-table-queries">Running Full Table Queries</a></li>
 <li class="toctree-l2"><a class="reference internal" href="documentation/api_doc.html#uuids-and-related-objects">UUIDs and Related Objects</a></li>
 <li class="toctree-l2"><a class="reference internal" href="documentation/api_doc.html#string-match-queries">String Match Queries</a></li>
 <li class="toctree-l2"><a class="reference internal" href="documentation/api_doc.html#example-queries">Example Queries</a></li>
@@ -124,10 +121,22 @@
 <div class="toctree-wrapper compound">
 <p class="caption" role="heading"><span class="caption-text">Understanding the Application</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="documentation/data_models.html">Data Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="documentation/data_models.html">Understanding Data Models</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="documentation/data_models.html#casei-data-models">CASEI Data Models</a></li>
+<li class="toctree-l2"><a class="reference internal" href="documentation/data_models.html#model-inheritance">Model Inheritance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="documentation/data_models.html#meta-inheritance">Meta Inheritance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="documentation/data_models.html#relational-databases">Relational Databases</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="documentation/change_objects.html">Understanding the Change Objects</a></li>
-<li class="toctree-l1"><a class="reference internal" href="documentation/cmr_recommender.html">CMR Recommender</a></li>
-<li class="toctree-l1"><a class="reference internal" href="documentation/gcmd_sync.html">GCMD Sync</a></li>
+<li class="toctree-l1"><a class="reference internal" href="documentation/cmr_recommender.html">CMR Recommender</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="documentation/cmr_recommender.html#functionality">Functionality</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="documentation/gcmd_sync.html">GCMD Sync</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="documentation/gcmd_sync.html#diagram-breakdown">Diagram Breakdown</a></li>
+</ul>
+</li>
 </ul>
 </div>
 <div class="toctree-wrapper compound">
@@ -136,12 +145,17 @@
 <li class="toctree-l1"><a class="reference internal" href="documentation/project_installation.html">Docker Installation</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="documentation/project_installation.html#installation">Installation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="documentation/project_installation.html#editing-the-env">Editing the .env</a></li>
-<li class="toctree-l2"><a class="reference internal" href="documentation/project_installation.html#building-the-docker-on-your-local-machine">Building the Docker on your local machine</a></li>
-<li class="toctree-l2"><a class="reference internal" href="documentation/project_installation.html#building-the-project-with-docker">Building the project with Docker</a></li>
-<li class="toctree-l2"><a class="reference internal" href="documentation/project_installation.html#running-python-shell-will-add-link-to-another-doc">Running python shell (will add link to another doc)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="documentation/project_installation.html#docker-build">Docker Build</a></li>
+<li class="toctree-l2"><a class="reference internal" href="documentation/project_installation.html#running-the-project">Running the Project</a></li>
+<li class="toctree-l2"><a class="reference internal" href="documentation/project_installation.html#running-servers">Running servers</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="documentation/running_tests.html">Running Tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="documentation/running_tests.html">Running Tests</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="documentation/running_tests.html#running-tests-with-coverage">Running Tests with coverage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="documentation/running_tests.html#reporting-test-coverage">Reporting test coverage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="documentation/running_tests.html#exporting-test-coverage">Exporting test coverage</a></li>
+</ul>
+</li>
 </ul>
 </div>
 </section>

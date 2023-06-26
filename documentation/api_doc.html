@@ -20,7 +20,7 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Data Models" href="data_models.html" />
+    <link rel="next" title="Understanding Data Models" href="data_models.html" />
     <link rel="prev" title="Curation Interface" href="curation_interface.html" /> 
 </head>
 
@@ -55,8 +55,7 @@
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">API documentation</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#introduction">Introduction</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#retrieving-data-from-table-endpoints">Retrieving Data from Table Endpoints</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#performing-full-table-queries">Performing Full Table Queries</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#running-full-table-queries">Running Full Table Queries</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#uuids-and-related-objects">UUIDs and Related Objects</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#string-match-queries">String Match Queries</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#example-queries">Example Queries</a><ul>
@@ -73,7 +72,7 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Understanding the Application</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="data_models.html">Data Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="data_models.html">Understanding Data Models</a></li>
 <li class="toctree-l1"><a class="reference internal" href="change_objects.html">Understanding the Change Objects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="cmr_recommender.html">CMR Recommender</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gcmd_sync.html">GCMD Sync</a></li>
@@ -112,21 +111,17 @@
 <h1>API documentation<a class="headerlink" href="#api-documentation" title="Permalink to this heading"></a></h1>
 <section id="introduction">
 <h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this heading"></a></h2>
-<p>The CASEI API provides access to the metadata stored in the CASEI PostgreSQL database. The database consists of multiple tables, each containing fields and foreign keys.
-Each API endpoint corresponds to a specific table in the database. You can find the available models and fields at the bottom of this page.</p>
+<p>CASEI is built on top of a PostgreSQL database with multiple tables that each contain fields and foreign keys. Each endpoint in the API will point to a corresponding table.
+All the available models and fields can be seen at the bottom of this page.</p>
+<p>Requesting a bare table endpoint, such as <cite>&lt;https://admg.nasa-impact.net/api/campaign&gt;</cite> will return a list of all the metadata items in the table, in this case,
+for every campaign in the inventory. Specific objects can be retrieved by adding a known UUID after the table name, and if you don’t know the UUID, string match searching is available for most fields.
+Further details on all search types as well as example queries can be found below.</p>
 </section>
-<section id="retrieving-data-from-table-endpoints">
-<h2>Retrieving Data from Table Endpoints<a class="headerlink" href="#retrieving-data-from-table-endpoints" title="Permalink to this heading"></a></h2>
-<p>To retrieve data from a table endpoint, make a request to the corresponding URL. For example, accessing the URL <a class="reference external" href="https://admg.nasa-impact.net/api/campaign">https://admg.nasa-impact.net/api/campaign</a>
-will return a list of all metadata items in the “campaign” table, representing the available campaigns in the inventory..</p>
-<p>If you have the UUID of a specific object, you can retrieve it by appending the UUID to the table name in the URL. Alternatively, string match searching is available for most fields,
-allowing you to search for specific data based on partial matches. More information on the available search types and example queries can be found below.</p>
-</section>
-<section id="performing-full-table-queries">
-<h2>Performing Full Table Queries<a class="headerlink" href="#performing-full-table-queries" title="Permalink to this heading"></a></h2>
-<p>To retrieve the complete data from a table, simply access the corresponding endpoint. For instance, accessing <a class="reference external" href="https://admg.nasa-impact.net/api/campaign">https://admg.nasa-impact.net/api/campaign</a> will return a list of all published campaign
-items in the database.</p>
-<p>Here’s a contrived example that demonstrates the results of a campaign query. The ellipsis (…) indicates the presence of additional metadata and campaigns. You can see summarized metadata for two campaigns, namely OLYMPEX and ACES.</p>
+<section id="running-full-table-queries">
+<h2>Running Full Table Queries<a class="headerlink" href="#running-full-table-queries" title="Permalink to this heading"></a></h2>
+<p>As mentioned above, the most basic query returns the full data from a table. For example <cite>&lt;https://admg.nasa-impact.net/api/campaign&gt;</cite> will return a list of all published campaign items in the database.</p>
+<p>Below is a contrived example of the results from a campaign query, with … indicating the continuation of additional metadata and additional campaigns.
+Here you can see abbreviated metadata for two campaigns, OLYMPEX and ACES.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
     <span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
     <span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="s2">&quot;,</span>
@@ -157,11 +152,13 @@ items in the database.</p>
 </section>
 <section id="uuids-and-related-objects">
 <h2>UUIDs and Related Objects<a class="headerlink" href="#uuids-and-related-objects" title="Permalink to this heading"></a></h2>
-<p>In the example results from the Campaign table, we encountered several UUIDs: one that identifies each campaign, and another UUID within the “partner_orgs” list for the OLYMPEX campaign.</p>
-<p>Each item in the CASEI database has its own unique UUID, and related objects linked from other tables are referenced using their respective UUIDs. For instance, a Campaign might have been conducted in collaboration with a Partner Org. However, the Partner Org is not represented as a simple string value. It is an independent object with its own table and additional metadata. Therefore, the Campaign API response includes the UUID of the relevant Partner Org.</p>
-<p>If you wish to view the details of a specific Partner Org, you need to query the “partner_org” endpoint with the provided UUID. Based on the metadata shown above, you can make the following query:</p>
-<p><a class="reference external" href="https://admg.nasa-impact.net/api/partner_org/d6ffd2fa-1230-4971-a0a4-832b27b3a6c1">https://admg.nasa-impact.net/api/partner_org/d6ffd2fa-1230-4971-a0a4-832b27b3a6c1</a>.</p>
-<p>This query will retrieve the metadata for the related Partner Org, in this case, ECCC (Environment and Climate Change Canada).</p>
+<p>In the example results from the Campaign table, we saw several UUIDs listed: one uuid that identifies each campaign, and on OLYMPEX a UUID in the partner_orgs list.</p>
+<p>This is because every item has its own identifying UUID, and related objects linked from other tables are always specified using a UUID.
+For example, each Campaign might have been conducted in conjunction with a Partner Org. However, Partner Org is not a simple string value.
+It is an independent object with its own table and additional metadata. So the Campaign API response will list Partner Org as a UUID to the relevant object.</p>
+<p>If you would like to see the details on that Partner Org, you must query the partner_org endpoint with the given UUID. Using the metadata shown above, we would make the following query:</p>
+<p><cite>&lt;https://admg.nasa-impact.net/api/partner_org/d6ffd2fa-1230-4971-a0a4-832b27b3a6c1&gt;</cite>
+This would return the metadata for the related Partner Org, in this case, ECCC.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
 <span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="n">true</span><span class="p">,</span>
 <span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
@@ -182,17 +179,16 @@ items in the database.</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>As you can see, the Partner Org has its own informative metadata, including a long name, aliases, a website, and even a list of all the campaigns it is associated with.</p>
-<p>You may have observed that the Campaign table has a plural field named “partner_orgs,” while the table name itself is singular, “partner_org,”.
-In CASEI, table names are always singular, but related fields can be either singular or plural depending on the number of items linked.</p>
-<p>But what if you do not have the UUID of the item you wish to query?</p>
+<p>As you can see, the Partner Org has its own useful metadata such as a long name, aliases, a website, and even a handy list of all the campaigns it appears on.</p>
+<p>Observant readers will have noticed that campaign had a plural field called partner_orgs but the table name was the singular partner_org. Table names are always singular, but related fields can be a singular or plural version of the table name depending on whether only one or many items are linked.</p>
+<p>But what if you don’t know the UUID of the item you want to query?</p>
 </section>
 <section id="string-match-queries">
 <h2>String Match Queries<a class="headerlink" href="#string-match-queries" title="Permalink to this heading"></a></h2>
-<p>In most cases, you may not have the UUIDs of the Campaign or Partner Org you are interested in. Instead, you are more likely to know the short name, long name, or perhaps a keyword from the description.</p>
-<p>CASEI supports string matching queries, allowing you to search for relevant data using basic string matching techniques. Since all data types are serialized into strings, most fields can be searched using simple string matching. Even native date types can be searched by converting them into searchable strings, such as “2022-01-15”.</p>
-<p>By default, the search is case-insensitive and follows a containment logic. For instance, a field value of “yellow clouds” will match the search string “cloud”.</p>
-<p>When constructing a query, you can utilize the following parameters:</p>
+<p>In practice, it is unlikely that you will know the UUID of the Campaign or Partner Org you are interested in. Instead you will probably know the short name, long name, or maybe a keyword from the description.</p>
+<p>Because all datatypes are serialized into strings, most fields can be searched using basic string matching. A native datetype becomes the searchable string 2022-01-15.</p>
+<p>By default, searches are not case sensitive and use a contain logic. For example, the field value of the yellow clouds will match to the search string cloud.</p>
+<p>The following parameters are used when constructing a query.</p>
 <div class="highlight-rst notranslate"><div class="highlight"><pre><span></span><span class="nv">`search_term`</span> : Contains the actual search string, for example: aces, cloud, 2022-01-05.
 
 <span class="nv">`search_type`</span> : Optional parameter with a default value of &quot;plain&quot;. Other options include &quot;phrase&quot;,
@@ -209,7 +205,7 @@ In CASEI, table names are always singular, but related fields can be either sing
 </section>
 <section id="example-queries">
 <h2>Example Queries<a class="headerlink" href="#example-queries" title="Permalink to this heading"></a></h2>
-<p>We have already seen a few examples above, but let’s explore common use cases with additional queries.</p>
+<p>We’ve seen a few examples already above, but in this section we will demonstrate all the common use cases.</p>
 <section id="querying-an-entire-table">
 <h3>Querying an entire table<a class="headerlink" href="#querying-an-entire-table" title="Permalink to this heading"></a></h3>
 <p>This query will return metadata for all the campaigns.</p>
@@ -260,7 +256,7 @@ In CASEI, table names are always singular, but related fields can be either sing
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="curation_interface.html" class="btn btn-neutral float-left" title="Curation Interface" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="data_models.html" class="btn btn-neutral float-right" title="Data Models" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="data_models.html" class="btn btn-neutral float-right" title="Understanding Data Models" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
