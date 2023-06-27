@@ -101,7 +101,7 @@ class TestCampaignDetailView(TestCase):
             .filter(model_instance_uuid=str(self.create_change.uuid))
             .prefetch_approvals()
         )
-        self.assertEqual(latest[0].uuid, self.update_changes[-1].uuid) # pragma: no cover
+        self.assertEqual(latest[0].uuid, self.update_changes[-1].uuid)  # pragma: no cover
 
     def test_filter_latest_changes_with_multiple_models_returns_latest_change(self):
         """
@@ -125,5 +125,9 @@ class TestCampaignDetailView(TestCase):
         latest = CampaignDetailView._filter_latest_changes(
             Change.objects.of_type(Campaign).prefetch_approvals()
         )
-        self.assertTrue(self.update_changes[-1].uuid in [change.uuid for change in latest]) # pragma: no cover
-        self.assertTrue(update_changes[-1].uuid in [change.uuid for change in latest]) # pragma: no cover
+        self.assertTrue(
+            self.update_changes[-1].uuid in [change.uuid for change in latest]
+        )  # pragma: no cover
+        self.assertTrue(
+            update_changes[-1].uuid in [change.uuid for change in latest]
+        )  # pragma: no cover
