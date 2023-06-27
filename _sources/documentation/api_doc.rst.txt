@@ -108,7 +108,9 @@ The following parameters are used when constructing a query.
             raw: formatted search query with terms and operators
             websearch: formatted search query, similar to the one used by web search engines.
 
-    `search_fields`: Optional parameter that defaults to predefined fields in each model. It specifies the exact field to be searched, such as "short_name", "description", or "start_date".
+    `search_fields`: Optional parameter that defaults to predefined fields in each model. 
+                     It specifies the exact field to be searched, such as "short_name", 
+                     "description", or "start_date".
 
 Example Queries
 ---------------

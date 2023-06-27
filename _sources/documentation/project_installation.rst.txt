@@ -43,4 +43,4 @@ Running servers
 The ADMG project uses three servers: Production, Test, and Play. Production runs the actual MI, Test is available for allowing the Inventory Team to test out new updates to the MI before they are deployed to Prod, and Play is for trialing new deployment methods without breaking the other two servers. 
 
 The Maintenance Interface and Django Admin for the production server can be accessed at the following url:
-`<https://admg.nasa-impact.net/>`
+`<https://admg.nasa-impact.net/>`_

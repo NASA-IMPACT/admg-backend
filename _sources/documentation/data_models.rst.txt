@@ -124,8 +124,9 @@ Usually ManyToManyField requires a positional argument: the class to which the m
 
 Refer to the visual below to view the data models and how they connect by fields.
 
-.. image:: erds/data_models_classes.png
-    :alt: Data Model Classes 
+.. .. image:: erds/data_models_classes.png
+..     :alt: Data Model Classes 
 
 .. image:: erds/data_models_erd.png
+    :target: _blank
     :alt: Data Model Classes with fields 
