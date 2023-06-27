@@ -8,6 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: python:3.11.1
+      options:
         platform: linux/amd64
 
     env:
