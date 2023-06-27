@@ -9,7 +9,7 @@ jobs:
     container:
       image: python:3.11.1
       options:
-        platform: linux/amd64
+        - "--platform=linux/amd64"
 
     env:
       DB_ENGINE: django.contrib.gis.db.backends.postgis
