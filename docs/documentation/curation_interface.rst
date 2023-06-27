@@ -2,7 +2,6 @@ Curation Interface
 ==================
 
 In the introduction to CASEI we mentioned that all inventory content is entered and updated in the Maintanence Interface (MI) through a curation process. Here users can 
-
 view this entire process in detail. 
 
 
