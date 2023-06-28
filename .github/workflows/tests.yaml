@@ -42,13 +42,13 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Setup Python
-        uses: actions/setup-python@v3
+        uses: actions/setup-python@v4
         with:
           python-version: '3.9.17'
-          cache: "pip"
-          cache-dependency-path: |
-            requirements/base.txt
-            requirements/local.txt
+          # cache: "pip"
+          # cache-dependency-path: |
+          #    **/requirements/base*.txt
+          #    **/requirements/local*.txt
 
       - name: Install GDAL
         run: |
@@ -64,6 +64,7 @@ jobs:
       - name: Install Dependencies
         if: steps.cache-dependencies.outputs.cache-hit != 'true'
         run: |
+          python -m pip install --upgrade pip
           pip install \
             --upgrade \
             --upgrade-strategy eager \
