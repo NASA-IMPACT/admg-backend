@@ -7,7 +7,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     container:
-      image: python:3.11.1
+      image: python:3.9.17
 
     env:
       DB_ENGINE: django.contrib.gis.db.backends.postgis
@@ -44,7 +44,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v3
         with:
-          python-version: '3.11'
+          python-version: '3.9.17'
           cache: "pip"
           cache-dependency-path: |
             requirements/base.txt
