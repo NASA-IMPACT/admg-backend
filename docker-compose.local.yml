@@ -11,6 +11,7 @@ services:
     ports:
       - 5678:5678
       - 8001:8001 # mapped to 8001 to prevent clashes with local django instances
+      - 3000:3000 # debugger
     env_file:
       - ./.env
     environment:
@@ -20,6 +21,8 @@ services:
       - DB_USER=user
       - DB_PASSWORD=password
       - MIGRATE=true
+      - DJANGO_DEBUG_TOOLBAR=1
+      - DJANGO_DEBUGGER=1
     depends_on:
       - db
 

@@ -1,0 +1,18 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug Django in Docker Compose instance",
+      "type": "python",
+      "request": "attach",
+      "pathMappings": [
+        {
+          "localRoot": "${workspaceFolder}",
+          "remoteRoot": "/home/app/web"
+        }
+      ],
+      "port": 3000,
+      "host": "127.0.0.1",
+    }
+  ]
+}
