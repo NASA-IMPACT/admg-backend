@@ -280,6 +280,15 @@ class Change(models.Model):
     class Meta:
         verbose_name = "Draft"
 
+    @classmethod
+    def from_db(cls, db, field_names, values):
+        instance = super().from_db(db, field_names, values)
+        if 'canonical_uuid' in field_names:
+            # Handle the canonical_uuid specially
+            idx = field_names.index('canonical_uuid')
+            instance._set_canonical_uuid(values[idx])
+        return instance
+
     def get_field_status_str(self, field_status):
         """Gets the str value associated with each field status
 
