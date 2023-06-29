@@ -23,7 +23,9 @@ pylint-django==2.5.3  # https://github.com/PyCQA/pylint-django
 # ------------------------------------------------------------------------------
 factory-boy==3.2.1  # https://github.com/FactoryBoy/factory_boy
 
-django-debug-toolbar==3.8.1  # https://github.com/jazzband/django-debug-toolbar
+django-debug-toolbar==4.1.0  # https://github.com/jazzband/django-debug-toolbar
 django-extensions==3.2.1  # https://github.com/django-extensions/django-extensions
 pytest-django==4.5.2  # https://github.com/pytest-dev/pytest-django
-debugpy==1.5.1
+
+# Debugging
+debugpy==1.6.7

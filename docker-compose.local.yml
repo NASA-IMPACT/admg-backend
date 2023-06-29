@@ -5,13 +5,12 @@ services:
     build:
       context: ./
       dockerfile: Dockerfile.local
-    command: python manage.py runserver 0.0.0.0:8001
+    command: python -m debugpy --listen 0.0.0.0:5678 manage.py runserver 0.0.0.0:8001
     volumes:
       - .:/home/app/web
     ports:
-      - 5678:5678
+      - 5678:5678 # debugger
       - 8001:8001 # mapped to 8001 to prevent clashes with local django instances
-      - 3000:3000 # debugger
     env_file:
       - ./.env
     environment:
