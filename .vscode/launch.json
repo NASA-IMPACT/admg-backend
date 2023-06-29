@@ -2,7 +2,7 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Debug Django in Docker Compose instance",
+      "name": "Debug Django in running Docker Compose webserver",
       "type": "python",
       "request": "attach",
       "pathMappings": [
