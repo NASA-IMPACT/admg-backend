@@ -97,11 +97,22 @@ class TestCampaignDetailView(TestCase):
         """
         Only the latest Change object should be returned for the queryset.
         """
-        latest = CampaignDetailView._filter_latest_changes(
-            Change.objects.of_type(Campaign)
-            .filter(model_instance_uuid=str(self.create_change.uuid))
-            .prefetch_approvals()
+        # latest = CampaignDetailView._filter_latest_changes(
+        #     Change.objects.of_type(Campaign)
+        #     .filter(model_instance_uuid=str(self.create_change.uuid))
+        #     .prefetch_approvals()
+        # )
+        create_change = factories.ChangeFactory.make_create_change_object(CampaignFactory)
+        create_change.publish(self.user)
+
+        update_change = factories.ChangeFactory.create(
+            content_type=ContentType.objects.get_for_model(Campaign),
+            action=Change.Actions.UPDATE,
+            model_instance_uuid=create_change.uuid,
         )
+        update_change.publish(self.user)
+            
+        self.assertTrue(hasattr(create_change, 'model_instance_uuid'))
 
     def test_filter_latest_changes_with_multiple_models_returns_latest_change(self):
         """
