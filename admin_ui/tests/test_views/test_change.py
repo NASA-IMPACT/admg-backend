@@ -111,7 +111,7 @@ class TestCampaignDetailView(TestCase):
             model_instance_uuid=create_change.uuid,
         )
         update_change.publish(self.user)
-            
+
         self.assertTrue(hasattr(create_change, 'model_instance_uuid'))
 
     def test_filter_latest_changes_with_multiple_models_returns_latest_change(self):
