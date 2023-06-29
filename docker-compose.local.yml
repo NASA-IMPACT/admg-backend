@@ -21,8 +21,6 @@ services:
       - DB_USER=user
       - DB_PASSWORD=password
       - MIGRATE=true
-      - DJANGO_DEBUG_TOOLBAR=1
-      - DJANGO_DEBUGGER=1
     depends_on:
       - db
 

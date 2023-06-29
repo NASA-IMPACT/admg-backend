@@ -8,12 +8,12 @@ if __name__ == "__main__":
 
     from django.conf import settings
 
-    if settings.DEBUG:
-        if os.environ.get('RUN_MAIN') or os.environ.get('WERKZEUG_RUN_MAIN'):
-            import debugpy
+    if settings.DEBUG and (os.environ.get('RUN_MAIN') or os.environ.get('WERKZEUG_RUN_MAIN')):
+        import debugpy
 
-            debugpy.listen(("0.0.0.0", 3000))
-            print('Attached Debugger at 0.0.0.0:3000')
+        host, port = "0.0.0.0", 3000
+        debugpy.listen((host, port))
+        print(f"Listening for incoming debugger (DAP client) connections on {host}:{port}")
 
     try:
         from django.core.management import execute_from_command_line
