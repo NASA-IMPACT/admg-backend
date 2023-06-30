@@ -82,6 +82,7 @@ class TestCampaignDetailView(TestCase):
         self.create_change = factories.ChangeFactory.make_create_change_object(CampaignFactory)
         self.create_change.publish(self.user)
         self.num_changes = 10
+        self.latest_campaign_view = []
 
         self.update_changes = []
         for _ in range(self.num_changes):
@@ -93,15 +94,10 @@ class TestCampaignDetailView(TestCase):
             update_change.publish(self.user)
             self.update_changes.append(update_change)
 
-    def test_filter_latest_changes_returns_latest_change(self):
+    def test_filter_single_changes_returns_same_uuid(self):
         """
-        Only the latest Change object should be returned for the queryset.
+        A single change should return a Change object with same model instance uuid.
         """
-        # latest = CampaignDetailView._filter_latest_changes(
-        #     Change.objects.of_type(Campaign)
-        #     .filter(model_instance_uuid=str(self.create_change.uuid))
-        #     .prefetch_approvals()
-        # )
         create_change = factories.ChangeFactory.make_create_change_object(CampaignFactory)
         create_change.publish(self.user)
 
@@ -117,7 +113,8 @@ class TestCampaignDetailView(TestCase):
     def test_filter_latest_changes_with_multiple_models_returns_latest_change(self):
         """
         If multiple campaigns are referenced in the queryset, the
-        method should return the latest Change object for each Campaign.
+        method should return the latest Change object for each Campaign
+        with model_instance_uuids.
         """
 
         create_change = factories.ChangeFactory.make_create_change_object(CampaignFactory)
