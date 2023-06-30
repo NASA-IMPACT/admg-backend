@@ -66,7 +66,6 @@ class TestCreateView(TestCase):
         self.assertEqual(Change.FIELD_STATUS_MAPPING[Change.FIELD_UNSURE], "unsure")
         self.assertEqual(Change.FIELD_STATUS_MAPPING[Change.FIELD_CORRECT], "correct")
 
-
     def test_validate_does_not_create_instance(self):
         self.assertEqual(Change.objects.filter(content_type=self.content_type).count(), 0)
         content_type = self.content_type.id
