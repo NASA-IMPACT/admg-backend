@@ -1,12 +1,9 @@
 from django.contrib.contenttypes.models import ContentType
 from django.test import TestCase
 from django.urls import reverse
-
 from admg_webapp.users.models import User
-from admin_ui.views.change import CampaignDetailView
 from api_app.models import Change
 from data_models.models import Campaign, Season
-
 from admin_ui.tests import factories
 from data_models.tests.factories import CampaignFactory
 
