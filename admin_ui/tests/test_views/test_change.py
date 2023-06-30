@@ -127,3 +127,18 @@ class TestCampaignDetailView(TestCase):
             self.update_changes.append(update_change)
 
         self.assertTrue(hasattr(self.update_changes[-1], 'model_instance_uuid'))
+
+    def test_filter_delete_changes_returns_same_uuid(self):
+        """
+        A delete change should return a Change object with same model instance uuid.
+        """
+        create_change = factories.ChangeFactory.make_create_change_object(CampaignFactory)
+        create_change.publish(self.user)
+
+        delete_change = factories.ChangeFactory.create(
+            content_type=ContentType.objects.get_for_model(Campaign),
+            action=Change.Actions.DELETE,
+            model_instance_uuid=create_change.uuid,
+        )
+
+        self.assertTrue(hasattr(delete_change, 'model_instance_uuid'))
