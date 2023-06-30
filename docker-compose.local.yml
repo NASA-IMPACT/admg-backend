@@ -9,14 +9,20 @@ services:
     volumes:
       - .:/home/app/web
     ports:
-      - 5678:5678
+      - 5678:5678 # debugger
       - 8001:8001 # mapped to 8001 to prevent clashes with local django instances
     env_file:
       - ./.env
     environment:
+      - DB_NAME=admg_webapp
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USER=user
+      - DB_PASSWORD=password
       - MIGRATE=true
     depends_on:
       - db
+
   db:
     image: postgis/postgis:12-3.3
     volumes:
@@ -49,6 +55,11 @@ services:
     env_file:
       - ./.env
     environment:
+      - DB_NAME=admg_webapp
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USER=user
+      - DB_PASSWORD=password
       - MIGRATE=false
     depends_on:
       - web
