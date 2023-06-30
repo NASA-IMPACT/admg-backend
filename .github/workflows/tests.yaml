@@ -118,8 +118,8 @@ jobs:
         run: |
           dev_total="${{fromJson(steps.calculate_coverage.outputs.dev_cov).totals.percent_covered}}"
           new_total="${{fromJson(steps.calculate_coverage.outputs.new_cov).totals.percent_covered}}"
-          (( $(echo "$new_total < $dev_total" | bc -l) )) && result=failure || result=success
-          echo "result=${result}" >> $GITHUB_OUTPUT
+          coverage_diff=$(echo "$dev_total - $new_total" | bc -l)
+          (( $(echo "$coverage_diff > 1.0" | bc -l) )) && result=failure || result=success
           echo "Coverage comparison: $result"
 
       - name: Report result

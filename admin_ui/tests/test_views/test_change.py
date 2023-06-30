@@ -19,6 +19,15 @@ class TestChangeUpdateView(TestCase):
         self.assertEqual(302, response.status_code)
         self.assertEqual(f"{reverse('account_login')}?next={self.url}", response.url)
 
+    def test_unsuccessful_change(self):
+        """
+        Tests that an unauthorized user cannot make changes.
+        """
+        self.client.force_login(user=self.user)
+        self.client.logout()
+        response = self.client.get(self.url)
+        self.assertEqual(302, response.status_code)
+
 
 class TestCreateView(TestCase):
     def setUp(self):
@@ -47,6 +56,16 @@ class TestCreateView(TestCase):
         )
         seasons = Change.objects.filter(content_type=self.content_type)
         self.assertEqual(len(seasons), 1)
+
+    def test_field_status_mapping(self):
+        """
+        Tests that field status constants map correctly to their string representations.
+        """
+        self.assertEqual(Change.FIELD_STATUS_MAPPING[Change.FIELD_UNVIEWED], "unviewed")
+        self.assertEqual(Change.FIELD_STATUS_MAPPING[Change.FIELD_INCORRECT], "incorrect")
+        self.assertEqual(Change.FIELD_STATUS_MAPPING[Change.FIELD_UNSURE], "unsure")
+        self.assertEqual(Change.FIELD_STATUS_MAPPING[Change.FIELD_CORRECT], "correct")
+
 
     def test_validate_does_not_create_instance(self):
         self.assertEqual(Change.objects.filter(content_type=self.content_type).count(), 0)
