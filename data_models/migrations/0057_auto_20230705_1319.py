@@ -49,6 +49,7 @@ def convert_cmr_data_to_json(apps, schema_editor):
             setattr(doi, field, json_data)
         doi.save()
 
+
 class Migration(migrations.Migration):
     dependencies = [
         ('data_models', '0056_alter_doi_cmr_data_formats_alter_doi_cmr_dates_and_more'),
