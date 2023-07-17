@@ -1,0 +1,103 @@
+{
+    "PlatformType": [
+        "short_name",
+        "long_name"
+    ],
+    "HomeBase": [
+        "short_name",
+        "long_name",
+        "location"
+    ],
+    "Repository": [
+        "short_name",
+        "long_name"
+    ],
+    "FocusArea": [
+        "short_name",
+        "long_name",
+        "url"
+    ],
+    "Season": [
+        "short_name",
+        "long_name"
+    ],
+    "MeasurementStyle": [
+        "short_name",
+        "long_name"
+    ],
+    "MeasurementType": [
+        "short_name",
+        "long_name"
+    ],
+    "MeasurementRegion": [
+        "short_name",
+        "long_name"
+    ],
+    "GeographicalRegion": [
+        "short_name",
+        "long_name"
+    ],
+    "GeophysicalConcept": [
+        "short_name",
+        "long_name"
+    ],
+    "Campaign": [
+        "short_name",
+        "long_name",
+        "aliases__short_name"
+    ],
+    "Platform": [
+        "short_name",
+        "long_name",
+        "aliases__short_name"
+    ],
+    "Instrument": [
+        "short_name",
+        "long_name",
+        "aliases__short_name"
+    ],
+    "Deployment": [
+        "short_name",
+        "long_name",
+        "aliases__short_name"
+    ],
+    "IOP": [
+        "short_name"
+    ],
+    "SignificantEvent": [
+        "short_name"
+    ],
+    "PartnerOrg": [
+        "short_name",
+        "long_name",
+        "aliases__short_name"
+    ],
+    "CollectionPeriod": [
+        "platform__short_name",
+        "platform__long_name"
+    ],
+    "GcmdPhenomenon": [
+        "category",
+        "topic",
+        "term",
+        "variable_1",
+        "variable_2",
+        "variable_3"
+    ],
+    "GcmdProject": [
+        "short_name",
+        "long_name"
+    ],
+    "GcmdPlatform": [
+        "short_name",
+        "long_name",
+        "category"
+    ],
+    "GcmdInstrument": [
+        "short_name",
+        "long_name"
+    ],
+    "Alias": [
+        "short_name"
+    ]
+}
