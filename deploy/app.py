@@ -4,7 +4,7 @@ import aws_cdk as core
 
 from deploy_stacks.utils import generate_name
 
-# from deploy_stacks.app_stack import ApplicationStack
+from deploy_stacks.app_stack import ApplicationStack
 from deploy_stacks.infra_stack import InfraStack
 
 
