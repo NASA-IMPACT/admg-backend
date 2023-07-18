@@ -247,7 +247,8 @@ Install `rabbitmq` (probably using `brew` if you’re on a Mac)
 
 ### Configuring system to deploy CASEI
   
-One feature of the Maintenance Interface is that it should be able to trigger a deployment of [CASEI](https://github.com/NASA-IMPACT/admg-inventory/).  This works by triggering a [workflow dispatch event](https://docs.github.com/en/rest/reference/actions#create-a-workflow-dispatch-event) on CASEI's [`deploy-to-production` workflow](https://github.com/NASA-IMPACT/admg-inventory/actions/workflows/deploy-to-production.yml).
+The Maintenance Interface is able to initiate a deployment of [CASEI](https://github.com/NASA-IMPACT/admg-inventory/).  This works by triggering a [workflow dispatch event](https://docs.github.com/en/rest/reference/actions#create-a-workflow-dispatch-event) on CASEI's [`deploy-to-production` workflow](https://github.com/NASA-IMPACT/admg-inventory/actions/workflows/deploy-to-production.yml).  To allow the Maintenance Interface to trigger CASEI, a [Personal Access Token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens) with `actions:write` permissions should be provided via the `CASEI_GH_TOKEN` environment variable.  The following environment variables may optionally be provided to override default configuration: 
 
-As described in the Github documentation, the Personal Access Token (used to 
-One feature of the Maintenance Interface is that it should be able to trigger a deployment of [CASEI](https://github.com/NASA-IMPACT/admg-inventory/).  This works by triggering a [workflow dispatch event](https://docs.github.com/en/rest/reference/actions#create-a-workflow-dispatch-event) on CASEI's [`deploy-to-production` workflow](https://github.com/NASA-IMPACT/admg-inventory/actions/workflows/deploy-to-production.yml).  To allow the Maintenance Interface to trigger CASEI, a token provided via an `CASEI_GH_TOKEN` env var must have `actions:write` permissions.
+  - `CASEI_GH_REPO`, the repo to deploy. Defaults to `NASA-IMPACT/admg-inventory`
+  - `CASEI_GH_WORKFLOW_ID`, the workflow to run. Defaults to `deploy-to-production.yml`
+  - `CASEI_GH_BRANCH`, the branch to deploy. Defaults to `production`
