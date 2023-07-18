@@ -36,7 +36,7 @@ class InfraStack(Stack):
                     statements=[
                         iam.PolicyStatement(
                             actions=["sts:AssumeRole"],
-                            resources=["arn:aws:iam:::role/cdk-*"],
+                            resources=[f"arn:aws:iam::{Stack.of(self).account}:role/cdk-*"],
                         )
                     ]
                 )
