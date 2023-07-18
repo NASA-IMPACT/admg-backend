@@ -1,0 +1,69 @@
+name: CI/CD
+
+on:
+  - push
+
+jobs:
+  run-linters:
+    name: Run linters
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.8
+
+      - name: Install Python dependencies
+        run: pip install black flake8
+
+      - name: Run linters
+        uses: wearerequired/lint-action@v1
+        with:
+          black: true
+          flake8: true
+          flake8_args: "--ignore E1,E2,E3,E5,W1,W2,W3,W5" # black already handles formatting, this prevents conflicts
+
+  deploy-to-staging:
+    needs: run-linters
+    if: github.ref_name == 'dev'
+    concurrency: staging
+
+    uses: "./.github/workflows/deploy.yml"
+    secrets: inherit # pass all secrets
+    with:
+      role-to-assume: "arn:aws:iam::350996086543:role/ADMG-deployment-role"
+      role-session-name: "admg-backend-github-staging-deployment"
+      aws-region: "us-east-1"
+
+      # TODO WHERE DO I GET THE RIGHT VALUES FOR THESE
+      vpc-id: "vpc-03de2898a74acd650"
+      alb-listener-arn: "arn:aws:elasticloadbalancing:us-east-1:278255066410:listener/app/csdap-loadb-1RD7S8KU7TUJQ/e68f7df41a76a271/b85c7e19ce997cd9"
+      distribution-id: "EJH5ZBVX1BOWZ"
+      # distribution-paths: "/data-in-action*"
+
+      # allowed-hosts: csdap-staging.ds.io
+      debug: true
+
+  notify-slack:
+    needs: deploy-to-staging
+    runs-on: ubuntu-latest
+    if: ${{ success() }}
+    steps:
+      - name: Get first line of commit message
+        id: commit-msg
+        env:
+          COMMIT_MSG: ${{ github.event.head_commit.message }}
+        run: echo "::set-output name=first-line::${COMMIT_MSG%%$'\n*'}"
+
+      - name: Post to a Slack channel
+        id: slack
+        uses: slackapi/slack-github-action@v1.23.0
+        with:
+          channel-id: "admg"
+          payload: '{"text":"Successfully deployed MI Backend! <https://impact.earthdata.nasa.gov/casei/|Click here> to take a look!"}'
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
