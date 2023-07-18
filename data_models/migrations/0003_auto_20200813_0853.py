@@ -4,19 +4,18 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('data_models', '0002_auto_20200812_1813'),
+        ("data_models", "0002_auto_20200812_1813"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='image',
-            name='short_name',
+            model_name="image",
+            name="short_name",
         ),
         migrations.AddField(
-            model_name='image',
-            name='description',
-            field=models.CharField(blank=True, default='', max_length=1024),
+            model_name="image",
+            name="description",
+            field=models.CharField(blank=True, default="", max_length=1024),
         ),
     ]

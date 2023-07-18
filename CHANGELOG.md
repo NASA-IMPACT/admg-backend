@@ -5,6 +5,76 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.2.4 - 2022.07.21
+### Changed
+- `/api/doi`
+  - `cmr_data_formats` changed from ArrayField(CharField) to JSONField
+
+## 0.2.3 - 2022.06.22
+### Changed
+- `/api/GcmdPhenomena` has changed to `/api/GcmdPhenomenon` 
+- `/api/instrument`
+  - `GcmdPhenomenas` has changed to `GcmdPhenomena`
+
+### Added
+- `/api/doi` has new fields
+  - `cmr_science_keywords` JSON field
+  - `cmr_abstract` TextField
+  - `cmr_data_formats` ArrayField(CharField)
+
+## 0.2.2 - 2022.01.31
+
+### Changed
+
+- `/api/campaign_website` has been removed, as the data model has been simplified. Information about websites is now obtained exclusively from `/api/website`
+- `/api/campaign`
+  - `websites` is now an available field which provides a list of website uuids
+
+
+## 0.2.1 - 2021.08.31
+
+### Changed
+
+- the following fields have been removed from public get requests, however can still be posted to by authenticated users with an appropriatly scoped token
+  - `notes_internal` on all endpoints
+  - `campaign.description_long`
+  - `collection_period.platform_identifier`
+  - `collection_period.home_base`
+
+## 0.2.0 - 2021.04.28
+
+### Change Models
+
+- Change Objects have a new `IN_TRASH` state and associated `trash` and `untrash` actions
+- Change objects have new field `field_status_tracking` and associated actions `generate_field_status_tracking_dict` and `get_field_status_str`
+- ApprovalLog has new actions, `TRASH` and `UNTRASH`
+
+### Data Models
+
+- `/api/gcmd_project`
+  - `short_name` is now optional
+  - `gcmd_uuid` is now unique
+- `/api/gcmd_instrument`
+  - `short_name` is no longer unique
+  - `gcmd_uuid` is unique
+- `/api/gcmd_phenomena`
+  - `gcmd_uuid` is now unique
+- `/api/website`
+  - `website_types` list field has been replaced with `website_type` which returns a UUID
+  - `title` is now optional
+- `/api/campaign`
+  - `funding_agency` is now optional
+  - `number_collection_periods` has been replaced by a new, read only, field `number_ventures`
+  - `number_data_products` is now read only
+- `/api/instrument`
+  - `arbitrary_characteristics` is now `additional_metadata`
+- `/api/deployment`
+  - has a new field, `spatial_bounds` which functions the same as campaign.spatial_bounds
+  - `number_collection_periods` has been removed
+- `/api/collection_period`
+  - `asp_long_name` has been removed. any data previous stored here is now in `aliases`
+  - `num_ventures` has become `number_ventures` to maintain consistency with other models
+
 ## 0.1.12 - 2021.03.31
 
 - `/api/campaign` has a new field `website_details` which returns a list of dicts with website information, including priority

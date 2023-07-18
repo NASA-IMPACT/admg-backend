@@ -1,23 +1,15 @@
-{% extends "api_app/base_crud.html" %}
-{% load crispy_forms_tags static %}
+{% extends "api_app/change_form.html" %}
+
+{% block object_details %}{% endblock object_details %}
 
 {% block header %}
-  <div class="col-auto mr-auto">
-    <h1>Add new {{ content_type_name }} draft</h1>
-  </div>
-  <div class="col-auto">
-    <button class="btn btn-primary" form="model-form" formnovalidate>Save</button>
-    <button class="btn btn-secondary" form="model-form" name="_validate">Validate</button>
-  </div>
+<div class="col-auto mr-auto">
+  <h1>Add new {{ content_type_name }} draft</h1>
+</div>
+<div class="col-auto">
+  <button class="btn btn-primary" form="model-form" formnovalidate>
+    Save{% if '_popup' in request.GET %} & Close{% endif %}
+  </button>
+  <button class="btn btn-secondary" form="model-form" name="_validate">Validate</button>
+</div>
 {% endblock header %}
-
-{% block main %}
-  <main class="col">
-    {{ form.errors }}
-    <form id="model-form" method="post">
-      {% csrf_token %}
-      {{ model_form | crispy }}
-      {% for field in form %} {{ field.as_hidden }} {% endfor %}
-    </form>
-  </main>
-{% endblock main %}

@@ -5,46 +5,53 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('data_models', '0028_auto_20210320_1701'),
+        ("data_models", "0028_auto_20210320_1701"),
     ]
 
     operations = [
         migrations.RenameField(
-            model_name='website',
-            old_name='website_type',
-            new_name='website_types',
+            model_name="website",
+            old_name="website_type",
+            new_name="website_types",
         ),
         migrations.AddField(
-            model_name='websitetype',
-            name='notes_internal',
-            field=models.TextField(blank=True, default=''),
+            model_name="websitetype",
+            name="notes_internal",
+            field=models.TextField(blank=True, default=""),
         ),
         migrations.AddField(
-            model_name='websitetype',
-            name='notes_public',
-            field=models.TextField(blank=True, default=''),
+            model_name="websitetype",
+            name="notes_public",
+            field=models.TextField(blank=True, default=""),
         ),
         migrations.AddField(
-            model_name='websitetype',
-            name='short_name',
-            field=models.CharField(default='default', max_length=256, unique=True),
+            model_name="websitetype",
+            name="short_name",
+            field=models.CharField(default="default", max_length=256, unique=True),
             preserve_default=False,
         ),
         migrations.AlterField(
-            model_name='campaignwebsite',
-            name='campaign',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='campaign_websites', to='data_models.campaign'),
+            model_name="campaignwebsite",
+            name="campaign",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="campaign_websites",
+                to="data_models.campaign",
+            ),
         ),
         migrations.AlterField(
-            model_name='campaignwebsite',
-            name='website',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='campaign_websites', to='data_models.website'),
+            model_name="campaignwebsite",
+            name="website",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="campaign_websites",
+                to="data_models.website",
+            ),
         ),
         migrations.AlterField(
-            model_name='websitetype',
-            name='long_name',
-            field=models.CharField(blank=True, default='', max_length=512),
+            model_name="websitetype",
+            name="long_name",
+            field=models.CharField(blank=True, default="", max_length=512),
         ),
     ]

@@ -5,20 +5,21 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('api_app', '0003_auto_20200408_1902'),
+        ("api_app", "0003_auto_20200408_1902"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='change',
-            name='previous',
+            model_name="change",
+            name="previous",
             field=django.contrib.postgres.fields.jsonb.JSONField(default=dict),
         ),
         migrations.AlterField(
-            model_name='change',
-            name='status',
-            field=models.IntegerField(choices=[(2, 'Pending'), (3, 'Approved'), (1, 'IN_PROGRESS')], default=1),
+            model_name="change",
+            name="status",
+            field=models.IntegerField(
+                choices=[(2, "Pending"), (3, "Approved"), (1, "IN_PROGRESS")], default=1
+            ),
         ),
     ]

@@ -1,4 +1,4 @@
-{% extends "api_app/base_crud.html" %}
+{% extends "api_app/base_list.html" %}
 {% load static %}
 {% load crispy_forms_tags %}
 {% load render_table from django_tables2 %}
@@ -7,26 +7,18 @@
 <div class="col">
   <h1>{{ display_name }} Drafts</h1>
 </div>
-
+{% if view_model %}
 <div class="col-auto">
-  
-  {% if is_multi_modelview %}
-    <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-      Add New Item &plus;
-    </button>
-    <div class="dropdown-menu">
-      {% for item in item_types %}
-      <a class="dropdown-item" href="{% url 'mi-change-add' item %}">{{ item | title }}</a>
-      {% endfor %}
-    </div>
-  
-  {% else %}
-    <a class="btn btn-primary" href="{% url 'mi-change-add' model %}">
-      Add New {{ display_name }} &plus;
-    </a>
-  {% endif %}
-
+  <a class="btn btn-primary" href="{% url 'change-add' view_model %}">
+    Add New {{ display_name }} &plus;
+  </a>
 </div>
+{% else %}
+<form action="{% url 'gcmd-list' %}" method="post">
+  {% csrf_token %}
+  <button class="btn btn-primary">Sync GCMD </button>
+</form>
+{% endif %}
 {% endblock header %}
 
 {% block main %}
@@ -35,16 +27,14 @@
       <form action="" method="get" class="form form-inline">
         {{ filter.form | crispy }}
         <button class="btn btn-secondary btn-sm">Filter</button>
-        <a 
+        <a
           class="btn btn-light btn-sm" 
-          href="{% spaceless %}
-            {% if model == "campaign" %}{% url 'mi-campaign-list' %}
-            {% elif model == "platform" %}{% url 'mi-platform-list' %}
-            {% elif model == "instrument" %}{% url 'mi-instrument-list' %}
-            {% elif model == "partnerorg" %}{% url 'mi-organization-list' %}
-            {% else %}{% url 'mi-summary' %}
-            {% endif %}
-          {% endspaceless %}">
+          {% if view_model %}
+            href="{% url 'change-list' view_model %}"
+          {% else %}
+            href="{% url 'gcmd-list' %}"
+          {% endif %}
+        >
           Clear filters
         </a>
       </form>

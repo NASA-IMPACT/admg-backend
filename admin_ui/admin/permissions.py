@@ -1,4 +1,4 @@
-from admg_webapp.users.models import ADMIN_CODE
+from admg_webapp.users.models import User
 
 
 class EnforcedPermissionsMixin:
@@ -19,7 +19,7 @@ class EnforcedPermissionsMixin:
 
     @staticmethod
     def is_admin(request):
-        if not hasattr(request.user, 'role'):
+        if not hasattr(request.user, "role"):
             # AnonymousUsers won't have role property
             return False
-        return request.user.role == ADMIN_CODE
+        return request.user.role == User.Roles.ADMIN.label

@@ -2,4 +2,5 @@ from django.apps import AppConfig
 
 
 class ApiAppConfig(AppConfig):
-    name = 'api_app'
+    default_auto_field = 'django.db.models.AutoField'
+    name = "api_app"

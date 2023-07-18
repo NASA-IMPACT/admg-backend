@@ -69,6 +69,7 @@ target/
 venv/
 ENV/
 env/
+venv3/
 
 # Rope project settings
 .ropeproject
@@ -157,7 +158,6 @@ typings/
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
-.vscode
 
 
 
@@ -285,8 +285,9 @@ cmr/config.py
 *.xlsx
 *.jpg
 *.jpeg
-*.png
 *.gif
 *.sql
 hosts/*
 !hosts/*.sample
+
+.backup

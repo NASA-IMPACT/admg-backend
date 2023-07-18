@@ -4,15 +4,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('data_models', '0003_auto_20200813_0853'),
+        ("data_models", "0003_auto_20200813_0853"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='doi',
-            name='long_name',
-            field=models.TextField(blank=True, default=''),
+            model_name="doi",
+            name="long_name",
+            field=models.TextField(blank=True, default=""),
         ),
     ]

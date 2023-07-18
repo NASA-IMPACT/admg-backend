@@ -1,23 +1,19 @@
 import json
 
-from drf_yasg import openapi
-from drf_yasg.inspectors import SwaggerAutoSchema
-
+from admg_webapp.users.models import User
+from django.http import HttpResponse
 from django.utils.decorators import method_decorator
 from django.views.decorators.debug import sensitive_post_parameters
-from django.http import HttpResponse
-
-from oauth2_provider.views.base import TokenView
+from drf_yasg import openapi
+from drf_yasg.inspectors import SwaggerAutoSchema
 from oauth2_provider.models import get_access_token_model
 from oauth2_provider.signals import app_authorized
-
-from admg_webapp.users.models import ADMIN, STAFF
+from oauth2_provider.views.base import TokenView
 
 ALL_STATUS_CODE = ["200", "201", "202", "203", "204"]
 
 
 class XcodeAutoSchema(SwaggerAutoSchema):
-
     def __init__(self, view, path, method, components, request, overrides, operation_keys=None):
         super().__init__(view, path, method, components, request, overrides)
 
@@ -59,15 +55,11 @@ class XcodeAutoSchema(SwaggerAutoSchema):
             type=openapi.TYPE_OBJECT,
             properties={
                 "data": prev_schema,
-                "message": openapi.Schema(
-                    type="string",
-                    description="What went wrong"
-                ),
+                "message": openapi.Schema(type="string", description="What went wrong"),
                 "sucess": openapi.Schema(
-                    type=openapi.TYPE_BOOLEAN,
-                    description="Was the API successfull?"
-                )
-            }
+                    type=openapi.TYPE_BOOLEAN, description="Was the API successfull?"
+                ),
+            },
         )
 
     def get_responses(self):
@@ -92,7 +84,7 @@ class XcodeAutoSchema(SwaggerAutoSchema):
                     res[status_code]["schema"] = self._response_schema(
                         openapi.Schema(
                             type="string",
-                            description=res[status_code].get("description")
+                            description=res[status_code].get("description"),
                         ),
                     )
 
@@ -111,22 +103,17 @@ class CustomTokenView(TokenView):
         if status == 200:
             access_token = json.loads(body).get("access_token")
             if access_token is not None:
-                token = get_access_token_model().objects.get(
-                    token=access_token
-                )
+                token = get_access_token_model().objects.get(token=access_token)
 
                 # add role based scope in the token
                 role = token.user.get_role_display()
                 scope = ["read", "write", role]
-                if role == ADMIN:
-                    scope.append(STAFF)
+                if role == User.Roles.ADMIN.label:
+                    scope.append(User.Roles.STAFF.label)
                 token.scope = " ".join(scope)
                 token.save()
 
-                app_authorized.send(
-                    sender=self, request=request,
-                    token=token
-                )
+                app_authorized.send(sender=self, request=request, token=token)
         response = HttpResponse(content=body, status=status)
 
         for k, v in headers.items():

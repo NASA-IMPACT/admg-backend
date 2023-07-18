@@ -38,16 +38,24 @@ EMAIL_PORT = 1025
 # django-debug-toolbar
 # ------------------------------------------------------------------------------
 # https://django-debug-toolbar.readthedocs.io/en/latest/installation.html#prerequisites
-INSTALLED_APPS += ["debug_toolbar"]  # noqa F405
-# https://django-debug-toolbar.readthedocs.io/en/latest/installation.html#middleware
-MIDDLEWARE += ["debug_toolbar.middleware.DebugToolbarMiddleware"]  # noqa F405
-# https://django-debug-toolbar.readthedocs.io/en/latest/configuration.html#debug-toolbar-config
-DEBUG_TOOLBAR_CONFIG = {
-    "DISABLE_PANELS": ["debug_toolbar.panels.redirects.RedirectsPanel"],
-    "SHOW_TEMPLATE_CONTEXT": True,
-}
+# TODO: The debug toolbar was massively slowing down the application on local, so
+# it's disabled by default
+if env('DJANGO_DEBUG_TOOLBAR', default=False):
+    INSTALLED_APPS += ["debug_toolbar"]  # noqa F405
+    # https://django-debug-toolbar.readthedocs.io/en/latest/installation.html#middleware
+    MIDDLEWARE += ["debug_toolbar.middleware.DebugToolbarMiddleware"]  # noqa F405
+    # https://django-debug-toolbar.readthedocs.io/en/latest/configuration.html#debug-toolbar-config
+    DEBUG_TOOLBAR_CONFIG = {
+        # "DISABLE_PANELS": ["debug_toolbar.panels.redirects.RedirectsPanel"],
+        "SHOW_TEMPLATE_CONTEXT": True,
+    }
 # https://django-debug-toolbar.readthedocs.io/en/latest/installation.html#internal-ips
 INTERNAL_IPS = ["127.0.0.1", "10.0.2.2"]
+if DEBUG:
+    import socket  # only if you haven't already imported this
+
+    hostname, _, ips = socket.gethostbyname_ex(socket.gethostname())
+    INTERNAL_IPS = [ip[: ip.rfind(".")] + ".1" for ip in ips] + ["127.0.0.1", "10.0.2.2"]
 
 
 # django-extensions
@@ -72,7 +80,10 @@ if os.name == "nt":
 # everything below this line is required to get shell_plus --notebook to work from within a docker container
 SHELL_PLUS = "ipython"
 
-SHELL_PLUS_PRINT_SQL = True
+SHELL_PLUS_PRINT_SQL = env(
+    "SHELL_PLUS_PRINT_SQL",
+    default=True,
+)
 
 NOTEBOOK_ARGUMENTS = [
     # "--ip",

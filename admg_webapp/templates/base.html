@@ -20,12 +20,11 @@
 
       <!-- Latest compiled and minified Bootstrap CSS -->
       <link href="{% static 'css/bootstrap.css' %}" rel="stylesheet">
-
+      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css">
 
       <!-- Your stuff: Third-party CSS libraries go here -->
 
       <!-- This file stores project-specific CSS -->
-
       <link href="{% static 'css/project.css' %}" rel="stylesheet">
 
     {% endblock %}
@@ -42,7 +41,7 @@
           <span class="navbar-toggler-icon"></span>
         </button>
         
-        <a class="navbar-brand text-white" href="{% url 'mi-summary' %}">
+        <a class="navbar-brand text-white" href="{% url 'summary' %}">
           <img src="{% static 'images/logo.svg' %}" class="mr-3">NASA | CASEI {% if request.user.is_admg_admin %} Admin {% else %} Staff {% endif %}
         </a>
         
@@ -76,7 +75,9 @@
             </li>
             {% if request.user.is_admg_admin %}
             <li class="nav-item mx-1">
-              <a class="nav-link btn btn-light" disabled >Deploy Website</a>
+              <form action="{% url 'trigger-deploy' %}">
+                <input type="submit" value="Deploy Website" class="nav-link btn btn-light" />
+              </form>
             </li>
             {% endif %}
           </ul>

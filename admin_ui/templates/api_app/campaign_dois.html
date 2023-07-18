@@ -2,6 +2,11 @@
 {% load crispy_forms_tags %}
 {% load humanize %}
 
+{% block extrahead %}
+{{ block.super }}
+{{ formset.media.css }}
+{% endblock %}
+
 {% block main %}
 <div class="col">
 
@@ -9,111 +14,113 @@
     <div class="col">
       <h2>Generate DOI Recommendations</h2>
       <p>
-        The DOI matcher will search for DOIs based on this campaigns <code>short_name</code>.
-        If you have not made the Instrument, Platforms, or CDPIs, the DOI matcher won't be able
-        to automatically relate proposed DOIs to the records. After creating Instruments, Platforms,
-        or CDPIs, it is recommended to re-run the DOI matcher to update the proposed DOIs.
+        The DOI matcher will search for DOIs based on this campaign's <code>short_name</code>.
+        If you have not made drafts of this campaign's instrument, platforms, or CDPIs, the DOI
+        matcher won't be able to automatically relate proposed DOIs to this campaign. After creating
+        instruments, platforms, or CDPIs for this campaign, it is recommended to re-run the DOI matcher
+        to update the proposed DOIs.
+
+        Please refresh the page a few minutes after clicking "Generate DOIs".
       </p>
-      <form action="{% url 'mi-doi-fetch' object.uuid %}" method="post">
+      <form action="{% url 'doi-fetch' object.uuid %}" method="post">
         {% csrf_token %}
-        <button class="btn btn-primary btn-lg rounded-0">Generate DOIs &plus;</button>
+        <button class="btn btn-primary">Generate DOIs &plus;</button>
       </form>
     </div>
 
     <div class="col-4">
-      <h4>Past Fetches</h4>
-      <div class="alert alert-warning alert-dismissible" role="alert">
-        This currently displays only fetches for any Campaign that have completed. In the future,
-        it should display fetchs for only the campaign on the current view and for the fetches as
-        soon as they're scheduled.
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
+      <h4>Your Recent Fetches</h4>
       <ul class="list-group">
-        {% for task in doi_tasks %}
-        <li class="list-group-item list-group-item-action flex-column align-items-start collapsed" data-toggle="collapse"
-          data-target="#task_{{ task.id }}_details">
+        {% for task_id, task in doi_tasks.items %}
+        <li class="list-group-item list-group-item-action flex-column align-items-start collapsed"
+          data-toggle="collapse" data-target="#task_{{ task_id }}_details">
           <div class="d-flex w-100 justify-content-between">
-            <h5 class="mb-1">{{ task.status }}</h5>
-            {% firstof task.date_done|naturaltime task.date_created|naturaltime as task_date %}
-            <small>{{ task_date }}</small>
+            {% if task %}
+              <h5 class="mb-1">{{ task.status }}</h5>
+              {% firstof task.date_done|naturaltime task.date_created|naturaltime as task_date %}
+              <small>{{ task_date }}</small>
+            {% else %}
+              <h5 class="mb-1">QUEUED</h5>
+            {% endif %}
           </div>
-          <dl id="task_{{ task.id }}_details" class="collapse">
-            <dt>Started</dt>
-            <dd>{{ task.date_created | naturaltime }}</dd>
+          <dl id="task_{{ task_id }}_details" class="collapse">
+            {% if task %}
+              <dt>Started</dt>
+              <dd>{{ task.date_created | naturaltime }}</dd>
 
-            <dt>Completed</dt>
-            <dd>{{ task.date_done | naturaltime }}</dd>
+              <dt>Completed</dt>
+              <dd>{{ task.date_done | naturaltime }}</dd>
 
-            <dt>Runtime</dt>
-            <dd>{{ task.date_done | timesince:task.date_created }}</dd>
+              <dt>Runtime</dt>
+              <dd>{{ task.date_done | timesince:task.date_created }}</dd>
 
-            <dt>Task ID</dt>
-            <dd><small class="text-monospace">{{ task.task_id }}</small></dd>
+              <dt>Task ID</dt>
+              <dd><small class="text-monospace">{{ task_id }}</small></dd>
+            {% else %}
+              <p>
+                We don't have any information about this DOI fetch. This likely 
+                means that the fetch has been scheduled but has not yet started.
+              </p>
+            {% endif %}
           </dl>
         </li>
+        {% empty %}
+        <p class="font-italic">No recent fetches are found.</p>
         {% endfor %}
       </ul>
     </div>
   </div>
-  
-  <div class="row">
 
+  <div class="row">
     <div class="col">
       <h2 class="mt-4">Recommended DOIs</h2>
-      <div class="alert alert-warning alert-dismissible" role="alert">
-        Reviewing DOIs is still under development.
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
+      {% if page_obj.paginator.count %}
+      We've found {{ page_obj.paginator.count }} potentially related DOIs. Unreviewed DOIs are shown first.
+      {% endif %}
 
-      <form method="post" novalidate>
-        {% csrf_token %}
-        <table class="table">
-          <thead>
-            {% for form_row in form %}
-            {% if forloop.first %}
-            <tr>
-              <th scope="col">
-                <label>
-                  DOI Link
-                </label>
-              </th>
-              {% for field in form_row.visible_fields %}
-              {% if field.name != 'doi' %}
-              <th scope="col">{{ field.label_tag }}</th>
-              {% endif %}
-              {% endfor %}
-            </tr>
-            {% endif %}
-            {% endfor %}
-          </thead>
-          <tbody>
-            {% for hidden in form_row.hidden_fields %}
-            {{ hidden }}
-            {% endfor %}
-            {% for form_row in form %}
-            <tr>
-              <td>
-                <a href="//doi.org/{{ form_row.initial.doi }}" target="_blank">
-                  {{ form_row.initial.doi }}
-                </a>
-              </td>
-              {% for field in form_row.visible_fields %}
-              {% if field.name != 'doi' %}
-              <td>{{ field}}</td>
-              {% endif %}
-              {% endfor %}
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
+      {{ formset.management_form|crispy }}
+      {% crispy formset %}
 
-        <button type="submit" class="btn btn-primary">Submit</button>
-      </form>
+      {% if page_obj.has_other_pages %}
+      <ul class="pagination">
+        {% if page_obj.has_previous %}
+        <li class="page-item ">
+          <a class="page-link" href="?page={{ page_obj.previous_page_number }}">&laquo;</a>
+        </li>
+        {% else %}
+        <li class="page-item disabled">
+          <span class="page-link">&laquo;</span>
+        </li>
+        {% endif %}
+
+        {% for i in page_obj.paginator.page_range %}
+        <li class="page-item {% if page_obj.number == i %}active{% endif %}">
+          <a class="page-link" href="?page={{ i }}">{{ i }}</a>
+        </li>
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ page_obj.next_page_number }}">&raquo;</a>
+        </li>
+        {% else %}
+        <li class="disabled">
+          <span>&raquo;</span>
+        </li>
+        {% endif %}
+
+      </ul>
+      {% endif %}
+      <span class="text-muted">
+        Showing {{ page_obj.start_index }}-{{ page_obj.end_index }} of {{ page_obj.paginator.count }} recommmended DOIs.
+      </span>
+
     </div>
   </div>
 </div>
 {% endblock main %}
+
+{% block javascript %}
+{{ block.super }}
+{{ formset.media.js }}
+{% endblock javascript %}

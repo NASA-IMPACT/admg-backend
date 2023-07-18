@@ -6,60 +6,91 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('api_app', '0006_auto_20210118_2149'),
+        ("api_app", "0006_auto_20210118_2149"),
     ]
 
     operations = [
         migrations.RenameField(
-            model_name='change',
-            old_name='appr_reject_date',
-            new_name='published_date',
+            model_name="change",
+            old_name="appr_reject_date",
+            new_name="published_date",
         ),
         migrations.RemoveField(
-            model_name='change',
-            name='appr_reject_by',
+            model_name="change",
+            name="appr_reject_by",
         ),
         migrations.AddField(
-            model_name='change',
-            name='published_by',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.DO_NOTHING, related_name='published_by', to=settings.AUTH_USER_MODEL),
+            model_name="change",
+            name="published_by",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.DO_NOTHING,
+                related_name="published_by",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AddField(
-            model_name='change',
-            name='rejected_by',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.DO_NOTHING, related_name='rejected_by', to=settings.AUTH_USER_MODEL),
+            model_name="change",
+            name="rejected_by",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.DO_NOTHING,
+                related_name="rejected_by",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AddField(
-            model_name='change',
-            name='rejected_date',
+            model_name="change",
+            name="rejected_date",
             field=models.DateTimeField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='change',
-            name='reviewed_by',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.DO_NOTHING, related_name='reviewed_by', to=settings.AUTH_USER_MODEL),
+            model_name="change",
+            name="reviewed_by",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.DO_NOTHING,
+                related_name="reviewed_by",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AddField(
-            model_name='change',
-            name='reviewed_date',
+            model_name="change",
+            name="reviewed_date",
             field=models.DateTimeField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='change',
-            name='submitted_by',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.DO_NOTHING, related_name='submitted_by', to=settings.AUTH_USER_MODEL),
+            model_name="change",
+            name="submitted_by",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.DO_NOTHING,
+                related_name="submitted_by",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AddField(
-            model_name='change',
-            name='submitted_date',
+            model_name="change",
+            name="submitted_date",
             field=models.DateTimeField(blank=True, null=True),
         ),
         migrations.AlterField(
-            model_name='change',
-            name='status',
-            field=models.IntegerField(choices=[(1, 'In Progress'), (2, 'In Review'), (3, 'In Admin Review'), (4, 'Published')], default=1),
+            model_name="change",
+            name="status",
+            field=models.IntegerField(
+                choices=[
+                    (1, "In Progress"),
+                    (2, "In Review"),
+                    (3, "In Admin Review"),
+                    (4, "Published"),
+                ],
+                default=1,
+            ),
         ),
     ]
