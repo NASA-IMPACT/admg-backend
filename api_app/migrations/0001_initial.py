@@ -8,7 +8,6 @@ import uuid
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
@@ -17,20 +16,46 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='Change',
+            name="Change",
             fields=[
-                ('uuid', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('added_date', models.DateTimeField(auto_now_add=True)),
-                ('appr_reject_date', models.DateTimeField(null=True)),
-                ('model_name', models.CharField(max_length=20)),
-                ('status', models.IntegerField(choices=[(1, 'Pending'), (2, 'Approved'), (3, 'Rejected')], default=1)),
-                ('update', django.contrib.postgres.fields.jsonb.JSONField()),
-                ('model_instance_uuid', models.UUIDField(default=uuid.uuid4)),
-                ('first_change', models.BooleanField(default=False)),
-                ('deletes_row', models.BooleanField(default=False)),
-                ('notes', models.CharField(blank=True, max_length=500)),
-                ('appr_reject_by', models.ForeignKey(null=True, on_delete=django.db.models.deletion.DO_NOTHING, related_name='approved_by', to=settings.AUTH_USER_MODEL)),
-                ('user', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='changed_by', to=settings.AUTH_USER_MODEL)),
+                (
+                    "uuid",
+                    models.UUIDField(
+                        default=uuid.uuid4, editable=False, primary_key=True, serialize=False
+                    ),
+                ),
+                ("added_date", models.DateTimeField(auto_now_add=True)),
+                ("appr_reject_date", models.DateTimeField(null=True)),
+                ("model_name", models.CharField(max_length=20)),
+                (
+                    "status",
+                    models.IntegerField(
+                        choices=[(1, "Pending"), (2, "Approved"), (3, "Rejected")], default=1
+                    ),
+                ),
+                ("update", django.contrib.postgres.fields.jsonb.JSONField()),
+                ("model_instance_uuid", models.UUIDField(default=uuid.uuid4)),
+                ("first_change", models.BooleanField(default=False)),
+                ("deletes_row", models.BooleanField(default=False)),
+                ("notes", models.CharField(blank=True, max_length=500)),
+                (
+                    "appr_reject_by",
+                    models.ForeignKey(
+                        null=True,
+                        on_delete=django.db.models.deletion.DO_NOTHING,
+                        related_name="approved_by",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="changed_by",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
         ),
     ]

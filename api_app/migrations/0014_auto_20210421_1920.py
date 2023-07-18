@@ -4,20 +4,45 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('api_app', '0013_auto_20210305_1449'),
+        ("api_app", "0013_auto_20210305_1449"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='approvallog',
-            name='action',
-            field=models.IntegerField(choices=[(-1, 'trash'), (0, 'untrash'), (1, 'create'), (2, 'edit'), (3, 'submit'), (4, 'review'), (5, 'publish'), (6, 'reject'), (7, 'claim'), (8, 'unclaim')], default=1),
+            model_name="approvallog",
+            name="action",
+            field=models.IntegerField(
+                choices=[
+                    (-1, "trash"),
+                    (0, "untrash"),
+                    (1, "create"),
+                    (2, "edit"),
+                    (3, "submit"),
+                    (4, "review"),
+                    (5, "publish"),
+                    (6, "reject"),
+                    (7, "claim"),
+                    (8, "unclaim"),
+                ],
+                default=1,
+            ),
         ),
         migrations.AlterField(
-            model_name='change',
-            name='status',
-            field=models.IntegerField(choices=[(0, 'Created'), (1, 'In Progress'), (2, 'Awaiting Review'), (3, 'In Review'), (4, 'Awaiting Admin Review'), (5, 'In Admin Review'), (6, 'Published'), (7, 'In Trash')], default=1),
+            model_name="change",
+            name="status",
+            field=models.IntegerField(
+                choices=[
+                    (0, "Created"),
+                    (1, "In Progress"),
+                    (2, "Awaiting Review"),
+                    (3, "In Review"),
+                    (4, "Awaiting Admin Review"),
+                    (5, "In Admin Review"),
+                    (6, "Published"),
+                    (7, "In Trash"),
+                ],
+                default=1,
+            ),
         ),
     ]

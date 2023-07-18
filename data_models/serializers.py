@@ -1,8 +1,6 @@
 import json
 from uuid import uuid4
 
-from django.apps import apps
-from django.contrib.contenttypes.models import ContentType
 from django.contrib.gis.geos import GEOSGeometry
 from rest_framework import serializers
 
@@ -26,15 +24,7 @@ def get_geojson_from_bb(bb_data):
     n, s, e, w = [float(coord) for coord in bb_data.split(",")]
     retval = {
         "type": "Polygon",
-        "coordinates": [
-            [
-                [w, s],
-                [e, s],
-                [e, n],
-                [w, n],
-                [w, s],
-            ]
-        ],
+        "coordinates": [[[w, s], [e, s], [e, n], [w, n], [w, s]]],
         "crs": {"type": "name", "properties": {"name": "EPSG:4326"}},
     }
     return json.dumps(retval)
@@ -77,7 +67,19 @@ class GetDoiSerializer(BaseSerializer):
         return get_uuids(obj.dois)
 
 
+class TextImageField(serializers.ImageField):
+    def to_internal_value(self, data):
+        """
+        Allow a user to provide a string referencing an image rather than the
+        actual image file. Useful for when publishing a Change Record for a model
+        with an image field (ie allows serializer to pass validation).
+        """
+        return data
+
+
 class ImageSerializer(BaseSerializer):
+    image = TextImageField()
+
     class Meta:
         model = models.Image
         fields = "__all__"
@@ -101,9 +103,7 @@ class PlatformTypeSerializer(BaseSerializer):
     class Meta:
         model = models.PlatformType
         fields = "__all__"
-        extra_kwargs = {
-            'notes_internal': {'write_only': True},
-        }
+        extra_kwargs = {"notes_internal": {"write_only": True}}
 
 
 class MeasurementTypeSerializer(BaseSerializer):
@@ -119,9 +119,7 @@ class MeasurementTypeSerializer(BaseSerializer):
     class Meta:
         model = models.MeasurementType
         fields = "__all__"
-        extra_kwargs = {
-            'notes_internal': {'write_only': True},
-        }
+        extra_kwargs = {"notes_internal": {"write_only": True}}
 
 
 class MeasurementStyleSerializer(BaseSerializer):
@@ -137,18 +135,14 @@ class MeasurementStyleSerializer(BaseSerializer):
     class Meta:
         model = models.MeasurementStyle
         fields = "__all__"
-        extra_kwargs = {
-            'notes_internal': {'write_only': True},
-        }
+        extra_kwargs = {"notes_internal": {"write_only": True}}
 
 
 class HomeBaseSerializer(BaseSerializer):
     class Meta:
         model = models.HomeBase
         fields = "__all__"
-        extra_kwargs = {
-            'notes_internal': {'write_only': True},
-        }
+        extra_kwargs = {"notes_internal": {"write_only": True}}
 
 
 class FocusAreaSerializer(BaseSerializer):
@@ -160,9 +154,7 @@ class FocusAreaSerializer(BaseSerializer):
     class Meta:
         model = models.FocusArea
         fields = "__all__"
-        extra_kwargs = {
-            'notes_internal': {'write_only': True},
-        }
+        extra_kwargs = {"notes_internal": {"write_only": True}}
 
 
 class SeasonSerializer(BaseSerializer):
@@ -174,9 +166,7 @@ class SeasonSerializer(BaseSerializer):
     class Meta:
         model = models.Season
         fields = "__all__"
-        extra_kwargs = {
-            'notes_internal': {'write_only': True},
-        }
+        extra_kwargs = {"notes_internal": {"write_only": True}}
 
 
 class RepositorySerializer(BaseSerializer):
@@ -192,9 +182,7 @@ class RepositorySerializer(BaseSerializer):
     class Meta:
         model = models.Repository
         fields = "__all__"
-        extra_kwargs = {
-            'notes_internal': {'write_only': True},
-        }
+        extra_kwargs = {"notes_internal": {"write_only": True}}
 
 
 class MeasurementRegionSerializer(BaseSerializer):
@@ -206,9 +194,7 @@ class MeasurementRegionSerializer(BaseSerializer):
     class Meta:
         model = models.MeasurementRegion
         fields = "__all__"
-        extra_kwargs = {
-            'notes_internal': {'write_only': True},
-        }
+        extra_kwargs = {"notes_internal": {"write_only": True}}
 
 
 class GeographicalRegionSerializer(BaseSerializer):
@@ -220,9 +206,7 @@ class GeographicalRegionSerializer(BaseSerializer):
     class Meta:
         model = models.GeographicalRegion
         fields = "__all__"
-        extra_kwargs = {
-            'notes_internal': {'write_only': True},
-        }
+        extra_kwargs = {"notes_internal": {"write_only": True}}
 
 
 class GeophysicalConceptSerializer(BaseSerializer):
@@ -234,9 +218,7 @@ class GeophysicalConceptSerializer(BaseSerializer):
     class Meta:
         model = models.GeophysicalConcept
         fields = "__all__"
-        extra_kwargs = {
-            'notes_internal': {'write_only': True},
-        }
+        extra_kwargs = {"notes_internal": {"write_only": True}}
 
 
 class WebsiteTypeSerializer(BaseSerializer):
@@ -248,9 +230,7 @@ class WebsiteTypeSerializer(BaseSerializer):
     class Meta:
         model = models.WebsiteType
         fields = "__all__"
-        extra_kwargs = {
-            'notes_internal': {'write_only': True},
-        }
+        extra_kwargs = {"notes_internal": {"write_only": True}}
 
 
 class PartnerOrgSerializer(GetAliasSerializer):
@@ -262,9 +242,7 @@ class PartnerOrgSerializer(GetAliasSerializer):
     class Meta:
         model = models.PartnerOrg
         fields = "__all__"
-        extra_kwargs = {
-            'notes_internal': {'write_only': True},
-        }
+        extra_kwargs = {"notes_internal": {"write_only": True}}
 
 
 class AliasSerializer(BaseSerializer):
@@ -306,29 +284,22 @@ class GcmdPlatformSerializer(BaseSerializer):
         fields = "__all__"
 
 
-class GcmdPhenomenaSerializer(BaseSerializer):
+class GcmdPhenomenonSerializer(BaseSerializer):
     instruments = serializers.SerializerMethodField(read_only=True)
 
     def get_instruments(self, obj):
         return get_uuids(obj.instruments)
 
     class Meta:
-        model = models.GcmdPhenomena
+        model = models.GcmdPhenomenon
         fields = "__all__"
 
 
 class WebsiteSerializer(BaseSerializer):
-    campaigns = serializers.SerializerMethodField(read_only=True)
-
-    def get_campaigns(self, obj):
-        return get_uuids(obj.campaigns)
-
     class Meta:
         model = models.Website
         fields = "__all__"
-        extra_kwargs = {
-            'notes_internal': {'write_only': True},
-        }
+        extra_kwargs = {"notes_internal": {"write_only": True}}
 
 
 class DOISerializer(BaseSerializer):
@@ -362,9 +333,7 @@ class DeploymentSerializer(GetAliasSerializer):
     class Meta:
         model = models.Deployment
         fields = "__all__"
-        extra_kwargs = {
-            'notes_internal': {'write_only': True},
-        }
+        extra_kwargs = {"notes_internal": {"write_only": True}}
 
 
 class IOPSerializer(BaseSerializer):
@@ -389,9 +358,9 @@ class CollectionPeriodSerializer(GetDoiSerializer):
         model = models.CollectionPeriod
         fields = "__all__"
         extra_kwargs = {
-            'platform_identifier': {'write_only': True},
-            'home_base': {'write_only': True},
-            'notes_internal': {'write_only': True},
+            "platform_identifier": {"write_only": True},
+            "home_base": {"write_only": True},
+            "notes_internal": {"write_only": True},
         }
 
 
@@ -407,9 +376,7 @@ class PlatformSerializer(GetAliasSerializer, GetDoiSerializer):
     class Meta:
         model = models.Platform
         fields = "__all__"
-        extra_kwargs = {
-            'notes_internal': {'write_only': True},
-        }
+        extra_kwargs = {"notes_internal": {"write_only": True}}
 
 
 class InstrumentSerializer(GetAliasSerializer, GetDoiSerializer):
@@ -423,24 +390,12 @@ class InstrumentSerializer(GetAliasSerializer, GetDoiSerializer):
     class Meta:
         model = models.Instrument
         fields = "__all__"
-        extra_kwargs = {
-            'notes_internal': {'write_only': True},
-        }
-
-
-class CampaignWebsiteSerializer(BaseSerializer):
-    """
-    Serializer specifically for the linking table.
-    Can also be used to write data to the linking table directly.
-    """
-
-    class Meta:
-        model = models.CampaignWebsite
-        fields = "__all__"
+        extra_kwargs = {"notes_internal": {"write_only": True}}
 
 
 class CampaignSerializer(GetAliasSerializer, GetDoiSerializer):
     deployments = serializers.SerializerMethodField(read_only=True)
+    websites = serializers.SerializerMethodField(read_only=True)
     significant_events = serializers.ListField(read_only=True)
     iops = serializers.ListField(read_only=True)
     number_ventures = serializers.IntegerField(read_only=True)
@@ -453,18 +408,13 @@ class CampaignSerializer(GetAliasSerializer, GetDoiSerializer):
     def get_deployments(self, obj):
         return get_uuids(obj.deployments)
 
-    def create(self, validated_data):
-        validated_data = change_bbox_to_polygon(validated_data)
-        return super().create(validated_data)
-
-    def update(self, instance, validated_data, **kwargs):
-        validated_data = change_bbox_to_polygon(validated_data)
-        return super().update(instance, validated_data, **kwargs)
+    def get_websites(self, obj):
+        return get_uuids(obj.websites)
 
     class Meta:
         model = models.Campaign
         fields = "__all__"
         extra_kwargs = {
-            'description_long': {'write_only': True},
-            'notes_internal': {'write_only': True},
+            "description_long": {"write_only": True},
+            "notes_internal": {"write_only": True},
         }

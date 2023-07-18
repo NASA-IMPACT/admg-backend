@@ -5,25 +5,36 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('data_models', '0008_auto_20201027_2037'),
+        ("data_models", "0008_auto_20201027_2037"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='image',
-            name='source_url',
-            field=models.TextField(blank=True, default=''),
+            model_name="image",
+            name="source_url",
+            field=models.TextField(blank=True, default=""),
         ),
         migrations.AlterField(
-            model_name='instrument',
-            name='measurement_style',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='instruments', to='data_models.MeasurementStyle'),
+            model_name="instrument",
+            name="measurement_style",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="instruments",
+                to="data_models.MeasurementStyle",
+            ),
         ),
         migrations.AlterField(
-            model_name='instrument',
-            name='measurement_type',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='instruments', to='data_models.MeasurementType'),
+            model_name="instrument",
+            name="measurement_type",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="instruments",
+                to="data_models.MeasurementType",
+            ),
         ),
     ]

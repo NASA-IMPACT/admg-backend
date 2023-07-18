@@ -4,29 +4,28 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('data_models', '0009_auto_20201029_1345'),
+        ("data_models", "0009_auto_20201029_1345"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='alias',
-            name='long_name',
+            model_name="alias",
+            name="long_name",
         ),
         migrations.RemoveField(
-            model_name='alias',
-            name='short_name',
+            model_name="alias",
+            name="short_name",
         ),
         migrations.AddField(
-            model_name='alias',
-            name='alias',
-            field=models.CharField(default='alias', max_length=512),
+            model_name="alias",
+            name="alias",
+            field=models.CharField(default="alias", max_length=512),
             preserve_default=False,
         ),
         migrations.AlterField(
-            model_name='alias',
-            name='source',
-            field=models.TextField(blank=True, default=''),
+            model_name="alias",
+            name="source",
+            field=models.TextField(blank=True, default=""),
         ),
     ]

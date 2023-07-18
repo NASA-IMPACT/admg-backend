@@ -5,65 +5,96 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('data_models', '0021_doi_long_name'),
+        ("data_models", "0021_doi_long_name"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='WebsiteType',
+            name="WebsiteType",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('long_name', models.TextField()),
-                ('description', models.TextField()),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("long_name", models.TextField()),
+                ("description", models.TextField()),
             ],
         ),
         migrations.RemoveField(
-            model_name='campaign',
-            name='other_resources',
+            model_name="campaign",
+            name="other_resources",
         ),
         migrations.RemoveField(
-            model_name='campaign',
-            name='project_website',
+            model_name="campaign",
+            name="project_website",
         ),
         migrations.RemoveField(
-            model_name='campaign',
-            name='publication_links',
+            model_name="campaign",
+            name="publication_links",
         ),
         migrations.RemoveField(
-            model_name='campaign',
-            name='repository_website',
+            model_name="campaign",
+            name="repository_website",
         ),
         migrations.RemoveField(
-            model_name='campaign',
-            name='tertiary_website',
+            model_name="campaign",
+            name="tertiary_website",
         ),
         migrations.CreateModel(
-            name='Website',
+            name="Website",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('url', models.TextField()),
-                ('title', models.TextField()),
-                ('description', models.TextField(blank=True, default='')),
-                ('website_type', models.ManyToManyField(related_name='websites', to='data_models.WebsiteType')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("url", models.TextField()),
+                ("title", models.TextField()),
+                ("description", models.TextField(blank=True, default="")),
+                (
+                    "website_type",
+                    models.ManyToManyField(related_name="websites", to="data_models.WebsiteType"),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='CampaignWebsite',
+            name="CampaignWebsite",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('priority', models.IntegerField()),
-                ('campaign', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='data_models.campaign')),
-                ('website', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='data_models.website')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("priority", models.IntegerField()),
+                (
+                    "campaign",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, to="data_models.campaign"
+                    ),
+                ),
+                (
+                    "website",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, to="data_models.website"
+                    ),
+                ),
             ],
             options={
-                'unique_together': {('campaign', 'priority'), ('campaign', 'website')},
+                "unique_together": {("campaign", "priority"), ("campaign", "website")},
             },
         ),
         migrations.AddField(
-            model_name='campaign',
-            name='websites',
-            field=models.ManyToManyField(related_name='campaigns', through='data_models.CampaignWebsite', to='data_models.Website'),
+            model_name="campaign",
+            name="websites",
+            field=models.ManyToManyField(
+                related_name="campaigns",
+                through="data_models.CampaignWebsite",
+                to="data_models.Website",
+            ),
         ),
     ]

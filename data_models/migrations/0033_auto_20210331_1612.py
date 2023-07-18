@@ -4,19 +4,18 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('data_models', '0032_auto_20210331_1504'),
+        ("data_models", "0032_auto_20210331_1504"),
     ]
 
     operations = [
         migrations.RenameField(
-            model_name='campaignwebsite',
-            old_name='priority',
-            new_name='order_priority',
+            model_name="campaignwebsite",
+            old_name="priority",
+            new_name="order_priority",
         ),
         migrations.AlterUniqueTogether(
-            name='campaignwebsite',
-            unique_together={('campaign', 'order_priority'), ('campaign', 'website')},
+            name="campaignwebsite",
+            unique_together={("campaign", "order_priority"), ("campaign", "website")},
         ),
     ]

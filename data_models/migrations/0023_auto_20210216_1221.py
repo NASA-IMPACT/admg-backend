@@ -4,15 +4,20 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('data_models', '0022_auto_20210216_1213'),
+        ("data_models", "0022_auto_20210216_1213"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='campaign',
-            name='websites',
-            field=models.ManyToManyField(blank=True, default='', related_name='campaigns', through='data_models.CampaignWebsite', to='data_models.Website'),
+            model_name="campaign",
+            name="websites",
+            field=models.ManyToManyField(
+                blank=True,
+                default="",
+                related_name="campaigns",
+                through="data_models.CampaignWebsite",
+                to="data_models.Website",
+            ),
         ),
     ]

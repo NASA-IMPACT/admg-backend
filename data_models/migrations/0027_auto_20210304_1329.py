@@ -5,15 +5,20 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('data_models', '0026_auto_20210216_1634'),
+        ("data_models", "0026_auto_20210216_1634"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='collectionperiod',
-            name='home_base',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='collection_periods', to='data_models.homebase'),
+            model_name="collectionperiod",
+            name="home_base",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="collection_periods",
+                to="data_models.homebase",
+            ),
         ),
     ]

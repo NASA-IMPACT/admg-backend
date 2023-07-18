@@ -4,19 +4,18 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('data_models', '0041_auto_20210504_1359'),
+        ("data_models", "0041_auto_20210504_1359"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='alias',
-            name='model_name',
+            model_name="alias",
+            name="model_name",
         ),
         migrations.AlterField(
-            model_name='platform',
-            name='stationary',
-            field=models.BooleanField(verbose_name='Is the platform stationary?'),
+            model_name="platform",
+            name="stationary",
+            field=models.BooleanField(verbose_name="Is the platform stationary?"),
         ),
     ]

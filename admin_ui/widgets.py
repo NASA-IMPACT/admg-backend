@@ -5,15 +5,17 @@ from django import forms
 from django.conf import settings
 from django.contrib.gis import gdal
 from django.contrib.gis.forms import widgets
-from django.contrib.gis.gdal import SpatialReference, CoordTransform
+from django.contrib.gis.gdal import CoordTransform, SpatialReference
 from django.contrib.gis.gdal.error import GDALException
-from django.contrib.gis.geos import GEOSException, GEOSGeometry
+from django.contrib.gis.geos import GEOSException, GEOSGeometry, Polygon
 from django.urls import reverse
 from django.utils import translation
 from django.utils.safestring import mark_safe
 
-from data_models.serializers import get_geojson_from_bb
+from api_app.models import Change
+from api_app.urls import camel_to_snake
 from data_models.models import Image
+from data_models.serializers import get_geojson_from_bb
 
 logger = logging.getLogger(__name__)
 
@@ -31,6 +33,14 @@ class BoundingBoxWidget(widgets.OpenLayersWidget):
             return get_geojson_from_bb(value)
 
     def get_context(self, name, value, attrs):
+        # this serves the purpose of rendering value saved to models
+        # since the code expects a bounding box (comma separated 4 values)
+        # we just provide the same kind of input to the code if it is a model value
+        if isinstance(value, Polygon):
+            W, S, E, N = value.extent
+            # show as bounding box
+            value = f"{N}, {S}, {E}, {W}"
+
         context = super().get_context(name, value, attrs)
 
         geom_type = gdal.OGRGeomType(self.attrs["geom_type"]).name
@@ -52,14 +62,12 @@ class BoundingBoxWidget(widgets.OpenLayersWidget):
         return context
 
     def to_geojson(self, value):
-        """ Create a geometry object from string """
+        """Create a geometry object from string"""
         try:
             geom = GEOSGeometry(self.get_json_representation(value))
             if geom.srid != self.map_srid:
                 geom.transform(
-                    CoordTransform(
-                        SpatialReference(geom.srid), SpatialReference(self.map_srid)
-                    )
+                    CoordTransform(SpatialReference(geom.srid), SpatialReference(self.map_srid))
                 )
             return geom.json
         except (GEOSException, GDALException, ValueError, TypeError) as err:
@@ -93,16 +101,48 @@ class AddAnotherChoiceFieldWidget(forms.Select):
 
     def render(self, name, value, *args, **kwargs):
         create_form_url = reverse(
-            "mi-change-add", kwargs={"model": self.model._meta.model_name}
+            "change-add", kwargs={"model": camel_to_snake(self.model._meta.object_name)}
         )
 
         output = [
             super().render(name, value, *args, **kwargs),
-            f"<small class='add-another cursor-pointer' data-select_id='id_{name}' data-form_url='{create_form_url}?_popup=1'>"
-            f"&plus; Add new {self.model._meta.verbose_name.title()}"
-            "</small>",
+            f"<a class='add-another small' data-select_id='id_{name}'"
+            f" data-form_url='{create_form_url}?_popup=1' href='#'>&plus; Add new"
+            f" {self.model._meta.verbose_name.title()}</a>",
         ]
-        return mark_safe("".join(output))
+        if value:
+            # add a published url if available
+            try:
+                published = self.model.objects.get(pk=value)
+            except self.model.DoesNotExist:
+                pass
+            else:
+                published_url = reverse(
+                    "published-detail",
+                    kwargs={
+                        "pk": published.pk,
+                        "model": camel_to_snake(self.model._meta.object_name),
+                    },
+                )
+                output.append(
+                    f"<a class='link-to small' data-select_id='id_published_{name}'"
+                    f" href='{published_url}' target='_blank'>&#x29c9; View published"
+                    f" {self.model._meta.verbose_name.title().lower()}</a>"
+                )
+            # get most recent active draft
+            active_draft = (
+                Change.objects.filter(model_instance_uuid=value)
+                .exclude(status__in=(Change.Statuses.PUBLISHED, Change.Statuses.IN_TRASH))
+                .order_by("-updated_at")
+                .first()
+            )
+            if active_draft:
+                update_form_url = reverse("change-update", kwargs={"pk": active_draft.pk})
+                output.append(
+                    f"<a class='link-to small' data-select_id='id_{name}' href='{update_form_url}'"
+                    " target='_blank'>&#x29c9; View latest draft</a>"
+                )
+        return mark_safe("<br>".join(output))
 
     class Media:
-        js = ("js/add-another-choice-field.js",)
+        js = ("js/add-another-choice-field.js", "js/link-to-choice-field.js")

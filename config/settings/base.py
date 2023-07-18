@@ -4,9 +4,7 @@ Base settings to build other settings files upon.
 
 import environ
 
-ROOT_DIR = (
-    environ.Path(__file__) - 3
-)  # (admg_webapp/config/settings/base.py - 3 = admg_webapp/)
+ROOT_DIR = environ.Path(__file__) - 3  # (admg_webapp/config/settings/base.py - 3 = admg_webapp/)
 APPS_DIR = ROOT_DIR.path("admg_webapp")
 
 env = environ.Env()
@@ -99,11 +97,20 @@ LOCAL_APPS = [
     "data_models.apps.DataModelsConfig",
     "api_app",
     "cmr",
+    "kms",
     # Your stuff: custom apps go here
 ]
 
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
-INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
+INSTALLED_APPS = (
+    DJANGO_APPS
+    + THIRD_PARTY_APPS
+    + LOCAL_APPS
+    + [
+        # Must be loaded after local apps to avoid errors regarding importing models
+        "django_celery_beat",
+    ]
+)
 
 # MIGRATIONS
 # ------------------------------------------------------------------------------
@@ -136,9 +143,7 @@ PASSWORD_HASHERS = [
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#auth-password-validators
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"
-    },
+    {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
     {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
@@ -236,11 +241,11 @@ X_FRAME_OPTIONS = "DENY"
 # EMAIL
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#email-backend
-EMAIL_BACKEND = env(
-    "DJANGO_EMAIL_BACKEND", default="django.core.mail.backends.smtp.EmailBackend"
-)
+EMAIL_BACKEND = env("DJANGO_EMAIL_BACKEND", default="django.core.mail.backends.smtp.EmailBackend")
 # https://docs.djangoproject.com/en/2.2/ref/settings/#email-timeout
 EMAIL_TIMEOUT = 5
+GCMD_SYNC_SOURCE_EMAIL = env("GCMD_SYNC_SOURCE_EMAIL")
+GCMD_SYNC_RECIPIENTS = env("GCMD_SYNC_RECIPIENTS").split(",")
 
 # ADMIN
 # ------------------------------------------------------------------------------
@@ -261,8 +266,7 @@ LOGGING = {
     "disable_existing_loggers": False,
     "formatters": {
         "verbose": {
-            "format": "%(levelname)s %(asctime)s %(module)s "
-            "%(process)d %(thread)d %(message)s"
+            "format": "%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s"
         }
     },
     "handlers": {
@@ -282,9 +286,7 @@ if USE_TZ:
     CELERY_TIMEZONE = TIME_ZONE
 # http://docs.celeryproject.org/en/latest/userguide/configuration.html#std:setting-broker_url
 # CELERY_BROKER_URL = 'pyamqp://rabbitmq:5672'
-CELERY_BROKER_URL = env(
-    "CELERY_BROKER_URL", default="amqp://guest:guest@rabbitmq:5672/"
-)
+CELERY_BROKER_URL = env("CELERY_BROKER_URL", default="amqp://guest:guest@rabbitmq:5672/")
 # http://docs.celeryproject.org/en/latest/userguide/configuration.html#std:setting-result_backend
 CELERY_RESULT_BACKEND = "django-db"
 # http://docs.celeryproject.org/en/latest/userguide/configuration.html#std:setting-accept_content

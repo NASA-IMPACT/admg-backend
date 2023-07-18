@@ -6,645 +6,1112 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('data_models', '0040_auto_20210429_2350'),
+        ("data_models", "0040_auto_20210429_2350"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='focusarea',
-            options={'ordering': ('short_name',)},
+            name="focusarea",
+            options={"ordering": ("short_name",)},
         ),
         migrations.AlterModelOptions(
-            name='gcmdinstrument',
-            options={'ordering': ('short_name',)},
+            name="gcmdinstrument",
+            options={"ordering": ("short_name",)},
         ),
         migrations.AlterModelOptions(
-            name='gcmdplatform',
-            options={'ordering': ('short_name',)},
+            name="gcmdplatform",
+            options={"ordering": ("short_name",)},
         ),
         migrations.AlterModelOptions(
-            name='gcmdproject',
-            options={'ordering': ('short_name',)},
+            name="gcmdproject",
+            options={"ordering": ("short_name",)},
         ),
         migrations.AlterModelOptions(
-            name='geographicalregion',
-            options={'ordering': ('short_name',)},
+            name="geographicalregion",
+            options={"ordering": ("short_name",)},
         ),
         migrations.AlterModelOptions(
-            name='geophysicalconcept',
-            options={'ordering': ('short_name',)},
+            name="geophysicalconcept",
+            options={"ordering": ("short_name",)},
         ),
         migrations.AlterModelOptions(
-            name='homebase',
-            options={'ordering': ('short_name',)},
+            name="homebase",
+            options={"ordering": ("short_name",)},
         ),
         migrations.AlterModelOptions(
-            name='measurementregion',
-            options={'ordering': ('short_name',)},
+            name="measurementregion",
+            options={"ordering": ("short_name",)},
         ),
         migrations.AlterModelOptions(
-            name='measurementstyle',
-            options={'ordering': ('short_name',)},
+            name="measurementstyle",
+            options={"ordering": ("short_name",)},
         ),
         migrations.AlterModelOptions(
-            name='measurementtype',
-            options={'ordering': ('short_name',)},
+            name="measurementtype",
+            options={"ordering": ("short_name",)},
         ),
         migrations.AlterModelOptions(
-            name='partnerorg',
-            options={'ordering': ('short_name',)},
+            name="partnerorg",
+            options={"ordering": ("short_name",)},
         ),
         migrations.AlterModelOptions(
-            name='platformtype',
-            options={'ordering': ('short_name',)},
+            name="platformtype",
+            options={"ordering": ("short_name",)},
         ),
         migrations.AlterModelOptions(
-            name='repository',
-            options={'ordering': ('short_name',)},
+            name="repository",
+            options={"ordering": ("short_name",)},
         ),
         migrations.AlterModelOptions(
-            name='season',
-            options={'ordering': ('short_name',)},
+            name="season",
+            options={"ordering": ("short_name",)},
         ),
         migrations.AlterModelOptions(
-            name='websitetype',
-            options={'ordering': ('short_name',)},
-        ),
-        migrations.AlterField(
-            model_name='campaign',
-            name='campaign_doi',
-            field=models.CharField(blank=True, default='', help_text='DOI assigned for the ENTIRE collection/group/set of campaign data.  This may not exist.', max_length=1024, verbose_name='Campaign DOI'),
-        ),
-        migrations.AlterField(
-            model_name='campaign',
-            name='data_volume',
-            field=models.CharField(blank=True, help_text='Total volume of published campaign data products (in GB or TB)', max_length=256, null=True, verbose_name='Campaign Total Data Storage Volume'),
-        ),
-        migrations.AlterField(
-            model_name='campaign',
-            name='description_long',
-            field=models.TextField(blank=True, default='', help_text='Free text full campaign description including items such as the science or research objectives, regional location, supported mission(s), and equipment used', verbose_name='Draft Description'),
-        ),
-        migrations.AlterField(
-            model_name='campaign',
-            name='description_short',
-            field=models.TextField(blank=True, default='', help_text='Concise, shortened text description of the field investigation, follows a similar format for all campaigns', verbose_name='Admin Description'),
-        ),
-        migrations.AlterField(
-            model_name='campaign',
-            name='end_date',
-            field=models.DateField(blank=True, help_text='End date of last deployment', null=True),
-        ),
-        migrations.AlterField(
-            model_name='campaign',
-            name='focus_areas',
-            field=models.ManyToManyField(help_text='NASA ES Focus Area(s) supported by the field investigation', related_name='campaigns', to='data_models.FocusArea', verbose_name='NASA Earth Science Focus Area(s)'),
-        ),
-        migrations.AlterField(
-            model_name='campaign',
-            name='focus_phenomena',
-            field=models.CharField(help_text='Free text identifying the focus of campaign’s science/research objective', max_length=1024),
-        ),
-        migrations.AlterField(
-            model_name='campaign',
-            name='funding_agency',
-            field=models.CharField(blank=True, default='', help_text='Name of agency funding the campaign (e.g. NASA, NOAA, NSF…)', max_length=256),
-        ),
-        migrations.AlterField(
-            model_name='campaign',
-            name='funding_program',
-            field=models.CharField(blank=True, default='', help_text='Name of the NASA program(s) or mission(s) that funded the campaign', max_length=256),
-        ),
-        migrations.AlterField(
-            model_name='campaign',
-            name='funding_program_lead',
-            field=models.CharField(blank=True, default='', help_text='Name(s) of the person/people leading the NASA funding program (at the time of campaign, if possible)', max_length=256),
-        ),
-        migrations.AlterField(
-            model_name='campaign',
-            name='gcmd_projects',
-            field=models.ManyToManyField(blank=True, default='', help_text='GCMD Project Keyword corresponding to this field investigation/campaign', related_name='campaigns', to='data_models.GcmdProject', verbose_name='Campaign’s GCMD Project Keyword'),
-        ),
-        migrations.AlterField(
-            model_name='campaign',
-            name='geophysical_concepts',
-            field=models.ManyToManyField(help_text='Primary relevant geophysical concepts, based on the campaign’s science objectives', related_name='campaigns', to='data_models.GeophysicalConcept'),
-        ),
-        migrations.AlterField(
-            model_name='campaign',
-            name='lead_investigator',
-            field=models.CharField(help_text='Name(s) of person/people leading the campaign (PI and/or Co-Is), or the name(s) of the NASA lead for NASA’s involvement in the campaign', max_length=256, verbose_name='Principal Investigator'),
-        ),
-        migrations.AlterField(
-            model_name='campaign',
-            name='nasa_led',
-            field=models.BooleanField(verbose_name='Is this a NASA-led field investigation?'),
-        ),
-        migrations.AlterField(
-            model_name='campaign',
-            name='nasa_missions',
-            field=models.TextField(blank=True, default='', help_text='NASA Missions supported by the campaign. See https://www.nasa.gov/content/earth-missions-list'),
-        ),
-        migrations.AlterField(
-            model_name='campaign',
-            name='notes_internal',
-            field=models.TextField(blank=True, default='', help_text='Free text notes for ADMG staff - not visible to public.'),
-        ),
-        migrations.AlterField(
-            model_name='campaign',
-            name='notes_public',
-            field=models.TextField(blank=True, default='', help_text='Free text notes on the deployment, this IS visible to public.'),
-        ),
-        migrations.AlterField(
-            model_name='campaign',
-            name='ongoing',
-            field=models.BooleanField(verbose_name='Is this field investigation currently ongoing?'),
-        ),
-        migrations.AlterField(
-            model_name='campaign',
-            name='partner_orgs',
-            field=models.ManyToManyField(blank=True, default='', help_text='Partner organizations involved in the campaign', related_name='campaigns', to='data_models.PartnerOrg', verbose_name='Partner Organization(s)'),
-        ),
-        migrations.AlterField(
-            model_name='campaign',
-            name='region_description',
-            field=models.TextField(help_text='Free text words identifying the region/domain for the campaign'),
-        ),
-        migrations.AlterField(
-            model_name='campaign',
-            name='repositories',
-            field=models.ManyToManyField(help_text='Data repository (assigned archive repository) for the campaign (typically a NASA DAAC)', related_name='campaigns', to='data_models.Repository', verbose_name='Data Repository(ies)'),
-        ),
-        migrations.AlterField(
-            model_name='campaign',
-            name='seasons',
-            field=models.ManyToManyField(help_text='Season(s) of campaign data collection - Include all that are appropriate', related_name='campaigns', to='data_models.Season', verbose_name='Season(s) of Study'),
-        ),
-        migrations.AlterField(
-            model_name='campaign',
-            name='spatial_bounds',
-            field=django.contrib.gis.db.models.fields.PolygonField(blank=True, help_text='Latitude & Longitude for domain bounding box; enter as N, S, E, W', null=True, srid=4326),
-        ),
-        migrations.AlterField(
-            model_name='campaign',
-            name='start_date',
-            field=models.DateField(help_text='Start date of first deployment'),
-        ),
-        migrations.AlterField(
-            model_name='campaign',
-            name='technical_contact',
-            field=models.CharField(blank=True, default='', help_text='Name(s) of person/people for data management and/or technical concerns (often is a DAAC person)', max_length=256, verbose_name='Data Management/Technical Contact'),
-        ),
-        migrations.AlterField(
-            model_name='collectionperiod',
-            name='campaign_deployment_base',
-            field=models.CharField(blank=True, default='', help_text='Deployment base/operating location for the p platform during the field investigation/deployment', max_length=256, verbose_name='Platform Deployment Base'),
-        ),
-        migrations.AlterField(
-            model_name='collectionperiod',
-            name='home_base',
-            field=models.ForeignKey(blank=True, help_text='ADMG’s identifying name for the platform.  *This should match one of the items in the “Platforms Active” element from Deployment Form.', null=True, on_delete=django.db.models.deletion.CASCADE, related_name='collection_periods', to='data_models.homebase'),
-        ),
-        migrations.AlterField(
-            model_name='collectionperiod',
-            name='instrument_information_source',
-            field=models.CharField(blank=True, default='', help_text='DOI or URL for location of lists of instruments used on this platform for the deployment', max_length=1024, verbose_name='Instrument Package Information Source'),
-        ),
-        migrations.AlterField(
-            model_name='collectionperiod',
-            name='instruments',
-            field=models.ManyToManyField(help_text='ADMG’s Instrument Short Names for all sensors in the platform’s instrument package for this deployment', related_name='collection_periods', to='data_models.Instrument', verbose_name='Instrument Package'),
-        ),
-        migrations.AlterField(
-            model_name='collectionperiod',
-            name='notes_internal',
-            field=models.TextField(blank=True, default='', help_text='Free text notes for ADMG staff - not visible to public.'),
-        ),
-        migrations.AlterField(
-            model_name='collectionperiod',
-            name='notes_public',
-            field=models.TextField(blank=True, default='', help_text='Free text notes on the deployment, this IS visible to public.'),
-        ),
-        migrations.AlterField(
-            model_name='collectionperiod',
-            name='number_ventures',
-            field=models.PositiveIntegerField(blank=True, help_text='Total number of Continuous Data Collection Periods (CDCPs) conducted by the platform during the deployment', null=True, verbose_name='Total Number of CDCPs'),
-        ),
-        migrations.AlterField(
-            model_name='collectionperiod',
-            name='platform_identifier',
-            field=models.CharField(blank=True, default='', help_text='Optional platform identifier, such as an aircraft tail number or vessel registration number, if available', max_length=128),
-        ),
-        migrations.AlterField(
-            model_name='collectionperiod',
-            name='platform_owner',
-            field=models.CharField(blank=True, default='', help_text='Organization that owns the platform', max_length=256),
-        ),
-        migrations.AlterField(
-            model_name='collectionperiod',
-            name='platform_technical_contact',
-            field=models.CharField(blank=True, default='', help_text='Name(s) of person/people leading the management, maintenance, integration, and/or operation of the platform', max_length=256),
-        ),
-        migrations.AlterField(
-            model_name='deployment',
-            name='end_date',
-            field=models.DateField(help_text='End date of deployment.'),
-        ),
-        migrations.AlterField(
-            model_name='deployment',
-            name='flight_tracks',
-            field=models.TextField(blank=True, default='', help_text='*these will be images that would be either uploaded or URL to image provided...we don’t have this fully in curation process yet.'),
-        ),
-        migrations.AlterField(
-            model_name='deployment',
-            name='geographical_regions',
-            field=models.ManyToManyField(blank=True, default='', help_text='Type of geographical area(s) over which this deployment occured.  Select all that apply.', related_name='deployments', to='data_models.GeographicalRegion'),
-        ),
-        migrations.AlterField(
-            model_name='deployment',
-            name='ground_sites_map',
-            field=models.TextField(blank=True, default='', help_text='*these will be images that would be either uploaded or URL to image provided...we don’t have this fully in curation process yet.'),
-        ),
-        migrations.AlterField(
-            model_name='deployment',
-            name='notes_internal',
-            field=models.TextField(blank=True, default='', help_text='Free text notes for ADMG staff - not visible to public.'),
-        ),
-        migrations.AlterField(
-            model_name='deployment',
-            name='notes_public',
-            field=models.TextField(blank=True, default='', help_text='Free text notes on the deployment, this IS visible to public.'),
-        ),
-        migrations.AlterField(
-            model_name='deployment',
-            name='start_date',
-            field=models.DateField(help_text='Start date of deployment'),
-        ),
-        migrations.AlterField(
-            model_name='deployment',
-            name='study_region_map',
-            field=models.TextField(blank=True, default='', help_text='*these will be images that would be either uploaded or URL to image provided...we don’t have this fully in curation process yet.'),
-        ),
-        migrations.AlterField(
-            model_name='focusarea',
-            name='notes_internal',
-            field=models.TextField(blank=True, default='', help_text='Free text notes for ADMG staff - not visible to public.'),
-        ),
-        migrations.AlterField(
-            model_name='focusarea',
-            name='notes_public',
-            field=models.TextField(blank=True, default='', help_text='Free text notes on the deployment, this IS visible to public.'),
-        ),
-        migrations.AlterField(
-            model_name='geographicalregion',
-            name='notes_internal',
-            field=models.TextField(blank=True, default='', help_text='Free text notes for ADMG staff - not visible to public.'),
-        ),
-        migrations.AlterField(
-            model_name='geographicalregion',
-            name='notes_public',
-            field=models.TextField(blank=True, default='', help_text='Free text notes on the deployment, this IS visible to public.'),
-        ),
-        migrations.AlterField(
-            model_name='geophysicalconcept',
-            name='notes_internal',
-            field=models.TextField(blank=True, default='', help_text='Free text notes for ADMG staff - not visible to public.'),
-        ),
-        migrations.AlterField(
-            model_name='geophysicalconcept',
-            name='notes_public',
-            field=models.TextField(blank=True, default='', help_text='Free text notes on the deployment, this IS visible to public.'),
-        ),
-        migrations.AlterField(
-            model_name='homebase',
-            name='notes_internal',
-            field=models.TextField(blank=True, default='', help_text='Free text notes for ADMG staff - not visible to public.'),
-        ),
-        migrations.AlterField(
-            model_name='homebase',
-            name='notes_public',
-            field=models.TextField(blank=True, default='', help_text='Free text notes on the deployment, this IS visible to public.'),
-        ),
-        migrations.AlterField(
-            model_name='instrument',
-            name='additional_metadata',
-            field=models.JSONField(blank=True, default=None, help_text='An open item for potential extra metadata element(s)', null=True, verbose_name='Additional Metadata'),
-        ),
-        migrations.AlterField(
-            model_name='instrument',
-            name='calibration_information',
-            field=models.CharField(blank=True, default='', help_text='URL or DOI for instrument calibration info (may be a webpage or publication)', max_length=1024),
-        ),
-        migrations.AlterField(
-            model_name='instrument',
-            name='description',
-            field=models.TextField(help_text='Free text description of the instrument'),
-        ),
-        migrations.AlterField(
-            model_name='instrument',
-            name='facility',
-            field=models.CharField(blank=True, default='', help_text="If Facility Instrument give location or put 'retired', otherwise N/A", max_length=256, verbose_name='Facility Instrument Location'),
-        ),
-        migrations.AlterField(
-            model_name='instrument',
-            name='funding_source',
-            field=models.CharField(blank=True, default='', help_text='Program or Mission funding the development, maintenance, deployment, and/or operation of the instrument', max_length=1024),
-        ),
-        migrations.AlterField(
-            model_name='instrument',
-            name='gcmd_instruments',
-            field=models.ManyToManyField(blank=True, default='', help_text='GCMD Instrument/Sensor keyword(s) corresponding to this instrument', related_name='instruments', to='data_models.GcmdInstrument'),
-        ),
-        migrations.AlterField(
-            model_name='instrument',
-            name='gcmd_phenomenas',
-            field=models.ManyToManyField(help_text='Select relevant measurements/variables items from GCMD Science Keywords for Earth Science', related_name='instruments', to='data_models.GcmdPhenomena', verbose_name='Measurements / Variables from GCMD Science Keywords'),
-        ),
-        migrations.AlterField(
-            model_name='instrument',
-            name='instrument_doi',
-            field=models.CharField(blank=True, default='', help_text='The DOI assigned to the instrument.  This may not exist.', max_length=1024, verbose_name='Instrument DOI'),
-        ),
-        migrations.AlterField(
-            model_name='instrument',
-            name='instrument_manufacturer',
-            field=models.CharField(blank=True, default='', help_text='Name of lab or company that makes or manufactures the instrument', max_length=512),
-        ),
-        migrations.AlterField(
-            model_name='instrument',
-            name='lead_investigator',
-            field=models.CharField(blank=True, default='', help_text='Name(s) of person/people leading the development of the instrument (typically, the Principle Investigator and/or Co-Investigator)', max_length=256, verbose_name='Instrument PI/Co-Is'),
-        ),
-        migrations.AlterField(
-            model_name='instrument',
-            name='measurement_regions',
-            field=models.ManyToManyField(help_text='Name of the vertical region(s) observed by the instrument', related_name='instruments', to='data_models.MeasurementRegion', verbose_name='Vertical Measurement Region'),
-        ),
-        migrations.AlterField(
-            model_name='instrument',
-            name='measurement_style',
-            field=models.ForeignKey(blank=True, help_text='Primary operation principle of the sensor', null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='instruments', to='data_models.measurementstyle'),
-        ),
-        migrations.AlterField(
-            model_name='instrument',
-            name='measurement_type',
-            field=models.ForeignKey(blank=True, help_text='Broad grouping for the type of measurements the instrument is used for', null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='instruments', to='data_models.measurementtype'),
-        ),
-        migrations.AlterField(
-            model_name='instrument',
-            name='notes_internal',
-            field=models.TextField(blank=True, default='', help_text='Free text notes for ADMG staff - not visible to public.'),
-        ),
-        migrations.AlterField(
-            model_name='instrument',
-            name='notes_public',
-            field=models.TextField(blank=True, default='', help_text='Free text notes on the deployment, this IS visible to public.'),
-        ),
-        migrations.AlterField(
-            model_name='instrument',
-            name='online_information',
-            field=models.CharField(blank=True, default='', help_text='URL(s) for additional relevant online information for the instrument', max_length=2048),
-        ),
-        migrations.AlterField(
-            model_name='instrument',
-            name='overview_publication',
-            field=models.CharField(blank=True, default='', help_text='Highest authority document describing the instrument (DOI or URL)', max_length=2048, verbose_name='Instrument Publication'),
-        ),
-        migrations.AlterField(
-            model_name='instrument',
-            name='radiometric_frequency',
-            field=models.CharField(help_text='Operating frequency of the instrument', max_length=256),
-        ),
-        migrations.AlterField(
-            model_name='instrument',
-            name='spatial_resolution',
-            field=models.CharField(help_text='Horizontal and vertical resolution of the instrument’s measurements', max_length=256),
-        ),
-        migrations.AlterField(
-            model_name='instrument',
-            name='technical_contact',
-            field=models.CharField(help_text='Name(s) of person/people leading the maintenance, integration, and/or operation of the instrument', max_length=256),
-        ),
-        migrations.AlterField(
-            model_name='instrument',
-            name='temporal_resolution',
-            field=models.CharField(help_text='Temporal resolution of the instrument’s measurements', max_length=256),
-        ),
-        migrations.AlterField(
-            model_name='iop',
-            name='deployment',
-            field=models.ForeignKey(help_text='ADMG’s deployment identifier', on_delete=django.db.models.deletion.CASCADE, related_name='iops', to='data_models.deployment'),
-        ),
-        migrations.AlterField(
-            model_name='iop',
-            name='description',
-            field=models.TextField(help_text='Free text description of the event'),
-        ),
-        migrations.AlterField(
-            model_name='iop',
-            name='end_date',
-            field=models.DateField(help_text='End date of event'),
-        ),
-        migrations.AlterField(
-            model_name='iop',
-            name='published_list',
-            field=models.CharField(blank=True, default='', help_text='DOI or URL for location of published info noting this event within the campaign', max_length=1024),
-        ),
-        migrations.AlterField(
-            model_name='iop',
-            name='reference_file',
-            field=models.CharField(blank=True, default='', help_text='Text filename of a specific granule file for reference', max_length=1024, verbose_name='Reference Granule/File'),
-        ),
-        migrations.AlterField(
-            model_name='iop',
-            name='region_description',
-            field=models.TextField(help_text='Free text words identifying the location of the event domain', verbose_name='Location Description'),
-        ),
-        migrations.AlterField(
-            model_name='iop',
-            name='reports',
-            field=models.CharField(blank=True, default='', help_text='DOI or URL for location of published IOP Science of Flight reports', max_length=1024, verbose_name='Science/Flight Reports'),
-        ),
-        migrations.AlterField(
-            model_name='iop',
-            name='short_name',
-            field=models.CharField(help_text="ADMG's text identifier for the IOP - format as 'XXX_IOP_#' with XXX as the campaign shortname and # as the integer number of the IOP within the campaign", max_length=256),
-        ),
-        migrations.AlterField(
-            model_name='iop',
-            name='start_date',
-            field=models.DateField(help_text='Start date of event'),
-        ),
-        migrations.AlterField(
-            model_name='measurementregion',
-            name='notes_internal',
-            field=models.TextField(blank=True, default='', help_text='Free text notes for ADMG staff - not visible to public.'),
-        ),
-        migrations.AlterField(
-            model_name='measurementregion',
-            name='notes_public',
-            field=models.TextField(blank=True, default='', help_text='Free text notes on the deployment, this IS visible to public.'),
-        ),
-        migrations.AlterField(
-            model_name='measurementstyle',
-            name='notes_internal',
-            field=models.TextField(blank=True, default='', help_text='Free text notes for ADMG staff - not visible to public.'),
-        ),
-        migrations.AlterField(
-            model_name='measurementstyle',
-            name='notes_public',
-            field=models.TextField(blank=True, default='', help_text='Free text notes on the deployment, this IS visible to public.'),
-        ),
-        migrations.AlterField(
-            model_name='measurementtype',
-            name='notes_internal',
-            field=models.TextField(blank=True, default='', help_text='Free text notes for ADMG staff - not visible to public.'),
-        ),
-        migrations.AlterField(
-            model_name='measurementtype',
-            name='notes_public',
-            field=models.TextField(blank=True, default='', help_text='Free text notes on the deployment, this IS visible to public.'),
-        ),
-        migrations.AlterField(
-            model_name='partnerorg',
-            name='notes_internal',
-            field=models.TextField(blank=True, default='', help_text='Free text notes for ADMG staff - not visible to public.'),
-        ),
-        migrations.AlterField(
-            model_name='partnerorg',
-            name='notes_public',
-            field=models.TextField(blank=True, default='', help_text='Free text notes on the deployment, this IS visible to public.'),
-        ),
-        migrations.AlterField(
-            model_name='platform',
-            name='description',
-            field=models.TextField(help_text='Free text description of the platform'),
-        ),
-        migrations.AlterField(
-            model_name='platform',
-            name='gcmd_platforms',
-            field=models.ManyToManyField(blank=True, default='', help_text='GCMD Platform/Source keyword(s) corresponding to this platform', related_name='platforms', to='data_models.GcmdPlatform', verbose_name='Platform’s GCMD Platform Keyword(s)'),
-        ),
-        migrations.AlterField(
-            model_name='platform',
-            name='notes_internal',
-            field=models.TextField(blank=True, default='', help_text='Free text notes for ADMG staff - not visible to public.'),
-        ),
-        migrations.AlterField(
-            model_name='platform',
-            name='notes_public',
-            field=models.TextField(blank=True, default='', help_text='Free text notes on the deployment, this IS visible to public.'),
-        ),
-        migrations.AlterField(
-            model_name='platform',
-            name='online_information',
-            field=models.CharField(blank=True, default='', help_text='URL(s) for additional relevant online information for the platform', max_length=512),
-        ),
-        migrations.AlterField(
-            model_name='platform',
-            name='platform_type',
-            field=models.ForeignKey(help_text='Assign the most specific type of platform possible from the list', null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='platforms', to='data_models.platformtype'),
-        ),
-        migrations.AlterField(
-            model_name='platform',
-            name='stationary',
-            field=models.BooleanField(verbose_name='Can the platform move?'),
-        ),
-        migrations.AlterField(
-            model_name='platformtype',
-            name='notes_internal',
-            field=models.TextField(blank=True, default='', help_text='Free text notes for ADMG staff - not visible to public.'),
-        ),
-        migrations.AlterField(
-            model_name='platformtype',
-            name='notes_public',
-            field=models.TextField(blank=True, default='', help_text='Free text notes on the deployment, this IS visible to public.'),
-        ),
-        migrations.AlterField(
-            model_name='repository',
-            name='notes_internal',
-            field=models.TextField(blank=True, default='', help_text='Free text notes for ADMG staff - not visible to public.'),
-        ),
-        migrations.AlterField(
-            model_name='repository',
-            name='notes_public',
-            field=models.TextField(blank=True, default='', help_text='Free text notes on the deployment, this IS visible to public.'),
-        ),
-        migrations.AlterField(
-            model_name='season',
-            name='notes_internal',
-            field=models.TextField(blank=True, default='', help_text='Free text notes for ADMG staff - not visible to public.'),
-        ),
-        migrations.AlterField(
-            model_name='season',
-            name='notes_public',
-            field=models.TextField(blank=True, default='', help_text='Free text notes on the deployment, this IS visible to public.'),
-        ),
-        migrations.AlterField(
-            model_name='significantevent',
-            name='deployment',
-            field=models.ForeignKey(help_text='ADMG’s deployment identifier', on_delete=django.db.models.deletion.CASCADE, related_name='significant_events', to='data_models.deployment'),
-        ),
-        migrations.AlterField(
-            model_name='significantevent',
-            name='description',
-            field=models.TextField(help_text='Free text description of the event'),
-        ),
-        migrations.AlterField(
-            model_name='significantevent',
-            name='end_date',
-            field=models.DateField(help_text='End date of event'),
-        ),
-        migrations.AlterField(
-            model_name='significantevent',
-            name='iop',
-            field=models.ForeignKey(help_text="ADMG's IOP identifier, if this SE occurred within an IOP", null=True, on_delete=django.db.models.deletion.CASCADE, related_name='significant_events', to='data_models.iop'),
-        ),
-        migrations.AlterField(
-            model_name='significantevent',
-            name='published_list',
-            field=models.CharField(blank=True, default='', help_text='DOI or URL for location of published info noting this event within the campaign', max_length=1024),
-        ),
-        migrations.AlterField(
-            model_name='significantevent',
-            name='reference_file',
-            field=models.CharField(blank=True, default='', help_text='Text filename of a specific granule file for reference', max_length=1024, verbose_name='Reference Granule/File'),
-        ),
-        migrations.AlterField(
-            model_name='significantevent',
-            name='region_description',
-            field=models.TextField(help_text='Free text words identifying the location of the event domain', verbose_name='Location Description'),
-        ),
-        migrations.AlterField(
-            model_name='significantevent',
-            name='reports',
-            field=models.CharField(blank=True, default='', help_text='DOI or URL for location of published info noting this Significant Event within the campaign', max_length=1024, verbose_name='Science/Flight Reports'),
-        ),
-        migrations.AlterField(
-            model_name='significantevent',
-            name='short_name',
-            field=models.CharField(help_text="ADMG's text identifier for the IOP - format as 'XXX_IOP_#' with XXX as the campaign shortname and # as the integer number of the IOP within the campaign", max_length=256),
-        ),
-        migrations.AlterField(
-            model_name='significantevent',
-            name='start_date',
-            field=models.DateField(help_text='Start date of event'),
-        ),
-        migrations.AlterField(
-            model_name='website',
-            name='notes_internal',
-            field=models.TextField(blank=True, default='', help_text='Free text notes for ADMG staff - not visible to public.'),
-        ),
-        migrations.AlterField(
-            model_name='websitetype',
-            name='notes_internal',
-            field=models.TextField(blank=True, default='', help_text='Free text notes for ADMG staff - not visible to public.'),
-        ),
-        migrations.AlterField(
-            model_name='websitetype',
-            name='notes_public',
-            field=models.TextField(blank=True, default='', help_text='Free text notes on the deployment, this IS visible to public.'),
+            name="websitetype",
+            options={"ordering": ("short_name",)},
+        ),
+        migrations.AlterField(
+            model_name="campaign",
+            name="campaign_doi",
+            field=models.CharField(
+                blank=True,
+                default="",
+                help_text="DOI assigned for the ENTIRE collection/group/set of campaign data.  This may not exist.",
+                max_length=1024,
+                verbose_name="Campaign DOI",
+            ),
+        ),
+        migrations.AlterField(
+            model_name="campaign",
+            name="data_volume",
+            field=models.CharField(
+                blank=True,
+                help_text="Total volume of published campaign data products (in GB or TB)",
+                max_length=256,
+                null=True,
+                verbose_name="Campaign Total Data Storage Volume",
+            ),
+        ),
+        migrations.AlterField(
+            model_name="campaign",
+            name="description_long",
+            field=models.TextField(
+                blank=True,
+                default="",
+                help_text="Free text full campaign description including items such as the science or research objectives, regional location, supported mission(s), and equipment used",
+                verbose_name="Draft Description",
+            ),
+        ),
+        migrations.AlterField(
+            model_name="campaign",
+            name="description_short",
+            field=models.TextField(
+                blank=True,
+                default="",
+                help_text="Concise, shortened text description of the field investigation, follows a similar format for all campaigns",
+                verbose_name="Admin Description",
+            ),
+        ),
+        migrations.AlterField(
+            model_name="campaign",
+            name="end_date",
+            field=models.DateField(blank=True, help_text="End date of last deployment", null=True),
+        ),
+        migrations.AlterField(
+            model_name="campaign",
+            name="focus_areas",
+            field=models.ManyToManyField(
+                help_text="NASA ES Focus Area(s) supported by the field investigation",
+                related_name="campaigns",
+                to="data_models.FocusArea",
+                verbose_name="NASA Earth Science Focus Area(s)",
+            ),
+        ),
+        migrations.AlterField(
+            model_name="campaign",
+            name="focus_phenomena",
+            field=models.CharField(
+                help_text="Free text identifying the focus of campaign’s science/research objective",
+                max_length=1024,
+            ),
+        ),
+        migrations.AlterField(
+            model_name="campaign",
+            name="funding_agency",
+            field=models.CharField(
+                blank=True,
+                default="",
+                help_text="Name of agency funding the campaign (e.g. NASA, NOAA, NSF…)",
+                max_length=256,
+            ),
+        ),
+        migrations.AlterField(
+            model_name="campaign",
+            name="funding_program",
+            field=models.CharField(
+                blank=True,
+                default="",
+                help_text="Name of the NASA program(s) or mission(s) that funded the campaign",
+                max_length=256,
+            ),
+        ),
+        migrations.AlterField(
+            model_name="campaign",
+            name="funding_program_lead",
+            field=models.CharField(
+                blank=True,
+                default="",
+                help_text="Name(s) of the person/people leading the NASA funding program (at the time of campaign, if possible)",
+                max_length=256,
+            ),
+        ),
+        migrations.AlterField(
+            model_name="campaign",
+            name="gcmd_projects",
+            field=models.ManyToManyField(
+                blank=True,
+                default="",
+                help_text="GCMD Project Keyword corresponding to this field investigation/campaign",
+                related_name="campaigns",
+                to="data_models.GcmdProject",
+                verbose_name="Campaign’s GCMD Project Keyword",
+            ),
+        ),
+        migrations.AlterField(
+            model_name="campaign",
+            name="geophysical_concepts",
+            field=models.ManyToManyField(
+                help_text="Primary relevant geophysical concepts, based on the campaign’s science objectives",
+                related_name="campaigns",
+                to="data_models.GeophysicalConcept",
+            ),
+        ),
+        migrations.AlterField(
+            model_name="campaign",
+            name="lead_investigator",
+            field=models.CharField(
+                help_text="Name(s) of person/people leading the campaign (PI and/or Co-Is), or the name(s) of the NASA lead for NASA’s involvement in the campaign",
+                max_length=256,
+                verbose_name="Principal Investigator",
+            ),
+        ),
+        migrations.AlterField(
+            model_name="campaign",
+            name="nasa_led",
+            field=models.BooleanField(verbose_name="Is this a NASA-led field investigation?"),
+        ),
+        migrations.AlterField(
+            model_name="campaign",
+            name="nasa_missions",
+            field=models.TextField(
+                blank=True,
+                default="",
+                help_text="NASA Missions supported by the campaign. See https://www.nasa.gov/content/earth-missions-list",
+            ),
+        ),
+        migrations.AlterField(
+            model_name="campaign",
+            name="notes_internal",
+            field=models.TextField(
+                blank=True,
+                default="",
+                help_text="Free text notes for ADMG staff - not visible to the public.",
+            ),
+        ),
+        migrations.AlterField(
+            model_name="campaign",
+            name="notes_public",
+            field=models.TextField(
+                blank=True,
+                default="",
+                help_text="Free text notes on the deployment, this IS visible to the public.",
+            ),
+        ),
+        migrations.AlterField(
+            model_name="campaign",
+            name="ongoing",
+            field=models.BooleanField(
+                verbose_name="Is this field investigation currently ongoing?"
+            ),
+        ),
+        migrations.AlterField(
+            model_name="campaign",
+            name="partner_orgs",
+            field=models.ManyToManyField(
+                blank=True,
+                default="",
+                help_text="Partner organizations involved in the campaign",
+                related_name="campaigns",
+                to="data_models.PartnerOrg",
+                verbose_name="Partner Organization(s)",
+            ),
+        ),
+        migrations.AlterField(
+            model_name="campaign",
+            name="region_description",
+            field=models.TextField(
+                help_text="Free text words identifying the region/domain for the campaign"
+            ),
+        ),
+        migrations.AlterField(
+            model_name="campaign",
+            name="repositories",
+            field=models.ManyToManyField(
+                help_text="Data repository (assigned archive repository) for the campaign (typically a NASA DAAC)",
+                related_name="campaigns",
+                to="data_models.Repository",
+                verbose_name="Data Repository(ies)",
+            ),
+        ),
+        migrations.AlterField(
+            model_name="campaign",
+            name="seasons",
+            field=models.ManyToManyField(
+                help_text="Season(s) of campaign data collection - Include all that are appropriate",
+                related_name="campaigns",
+                to="data_models.Season",
+                verbose_name="Season(s) of Study",
+            ),
+        ),
+        migrations.AlterField(
+            model_name="campaign",
+            name="spatial_bounds",
+            field=django.contrib.gis.db.models.fields.PolygonField(
+                blank=True,
+                help_text="Latitude & Longitude for domain bounding box; enter as N, S, E, W",
+                null=True,
+                srid=4326,
+            ),
+        ),
+        migrations.AlterField(
+            model_name="campaign",
+            name="start_date",
+            field=models.DateField(help_text="Start date of first deployment"),
+        ),
+        migrations.AlterField(
+            model_name="campaign",
+            name="technical_contact",
+            field=models.CharField(
+                blank=True,
+                default="",
+                help_text="Name(s) of person/people for data management and/or technical concerns (often is a DAAC person)",
+                max_length=256,
+                verbose_name="Data Management/Technical Contact",
+            ),
+        ),
+        migrations.AlterField(
+            model_name="collectionperiod",
+            name="campaign_deployment_base",
+            field=models.CharField(
+                blank=True,
+                default="",
+                help_text="Deployment base/operating location for the p platform during the field investigation/deployment",
+                max_length=256,
+                verbose_name="Platform Deployment Base",
+            ),
+        ),
+        migrations.AlterField(
+            model_name="collectionperiod",
+            name="home_base",
+            field=models.ForeignKey(
+                blank=True,
+                help_text="ADMG’s identifying name for the platform.  *This should match one of the items in the “Platforms Active” element from Deployment Form.",
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="collection_periods",
+                to="data_models.homebase",
+            ),
+        ),
+        migrations.AlterField(
+            model_name="collectionperiod",
+            name="instrument_information_source",
+            field=models.CharField(
+                blank=True,
+                default="",
+                help_text="DOI or URL for location of lists of instruments used on this platform for the deployment",
+                max_length=1024,
+                verbose_name="Instrument Package Information Source",
+            ),
+        ),
+        migrations.AlterField(
+            model_name="collectionperiod",
+            name="instruments",
+            field=models.ManyToManyField(
+                help_text="ADMG’s Instrument Short Names for all sensors in the platform’s instrument package for this deployment",
+                related_name="collection_periods",
+                to="data_models.Instrument",
+                verbose_name="Instrument Package",
+            ),
+        ),
+        migrations.AlterField(
+            model_name="collectionperiod",
+            name="notes_internal",
+            field=models.TextField(
+                blank=True,
+                default="",
+                help_text="Free text notes for ADMG staff - not visible to the public.",
+            ),
+        ),
+        migrations.AlterField(
+            model_name="collectionperiod",
+            name="notes_public",
+            field=models.TextField(
+                blank=True,
+                default="",
+                help_text="Free text notes on the deployment, this IS visible to the public.",
+            ),
+        ),
+        migrations.AlterField(
+            model_name="collectionperiod",
+            name="number_ventures",
+            field=models.PositiveIntegerField(
+                blank=True,
+                help_text="Total number of Continuous Data Collection Periods (CDCPs) conducted by the platform during the deployment",
+                null=True,
+                verbose_name="Total Number of CDCPs",
+            ),
+        ),
+        migrations.AlterField(
+            model_name="collectionperiod",
+            name="platform_identifier",
+            field=models.CharField(
+                blank=True,
+                default="",
+                help_text="Optional platform identifier, such as an aircraft tail number or vessel registration number, if available",
+                max_length=128,
+            ),
+        ),
+        migrations.AlterField(
+            model_name="collectionperiod",
+            name="platform_owner",
+            field=models.CharField(
+                blank=True,
+                default="",
+                help_text="Organization that owns the platform",
+                max_length=256,
+            ),
+        ),
+        migrations.AlterField(
+            model_name="collectionperiod",
+            name="platform_technical_contact",
+            field=models.CharField(
+                blank=True,
+                default="",
+                help_text="Name(s) of person/people leading the management, maintenance, integration, and/or operation of the platform",
+                max_length=256,
+            ),
+        ),
+        migrations.AlterField(
+            model_name="deployment",
+            name="end_date",
+            field=models.DateField(help_text="End date of deployment."),
+        ),
+        migrations.AlterField(
+            model_name="deployment",
+            name="flight_tracks",
+            field=models.TextField(
+                blank=True,
+                default="",
+                help_text="*these will be images that would be either uploaded directly or URL to image would be provided...we don’t have this fully in curation process yet.",
+            ),
+        ),
+        migrations.AlterField(
+            model_name="deployment",
+            name="geographical_regions",
+            field=models.ManyToManyField(
+                blank=True,
+                default="",
+                help_text="Type of geographical area(s) over which this deployment occured.  Select all that apply.",
+                related_name="deployments",
+                to="data_models.GeographicalRegion",
+            ),
+        ),
+        migrations.AlterField(
+            model_name="deployment",
+            name="ground_sites_map",
+            field=models.TextField(
+                blank=True,
+                default="",
+                help_text="*these will be images that would be either uploaded directly or URL to image would be provided...we don’t have this fully in curation process yet.",
+            ),
+        ),
+        migrations.AlterField(
+            model_name="deployment",
+            name="notes_internal",
+            field=models.TextField(
+                blank=True,
+                default="",
+                help_text="Free text notes for ADMG staff - not visible to the public.",
+            ),
+        ),
+        migrations.AlterField(
+            model_name="deployment",
+            name="notes_public",
+            field=models.TextField(
+                blank=True,
+                default="",
+                help_text="Free text notes on the deployment, this IS visible to the public.",
+            ),
+        ),
+        migrations.AlterField(
+            model_name="deployment",
+            name="start_date",
+            field=models.DateField(help_text="Start date of deployment"),
+        ),
+        migrations.AlterField(
+            model_name="deployment",
+            name="study_region_map",
+            field=models.TextField(
+                blank=True,
+                default="",
+                help_text="*these will be images that would be either uploaded directly or URL to image would be provided...we don’t have this fully in curation process yet.",
+            ),
+        ),
+        migrations.AlterField(
+            model_name="focusarea",
+            name="notes_internal",
+            field=models.TextField(
+                blank=True,
+                default="",
+                help_text="Free text notes for ADMG staff - not visible to the public.",
+            ),
+        ),
+        migrations.AlterField(
+            model_name="focusarea",
+            name="notes_public",
+            field=models.TextField(
+                blank=True,
+                default="",
+                help_text="Free text notes on the deployment, this IS visible to the public.",
+            ),
+        ),
+        migrations.AlterField(
+            model_name="geographicalregion",
+            name="notes_internal",
+            field=models.TextField(
+                blank=True,
+                default="",
+                help_text="Free text notes for ADMG staff - not visible to the public.",
+            ),
+        ),
+        migrations.AlterField(
+            model_name="geographicalregion",
+            name="notes_public",
+            field=models.TextField(
+                blank=True,
+                default="",
+                help_text="Free text notes on the deployment, this IS visible to the public.",
+            ),
+        ),
+        migrations.AlterField(
+            model_name="geophysicalconcept",
+            name="notes_internal",
+            field=models.TextField(
+                blank=True,
+                default="",
+                help_text="Free text notes for ADMG staff - not visible to the public.",
+            ),
+        ),
+        migrations.AlterField(
+            model_name="geophysicalconcept",
+            name="notes_public",
+            field=models.TextField(
+                blank=True,
+                default="",
+                help_text="Free text notes on the deployment, this IS visible to the public.",
+            ),
+        ),
+        migrations.AlterField(
+            model_name="homebase",
+            name="notes_internal",
+            field=models.TextField(
+                blank=True,
+                default="",
+                help_text="Free text notes for ADMG staff - not visible to the public.",
+            ),
+        ),
+        migrations.AlterField(
+            model_name="homebase",
+            name="notes_public",
+            field=models.TextField(
+                blank=True,
+                default="",
+                help_text="Free text notes on the deployment, this IS visible to the public.",
+            ),
+        ),
+        migrations.AlterField(
+            model_name="instrument",
+            name="additional_metadata",
+            field=models.JSONField(
+                blank=True,
+                default=None,
+                help_text="An open item for potential extra metadata element(s)",
+                null=True,
+                verbose_name="Additional Metadata",
+            ),
+        ),
+        migrations.AlterField(
+            model_name="instrument",
+            name="calibration_information",
+            field=models.CharField(
+                blank=True,
+                default="",
+                help_text="URL or DOI for instrument calibration info (may be a webpage or publication)",
+                max_length=1024,
+            ),
+        ),
+        migrations.AlterField(
+            model_name="instrument",
+            name="description",
+            field=models.TextField(help_text="Free text description of the instrument"),
+        ),
+        migrations.AlterField(
+            model_name="instrument",
+            name="facility",
+            field=models.CharField(
+                blank=True,
+                default="",
+                help_text="If Facility Instrument give location or put 'retired', otherwise N/A",
+                max_length=256,
+                verbose_name="Facility Instrument Location",
+            ),
+        ),
+        migrations.AlterField(
+            model_name="instrument",
+            name="funding_source",
+            field=models.CharField(
+                blank=True,
+                default="",
+                help_text="Program or Mission funding the development, maintenance, deployment, and/or operation of the instrument",
+                max_length=1024,
+            ),
+        ),
+        migrations.AlterField(
+            model_name="instrument",
+            name="gcmd_instruments",
+            field=models.ManyToManyField(
+                blank=True,
+                default="",
+                help_text="GCMD Instrument/Sensor keyword(s) corresponding to this instrument",
+                related_name="instruments",
+                to="data_models.GcmdInstrument",
+            ),
+        ),
+        migrations.AlterField(
+            model_name="instrument",
+            name="gcmd_phenomenas",
+            field=models.ManyToManyField(
+                help_text="Select relevant measurements/variables items from GCMD Science Keywords for Earth Science",
+                related_name="instruments",
+                to="data_models.GcmdPhenomena",
+                verbose_name="Measurements / Variables from GCMD Science Keywords",
+            ),
+        ),
+        migrations.AlterField(
+            model_name="instrument",
+            name="instrument_doi",
+            field=models.CharField(
+                blank=True,
+                default="",
+                help_text="The DOI assigned to the instrument.  This may not exist.",
+                max_length=1024,
+                verbose_name="Instrument DOI",
+            ),
+        ),
+        migrations.AlterField(
+            model_name="instrument",
+            name="instrument_manufacturer",
+            field=models.CharField(
+                blank=True,
+                default="",
+                help_text="Name of lab or company that makes or manufactures the instrument",
+                max_length=512,
+            ),
+        ),
+        migrations.AlterField(
+            model_name="instrument",
+            name="lead_investigator",
+            field=models.CharField(
+                blank=True,
+                default="",
+                help_text="Name(s) of person/people leading the development of the instrument (typically, the Principle Investigator and/or Co-Investigator)",
+                max_length=256,
+                verbose_name="Instrument PI/Co-Is",
+            ),
+        ),
+        migrations.AlterField(
+            model_name="instrument",
+            name="measurement_regions",
+            field=models.ManyToManyField(
+                help_text="Name of the vertical region(s) observed by the instrument",
+                related_name="instruments",
+                to="data_models.MeasurementRegion",
+                verbose_name="Vertical Measurement Region",
+            ),
+        ),
+        migrations.AlterField(
+            model_name="instrument",
+            name="measurement_style",
+            field=models.ForeignKey(
+                blank=True,
+                help_text="Primary operation principle of the sensor",
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="instruments",
+                to="data_models.measurementstyle",
+            ),
+        ),
+        migrations.AlterField(
+            model_name="instrument",
+            name="measurement_type",
+            field=models.ForeignKey(
+                blank=True,
+                help_text="Broad grouping for the type of measurements the instrument is used for",
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="instruments",
+                to="data_models.measurementtype",
+            ),
+        ),
+        migrations.AlterField(
+            model_name="instrument",
+            name="notes_internal",
+            field=models.TextField(
+                blank=True,
+                default="",
+                help_text="Free text notes for ADMG staff - not visible to the public.",
+            ),
+        ),
+        migrations.AlterField(
+            model_name="instrument",
+            name="notes_public",
+            field=models.TextField(
+                blank=True,
+                default="",
+                help_text="Free text notes on the deployment, this IS visible to the public.",
+            ),
+        ),
+        migrations.AlterField(
+            model_name="instrument",
+            name="online_information",
+            field=models.CharField(
+                blank=True,
+                default="",
+                help_text="URL(s) for additional relevant online information for the instrument",
+                max_length=2048,
+            ),
+        ),
+        migrations.AlterField(
+            model_name="instrument",
+            name="overview_publication",
+            field=models.CharField(
+                blank=True,
+                default="",
+                help_text="Highest authority document describing the instrument (DOI or URL)",
+                max_length=2048,
+                verbose_name="Instrument Publication",
+            ),
+        ),
+        migrations.AlterField(
+            model_name="instrument",
+            name="radiometric_frequency",
+            field=models.CharField(
+                help_text="Operating frequency of the instrument", max_length=256
+            ),
+        ),
+        migrations.AlterField(
+            model_name="instrument",
+            name="spatial_resolution",
+            field=models.CharField(
+                help_text="Horizontal and vertical resolution of the instrument’s measurements",
+                max_length=256,
+            ),
+        ),
+        migrations.AlterField(
+            model_name="instrument",
+            name="technical_contact",
+            field=models.CharField(
+                help_text="Name(s) of person/people leading the maintenance, integration, and/or operation of the instrument",
+                max_length=256,
+            ),
+        ),
+        migrations.AlterField(
+            model_name="instrument",
+            name="temporal_resolution",
+            field=models.CharField(
+                help_text="Temporal resolution of the instrument’s measurements", max_length=256
+            ),
+        ),
+        migrations.AlterField(
+            model_name="iop",
+            name="deployment",
+            field=models.ForeignKey(
+                help_text="ADMG’s deployment identifier",
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="iops",
+                to="data_models.deployment",
+            ),
+        ),
+        migrations.AlterField(
+            model_name="iop",
+            name="description",
+            field=models.TextField(help_text="Free text description of the event"),
+        ),
+        migrations.AlterField(
+            model_name="iop",
+            name="end_date",
+            field=models.DateField(help_text="End date of event"),
+        ),
+        migrations.AlterField(
+            model_name="iop",
+            name="published_list",
+            field=models.CharField(
+                blank=True,
+                default="",
+                help_text="DOI or URL for location of published info noting this event within the campaign",
+                max_length=1024,
+            ),
+        ),
+        migrations.AlterField(
+            model_name="iop",
+            name="reference_file",
+            field=models.CharField(
+                blank=True,
+                default="",
+                help_text="Text filename of a specific granule file for reference",
+                max_length=1024,
+                verbose_name="Reference Granule/File",
+            ),
+        ),
+        migrations.AlterField(
+            model_name="iop",
+            name="region_description",
+            field=models.TextField(
+                help_text="Free text words identifying the location of the event domain",
+                verbose_name="Location Description",
+            ),
+        ),
+        migrations.AlterField(
+            model_name="iop",
+            name="reports",
+            field=models.CharField(
+                blank=True,
+                default="",
+                help_text="DOI or URL for location of published IOP Science or Flight reports",
+                max_length=1024,
+                verbose_name="Science/Flight Reports",
+            ),
+        ),
+        migrations.AlterField(
+            model_name="iop",
+            name="short_name",
+            field=models.CharField(
+                help_text="ADMG's text identifier for the IOP - format as 'XXX_IOP_#' with XXX as the campaign shortname and # as the integer number of the IOP within the campaign",
+                max_length=256,
+            ),
+        ),
+        migrations.AlterField(
+            model_name="iop",
+            name="start_date",
+            field=models.DateField(help_text="Start date of event"),
+        ),
+        migrations.AlterField(
+            model_name="measurementregion",
+            name="notes_internal",
+            field=models.TextField(
+                blank=True,
+                default="",
+                help_text="Free text notes for ADMG staff - not visible to the public.",
+            ),
+        ),
+        migrations.AlterField(
+            model_name="measurementregion",
+            name="notes_public",
+            field=models.TextField(
+                blank=True,
+                default="",
+                help_text="Free text notes on the deployment, this IS visible to the public.",
+            ),
+        ),
+        migrations.AlterField(
+            model_name="measurementstyle",
+            name="notes_internal",
+            field=models.TextField(
+                blank=True,
+                default="",
+                help_text="Free text notes for ADMG staff - not visible to the public.",
+            ),
+        ),
+        migrations.AlterField(
+            model_name="measurementstyle",
+            name="notes_public",
+            field=models.TextField(
+                blank=True,
+                default="",
+                help_text="Free text notes on the deployment, this IS visible to the public.",
+            ),
+        ),
+        migrations.AlterField(
+            model_name="measurementtype",
+            name="notes_internal",
+            field=models.TextField(
+                blank=True,
+                default="",
+                help_text="Free text notes for ADMG staff - not visible to the public.",
+            ),
+        ),
+        migrations.AlterField(
+            model_name="measurementtype",
+            name="notes_public",
+            field=models.TextField(
+                blank=True,
+                default="",
+                help_text="Free text notes on the deployment, this IS visible to the public.",
+            ),
+        ),
+        migrations.AlterField(
+            model_name="partnerorg",
+            name="notes_internal",
+            field=models.TextField(
+                blank=True,
+                default="",
+                help_text="Free text notes for ADMG staff - not visible to the public.",
+            ),
+        ),
+        migrations.AlterField(
+            model_name="partnerorg",
+            name="notes_public",
+            field=models.TextField(
+                blank=True,
+                default="",
+                help_text="Free text notes on the deployment, this IS visible to the public.",
+            ),
+        ),
+        migrations.AlterField(
+            model_name="platform",
+            name="description",
+            field=models.TextField(help_text="Free text description of the platform"),
+        ),
+        migrations.AlterField(
+            model_name="platform",
+            name="gcmd_platforms",
+            field=models.ManyToManyField(
+                blank=True,
+                default="",
+                help_text="GCMD Platform/Source keyword(s) corresponding to this platform",
+                related_name="platforms",
+                to="data_models.GcmdPlatform",
+                verbose_name="Platform’s GCMD Platform Keyword(s)",
+            ),
+        ),
+        migrations.AlterField(
+            model_name="platform",
+            name="notes_internal",
+            field=models.TextField(
+                blank=True,
+                default="",
+                help_text="Free text notes for ADMG staff - not visible to the public.",
+            ),
+        ),
+        migrations.AlterField(
+            model_name="platform",
+            name="notes_public",
+            field=models.TextField(
+                blank=True,
+                default="",
+                help_text="Free text notes on the deployment, this IS visible to the public.",
+            ),
+        ),
+        migrations.AlterField(
+            model_name="platform",
+            name="online_information",
+            field=models.CharField(
+                blank=True,
+                default="",
+                help_text="URL(s) for additional relevant online information for the platform",
+                max_length=512,
+            ),
+        ),
+        migrations.AlterField(
+            model_name="platform",
+            name="platform_type",
+            field=models.ForeignKey(
+                help_text="Assign the most specific type of platform possible from the list",
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="platforms",
+                to="data_models.platformtype",
+            ),
+        ),
+        migrations.AlterField(
+            model_name="platform",
+            name="stationary",
+            field=models.BooleanField(verbose_name="Can the platform move?"),
+        ),
+        migrations.AlterField(
+            model_name="platformtype",
+            name="notes_internal",
+            field=models.TextField(
+                blank=True,
+                default="",
+                help_text="Free text notes for ADMG staff - not visible to the public.",
+            ),
+        ),
+        migrations.AlterField(
+            model_name="platformtype",
+            name="notes_public",
+            field=models.TextField(
+                blank=True,
+                default="",
+                help_text="Free text notes on the deployment, this IS visible to the public.",
+            ),
+        ),
+        migrations.AlterField(
+            model_name="repository",
+            name="notes_internal",
+            field=models.TextField(
+                blank=True,
+                default="",
+                help_text="Free text notes for ADMG staff - not visible to the public.",
+            ),
+        ),
+        migrations.AlterField(
+            model_name="repository",
+            name="notes_public",
+            field=models.TextField(
+                blank=True,
+                default="",
+                help_text="Free text notes on the deployment, this IS visible to the public.",
+            ),
+        ),
+        migrations.AlterField(
+            model_name="season",
+            name="notes_internal",
+            field=models.TextField(
+                blank=True,
+                default="",
+                help_text="Free text notes for ADMG staff - not visible to the public.",
+            ),
+        ),
+        migrations.AlterField(
+            model_name="season",
+            name="notes_public",
+            field=models.TextField(
+                blank=True,
+                default="",
+                help_text="Free text notes on the deployment, this IS visible to the public.",
+            ),
+        ),
+        migrations.AlterField(
+            model_name="significantevent",
+            name="deployment",
+            field=models.ForeignKey(
+                help_text="ADMG’s deployment identifier",
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="significant_events",
+                to="data_models.deployment",
+            ),
+        ),
+        migrations.AlterField(
+            model_name="significantevent",
+            name="description",
+            field=models.TextField(help_text="Free text description of the event"),
+        ),
+        migrations.AlterField(
+            model_name="significantevent",
+            name="end_date",
+            field=models.DateField(help_text="End date of event"),
+        ),
+        migrations.AlterField(
+            model_name="significantevent",
+            name="iop",
+            field=models.ForeignKey(
+                help_text="ADMG's IOP identifier, if this SE occurred within an IOP",
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="significant_events",
+                to="data_models.iop",
+            ),
+        ),
+        migrations.AlterField(
+            model_name="significantevent",
+            name="published_list",
+            field=models.CharField(
+                blank=True,
+                default="",
+                help_text="DOI or URL for location of published info noting this event within the campaign",
+                max_length=1024,
+            ),
+        ),
+        migrations.AlterField(
+            model_name="significantevent",
+            name="reference_file",
+            field=models.CharField(
+                blank=True,
+                default="",
+                help_text="Text filename of a specific granule file for reference",
+                max_length=1024,
+                verbose_name="Reference Granule/File",
+            ),
+        ),
+        migrations.AlterField(
+            model_name="significantevent",
+            name="region_description",
+            field=models.TextField(
+                help_text="Free text words identifying the location of the event domain",
+                verbose_name="Location Description",
+            ),
+        ),
+        migrations.AlterField(
+            model_name="significantevent",
+            name="reports",
+            field=models.CharField(
+                blank=True,
+                default="",
+                help_text="DOI or URL for location of published info noting this Significant Event within the campaign",
+                max_length=1024,
+                verbose_name="Science/Flight Reports",
+            ),
+        ),
+        migrations.AlterField(
+            model_name="significantevent",
+            name="short_name",
+            field=models.CharField(
+                help_text="ADMG's text identifier for the IOP - format as 'XXX_IOP_#' with XXX as the campaign shortname and # as the integer number of the IOP within the campaign",
+                max_length=256,
+            ),
+        ),
+        migrations.AlterField(
+            model_name="significantevent",
+            name="start_date",
+            field=models.DateField(help_text="Start date of event"),
+        ),
+        migrations.AlterField(
+            model_name="website",
+            name="notes_internal",
+            field=models.TextField(
+                blank=True,
+                default="",
+                help_text="Free text notes for ADMG staff - not visible to the public.",
+            ),
+        ),
+        migrations.AlterField(
+            model_name="websitetype",
+            name="notes_internal",
+            field=models.TextField(
+                blank=True,
+                default="",
+                help_text="Free text notes for ADMG staff - not visible to the public.",
+            ),
+        ),
+        migrations.AlterField(
+            model_name="websitetype",
+            name="notes_public",
+            field=models.TextField(
+                blank=True,
+                default="",
+                help_text="Free text notes on the deployment, this IS visible to the public.",
+            ),
         ),
     ]

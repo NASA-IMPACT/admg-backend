@@ -4,75 +4,74 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('data_models', '0030_auto_20210331_1102'),
+        ("data_models", "0030_auto_20210331_1102"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='focusarea',
-            name='priority',
+            model_name="focusarea",
+            name="priority",
             field=models.PositiveIntegerField(blank=True, null=True, unique=True),
         ),
         migrations.AddField(
-            model_name='geographicalregion',
-            name='priority',
+            model_name="geographicalregion",
+            name="priority",
             field=models.PositiveIntegerField(blank=True, null=True, unique=True),
         ),
         migrations.AddField(
-            model_name='geophysicalconcept',
-            name='priority',
+            model_name="geophysicalconcept",
+            name="priority",
             field=models.PositiveIntegerField(blank=True, null=True, unique=True),
         ),
         migrations.AddField(
-            model_name='homebase',
-            name='priority',
+            model_name="homebase",
+            name="priority",
             field=models.PositiveIntegerField(blank=True, null=True, unique=True),
         ),
         migrations.AddField(
-            model_name='measurementregion',
-            name='priority',
+            model_name="measurementregion",
+            name="priority",
             field=models.PositiveIntegerField(blank=True, null=True, unique=True),
         ),
         migrations.AddField(
-            model_name='measurementstyle',
-            name='priority',
+            model_name="measurementstyle",
+            name="priority",
             field=models.PositiveIntegerField(blank=True, null=True, unique=True),
         ),
         migrations.AddField(
-            model_name='measurementtype',
-            name='priority',
+            model_name="measurementtype",
+            name="priority",
             field=models.PositiveIntegerField(blank=True, null=True, unique=True),
         ),
         migrations.AddField(
-            model_name='partnerorg',
-            name='priority',
+            model_name="partnerorg",
+            name="priority",
             field=models.PositiveIntegerField(blank=True, null=True, unique=True),
         ),
         migrations.AddField(
-            model_name='platformtype',
-            name='priority',
+            model_name="platformtype",
+            name="priority",
             field=models.PositiveIntegerField(blank=True, null=True, unique=True),
         ),
         migrations.AddField(
-            model_name='repository',
-            name='priority',
+            model_name="repository",
+            name="priority",
             field=models.PositiveIntegerField(blank=True, null=True, unique=True),
         ),
         migrations.AddField(
-            model_name='season',
-            name='priority',
+            model_name="season",
+            name="priority",
             field=models.PositiveIntegerField(blank=True, null=True, unique=True),
         ),
         migrations.AddField(
-            model_name='websitetype',
-            name='priority',
+            model_name="websitetype",
+            name="priority",
             field=models.PositiveIntegerField(blank=True, null=True, unique=True),
         ),
         migrations.AlterField(
-            model_name='campaignwebsite',
-            name='priority',
+            model_name="campaignwebsite",
+            name="priority",
             field=models.PositiveIntegerField(),
         ),
     ]

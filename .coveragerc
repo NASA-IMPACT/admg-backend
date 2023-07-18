@@ -1,5 +1,5 @@
 [run]
-include = admg_webapp/*
-omit = *migrations*, *tests*
-plugins =
-    django_coverage_plugin
+omit = *migrations*, *tests*, ./env/**/*, ./staticfiles/**/*
+relative_files = True
+source = admg_webapp, admin_ui, api_app, cmr, data_models, kms
+
