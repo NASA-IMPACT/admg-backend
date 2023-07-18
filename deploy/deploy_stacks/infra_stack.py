@@ -26,7 +26,7 @@ class InfraStack(Stack):
                 "token.actions.githubusercontent.com",
                 conditions={
                     "StringLike": {
-                        "token.actions.githubusercontent.com:sub": "repo:NASA-IMPACT/admg-backend/:*"
+                        "token.actions.githubusercontent.com:sub": "repo:NASA-IMPACT/admg-backend:*"
                     }
                 },
             ),
