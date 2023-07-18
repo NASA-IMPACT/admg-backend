@@ -43,10 +43,10 @@ class ApplicationStack(Stack):
         self,
         app: App,
         stack_id: str,
-        code_dir: str,
-        db: rds.DatabaseInstance,
-        assets_bucket: s3.IBucket,
-        url_prefix: str,
+        # code_dir: str,
+        # db: rds.DatabaseInstance,
+        # assets_bucket: s3.IBucket,
+        # url_prefix: str,
         **kwargs,
     ) -> None:
         super().__init__(app, stack_id, **kwargs)
