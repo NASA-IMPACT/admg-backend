@@ -40,13 +40,13 @@ jobs:
       aws-region: "us-east-1"
 
       # TODO WHERE DO I GET THE RIGHT VALUES FOR THESE
-      vpc-id: "vpc-03de2898a74acd650"
-      alb-listener-arn: "arn:aws:elasticloadbalancing:us-east-1:278255066410:listener/app/csdap-loadb-1RD7S8KU7TUJQ/e68f7df41a76a271/b85c7e19ce997cd9"
-      distribution-id: "EJH5ZBVX1BOWZ"
+      # vpc-id: "vpc-03de2898a74acd650"
+      # alb-listener-arn: "arn:aws:elasticloadbalancing:us-east-1:278255066410:listener/app/csdap-loadb-1RD7S8KU7TUJQ/e68f7df41a76a271/b85c7e19ce997cd9"
+      # distribution-id: "EJH5ZBVX1BOWZ"
       # distribution-paths: "/data-in-action*"
 
       # allowed-hosts: csdap-staging.ds.io
-      debug: true
+      # debug: true
 
   notify-slack:
     needs: deploy-to-staging

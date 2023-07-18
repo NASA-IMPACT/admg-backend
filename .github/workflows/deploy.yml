@@ -19,57 +19,57 @@ on:
         required: false
         default: us-east-1
 
-      vpc-id:
-        description: ID of AWS VPC.
-        type: string
-        required: true
-      alb-listener-arn:
-        description: ARN of Application Load Balancer listener.
-        type: string
-        required: true
-      distribution-id:
-        description: ID of CloudFront Distribution to be invalidated after deployment.
-        type: string
-        required: false
-      distribution-paths:
-        description: The space-separated paths to be invalidated.
-        type: string
-        required: false
-        default: "/*"
+      # vpc-id:
+      #   description: ID of AWS VPC.
+      #   type: string
+      #   required: true
+      # alb-listener-arn:
+      #   description: ARN of Application Load Balancer listener.
+      #   type: string
+      #   required: true
+      # distribution-id:
+      #   description: ID of CloudFront Distribution to be invalidated after deployment.
+      #   type: string
+      #   required: false
+      # distribution-paths:
+      #   description: The space-separated paths to be invalidated.
+      #   type: string
+      #   required: false
+      #   default: "/*"
 
-      allowed-hosts:
-        description: Domain name of website.
-        type: string
-        required: true
+      # allowed-hosts:
+      #   description: Domain name of website.
+      #   type: string
+      #   required: true
 
-      debug:
-        description: Enable DEBUG mode in Django.
-        type: boolean
-        required: false
-        default: false
+      # debug:
+      #   description: Enable DEBUG mode in Django.
+      #   type: boolean
+      #   required: false
+      #   default: false
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
 
-    env:
-      VPC_ID: ${{ inputs.vpc-id }}
-      ALB_LISTENER_ARN: ${{ inputs.alb-listener-arn }}
+    # env:
+    #   VPC_ID: ${{ inputs.vpc-id }}
+    #   ALB_LISTENER_ARN: ${{ inputs.alb-listener-arn }}
 
-      DJANGO_SECURE_SSL_REDIRECT: ${{ secrets.DJANGO_SECURE_SSL_REDIRECT }}
-      MAILGUN_API_KEY: ""
-      MAILGUN_DOMAIN: ""
-      DJANGO_SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY }}
-      DJANGO_ADMIN_URL: ${{ secrets.DJANGO_ADMIN_URL }}
-      DJANGO_ALLOWED_HOSTS: ${{ inputs.allowed-hosts }}
-      DJANGO_SETTINGS_MODULE: "server.settings.main"
-      DJANGO_SUPERUSER_USERNAME: ${{ secrets.DJANGO_SUPERUSER_USERNAME }}
-      DJANGO_SUPERUSER_PASSWORD: ${{ secrets.DJANGO_SUPERUSER_PASSWORD }}
-      DJANGO_SUPERUSER_EMAIL: ${{ secrets.DJANGO_SUPERUSER_EMAIL }}
-      AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
-      DJANGO_DEBUG: ${{ inputs.debug }}
-      GOOGLE_CAPTCHA_SECRET_KEY: ${{ secrets.GOOGLE_CAPTCHA_SECRET_KEY }}
-      GOOGLE_SITE_KEY: ${{ secrets.GOOGLE_SITE_KEY }}
+    # DJANGO_SECURE_SSL_REDIRECT: ${{ secrets.DJANGO_SECURE_SSL_REDIRECT }}
+    # MAILGUN_API_KEY: ""
+    # MAILGUN_DOMAIN: ""
+    # DJANGO_SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY }}
+    # DJANGO_ADMIN_URL: ${{ secrets.DJANGO_ADMIN_URL }}
+    # DJANGO_ALLOWED_HOSTS: ${{ inputs.allowed-hosts }}
+    # DJANGO_SETTINGS_MODULE: "server.settings.main"
+    # DJANGO_SUPERUSER_USERNAME: ${{ secrets.DJANGO_SUPERUSER_USERNAME }}
+    # DJANGO_SUPERUSER_PASSWORD: ${{ secrets.DJANGO_SUPERUSER_PASSWORD }}
+    # DJANGO_SUPERUSER_EMAIL: ${{ secrets.DJANGO_SUPERUSER_EMAIL }}
+    # AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
+    # DJANGO_DEBUG: ${{ inputs.debug }}
+    # GOOGLE_CAPTCHA_SECRET_KEY: ${{ secrets.GOOGLE_CAPTCHA_SECRET_KEY }}
+    # GOOGLE_SITE_KEY: ${{ secrets.GOOGLE_SITE_KEY }}
 
     steps:
       - name: Checkout
