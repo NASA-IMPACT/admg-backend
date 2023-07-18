@@ -1,0 +1,27 @@
+{
+  "app": "python3 deploy/app.py",
+  "watch": {
+    "include": ["admin_ui", "data_models", "config", "deploy", ".env"],
+    "exclude": [
+      "README.md",
+      "**/__pycache__",
+      "**/cdk.out",
+      "**/.venv",
+      "cdk*.json",
+      "requirements*.txt",
+      "source.bat",
+      "**/*.pyc",
+      "**/*.tmp",
+      "tests"
+    ]
+  },
+  "context": {
+    "@aws-cdk/aws-apigateway:usagePlanKeyOrderInsensitiveId": true,
+    "@aws-cdk/core:stackRelativeExports": true,
+    "@aws-cdk/aws-rds:lowercaseDbIdentifier": true,
+    "@aws-cdk/aws-lambda:recognizeVersionProps": true,
+    "@aws-cdk/aws-cloudfront:defaultSecurityPolicyTLSv1.2_2021": true,
+    "@aws-cdk-containers/ecs-service-extensions:enableDefaultLogDriver": true,
+    "@aws-cdk/core:target-partitions": ["aws", "aws-cn"]
+  }
+}
