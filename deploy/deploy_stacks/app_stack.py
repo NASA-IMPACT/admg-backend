@@ -9,6 +9,7 @@ from aws_cdk import (
     Stack,
     App,
     Duration,
+    aws_ecs_patterns as patterns,
 )
 import pydantic
 
@@ -67,9 +68,28 @@ class ApplicationStack(Stack):
         # if not db.secret:
         #     raise Exception("DB does not have secret associated with it.")
 
-        # vpc = ec2.Vpc.from_lookup(self, "vpc", vpc_id=deployment_settings.vpc_id)
-
-        # cluster = ecs.Cluster(self, 'cluster', vpc=vpc, cluster_name=generate_name('cluster'))
+        vpc = ec2.Vpc.from_lookup(self, "vpc", vpc_id=deployment_settings.vpc_id)
+        
+        cluster = ecs.Cluster(self, 'cluster', vpc=vpc, cluster_name=generate_name('cluster'))
+        patterns.ApplicationLoadBalancedFargateService(
+            self,
+            "admg-backend-fargate-service",
+            {
+                "cluster": cluster,
+                "memory_limit_mib"=528,
+                "desired_count": 1,
+                "cpu": 512,
+                "task_image_options": {
+                    "image": ecs.ContainerImage.from_registry("amazon/amazon-ecs-sample"),
+                },
+                "task_subnets": {
+                    subnets: [
+                        ec2.Subnet.from_subnet_id(this, 'subnet', 'VpcISOLATEDSubnet1Subnet80F07FA0')
+                    ],
+                },
+                "load_balancer_name": 'admg-backend-loadbalancer',
+            },
+        )
 
         # image = ecs.ContainerImage.from_asset(code_dir, target='prod')
         # task_definition = ecs.FargateTaskDefinition(
