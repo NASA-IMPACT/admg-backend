@@ -43,26 +43,29 @@ class InfraStack(Stack):
             },
         )
 
-        # deployment_settings = DeploymentSettings(
-        #     _env_file=(  # pyright: ignore NOTE: https://github.com/blakeNaccarato/pydantic/blob/c5a29ef77374d4fda85e8f5eb2016951d23dac33/docs/visual_studio_code.md?plain=1#L260-L272
-        #         ".env"
-        #     ),
-        # )
+        deployment_settings = DeploymentSettings(
+            _env_file=(  # pyright: ignore NOTE: https://github.com/blakeNaccarato/pydantic/blob/c5a29ef77374d4fda85e8f5eb2016951d23dac33/docs/visual_studio_code.md?plain=1#L260-L272
+                ".env"
+            ),
+        )
 
-        # vpc = ec2.Vpc.from_lookup(self, "vpc", vpc_id=deployment_settings.vpc_id)
+        vpc = ec2.Vpc.from_lookup(self, "vpc", vpc_id=deployment_settings.vpc_id)
 
-        # self.bucket = s3.Bucket(
-        #     self,
-        #     "assets-bucket",
-        #     bucket_name=generate_name("assets").replace("_", "-"),
-        #     public_read_access=True,
-        # )
+        self.bucket = s3.Bucket(
+            self,
+            "assets-bucket",
+            bucket_name=generate_name("assets").replace("_", "-"),
+            public_read_access=True,
+        )
 
-        # self.db = rds.DatabaseInstance(
-        #     self,
-        #     "db",
-        #     engine=rds.DatabaseInstanceEngine.postgres(version=rds.PostgresEngineVersion.VER_13_4),
-        #     instance_type=ec2.InstanceType.of(ec2.InstanceClass.BURSTABLE3, ec2.InstanceSize.SMALL),
-        #     vpc=vpc,
-        #     vpc_subnets=ec2.SubnetSelection(subnet_type=ec2.SubnetType.PRIVATE_WITH_EGRESS),
-        # )
+        self.db = rds.DatabaseInstance(
+            self,
+            "db",
+            engine=rds.DatabaseInstanceEngine.postgres(version=rds.PostgresEngineVersion.VER_13_4),
+            instance_type=ec2.InstanceType.of(ec2.InstanceClass.BURSTABLE3, ec2.InstanceSize.SMALL),
+            vpc=vpc,
+            vpc_subnets=ec2.SubnetSelection(
+                subnets=[ec2.Subnet.from_subnet_id(self, "subnet", "subnet-0d9b54d7f70ac8940")]
+            )
+            # vpc_subnets=ec2.SubnetSelection(subnet_type=ec2.SubnetType.PRIVATE_WITH_EGRESS),
+        )

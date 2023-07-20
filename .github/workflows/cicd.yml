@@ -29,7 +29,7 @@ jobs:
 
   deploy-to-staging:
     needs: run-linters
-    # if: github.ref_name == 'dev'
+    if: github.ref_name == 'oidc-deployment'
     concurrency: staging
 
     uses: "./.github/workflows/deploy.yml"
@@ -41,9 +41,13 @@ jobs:
       aws-region: "us-east-1"
 
       # TODO WHERE DO I GET THE RIGHT VALUES FOR THESE
-      # vpc-id: "vpc-03de2898a74acd650"
+      vpc-id: "vpc-070c4911ebaba103c"
       # alb-listener-arn: "arn:aws:elasticloadbalancing:us-east-1:278255066410:listener/app/csdap-loadb-1RD7S8KU7TUJQ/e68f7df41a76a271/b85c7e19ce997cd9"
+
+      # Cloudfront distro
       # distribution-id: "EJH5ZBVX1BOWZ"
+
+      # NOTE: This is not needed for ADMG
       # distribution-paths: "/data-in-action*"
 
       # allowed-hosts: csdap-staging.ds.io

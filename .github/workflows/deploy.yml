@@ -108,9 +108,9 @@ jobs:
             --exclusively \
             --require-approval never
 
-      - name: Invalidate CloudFront
-        if: ${{ inputs.distribution-id != '' }}
-        run: |
-          aws cloudfront create-invalidation \
-            --distribution-id ${{ inputs.distribution-id }} \
-            --paths ${{ inputs.distribution-paths }}
+      # - name: Invalidate CloudFront
+      #   if: ${{ inputs.distribution-id != '' }}
+      #   run: |
+      #     aws cloudfront create-invalidation \
+      #       --distribution-id ${{ inputs.distribution-id }} \
+      #       --paths ${{ inputs.distribution-paths }}

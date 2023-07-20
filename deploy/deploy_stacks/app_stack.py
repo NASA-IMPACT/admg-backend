@@ -30,8 +30,6 @@ class AppEnvSettings(pydantic.BaseSettings):
     DJANGO_SUPERUSER_EMAIL: str
     DJANGO_SUPERUSER_PASSWORD: str
     DJANGO_SUPERUSER_USERNAME: str
-    GOOGLE_CAPTCHA_SECRET_KEY: str
-    GOOGLE_SITE_KEY: str
     MAILGUN_API_KEY: Optional[str] = ""
     MAILGUN_DOMAIN: Optional[str] = ""
 
@@ -43,9 +41,9 @@ class ApplicationStack(Stack):
         self,
         app: App,
         stack_id: str,
-        # code_dir: str,
-        # db: rds.DatabaseInstance,
-        # assets_bucket: s3.IBucket,
+        code_dir: str,
+        db: rds.DatabaseInstance,
+        assets_bucket: s3.IBucket,
         # url_prefix: str,
         **kwargs,
     ) -> None:
@@ -58,11 +56,11 @@ class ApplicationStack(Stack):
                 ".env"
             ),
         )
-        # app_env_settings = AppEnvSettings(
-        #     _env_file=(  # pyright: ignore NOTE: https://github.com/blakeNaccarato/pydantic/blob/c5a29ef77374d4fda85e8f5eb2016951d23dac33/docs/visual_studio_code.md?plain=1#L260-L272
-        #         ".env"
-        #     ),
-        # )
+        app_env_settings = AppEnvSettings(
+            _env_file=(  # pyright: ignore NOTE: https://github.com/blakeNaccarato/pydantic/blob/c5a29ef77374d4fda85e8f5eb2016951d23dac33/docs/visual_studio_code.md?plain=1#L260-L272
+                ".env"
+            ),
+        )
 
         # if not db.secret:
         #     raise Exception("DB does not have secret associated with it.")

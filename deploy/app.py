@@ -22,8 +22,8 @@ ApplicationStack(
     generate_name("application"),
     code_dir="./app",
     # url_prefix='data-in-action',
-    # db=infra_stack.db,
-    # assets_bucket=infra_stack.bucket,
+    db=infra_stack.db,
+    assets_bucket=infra_stack.bucket,
     env=env,
 )
 
