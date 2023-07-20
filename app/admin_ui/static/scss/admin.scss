@@ -1,4 +1,3 @@
-
 /* Utils */
 .active {
   font-weight: 700;
@@ -10,7 +9,8 @@
   cursor: pointer;
 }
 
-select.selectmultiple, .select2-selection {
+select.selectmultiple,
+.select2-selection {
   overflow: auto;
   resize: auto;
 }
@@ -26,10 +26,12 @@ dt {
   li.list-group-item {
     padding-bottom: 0;
   }
-  .list-group-item-primary, .list-group-item-primary:hover {
+  .list-group-item-primary,
+  .list-group-item-primary:hover {
     color: inherit;
   }
-  .list-group-item-primary .row, .list-group-item-primary .col {
+  .list-group-item-primary .row,
+  .list-group-item-primary .col {
     border-color: #6c757d !important;
   }
   .list-group-item-primary {
@@ -66,7 +68,7 @@ $changed-item-color: rgba(170, 170, 0, 0.5);
     span.select2-container--default,
     span.select2-container--disabled,
     span.select2-selection--single,
-    span.select2-selection--multiple{
+    span.select2-selection--multiple {
       background-color: $changed-item-color;
     }
   }
