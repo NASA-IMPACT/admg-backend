@@ -14,6 +14,9 @@ on:
         type: string
         required: false
         default: github-actions-deployment
+      environment:
+        type: string
+        required: true
       aws-region:
         type: string
         required: false
@@ -51,7 +54,7 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-
+    environment: ${{ inputs.environment }}
     # env:
     #   VPC_ID: ${{ inputs.vpc-id }}
     #   ALB_LISTENER_ARN: ${{ inputs.alb-listener-arn }}

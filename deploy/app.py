@@ -24,7 +24,7 @@ ApplicationStack(
     # url_prefix='data-in-action',
     # db=infra_stack.db,
     # assets_bucket=infra_stack.bucket,
-    # env=env,
+    env=env,
 )
 
 app.synth()

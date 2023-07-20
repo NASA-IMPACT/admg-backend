@@ -18,7 +18,6 @@ from .utils import generate_name
 
 class DeploymentSettings(pydantic.BaseSettings):
     vpc_id: str
-    alb_listener_arn: str
 
 
 class AppEnvSettings(pydantic.BaseSettings):
@@ -52,13 +51,13 @@ class ApplicationStack(Stack):
     ) -> None:
         super().__init__(app, stack_id, **kwargs)
 
-        # # NOTE: We initialize this inside of the stack so that we don't require env variables
-        # # to be set when deploying other stacks.
-        # deployment_settings = DeploymentSettings(
-        #     _env_file=(  # pyright: ignore NOTE: https://github.com/blakeNaccarato/pydantic/blob/c5a29ef77374d4fda85e8f5eb2016951d23dac33/docs/visual_studio_code.md?plain=1#L260-L272
-        #         ".env"
-        #     ),
-        # )
+        # NOTE: We initialize this inside of the stack so that we don't require env variables
+        # to be set when deploying other stacks.
+        deployment_settings = DeploymentSettings(
+            _env_file=(  # pyright: ignore NOTE: https://github.com/blakeNaccarato/pydantic/blob/c5a29ef77374d4fda85e8f5eb2016951d23dac33/docs/visual_studio_code.md?plain=1#L260-L272
+                ".env"
+            ),
+        )
         # app_env_settings = AppEnvSettings(
         #     _env_file=(  # pyright: ignore NOTE: https://github.com/blakeNaccarato/pydantic/blob/c5a29ef77374d4fda85e8f5eb2016951d23dac33/docs/visual_studio_code.md?plain=1#L260-L272
         #         ".env"
@@ -69,26 +68,23 @@ class ApplicationStack(Stack):
         #     raise Exception("DB does not have secret associated with it.")
 
         vpc = ec2.Vpc.from_lookup(self, "vpc", vpc_id=deployment_settings.vpc_id)
-        
+
         cluster = ecs.Cluster(self, 'cluster', vpc=vpc, cluster_name=generate_name('cluster'))
         patterns.ApplicationLoadBalancedFargateService(
             self,
             "admg-backend-fargate-service",
-            {
-                "cluster": cluster,
-                "memory_limit_mib"=528,
-                "desired_count": 1,
-                "cpu": 512,
-                "task_image_options": {
-                    "image": ecs.ContainerImage.from_registry("amazon/amazon-ecs-sample"),
-                },
-                "task_subnets": {
-                    subnets: [
-                        ec2.Subnet.from_subnet_id(this, 'subnet', 'VpcISOLATEDSubnet1Subnet80F07FA0')
-                    ],
-                },
-                "load_balancer_name": 'admg-backend-loadbalancer',
-            },
+            cluster=cluster,
+            memory_limit_mib=1024,
+            desired_count=1,
+            cpu=512,
+            task_image_options=patterns.ApplicationLoadBalancedTaskImageOptions(
+                image=ecs.ContainerImage.from_registry("amazon/amazon-ecs-sample")
+            ),
+            # task_subnets=ec2.SubnetSelection(subnet_type=ec2.SubnetType.PRIVATE_WITH_EGRESS),
+            task_subnets=ec2.SubnetSelection(
+                subnets=[ec2.Subnet.from_subnet_id(self, "subnet", "subnet-0d9b54d7f70ac8940")]
+            ),
+            load_balancer_name='admg-backend-loadbalancer',
         )
 
         # image = ecs.ContainerImage.from_asset(code_dir, target='prod')
