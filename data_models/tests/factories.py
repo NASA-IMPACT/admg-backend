@@ -146,6 +146,7 @@ class CampaignFactory(LimitedInfoBaseFactory):
     focus_areas = factory.PostGeneration(
         create_m2m_records("focus_areas", f"{__name__}.FocusAreaFactory")
     )
+    uuid = factory.Faker('uuid4')
 
     class Meta:
         model = models.Campaign

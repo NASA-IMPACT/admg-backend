@@ -319,6 +319,10 @@ class ChangeUpdateView(NotificationSidebar, mixins.ChangeModelFormMixin, UpdateV
 
         comparison_obj = self.object.previous if self.object.is_locked else self.object.update
         for field_name in comparison_obj:
+            # ignore data that does not fit in form
+            # ignore fields that don't fit in destination model (eg if destination model changes)
+            if field_name not in published_form:
+                continue
             if not utils.compare_values(
                 published_form[field_name].value(), model_form[field_name].value()
             ):
@@ -335,12 +339,14 @@ class ChangeUpdateView(NotificationSidebar, mixins.ChangeModelFormMixin, UpdateV
         content_type = self.get_model_form_content_type().model_class().__name__
         if content_type in ["Campaign", "Platform", "Deployment", "Instrument", "PartnerOrg"]:
             related_fields["alias"] = Change.objects.of_type(Alias).filter(
-                update__object_id=str(self.object.uuid)
+                update__object_id=str(self.object.canonical_uuid)
             )
         if content_type == "Campaign":
             related_fields["website"] = (
                 Change.objects.of_type(Website)
-                .filter(action=Change.Actions.CREATE, update__campaign=str(self.object.uuid))
+                .filter(
+                    action=Change.Actions.CREATE, update__campaign=str(self.object.canonical_uuid)
+                )
                 .annotate_from_relationship(
                     of_type=Website, to_attr="title", uuid_from="website", identifier="title"
                 )
@@ -560,7 +566,7 @@ class ChangeGcmdUpdateView(NotificationSidebar, UpdateView):
 
     def get_affected_records(self) -> Dict:
         content_type = self.get_model_form_content_type().model_class().__name__
-        recommendations = Recommendation.objects.filter(change_id=self.object.uuid)
+        recommendations = Recommendation.objects.filter(change_id=self.object.canonical_uuid)
         category = self.get_affected_type()
         affected_records, uuids = [], []
 

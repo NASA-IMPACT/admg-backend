@@ -7,7 +7,7 @@
     <li class="list-group-item">
       <h5>{{ key|title }}</h5>
       <a class="btn-sm btn-primary" 
-      href="{% url 'change-add' key %}?{% if key == 'alias' %}content_type={{ object.content_type_id }}&object_id={{ object.uuid }}{% elif key == 'website' %}campaign={{ object.uuid }}{% endif %}&back={{ request.path }}">
+      href="{% url 'change-add' key %}?{% if key == 'alias' %}content_type={{ object.content_type_id }}&object_id={{ object.canonical_uuid }}{% elif key == 'website' %}campaign={{ object.uuid }}{% endif %}&back={{ request.path }}">
         Add New +
       </a>
       <div class="wraptext">
