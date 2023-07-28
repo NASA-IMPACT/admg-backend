@@ -320,6 +320,7 @@ class ChangeUpdateView(NotificationSidebar, mixins.ChangeModelFormMixin, UpdateV
         comparison_obj = self.object.previous if self.object.is_locked else self.object.update
         for field_name in comparison_obj:
             # ignore data that does not fit in form
+            # ignore fields that don't fit in destination model (eg if destination model changes)
             if field_name not in published_form:
                 continue
             if not utils.compare_values(
