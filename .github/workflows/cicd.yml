@@ -29,7 +29,7 @@ jobs:
 
   deploy-to-staging:
     needs: run-linters
-    if: github.ref_name == 'oidc-deployment'
+    if: github.ref_name == 'dev'
     concurrency: staging
 
     uses: "./.github/workflows/deploy.yml"
@@ -38,10 +38,10 @@ jobs:
       role-to-assume: "arn:aws:iam::854573354511:role/admg-ci-role"
       role-session-name: "admg-backend-github-staging-deployment"
       environment: "dev"
-      aws-region: "us-east-1"
+      aws-region: "us-west-2"
 
       # TODO WHERE DO I GET THE RIGHT VALUES FOR THESE
-      vpc-id: "vpc-070c4911ebaba103c"
+      vpc-id: "vpc-0caf6f6042c6f2b7c"
       # alb-listener-arn: "arn:aws:elasticloadbalancing:us-east-1:278255066410:listener/app/csdap-loadb-1RD7S8KU7TUJQ/e68f7df41a76a271/b85c7e19ce997cd9"
 
       # Cloudfront distro

@@ -20,7 +20,7 @@ on:
       aws-region:
         type: string
         required: false
-        default: us-east-1
+        default: us-west-2
 
       # vpc-id:
       #   description: ID of AWS VPC.

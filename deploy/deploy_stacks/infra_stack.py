@@ -39,7 +39,15 @@ class InfraStack(Stack):
                             resources=[f"arn:aws:iam::{Stack.of(self).account}:role/cdk-*"],
                         )
                     ]
-                )
+                ),
+                "admg_infra_policy": iam.PolicyDocument(
+                    statements=[
+                        iam.PolicyStatement(
+                            actions=["s3:PutObject"],
+                            resources=["arn:aws:s3:::assets-bucket/*"],
+                        )
+                    ]
+                ),
             },
         )
 
@@ -51,21 +59,21 @@ class InfraStack(Stack):
 
         vpc = ec2.Vpc.from_lookup(self, "vpc", vpc_id=deployment_settings.vpc_id)
 
-        self.bucket = s3.Bucket(
+        self.bucket: s3.Bucket = s3.Bucket(
             self,
             "assets-bucket",
             bucket_name=generate_name("assets").replace("_", "-"),
-            public_read_access=True,
+            # public_read_access=True,
+            access_control=s3.BucketAccessControl.BUCKET_OWNER_FULL_CONTROL,
         )
+
+        # self.bucket.grant_read()
 
         self.db = rds.DatabaseInstance(
             self,
             "db",
-            engine=rds.DatabaseInstanceEngine.postgres(version=rds.PostgresEngineVersion.VER_13_4),
+            engine=rds.DatabaseInstanceEngine.postgres(version=rds.PostgresEngineVersion.VER_14_8),
             instance_type=ec2.InstanceType.of(ec2.InstanceClass.BURSTABLE3, ec2.InstanceSize.SMALL),
             vpc=vpc,
-            vpc_subnets=ec2.SubnetSelection(
-                subnets=[ec2.Subnet.from_subnet_id(self, "subnet", "subnet-0d9b54d7f70ac8940")]
-            )
-            # vpc_subnets=ec2.SubnetSelection(subnet_type=ec2.SubnetType.PRIVATE_WITH_EGRESS),
+            vpc_subnets=ec2.SubnetSelection(subnet_type=ec2.SubnetType.PRIVATE_WITH_EGRESS),
         )

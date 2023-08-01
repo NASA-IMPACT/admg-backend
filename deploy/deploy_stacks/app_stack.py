@@ -21,19 +21,16 @@ class DeploymentSettings(pydantic.BaseSettings):
 
 
 class AppEnvSettings(pydantic.BaseSettings):
-    DJANGO_ADMIN_URL: str = '/admin'
+    DJANGO_ADMIN_URL: str = 'admg/'
     DJANGO_ALLOWED_HOSTS: str
     DJANGO_DEBUG: Optional[str] = "False"
+    DB_NAME: str = "postgres"
     DJANGO_SECRET_KEY: str
     DJANGO_SECURE_SSL_REDIRECT: str
     DJANGO_SETTINGS_MODULE: Optional[str] = "server.settings.main"
     DJANGO_SUPERUSER_EMAIL: str
     DJANGO_SUPERUSER_PASSWORD: str
     DJANGO_SUPERUSER_USERNAME: str
-    MAILGUN_API_KEY: Optional[str] = ""
-    MAILGUN_DOMAIN: Optional[str] = ""
-
-    DB_NAME: str = 'postgres'
 
 
 class ApplicationStack(Stack):
@@ -44,7 +41,6 @@ class ApplicationStack(Stack):
         code_dir: str,
         db: rds.DatabaseInstance,
         assets_bucket: s3.IBucket,
-        # url_prefix: str,
         **kwargs,
     ) -> None:
         super().__init__(app, stack_id, **kwargs)
@@ -62,13 +58,14 @@ class ApplicationStack(Stack):
             ),
         )
 
-        # if not db.secret:
-        #     raise Exception("DB does not have secret associated with it.")
+        if not db.secret:
+            raise Exception("DB does not have secret associated with it.")
 
         vpc = ec2.Vpc.from_lookup(self, "vpc", vpc_id=deployment_settings.vpc_id)
 
         cluster = ecs.Cluster(self, 'cluster', vpc=vpc, cluster_name=generate_name('cluster'))
-        patterns.ApplicationLoadBalancedFargateService(
+
+        service = patterns.ApplicationLoadBalancedFargateService(
             self,
             "admg-backend-fargate-service",
             cluster=cluster,
@@ -76,12 +73,23 @@ class ApplicationStack(Stack):
             desired_count=1,
             cpu=512,
             task_image_options=patterns.ApplicationLoadBalancedTaskImageOptions(
-                image=ecs.ContainerImage.from_registry("amazon/amazon-ecs-sample")
+                image=ecs.ContainerImage.from_asset(
+                    code_dir, file="Dockerfile.prod"  # target='prod',
+                ),
+                environment={
+                    **app_env_settings.dict(),
+                    "AWS_REGION": Stack.of(self).region,
+                    "AWS_S3_BUCKET": assets_bucket.bucket_name,
+                },
+                secrets={
+                    # "DB_NAME": ecs.Secret.from_secrets_manager(db.secret, "name"),
+                    "DB_HOST": ecs.Secret.from_secrets_manager(db.secret, "host"),
+                    "DB_USER": ecs.Secret.from_secrets_manager(db.secret, "username"),
+                    "DB_PASSWORD": ecs.Secret.from_secrets_manager(db.secret, "password"),
+                    "DB_PORT": ecs.Secret.from_secrets_manager(db.secret, "port"),
+                },
             ),
-            # task_subnets=ec2.SubnetSelection(subnet_type=ec2.SubnetType.PRIVATE_WITH_EGRESS),
-            task_subnets=ec2.SubnetSelection(
-                subnets=[ec2.Subnet.from_subnet_id(self, "subnet", "subnet-0d9b54d7f70ac8940")]
-            ),
+            task_subnets=ec2.SubnetSelection(subnet_type=ec2.SubnetType.PRIVATE_WITH_EGRESS),
             load_balancer_name='admg-backend-loadbalancer',
         )
 
@@ -90,26 +98,6 @@ class ApplicationStack(Stack):
         #     self,
         #     "api-definition",
         # )
-        # task_definition.add_container(
-        #     "container",
-        #     image=image,
-        #     environment={
-        #         **app_env_settings.dict(),
-        #         "URL_PREFIX": url_prefix,
-        #         "AWS_REGION": Stack.of(self).region,
-        #         "AWS_S3_BUCKET": assets_bucket.bucket_name,
-        #     },
-        #     secrets={
-        #         "DB_HOST": ecs.Secret.from_secrets_manager(db.secret, "host"),
-        #         "DB_USER": ecs.Secret.from_secrets_manager(db.secret, "username"),
-        #         "DB_PASSWORD": ecs.Secret.from_secrets_manager(db.secret, "password"),
-        #         "DB_PORT": ecs.Secret.from_secrets_manager(db.secret, "port"),
-        #     },
-        #     logging=ecs.AwsLogDriver(stream_prefix="container"),
-        #     # memory_limit_mib=528,
-        #     # memory_reservation_mib=256,
-        #     stop_timeout=Duration.seconds(2),
-        # ).add_port_mappings(ecs.PortMapping(container_port=80))
 
         # service = ecs.FargateService(
         #     self,
@@ -119,15 +107,15 @@ class ApplicationStack(Stack):
         #     cluster=cluster,
         # )
 
-        # # Bucket Permissions
-        # assets_bucket.grant_read_write(task_definition.task_role)
+        # Bucket Permissions
+        assets_bucket.grant_read_write(service.task_definition.task_role)
 
-        # # DB Permissions
-        # service.connections.allow_to(db.connections, port_range=ec2.Port.tcp(5432))
+        # DB Permissions
+        service.service.connections.allow_to(db.connections, port_range=ec2.Port.tcp(5432))
 
         # db.secret.grant_read(task_definition.task_role)
-        # if task_definition.execution_role:
-        #     db.secret.grant_read(task_definition.execution_role)
+        if service.task_definition.task_role:
+            db.secret.grant_read(service.task_definition.task_role)
 
         # # Load Balancer Config
         # listener = elbv2.ApplicationListener.from_lookup(
