@@ -10,7 +10,7 @@ from sentry_sdk.integrations.django import DjangoIntegration
 # https://docs.djangoproject.com/en/dev/ref/settings/#secret-key
 SECRET_KEY = env("DJANGO_SECRET_KEY")
 # https://docs.djangoproject.com/en/dev/ref/settings/#allowed-hosts
-ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS", default=["admg.nasa-impact.net"])
+ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS", default=["*"])
 # list is the same as ALLOWED_HOSTS, except it requires the scheme
 CSRF_TRUSTED_ORIGINS = [f"https://{site}" for site in ALLOWED_HOSTS]
 
@@ -125,7 +125,7 @@ LOGGING = {
 
 # AWS Configuration
 
-DEFAULT_FILE_STORAGE = env("DEFAULT_FILE_STORAGE")
+DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 
 AWS_STORAGE_BUCKET_NAME = env("AWS_STORAGE_BUCKET_NAME")
 AWS_S3_REGION_NAME = env("AWS_S3_REGION_NAME")
@@ -148,11 +148,11 @@ GITHUB_WORKFLOW = {
 }
 
 ANYMAIL = {
-    "AMAZON_SES_CLIENT_PARAMS": {
-        "aws_access_key_id": env("ANYMAIL_AWS_ACCESS_KEY"),
-        "aws_secret_access_key": env("ANYMAIL_AWS_SECRET_KEY"),
-        "region_name": env("ANYMAIL_AWS_REGION"),
-    },
+    # "AMAZON_SES_CLIENT_PARAMS": {
+    #     "aws_access_key_id": env("ANYMAIL_AWS_ACCESS_KEY"),
+    #     "aws_secret_access_key": env("ANYMAIL_AWS_SECRET_KEY"),
+    #     "region_name": env("ANYMAIL_AWS_REGION"),
+    # },
 }
 
 EMAIL_BACKEND = "anymail.backends.amazon_ses.EmailBackend"

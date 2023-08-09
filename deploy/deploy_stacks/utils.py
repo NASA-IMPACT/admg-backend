@@ -1,7 +1,4 @@
-STAGE = "dev"
-
-
-def generate_name(name):
+def generate_name(name, stage):
     if not name:
         raise ValueError("Name cannot be blank")
-    return f"admg-{STAGE}-{name}".lower()
+    return f"admg-{stage}-{name}".lower()

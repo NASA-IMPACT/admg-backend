@@ -9,7 +9,8 @@ ENV PYTHONUNBUFFERED 1
 WORKDIR /app/home/app/web
 
 # install dependencies
-RUN apt-get update --fix-missing && apt-get install -y gdal-bin libgdal-dev postgis netcat
+RUN apt-get update --fix-missing && apt-get install -y gdal-bin libgdal-dev postgis netcat 
+RUN apt-get install -y dnsutils
 
 # install requirements
 COPY requirements/ .
@@ -19,3 +20,4 @@ RUN pip install -r production.txt
 COPY . .
 
 ENTRYPOINT ["/app/home/app/web/entrypoint.sh"]
+CMD ["gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:80", "-w", "4", "--timeout", "300", "--worker-tmp-dir", "/dev/shm"]

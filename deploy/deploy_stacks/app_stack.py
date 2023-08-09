@@ -27,10 +27,16 @@ class AppEnvSettings(pydantic.BaseSettings):
     DB_NAME: str = "postgres"
     DJANGO_SECRET_KEY: str
     DJANGO_SECURE_SSL_REDIRECT: str
-    DJANGO_SETTINGS_MODULE: Optional[str] = "server.settings.main"
-    DJANGO_SUPERUSER_EMAIL: str
-    DJANGO_SUPERUSER_PASSWORD: str
-    DJANGO_SUPERUSER_USERNAME: str
+    # TODO make this more restrictive
+    DJANGO_ALLOWED_HOSTS = "*"
+    DJANGO_SECURE_SSL_REDIRECT = "True"
+    CASEI_GH_TOKEN = "faketokenhere"
+
+    GCMD_SYNC_SOURCE_EMAIL = "gcmd@uah.edu"
+    GCMD_SYNC_RECIPIENTS = "random@test.mail"
+    MIGRATE = "true"
+
+    SENTRY_DSN = "https://c381d9c2a246497fa1d8dca4ade1cf98@o4504118897934336.ingest.sentry.io/4504118899179520"
 
 
 class ApplicationStack(Stack):
@@ -41,6 +47,7 @@ class ApplicationStack(Stack):
         code_dir: str,
         db: rds.DatabaseInstance,
         assets_bucket: s3.IBucket,
+        stage: str,
         **kwargs,
     ) -> None:
         super().__init__(app, stack_id, **kwargs)
@@ -63,7 +70,9 @@ class ApplicationStack(Stack):
 
         vpc = ec2.Vpc.from_lookup(self, "vpc", vpc_id=deployment_settings.vpc_id)
 
-        cluster = ecs.Cluster(self, 'cluster', vpc=vpc, cluster_name=generate_name('cluster'))
+        cluster = ecs.Cluster(
+            self, 'cluster', vpc=vpc, cluster_name=generate_name('cluster', stage=stage)
+        )
 
         service = patterns.ApplicationLoadBalancedFargateService(
             self,
@@ -76,10 +85,15 @@ class ApplicationStack(Stack):
                 image=ecs.ContainerImage.from_asset(
                     code_dir, file="Dockerfile.prod"  # target='prod',
                 ),
+                # image=ecs.ContainerImage.from_registry("amazon/amazon-ecs-sample"),
                 environment={
                     **app_env_settings.dict(),
-                    "AWS_REGION": Stack.of(self).region,
-                    "AWS_S3_BUCKET": assets_bucket.bucket_name,
+                    "AWS_S3_REGION_NAME": Stack.of(self).region,
+                    "AWS_STORAGE_BUCKET_NAME": assets_bucket.bucket_name,
+                    "DJANGO_SETTINGS_MODULE": "config.settings.production",
+                    "SENTRY_ENV": {"dev": "staging", "prod": "production"}.get(
+                        stage, "development"
+                    ),
                 },
                 secrets={
                     # "DB_NAME": ecs.Secret.from_secrets_manager(db.secret, "name"),
@@ -93,6 +107,7 @@ class ApplicationStack(Stack):
             load_balancer_name='admg-backend-loadbalancer',
         )
 
+        service.target_group.configure_health_check(path="/accounts/login/")
         # image = ecs.ContainerImage.from_asset(code_dir, target='prod')
         # task_definition = ecs.FargateTaskDefinition(
         #     self,

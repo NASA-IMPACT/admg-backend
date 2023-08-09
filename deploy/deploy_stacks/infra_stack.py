@@ -16,7 +16,7 @@ class DeploymentSettings(pydantic.BaseSettings):
 
 
 class InfraStack(Stack):
-    def __init__(self, app: App, stack_id: str, **kwargs) -> None:
+    def __init__(self, app: App, stack_id: str, stage: str, **kwargs) -> None:
         super().__init__(app, stack_id, **kwargs)
 
         iam.Role(
@@ -62,7 +62,7 @@ class InfraStack(Stack):
         self.bucket: s3.Bucket = s3.Bucket(
             self,
             "assets-bucket",
-            bucket_name=generate_name("assets").replace("_", "-"),
+            bucket_name=generate_name("assets", stage=stage).replace("_", "-"),
             # public_read_access=True,
             access_control=s3.BucketAccessControl.BUCKET_OWNER_FULL_CONTROL,
         )
