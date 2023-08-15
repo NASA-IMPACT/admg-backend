@@ -12,7 +12,12 @@ SECRET_KEY = env("DJANGO_SECRET_KEY")
 # https://docs.djangoproject.com/en/dev/ref/settings/#allowed-hosts
 ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS", default=["*"])
 # list is the same as ALLOWED_HOSTS, except it requires the scheme
-CSRF_TRUSTED_ORIGINS = [f"https://{site}" for site in ALLOWED_HOSTS]
+CSRF_TRUSTED_ORIGINS = [
+    "https://admgstaging.nasa-impact.net",
+    "http://admgstaging.nasa-impact.net",
+    "https://admg.nasa-impact.net",
+    "http://admg.nasa-impact.net",
+]  # [f"https://{site}" for site in ALLOWED_HOSTS]
 
 # DATABASES
 # ------------------------------------------------------------------------------
@@ -126,6 +131,7 @@ LOGGING = {
 # AWS Configuration
 
 DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 
 AWS_STORAGE_BUCKET_NAME = env("AWS_STORAGE_BUCKET_NAME")
 AWS_S3_REGION_NAME = env("AWS_S3_REGION_NAME")

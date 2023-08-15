@@ -276,6 +276,7 @@ admg_env*
 pyvenv.cfg
 pip-selfcheck.json
 .env
+.env.*
 
 
 ### Project template

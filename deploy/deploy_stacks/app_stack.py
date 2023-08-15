@@ -4,6 +4,7 @@ from aws_cdk import (
     aws_ec2 as ec2,
     aws_ecs as ecs,
     aws_rds as rds,
+    aws_certificatemanager as certmgr,
     aws_s3 as s3,
     aws_elasticloadbalancingv2 as elbv2,
     Stack,
@@ -18,6 +19,7 @@ from .utils import generate_name
 
 class DeploymentSettings(pydantic.BaseSettings):
     vpc_id: str
+    domain_name: str
 
 
 class AppEnvSettings(pydantic.BaseSettings):
@@ -56,12 +58,12 @@ class ApplicationStack(Stack):
         # to be set when deploying other stacks.
         deployment_settings = DeploymentSettings(
             _env_file=(  # pyright: ignore NOTE: https://github.com/blakeNaccarato/pydantic/blob/c5a29ef77374d4fda85e8f5eb2016951d23dac33/docs/visual_studio_code.md?plain=1#L260-L272
-                ".env"
+                {"dev": ".env.staging", "prod": ".env.production"}.get(stage, "development")
             ),
         )
         app_env_settings = AppEnvSettings(
             _env_file=(  # pyright: ignore NOTE: https://github.com/blakeNaccarato/pydantic/blob/c5a29ef77374d4fda85e8f5eb2016951d23dac33/docs/visual_studio_code.md?plain=1#L260-L272
-                ".env"
+                {"dev": ".env.staging", "prod": ".env.production"}.get(stage, "development")
             ),
         )
 
@@ -105,9 +107,17 @@ class ApplicationStack(Stack):
             ),
             task_subnets=ec2.SubnetSelection(subnet_type=ec2.SubnetType.PRIVATE_WITH_EGRESS),
             load_balancer_name='admg-backend-loadbalancer',
+            certificate=certmgr.Certificate(
+                self,
+                id="cert",
+                domain_name=deployment_settings.domain_name,
+                certificate_name=f"admg {deployment_settings.domain_name} certificate",
+                validation=certmgr.CertificateValidation.from_dns(),
+            ),
         )
 
         service.target_group.configure_health_check(path="/accounts/login/")
+
         # image = ecs.ContainerImage.from_asset(code_dir, target='prod')
         # task_definition = ecs.FargateTaskDefinition(
         #     self,

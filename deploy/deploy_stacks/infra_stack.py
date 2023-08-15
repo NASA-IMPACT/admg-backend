@@ -53,7 +53,7 @@ class InfraStack(Stack):
 
         deployment_settings = DeploymentSettings(
             _env_file=(  # pyright: ignore NOTE: https://github.com/blakeNaccarato/pydantic/blob/c5a29ef77374d4fda85e8f5eb2016951d23dac33/docs/visual_studio_code.md?plain=1#L260-L272
-                ".env"
+                {"dev": ".env.staging", "prod": ".env.production"}.get(stage, "development")
             ),
         )
 
