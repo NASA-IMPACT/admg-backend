@@ -3,3 +3,7 @@ omit = *migrations*, *tests*, ./env/**/*, ./staticfiles/**/*
 relative_files = True
 source = admg_webapp, admin_ui, api_app, cmr, data_models, kms
 
+[report]
+exclude_lines =
+    # pragma: no cover
+    if PY2:
