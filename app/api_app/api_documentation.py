@@ -1,6 +1,6 @@
 from drf_yasg import openapi
 
-with open('api_app/api_documentation.md', 'r') as f:
+with open('app/api_app/api_documentation.md', 'r') as f:
     description = f.read()
 
 api_info = openapi.Info(
