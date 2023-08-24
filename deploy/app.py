@@ -11,6 +11,7 @@ from deploy_stacks.infra_stack import InfraStack
 CDK_DEFAULT_REGION = os.environ.get("CDK_DEFAULT_REGION")
 CDK_DEFAULT_ACCOUNT = os.environ.get("CDK_DEFAULT_ACCOUNT")
 STAGE = os.environ.get("STAGE", default="dev")
+DB_NAME = os.environ.get("DB_NAME", default="postgres")
 
 env = core.Environment(region=CDK_DEFAULT_REGION, account=CDK_DEFAULT_ACCOUNT)
 
@@ -22,7 +23,7 @@ ApplicationStack(
     app,
     generate_name("application", stage=STAGE),
     code_dir="./app",
-    # url_prefix='data-in-action',
+    queue=infra_stack.queue,
     db=infra_stack.db,
     assets_bucket=infra_stack.bucket,
     env=env,

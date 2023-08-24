@@ -1,7 +1,7 @@
 {
   "app": "python3 deploy/app.py",
   "watch": {
-    "include": ["admin_ui", "data_models", "config", "deploy", ".env"],
+    "include": ["app", "deploy", ".env"],
     "exclude": [
       "README.md",
       "**/__pycache__",

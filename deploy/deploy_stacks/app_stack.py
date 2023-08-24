@@ -4,6 +4,8 @@ from aws_cdk import (
     aws_ec2 as ec2,
     aws_ecs as ecs,
     aws_rds as rds,
+    aws_sqs as sqs,
+    aws_iam as iam,
     aws_certificatemanager as certmgr,
     aws_s3 as s3,
     aws_elasticloadbalancingv2 as elbv2,
@@ -47,6 +49,7 @@ class ApplicationStack(Stack):
         app: App,
         stack_id: str,
         code_dir: str,
+        queue: sqs.Queue,
         db: rds.DatabaseInstance,
         assets_bucket: s3.IBucket,
         stage: str,
@@ -76,18 +79,20 @@ class ApplicationStack(Stack):
             self, 'cluster', vpc=vpc, cluster_name=generate_name('cluster', stage=stage)
         )
 
-        service = patterns.ApplicationLoadBalancedFargateService(
+        image = ecs.ContainerImage.from_asset(code_dir, file="Dockerfile.prod")
+
+        app_service = patterns.ApplicationLoadBalancedFargateService(
             self,
-            "admg-backend-fargate-service",
+            {
+                "dev": "admg-backend-fargate-service",
+                "prod": "admg-production-fargate-service",
+            }.get(stage, "development"),
             cluster=cluster,
             memory_limit_mib=1024,
             desired_count=1,
             cpu=512,
             task_image_options=patterns.ApplicationLoadBalancedTaskImageOptions(
-                image=ecs.ContainerImage.from_asset(
-                    code_dir, file="Dockerfile.prod"  # target='prod',
-                ),
-                # image=ecs.ContainerImage.from_registry("amazon/amazon-ecs-sample"),
+                image=image,
                 environment={
                     **app_env_settings.dict(),
                     "AWS_S3_REGION_NAME": Stack.of(self).region,
@@ -96,9 +101,11 @@ class ApplicationStack(Stack):
                     "SENTRY_ENV": {"dev": "staging", "prod": "production"}.get(
                         stage, "development"
                     ),
+                    "CELERY_BROKER_URL": "sqs://",
+                    "CELERY_TASK_DEFAULT_QUEUE": queue.queue_name,
+                    "AWS_QUEUE_REGION_NAME": Stack.of(self).region,
                 },
                 secrets={
-                    # "DB_NAME": ecs.Secret.from_secrets_manager(db.secret, "name"),
                     "DB_HOST": ecs.Secret.from_secrets_manager(db.secret, "host"),
                     "DB_USER": ecs.Secret.from_secrets_manager(db.secret, "username"),
                     "DB_PASSWORD": ecs.Secret.from_secrets_manager(db.secret, "password"),
@@ -106,7 +113,10 @@ class ApplicationStack(Stack):
                 },
             ),
             task_subnets=ec2.SubnetSelection(subnet_type=ec2.SubnetType.PRIVATE_WITH_EGRESS),
-            load_balancer_name='admg-backend-loadbalancer',
+            load_balancer_name={
+                "dev": 'admg-backend-loadbalancer',
+                "prod": 'admg-production-loadbalancer',
+            }.get(stage, "development"),
             certificate=certmgr.Certificate(
                 self,
                 id="cert",
@@ -116,57 +126,54 @@ class ApplicationStack(Stack):
             ),
         )
 
-        service.target_group.configure_health_check(path="/accounts/login/")
+        app_service.target_group.configure_health_check(path="/accounts/login/")
 
-        # image = ecs.ContainerImage.from_asset(code_dir, target='prod')
-        # task_definition = ecs.FargateTaskDefinition(
-        #     self,
-        #     "api-definition",
-        # )
+        # Create a Fargate service that runs the Celery worker
+        worker_service = patterns.QueueProcessingFargateService(
+            self,
+            'CeleryWorkerService',
+            cluster=cluster,
+            image=image,
+            command=["celery", "-A", "config", "worker", "-l", "info"],
+            queue=queue,
+            environment={
+                **app_env_settings.dict(),
+                "AWS_S3_REGION_NAME": Stack.of(self).region,
+                "AWS_STORAGE_BUCKET_NAME": assets_bucket.bucket_name,
+                "DJANGO_SETTINGS_MODULE": "config.settings.production",
+                "SENTRY_ENV": {"dev": "staging", "prod": "production"}.get(stage, "development"),
+                "CELERY_BROKER_URL": "sqs://@",
+                "AWS_QUEUE_REGION_NAME": Stack.of(self).region,
+                "CELERY_TASK_DEFAULT_QUEUE": queue.queue_name,
+            },
+            secrets={
+                "DB_HOST": ecs.Secret.from_secrets_manager(db.secret, "host"),
+                "DB_USER": ecs.Secret.from_secrets_manager(db.secret, "username"),
+                "DB_PASSWORD": ecs.Secret.from_secrets_manager(db.secret, "password"),
+                "DB_PORT": ecs.Secret.from_secrets_manager(db.secret, "port"),
+            },
+            memory_limit_mib=512,
+        )
 
-        # service = ecs.FargateService(
-        #     self,
-        #     "Api",
-        #     service_name=generate_name('service'),
-        #     task_definition=task_definition,
-        #     cluster=cluster,
-        # )
+        for service in [app_service, worker_service]:
+            # Bucket Permissions
+            assets_bucket.grant_read_write(service.task_definition.task_role)
 
-        # Bucket Permissions
-        assets_bucket.grant_read_write(service.task_definition.task_role)
+            # DB Permissions
+            service.service.connections.allow_to(db.connections, port_range=ec2.Port.tcp(5432))
+            if service.task_definition.task_role:
+                db.secret.grant_read(service.task_definition.task_role)
 
-        # DB Permissions
-        service.service.connections.allow_to(db.connections, port_range=ec2.Port.tcp(5432))
-
-        # db.secret.grant_read(task_definition.task_role)
-        if service.task_definition.task_role:
-            db.secret.grant_read(service.task_definition.task_role)
-
-        # # Load Balancer Config
-        # listener = elbv2.ApplicationListener.from_lookup(
-        #     self, 'listener', listener_arn=deployment_settings.alb_listener_arn
-        # )
-
-        # target_group = elbv2.ApplicationTargetGroup(
-        #     self,
-        #     'target-group',
-        #     target_group_name=generate_name('target'),
-        #     protocol=elbv2.ApplicationProtocol.HTTP,
-        #     vpc=vpc,
-        #     targets=[service],
-        # )
-
-        # target_group.configure_health_check(
-        #     path=f"/{url_prefix}/ping",
-        #     healthy_http_codes='200',
-        # )
-
-        # listener.add_target_groups(
-        #     'target',
-        #     target_groups=[target_group],
-        #     conditions=[elbv2.ListenerCondition.path_patterns([f'/{url_prefix}*'])],
-        #     priority=201,
-        # )
-
-        # # TODO: Add service to Cloudfront Distribution at `url_prefix`
-        # # See: https://repost.aws/questions/QUiwOVmbCNR2iM666bi0WOfw/how-to-add-domain-alias-to-existing-cloud-front-distribution-using-cdk
+            # Queue Permissions
+            queue.grant_send_messages(service.task_definition.task_role)
+            service.task_definition.task_role.add_to_policy(  # type: ignore
+                iam.PolicyStatement(
+                    actions=[
+                        "sqs:ListQueues",
+                        "sqs:GetQueueAttributes",
+                        "sqs:SendMessage",
+                        "sqs:GetQueueUrl",
+                    ],
+                    resources=["*"],
+                )
+            )

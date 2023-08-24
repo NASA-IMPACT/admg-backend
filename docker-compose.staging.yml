@@ -50,30 +50,6 @@ services:
     depends_on:
       - nginx-proxy
 
-  rabbitmq:
-    container_name: rabbitmq
-    hostname: rabbitmq
-    image: rabbitmq:latest
-    ports:
-      - "5672:5672"
-    restart: on-failure
-
-  celery_worker:
-    command: celery -A config worker -l info
-    container_name: celery_worker
-    hostname: celery_worker
-    build:
-      context: ./
-      dockerfile: Dockerfile.prod
-    restart: on-failure
-    env_file:
-      - .env
-    environment:
-      - MIGRATE=false
-    depends_on:
-      - web
-      - rabbitmq
-
 volumes:
   postgres_data:
   static_volume:

@@ -17,6 +17,7 @@ CSRF_TRUSTED_ORIGINS = [
     "http://admgstaging.nasa-impact.net",
     "https://admg.nasa-impact.net",
     "http://admg.nasa-impact.net",
+    "https://admg-production-loadbalancer-1140938947.us-west-2.elb.amazonaws.com",
 ]  # [f"https://{site}" for site in ALLOWED_HOSTS]
 
 # DATABASES

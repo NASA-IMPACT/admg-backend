@@ -1,6 +1,8 @@
 from aws_cdk import (
     Stack,
     App,
+    Duration,
+    aws_sqs as sqs,
     aws_ec2 as ec2,
     aws_rds as rds,
     aws_s3 as s3,
@@ -30,7 +32,9 @@ class InfraStack(Stack):
                     }
                 },
             ),
-            role_name="admg-ci-role",
+            role_name={"dev": "admg-ci-role", "prod": "admg-production-ci-role"}.get(
+                stage, "development"
+            ),
             inline_policies={
                 "cdk_permissions": iam.PolicyDocument(
                     statements=[
@@ -63,11 +67,10 @@ class InfraStack(Stack):
             self,
             "assets-bucket",
             bucket_name=generate_name("assets", stage=stage).replace("_", "-"),
-            # public_read_access=True,
             access_control=s3.BucketAccessControl.BUCKET_OWNER_FULL_CONTROL,
         )
 
-        # self.bucket.grant_read()
+        self.queue = sqs.Queue(self, "MessageBroker", visibility_timeout=Duration.minutes(10))
 
         self.db = rds.DatabaseInstance(
             self,
