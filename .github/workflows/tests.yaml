@@ -16,7 +16,7 @@ jobs:
       DB_PASSWORD: postgres
       DB_HOST: postgres # 127.0.0.1
       DB_PORT: 5432
-      DJANGO_SETTINGS_MODULE: app.config.settings.local
+      DJANGO_SETTINGS_MODULE: config.settings.local
       DJANGO_SECRET_KEY: "secret key here"
       DJANGO_ADMIN_URL: admg/
       GH_TOKEN: faketokenhere
@@ -39,6 +39,7 @@ jobs:
           - 5432:5432
 
     steps:
+      working-directory: ./app
       - uses: actions/checkout@v2
 
       - name: Setup Python
@@ -55,7 +56,7 @@ jobs:
         id: cache-dependencies
         with:
           path: ${{ env.pythonLocation }}
-          key: ${{ env.pythonLocation }}-${{ hashFiles('app/requirements/base.txt') }}-${{ hashFiles('app/requirements/local.txt') }}
+          key: ${{ env.pythonLocation }}-${{ hashFiles('requirements/base.txt') }}-${{ hashFiles('requirements/local.txt') }}
 
       - name: Install Dependencies
         if: steps.cache-dependencies.outputs.cache-hit != 'true'
@@ -64,12 +65,12 @@ jobs:
           pip install \
             --upgrade \
             --upgrade-strategy eager \
-            -r app/requirements/base.txt \
-            -r app/requirements/local.txt
+            -r requirements/base.txt \
+            -r requirements/local.txt
 
       - name: Check for missing migrations
         run: |
-          python app/manage.py makemigrations --check --dry-run
+          python manage.py makemigrations --check --dry-run
 
       - name: Run Tests
         run: |
@@ -89,6 +90,7 @@ jobs:
     if: ${{ github.ref_name != 'dev'}}
 
     steps:
+      working-directory: ./app
       - uses: actions/checkout@v2
 
       - name: Get Commit Coverage
