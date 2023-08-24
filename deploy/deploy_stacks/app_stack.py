@@ -20,8 +20,8 @@ from .utils import generate_name
 
 
 class DeploymentSettings(pydantic.BaseSettings):
-    vpc_id: str
-    domain_name: str
+    VPC_ID: str
+    DOMAIN_NAME: str
 
 
 class AppEnvSettings(pydantic.BaseSettings):
@@ -73,7 +73,7 @@ class ApplicationStack(Stack):
         if not db.secret:
             raise Exception("DB does not have secret associated with it.")
 
-        vpc = ec2.Vpc.from_lookup(self, "vpc", vpc_id=deployment_settings.vpc_id)
+        vpc = ec2.Vpc.from_lookup(self, "vpc", vpc_id=deployment_settings.VPC_ID)
 
         cluster = ecs.Cluster(
             self, 'cluster', vpc=vpc, cluster_name=generate_name('cluster', stage=stage)
@@ -120,8 +120,8 @@ class ApplicationStack(Stack):
             certificate=certmgr.Certificate(
                 self,
                 id="cert",
-                domain_name=deployment_settings.domain_name,
-                certificate_name=f"admg {deployment_settings.domain_name} certificate",
+                domain_name=deployment_settings.DOMAIN_NAME,
+                certificate_name=f"admg {deployment_settings.DOMAIN_NAME} certificate",
                 validation=certmgr.CertificateValidation.from_dns(),
             ),
         )

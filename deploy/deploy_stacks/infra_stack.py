@@ -14,7 +14,7 @@ from .utils import generate_name
 
 
 class DeploymentSettings(pydantic.BaseSettings):
-    vpc_id: str
+    VPC_ID: str
 
 
 class InfraStack(Stack):
@@ -61,7 +61,7 @@ class InfraStack(Stack):
             ),
         )
 
-        vpc = ec2.Vpc.from_lookup(self, "vpc", vpc_id=deployment_settings.vpc_id)
+        vpc = ec2.Vpc.from_lookup(self, "vpc", vpc_id=deployment_settings.VPC_ID)
 
         self.bucket: s3.Bucket = s3.Bucket(
             self,

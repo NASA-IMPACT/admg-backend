@@ -39,48 +39,30 @@ jobs:
       role-session-name: "admg-backend-github-staging-deployment"
       environment: "dev"
       aws-region: "us-west-2"
-
-      # TODO WHERE DO I GET THE RIGHT VALUES FOR THESE
       vpc-id: "vpc-0caf6f6042c6f2b7c"
-      # alb-listener-arn: "arn:aws:elasticloadbalancing:us-east-1:278255066410:listener/app/csdap-loadb-1RD7S8KU7TUJQ/e68f7df41a76a271/b85c7e19ce997cd9"
+      domain-name: "admgstaging.nasa-impact.net"
+      django-debug: "false"
+      alb-listener-arn: "arn:aws:elasticloadbalancing:us-west-2:854573354511:loadbalancer/app/admg-backend-loadbalancer/076ac577e623b5be"
 
-      # Cloudfront distro
-      # distribution-id: "EJH5ZBVX1BOWZ"
+  deploy-to-production:
+    needs: run-linters
+    if: github.ref_name == 'prod'
+    concurrency: production
 
-      # NOTE: This is not needed for ADMG
-      # distribution-paths: "/data-in-action*"
-
-      # allowed-hosts: csdap-staging.ds.io
-      # debug: true
-
-  # deploy-to-production:
-  #   needs: run-linters
-  #   if: github.ref_name == 'dev'
-  #   concurrency: staging
-
-  #   uses: "./.github/workflows/deploy.yml"
-  #   secrets: inherit # pass all secrets
-  #   with:
-  #     role-to-assume: "arn:aws:iam::854573354511:role/admg-ci-role"
-  #     role-session-name: "admg-backend-github-staging-deployment"
-  #     environment: "dev"
-  #     aws-region: "us-west-2"
-
-  #     # TODO WHERE DO I GET THE RIGHT VALUES FOR THESE
-  #     vpc-id: "vpc-0caf6f6042c6f2b7c"
-  # alb-listener-arn: "arn:aws:elasticloadbalancing:us-east-1:278255066410:listener/app/csdap-loadb-1RD7S8KU7TUJQ/e68f7df41a76a271/b85c7e19ce997cd9"
-
-  # Cloudfront distro
-  # distribution-id: "EJH5ZBVX1BOWZ"
-
-  # NOTE: This is not needed for ADMG
-  # distribution-paths: "/data-in-action*"
-
-  # allowed-hosts: csdap-staging.ds.io
-  # debug: true
+    uses: "./.github/workflows/deploy.yml"
+    secrets: inherit # pass all secrets
+    with:
+      role-to-assume: "arn:aws:iam::854573354511:role/admg-ci-role"
+      role-session-name: "admg-backend-github-production-deployment"
+      environment: "prod"
+      aws-region: "us-west-2"
+      vpc-id: "vpc-0108360d661166fc3"
+      domain-name: "admg.nasa-impact.net"
+      django-debug: "false"
+      alb-listener-arn: "arn:aws:elasticloadbalancing:us-west-2:854573354511:loadbalancer/app/admg-production-loadbalancer/441052bf67cffa76"
 
   notify-slack:
-    needs: deploy-to-staging
+    needs: deploy-to-production
     runs-on: ubuntu-latest
     if: ${{ success() }}
     steps:
@@ -95,6 +77,6 @@ jobs:
         uses: slackapi/slack-github-action@v1.23.0
         with:
           channel-id: "admg"
-          payload: '{"text":"Successfully deployed MI Backend! <https://admgstaging.nasa-impact.net/|Click here> to take a look!"}'
+          payload: '{"text":"Successfully deployed MI to Production! <https://admgstaging.nasa-impact.net/|Click here> to take a look!"}'
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
