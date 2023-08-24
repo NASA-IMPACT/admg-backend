@@ -8,6 +8,9 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: python:3.9.17
+    defaults:
+      run:
+        working-directory: ./app
 
     env:
       DB_ENGINE: django.contrib.gis.db.backends.postgis
@@ -39,7 +42,6 @@ jobs:
           - 5432:5432
 
     steps:
-      working-directory: ./app
       - uses: actions/checkout@v2
 
       - name: Setup Python
@@ -90,7 +92,6 @@ jobs:
     if: ${{ github.ref_name != 'dev'}}
 
     steps:
-      working-directory: ./app
       - uses: actions/checkout@v2
 
       - name: Get Commit Coverage
