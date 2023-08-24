@@ -8,10 +8,8 @@ from aws_cdk import (
     aws_iam as iam,
     aws_certificatemanager as certmgr,
     aws_s3 as s3,
-    aws_elasticloadbalancingv2 as elbv2,
     Stack,
     App,
-    Duration,
     aws_ecs_patterns as patterns,
 )
 import pydantic
