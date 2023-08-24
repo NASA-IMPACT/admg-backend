@@ -41,7 +41,7 @@ jobs:
       aws-region: "us-west-2"
       vpc-id: "vpc-0caf6f6042c6f2b7c"
       domain-name: "admgstaging.nasa-impact.net"
-      django-debug: "false"
+      django-debug: false
       alb-listener-arn: "arn:aws:elasticloadbalancing:us-west-2:854573354511:loadbalancer/app/admg-backend-loadbalancer/076ac577e623b5be"
 
   deploy-to-production:
@@ -58,7 +58,7 @@ jobs:
       aws-region: "us-west-2"
       vpc-id: "vpc-0108360d661166fc3"
       domain-name: "admg.nasa-impact.net"
-      django-debug: "false"
+      django-debug: false
       alb-listener-arn: "arn:aws:elasticloadbalancing:us-west-2:854573354511:loadbalancer/app/admg-production-loadbalancer/441052bf67cffa76"
 
   notify-slack:
