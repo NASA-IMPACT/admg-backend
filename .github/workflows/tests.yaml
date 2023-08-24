@@ -44,7 +44,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.9.17'
+          python-version: "3.9.17"
 
       - name: Install GDAL
         run: |
@@ -55,7 +55,7 @@ jobs:
         id: cache-dependencies
         with:
           path: ${{ env.pythonLocation }}
-          key: ${{ env.pythonLocation }}-${{ hashFiles('requirements/base.txt') }}-${{ hashFiles('requirements/local.txt') }}
+          key: ${{ env.pythonLocation }}-${{ hashFiles('app/requirements/base.txt') }}-${{ hashFiles('app/requirements/local.txt') }}
 
       - name: Install Dependencies
         if: steps.cache-dependencies.outputs.cache-hit != 'true'
@@ -64,8 +64,8 @@ jobs:
           pip install \
             --upgrade \
             --upgrade-strategy eager \
-            -r requirements/base.txt \
-            -r requirements/local.txt
+            -r app/requirements/base.txt \
+            -r app/requirements/local.txt
 
       - name: Check for missing migrations
         run: |
