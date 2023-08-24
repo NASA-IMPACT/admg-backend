@@ -16,7 +16,7 @@ jobs:
       DB_PASSWORD: postgres
       DB_HOST: postgres # 127.0.0.1
       DB_PORT: 5432
-      DJANGO_SETTINGS_MODULE: config.settings.local
+      DJANGO_SETTINGS_MODULE: app.config.settings.local
       DJANGO_SECRET_KEY: "secret key here"
       DJANGO_ADMIN_URL: admg/
       GH_TOKEN: faketokenhere
