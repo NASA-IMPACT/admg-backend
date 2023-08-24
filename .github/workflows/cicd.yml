@@ -61,7 +61,7 @@ jobs:
       django-debug: false
       alb-listener-arn: "arn:aws:elasticloadbalancing:us-west-2:854573354511:loadbalancer/app/admg-production-loadbalancer/441052bf67cffa76"
 
-  notify-slack:
+  notify-slack-staging:
     needs: deploy-to-staging
     runs-on: ubuntu-latest
     if: ${{ success() }}
@@ -81,7 +81,7 @@ jobs:
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
 
-  notify-slack:
+  notify-slack-production:
     needs: deploy-to-production
     runs-on: ubuntu-latest
     if: ${{ success() }}
