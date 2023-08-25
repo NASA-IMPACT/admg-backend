@@ -84,12 +84,15 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: code_coverage
-          path: coverage.json
+          path: app/coverage.json
 
   compare-coverage:
     runs-on: ubuntu-latest
     needs: test
     if: ${{ github.ref_name != 'dev'}}
+    defaults:
+      run:
+        working-directory: ./app
 
     steps:
       - uses: actions/checkout@v2
@@ -102,7 +105,6 @@ jobs:
 
       - name: Get Dev Coverage
         uses: dawidd6/action-download-artifact@v2
-        working-directory: ./app
         with:
           branch: dev
           name: code_coverage
