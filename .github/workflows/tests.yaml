@@ -114,9 +114,9 @@ jobs:
       - name: Calculate Coverage
         id: calculate_coverage
         run: |
-          new_cov=$(cat ./new_cov/coverage.json)
+          new_cov=$(cat ./app/new_cov/coverage.json)
           echo "new_cov=${new_cov//'%'/'%25'}" >> $GITHUB_OUTPUT
-          dev_cov=$(cat ./dev_cov/coverage.json)
+          dev_cov=$(cat ./app/dev_cov/coverage.json)
           echo "dev_cov=${dev_cov//'%'/'%25'}" >> $GITHUB_OUTPUT
 
       - name: Compare Coverage
