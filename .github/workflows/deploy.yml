@@ -4,51 +4,16 @@ permissions:
   id-token: write
   contents: read
 
-on:
-  workflow_call:
-    inputs:
-      role-to-assume:
-        type: string
-        required: true
-      role-session-name:
-        type: string
-        required: false
-        default: github-actions-deployment
-      environment:
-        type: string
-        required: true
-      aws-region:
-        type: string
-        required: false
-        default: us-west-2
-      vpc-id:
-        description: ID of AWS VPC.
-        type: string
-        required: true
-      domain-name:
-        description: Name of the domain from which the application is served.
-        type: string
-        required: true
-      alb-listener-arn:
-        description: ARN of Application Load Balancer listener.
-        type: string
-        required: true
-      django-debug:
-        description: Enable DEBUG mode in Django.
-        type: boolean
-        required: false
-        default: false
-
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    environment: ${{ inputs.environment }}
+    environment: ${{ vars.environment }}
     env:
-      VPC_ID: ${{ inputs.vpc-id }}
-      DOMAIN_NAME: ${{ inputs.domain-name }}
-      ALB_LISTENER_ARN: ${{ inputs.alb-listener-arn }}
+      VPC_ID: ${{ vars.VPCID }}
+      DOMAIN_NAME: ${{ vars.domain-name }}
+      ALB_LISTENER_ARN: ${{ vars.alb-listener-arn }}
       # Django Settings
-      DJANGO_DEBUG: ${{ inputs.django-debug }}
+      DJANGO_DEBUG: ${{ vars.django-debug }}
       DJANGO_ADMIN_URL: ${{ secrets.DJANGO_ADMIN_URL }}
       DJANGO_ALLOWED_HOSTS: ${{ secrets.DJANGO_ALLOWED_HOSTS }}
       DJANGO_SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY }}
@@ -85,9 +50,9 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
-          role-to-assume: ${{ inputs.role-to-assume }}
+          role-to-assume: ${{ vars.ROLETOASSUME }}
           role-session-name: ${{ github.actor }}
-          aws-region: ${{ inputs.aws-region }}
+          aws-region: ${{ vars.aws-region }}
 
       - name: Install dependencies
         run: |

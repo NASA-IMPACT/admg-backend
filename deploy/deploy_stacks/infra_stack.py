@@ -32,9 +32,7 @@ class InfraStack(Stack):
                     }
                 },
             ),
-            role_name={"dev": "admg-ci-role", "prod": "admg-production-ci-role"}.get(
-                stage, "development"
-            ),
+            role_name={f"admg-ci-{stage}-role"},
             inline_policies={
                 "cdk_permissions": iam.PolicyDocument(
                     statements=[
@@ -48,7 +46,7 @@ class InfraStack(Stack):
                     statements=[
                         iam.PolicyStatement(
                             actions=["s3:PutObject"],
-                            resources=["arn:aws:s3:::assets-bucket/*"],
+                            resources=[f"arn:aws:s3:::admg-{stage}-assets/*"],
                         )
                     ]
                 ),
@@ -57,6 +55,7 @@ class InfraStack(Stack):
 
         deployment_settings = DeploymentSettings(
             _env_file=(  # pyright: ignore NOTE: https://github.com/blakeNaccarato/pydantic/blob/c5a29ef77374d4fda85e8f5eb2016951d23dac33/docs/visual_studio_code.md?plain=1#L260-L272
+                # TODO get from env variable
                 {"dev": ".env.staging", "prod": ".env.production"}.get(stage, "development")
             ),
         )
@@ -66,6 +65,7 @@ class InfraStack(Stack):
         self.bucket: s3.Bucket = s3.Bucket(
             self,
             "assets-bucket",
+            # TODO pull from env
             bucket_name=generate_name("assets", stage=stage).replace("_", "-"),
             access_control=s3.BucketAccessControl.BUCKET_OWNER_FULL_CONTROL,
         )

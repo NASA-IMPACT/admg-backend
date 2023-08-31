@@ -59,12 +59,12 @@ class ApplicationStack(Stack):
         # to be set when deploying other stacks.
         deployment_settings = DeploymentSettings(
             _env_file=(  # pyright: ignore NOTE: https://github.com/blakeNaccarato/pydantic/blob/c5a29ef77374d4fda85e8f5eb2016951d23dac33/docs/visual_studio_code.md?plain=1#L260-L272
-                {"dev": ".env.staging", "prod": ".env.production"}.get(stage, "development")
+                {"dev": ".env.staging", "prod": ".env.production"}.get(stage, ".env.development")
             ),
         )
         app_env_settings = AppEnvSettings(
             _env_file=(  # pyright: ignore NOTE: https://github.com/blakeNaccarato/pydantic/blob/c5a29ef77374d4fda85e8f5eb2016951d23dac33/docs/visual_studio_code.md?plain=1#L260-L272
-                {"dev": ".env.staging", "prod": ".env.production"}.get(stage, "development")
+                {"dev": ".env.staging", "prod": ".env.production"}.get(stage, ".env.development")
             ),
         )
 
@@ -81,10 +81,7 @@ class ApplicationStack(Stack):
 
         app_service = patterns.ApplicationLoadBalancedFargateService(
             self,
-            {
-                "dev": "admg-backend-fargate-service",
-                "prod": "admg-production-fargate-service",
-            }.get(stage, "development"),
+            f"admg-{stage}-fargate-service",
             cluster=cluster,
             memory_limit_mib=1024,
             desired_count=1,
@@ -96,9 +93,7 @@ class ApplicationStack(Stack):
                     "AWS_S3_REGION_NAME": Stack.of(self).region,
                     "AWS_STORAGE_BUCKET_NAME": assets_bucket.bucket_name,
                     "DJANGO_SETTINGS_MODULE": "config.settings.production",
-                    "SENTRY_ENV": {"dev": "staging", "prod": "production"}.get(
-                        stage, "development"
-                    ),
+                    "SENTRY_ENV": stage,
                     "CELERY_BROKER_URL": "sqs://",
                     "CELERY_TASK_DEFAULT_QUEUE": queue.queue_name,
                     "AWS_QUEUE_REGION_NAME": Stack.of(self).region,
@@ -111,10 +106,7 @@ class ApplicationStack(Stack):
                 },
             ),
             task_subnets=ec2.SubnetSelection(subnet_type=ec2.SubnetType.PRIVATE_WITH_EGRESS),
-            load_balancer_name={
-                "dev": 'admg-backend-loadbalancer',
-                "prod": 'admg-production-loadbalancer',
-            }.get(stage, "development"),
+            load_balancer_name=f'admg-{stage}-loadbalancer',
             certificate=certmgr.Certificate(
                 self,
                 id="cert",
@@ -139,7 +131,7 @@ class ApplicationStack(Stack):
                 "AWS_S3_REGION_NAME": Stack.of(self).region,
                 "AWS_STORAGE_BUCKET_NAME": assets_bucket.bucket_name,
                 "DJANGO_SETTINGS_MODULE": "config.settings.production",
-                "SENTRY_ENV": {"dev": "staging", "prod": "production"}.get(stage, "development"),
+                "SENTRY_ENV": stage,
                 "CELERY_BROKER_URL": "sqs://@",
                 "AWS_QUEUE_REGION_NAME": Stack.of(self).region,
                 "CELERY_TASK_DEFAULT_QUEUE": queue.queue_name,
