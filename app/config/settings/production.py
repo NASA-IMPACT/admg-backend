@@ -146,11 +146,11 @@ GITHUB_WORKFLOW = {
 }
 
 ANYMAIL = {
-    # "AMAZON_SES_CLIENT_PARAMS": {
-    #     "aws_access_key_id": env("ANYMAIL_AWS_ACCESS_KEY"),
-    #     "aws_secret_access_key": env("ANYMAIL_AWS_SECRET_KEY"),
-    #     "region_name": env("ANYMAIL_AWS_REGION"),
-    # },
+    "AMAZON_SES_CLIENT_PARAMS": {
+        "aws_access_key_id": env("ANYMAIL_AWS_ACCESS_KEY"),
+        "aws_secret_access_key": env("ANYMAIL_AWS_SECRET_KEY"),
+        "region_name": env("ANYMAIL_AWS_REGION"),
+    },
 }
 
 EMAIL_BACKEND = "anymail.backends.amazon_ses.EmailBackend"

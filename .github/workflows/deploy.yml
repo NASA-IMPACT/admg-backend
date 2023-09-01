@@ -29,6 +29,10 @@ jobs:
       DB_USER: ${{ secrets.DB_USER }}
       DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
       DB_PORT: ${{ secrets.DB_PORT }}
+      #AWS SES CLIENT PARAMS
+      ANYMAIL_AWS_ACCESS_KEY: ${{ secrets.ANYMAIL_AWS_ACCESS_KEY }}
+      ANYMAIL_AWS_SECRET_KEY: ${{ secrets.ANYMAIL_AWS_SECRET_KEY }}
+      ANYMAIL_AWS_REGION: ${{ secrets.ANYMAIL_AWS_REGION }}
       # Other
       GCMD_SYNC_RECIPIENTS: ${{ secrets.GCMD_SYNC_RECIPIENTS }}
       GCMD_SYNC_SOURCE_EMAIL: ${{ secrets.GCMD_SYNC_SOURCE_EMAIL }}
