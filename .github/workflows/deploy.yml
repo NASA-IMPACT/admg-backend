@@ -34,7 +34,7 @@ jobs:
       ANYMAIL_AWS_SECRET_KEY: ${{ secrets.ANYMAIL_AWS_SECRET_KEY }}
       ANYMAIL_AWS_REGION: ${{ secrets.ANYMAIL_AWS_REGION }}
       # Other
-      GCMD_SYNC_RECIPIENTS: ${{ secrets.GCMD_SYNC_RECIPIENTS }}
+      GCMD_SYNC_RECIPIENTS: ${{ vars.GCMD_SYNC_RECIPIENTS }}
       GCMD_SYNC_SOURCE_EMAIL: ${{ secrets.GCMD_SYNC_SOURCE_EMAIL }}
 
     steps:
