@@ -36,6 +36,7 @@ jobs:
       # Other
       GCMD_SYNC_RECIPIENTS: ${{ vars.GCMD_SYNC_RECIPIENTS }}
       GCMD_SYNC_SOURCE_EMAIL: ${{ secrets.GCMD_SYNC_SOURCE_EMAIL }}
+      SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
 
     steps:
       - name: Checkout

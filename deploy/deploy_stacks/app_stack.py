@@ -38,7 +38,7 @@ class AppEnvSettings(pydantic.BaseSettings):
     GCMD_SYNC_RECIPIENTS = "random@test.mail"
     MIGRATE = "true"
 
-    SENTRY_DSN = "https://c381d9c2a246497fa1d8dca4ade1cf98@o4504118897934336.ingest.sentry.io/4504118899179520"
+    SENTRY_DSN: str
 
 
 class ApplicationStack(Stack):
