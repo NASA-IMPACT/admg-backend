@@ -5,7 +5,6 @@ then
     echo "Waiting for postgres at ${DB_HOST}:${DB_PORT}..."
     echo $(dig +short $DB_HOST)
     nc -vz $DB_HOST $DB_PORT
-    echo "PostgreSQL started."
 fi
 
 if [ "$MIGRATE" = "true" ] ; then
