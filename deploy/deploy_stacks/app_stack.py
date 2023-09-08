@@ -29,6 +29,7 @@ class AppEnvSettings(pydantic.BaseSettings):
     DB_NAME: str = "postgres"
     DJANGO_SECRET_KEY: str
     DJANGO_SECURE_SSL_REDIRECT: str
+    DEFAULT_FILE_STORAGE: str
     # TODO make this more restrictive
     DJANGO_ALLOWED_HOSTS = "*"
     DJANGO_SECURE_SSL_REDIRECT = "True"
