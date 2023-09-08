@@ -24,6 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     env:
+      STAGE: ${{ inputs.environment }}
       VPC_ID: ${{ vars.VPCID }}
       DOMAIN_NAME: ${{ vars.DOMAIN }}
       ALB_LISTENER_ARN: ${{ vars.ALB_LISTENER_ARN }}
