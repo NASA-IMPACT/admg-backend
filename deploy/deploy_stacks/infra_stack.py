@@ -32,7 +32,7 @@ class InfraStack(Stack):
                     }
                 },
             ),
-            role_name={f"admg-ci-{stage}-role"},
+            role_name=f"admg-ci-{stage}-role",
             inline_policies={
                 "cdk_permissions": iam.PolicyDocument(
                     statements=[
