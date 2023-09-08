@@ -4,38 +4,40 @@ permissions:
   id-token: write
   contents: read
 
+on:
+  workflow_call:
+    inputs:
+      environment:
+        type: string
+        required: true
+
+    secrets:
+      CASEI_GH_TOKEN:
+        required: true
+      DJANGO_SECRET_KEY:
+        required: true
+      SENTRY_DSN:
+        required: true
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    environment: ${{ vars.environment }}
+    environment: ${{ inputs.environment }}
     env:
       VPC_ID: ${{ vars.VPCID }}
-      DOMAIN_NAME: ${{ vars.domain-name }}
-      ALB_LISTENER_ARN: ${{ vars.alb-listener-arn }}
+      DOMAIN_NAME: ${{ vars.DOMAIN }}
+      ALB_LISTENER_ARN: ${{ vars.ALB_LISTENER_ARN }}
       # Django Settings
-      DJANGO_DEBUG: ${{ vars.django-debug }}
-      DJANGO_ADMIN_URL: ${{ secrets.DJANGO_ADMIN_URL }}
-      DJANGO_ALLOWED_HOSTS: ${{ secrets.DJANGO_ALLOWED_HOSTS }}
+      DJANGO_DEBUG: ${{ vars.DJANGO_DEBUG }}
+      DJANGO_ADMIN_URL: ${{ vars.DJANGO_ADMIN_URL }}
+      DJANGO_ALLOWED_HOSTS: ${{ vars.DJANGO_ALLOWED_HOSTS }}
       DJANGO_SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY }}
       DEFAULT_FILE_STORAGE: ${{ vars.DEFAULT_FILE_STORAGE }}
       STATICFILES_STORAGE: ${{ vars.STATICFILES_STORAGE }}
-      DJANGO_SECURE_SSL_REDIRECT: ${{ secrets.DJANGO_SECURE_SSL_REDIRECT }}
-      DJANGO_SETTINGS_MODULE: ${{ vars.DJANGO_SETTINGS_MODULE }}
       CASEI_GH_TOKEN: ${{ secrets.CASEI_GH_TOKEN }}
-      # DB Credentials for RDS instance
-      DB_NAME: ${{ secrets.DB_NAME }}
-      DB_ENGINE: ${{ secrets.DB_ENGINE }}
-      DB_HOST: ${{ secrets.DB_HOST }}
-      DB_USER: ${{ secrets.DB_USER }}
-      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-      DB_PORT: ${{ secrets.DB_PORT }}
-      #AWS SES CLIENT PARAMS
-      ANYMAIL_AWS_ACCESS_KEY: ${{ secrets.ANYMAIL_AWS_ACCESS_KEY }}
-      ANYMAIL_AWS_SECRET_KEY: ${{ secrets.ANYMAIL_AWS_SECRET_KEY }}
-      ANYMAIL_AWS_REGION: ${{ secrets.ANYMAIL_AWS_REGION }}
       # Other
       GCMD_SYNC_RECIPIENTS: ${{ vars.GCMD_SYNC_RECIPIENTS }}
-      GCMD_SYNC_SOURCE_EMAIL: ${{ secrets.GCMD_SYNC_SOURCE_EMAIL }}
+      GCMD_SYNC_SOURCE_EMAIL: ${{ vars.GCMD_SYNC_SOURCE_EMAIL }}
       SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
 
     steps:
@@ -59,7 +61,7 @@ jobs:
         with:
           role-to-assume: ${{ vars.ROLETOASSUME }}
           role-session-name: ${{ github.actor }}
-          aws-region: ${{ vars.aws-region }}
+          aws-region: ${{ vars.AWSREGION }}
 
       - name: Install dependencies
         run: |

@@ -167,3 +167,12 @@ class ApplicationStack(Stack):
                     resources=["*"],
                 )
             )
+            service.task_definition.task_role.add_to_policy(  # type: ignore
+                iam.PolicyStatement(
+                    actions=[
+                        "ses:SendEmail",
+                        "ses:SendBulkEmail",
+                    ],
+                    resources=["*"],
+                )
+            )

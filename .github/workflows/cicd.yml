@@ -31,16 +31,18 @@ jobs:
     needs: run-linters
     if: github.ref_name == 'dev'
     concurrency: staging
-
     uses: "./.github/workflows/deploy.yml"
+    with:
+      environment: dev
     secrets: inherit # pass all secrets
 
   deploy-to-production:
     needs: run-linters
     if: github.ref_name == 'prod'
     concurrency: production
-
     uses: "./.github/workflows/deploy.yml"
+    with:
+      environment: prod
     secrets: inherit # pass all secrets
 
   notify-slack-staging:
