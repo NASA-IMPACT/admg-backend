@@ -31,7 +31,7 @@ class BoundingBoxWidget(widgets.OpenLayersWidget):
             return value
         except json.JSONDecodeError:
             return get_geojson_from_bb(value)
-    
+
     def get_context(self, name, value, attrs):
         # this serves the purpose of rendering value saved to models
         # since the code expects a bounding box (comma separated 4 values)
