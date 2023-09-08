@@ -23,6 +23,7 @@ logger = logging.getLogger(__name__)
 class BoundingBoxWidget(widgets.OpenLayersWidget):
     template_name = "widgets/custommap.html"
     map_srid = 3857
+    org_srid = 4326
 
     @staticmethod
     def get_json_representation(value: str):
@@ -36,13 +37,22 @@ class BoundingBoxWidget(widgets.OpenLayersWidget):
         # this serves the purpose of rendering value saved to models
         # since the code expects a bounding box (comma separated 4 values)
         # we just provide the same kind of input to the code if it is a model value
-        str_value = value
         if not isinstance(value, Polygon):
+            str_value = value
             value = GEOSGeometry(self.get_json_representation(value))
             if value.srid != self.map_srid:
                 value.transform(
                     CoordTransform(SpatialReference(value.srid), SpatialReference(self.map_srid))
                 )
+
+        else:
+            # Get str representation from Polygon
+            if value.srid != self.org_srid:
+                value.transform(
+                    CoordTransform(SpatialReference(value.srid), SpatialReference(self.org_srid))
+                )
+                W, S, E, N = value.extent
+                str_value = f"{N:.2f}, {S:.2f}, {E:.2f}, {W:.2f}"
 
         context = super().get_context(name, value, attrs)
         geom_type = gdal.OGRGeomType(self.attrs["geom_type"]).name
