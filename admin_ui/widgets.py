@@ -31,18 +31,20 @@ class BoundingBoxWidget(widgets.OpenLayersWidget):
             return value
         except json.JSONDecodeError:
             return get_geojson_from_bb(value)
-
+    
     def get_context(self, name, value, attrs):
         # this serves the purpose of rendering value saved to models
         # since the code expects a bounding box (comma separated 4 values)
         # we just provide the same kind of input to the code if it is a model value
-        if isinstance(value, Polygon):
-            W, S, E, N = value.extent
-            # show as bounding box
-            value = f"{N}, {S}, {E}, {W}"
+        str_value = value
+        if not isinstance(value, Polygon):
+            value = GEOSGeometry(self.get_json_representation(value))
+            if value.srid != self.map_srid:
+                value.transform(
+                    CoordTransform(SpatialReference(value.srid), SpatialReference(self.map_srid))
+                )
 
         context = super().get_context(name, value, attrs)
-
         geom_type = gdal.OGRGeomType(self.attrs["geom_type"]).name
         context.update(
             self.build_attrs(
@@ -50,8 +52,8 @@ class BoundingBoxWidget(widgets.OpenLayersWidget):
                 {
                     "name": name,
                     "module": "geodjango_%s" % name.replace("-", "_"),  # JS-safe
-                    "serialized": self.to_geojson(value),
-                    "extent": value,
+                    "serialized": value.geojson,
+                    "extent": str_value,
                     "geom_type": "Geometry" if geom_type == "Unknown" else geom_type,
                     "STATIC_URL": settings.STATIC_URL,
                     "LANGUAGE_BIDI": translation.get_language_bidi(),
@@ -60,19 +62,6 @@ class BoundingBoxWidget(widgets.OpenLayersWidget):
             )
         )
         return context
-
-    def to_geojson(self, value):
-        """Create a geometry object from string"""
-        try:
-            geom = GEOSGeometry(self.get_json_representation(value))
-            if geom.srid != self.map_srid:
-                geom.transform(
-                    CoordTransform(SpatialReference(geom.srid), SpatialReference(self.map_srid))
-                )
-            return geom.json
-        except (GEOSException, GDALException, ValueError, TypeError) as err:
-            logger.error("Error creating geometry from value '%s' (%s)", value, err)
-        return None
 
 
 class IconBooleanWidget(forms.NullBooleanSelect):
