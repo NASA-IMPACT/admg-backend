@@ -6,8 +6,7 @@ from django.conf import settings
 from django.contrib.gis import gdal
 from django.contrib.gis.forms import widgets
 from django.contrib.gis.gdal import CoordTransform, SpatialReference
-from django.contrib.gis.gdal.error import GDALException
-from django.contrib.gis.geos import GEOSException, GEOSGeometry, Polygon
+from django.contrib.gis.geos import GEOSGeometry, Polygon
 from django.urls import reverse
 from django.utils import translation
 from django.utils.safestring import mark_safe
@@ -40,7 +39,6 @@ class BoundingBoxWidget(widgets.OpenLayersWidget):
         # since the code expects a bounding box (comma separated 4 values)
         # we just provide the same kind of input to the code if it is a model value
         if not isinstance(value, Polygon):
-            str_value = value
             value = GEOSGeometry(self.get_json_representation(value))
         
         W, S, E, N = value.transform(
