@@ -12,7 +12,11 @@ SECRET_KEY = env("DJANGO_SECRET_KEY")
 # https://docs.djangoproject.com/en/dev/ref/settings/#allowed-hosts
 ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS", default=["admg.nasa-impact.net"])
 # list is the same as ALLOWED_HOSTS, except it requires the scheme
-CSRF_TRUSTED_ORIGINS = [f"https://{site}" for site in ALLOWED_HOSTS]
+# CSRF_TRUSTED_ORIGINS = [f"https://{site}" for site in ALLOWED_HOSTS]
+CSRF_TRUSTED_ORIGINS = env.list("DJANGO_CSRF_TRUSTED_ORIGINS", default=[
+    "https://admg.nasa-impact.net",
+    "https://admgstaging.nasa-impact.net",
+])
 
 # DATABASES
 # ------------------------------------------------------------------------------
