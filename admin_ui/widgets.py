@@ -1,12 +1,13 @@
 import json
 import logging
+from typing import Optional
 
 from django import forms
 from django.conf import settings
 from django.contrib.gis import gdal
 from django.contrib.gis.forms import widgets
 from django.contrib.gis.gdal import CoordTransform, SpatialReference
-from django.contrib.gis.geos import GEOSGeometry, Polygon
+from django.contrib.gis.geos import GEOSGeometry
 from django.urls import reverse
 from django.utils import translation
 from django.utils.safestring import mark_safe
@@ -23,8 +24,6 @@ class BoundingBoxWidget(widgets.OpenLayersWidget):
     template_name = "widgets/custommap.html"
     # This srid is used in the frontend map display
     map_srid = 3857
-    # This srid is used by curators when the enter the bbox
-    org_srid = 4326
 
     @staticmethod
     def get_json_representation(value: str):
@@ -34,23 +33,30 @@ class BoundingBoxWidget(widgets.OpenLayersWidget):
         except json.JSONDecodeError:
             return get_geojson_from_bb(value)
 
-    def get_context(self, name, value, attrs):
-        # this serves the purpose of rendering value saved to models
-        # since the code expects a bounding box (comma separated 4 values)
-        # we just provide the same kind of input to the code if it is a model value
-        if not isinstance(value, Polygon):
-            value = GEOSGeometry(self.get_json_representation(value))
+    def get_context(self, name, value: Optional[GEOSGeometry | str], attrs):
+        # Handle blank form
+        if not value:
+            extent = ''
 
-        W, S, E, N = value.transform(
-            CoordTransform(SpatialReference(value.srid), SpatialReference(self.org_srid)),
-            clone=True,
-        ).extent
-        extent = f"{N:.2f}, {S:.2f}, {E:.2f}, {W:.2f}"
+        # Handle data
+        else:
+            # Convert string extents (e.g. '39.5, 1.5, -15.0, -50.0') to geometry
+            if isinstance(value, str):
+                value = GEOSGeometry(self.get_json_representation(value))
 
-        if value.srid != self.map_srid:
-            value.transform(
-                CoordTransform(SpatialReference(value.srid), SpatialReference(self.map_srid))
-            )
+            # Get string extents in lat/lng
+            W, S, E, N = value.transform(
+                CoordTransform(SpatialReference(value.srid), SpatialReference(4326)),
+                clone=True,
+            ).extent
+            extent = f"{N}, {S}, {E}, {W}"
+
+            # Convert geometry to map SRID
+            if value.srid != self.map_srid:
+                value.transform(
+                    CoordTransform(SpatialReference(value.srid), SpatialReference(self.map_srid))
+                )
+
         context = super().get_context(name, value, attrs)
         geom_type = gdal.OGRGeomType(self.attrs["geom_type"]).name
         context.update(
@@ -59,7 +65,7 @@ class BoundingBoxWidget(widgets.OpenLayersWidget):
                 {
                     "name": name,
                     "module": "geodjango_%s" % name.replace("-", "_"),  # JS-safe
-                    "serialized": value.geojson,
+                    "serialized": value.geojson if value else None,
                     "extent": extent,
                     "geom_type": "Geometry" if geom_type == "Unknown" else geom_type,
                     "STATIC_URL": settings.STATIC_URL,
