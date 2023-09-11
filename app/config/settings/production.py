@@ -136,7 +136,7 @@ AWS_DEFAULT_ACL = None
 # Github Configuration (for deployment)
 GITHUB_WORKFLOW = {
     # Name of repo to be deployed
-    "repo": env("CASEI_GH_REPO", default="NASA-IMPACT/admg-inventory"),
+    "repo": env("CASEI_GH_REPO", default="NASA-IMPACT/admg-casei"),
     # Name of workflow file within repo
     "id": env("CASEI_GH_WORKFLOW_ID", default="deploy-to-production.yml"),
     # Token with access to repo

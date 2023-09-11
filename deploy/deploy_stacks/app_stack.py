@@ -30,6 +30,7 @@ class AppEnvSettings(pydantic.BaseSettings):
     DJANGO_SECRET_KEY: str
     DJANGO_SECURE_SSL_REDIRECT: str
     DEFAULT_FILE_STORAGE: str
+    STATIC_FILES_STORAGE: str
     # TODO make this more restrictive
     DJANGO_ALLOWED_HOSTS = "*"
     DJANGO_SECURE_SSL_REDIRECT = "True"
