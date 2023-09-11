@@ -6,7 +6,6 @@ from ..mixins import formfield_callback
 
 def published_modelform_factory(model_name):
     class PublishedModelForm(ModelForm):
-        formfield_callback = formfield_callback
 
         def is_valid(self) -> bool:
             unique_fields = ["short_name", "order_priority", "gcmd_uuid", "url", "concept_id"]
@@ -34,5 +33,6 @@ def published_modelform_factory(model_name):
         class Meta:
             model = MODEL_CONFIG_MAP[model_name]["model"]
             fields = "__all__"
+            formfield_callback = formfield_callback
 
     return PublishedModelForm
