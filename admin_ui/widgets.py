@@ -51,7 +51,6 @@ class BoundingBoxWidget(widgets.OpenLayersWidget):
             value.transform(
                 CoordTransform(SpatialReference(value.srid), SpatialReference(self.map_srid))
             )
-
         context = super().get_context(name, value, attrs)
         geom_type = gdal.OGRGeomType(self.attrs["geom_type"]).name
         context.update(
