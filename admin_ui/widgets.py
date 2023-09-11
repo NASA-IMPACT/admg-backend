@@ -22,7 +22,9 @@ logger = logging.getLogger(__name__)
 
 class BoundingBoxWidget(widgets.OpenLayersWidget):
     template_name = "widgets/custommap.html"
+    # This srid is used in the frontend map display
     map_srid = 3857
+    # This srid is used by curators when the enter the bbox
     org_srid = 4326
 
     @staticmethod
@@ -40,19 +42,17 @@ class BoundingBoxWidget(widgets.OpenLayersWidget):
         if not isinstance(value, Polygon):
             str_value = value
             value = GEOSGeometry(self.get_json_representation(value))
-            if value.srid != self.map_srid:
-                value.transform(
-                    CoordTransform(SpatialReference(value.srid), SpatialReference(self.map_srid))
-                )
+        
+        W, S, E, N = value.transform(
+                    CoordTransform(SpatialReference(value.srid), SpatialReference(self.org_srid)),
+                    clone = True
+                    ).extent
+        extent = f"{N:.2f}, {S:.2f}, {E:.2f}, {W:.2f}"
 
-        else:
-            # Get str representation from Polygon
-            if value.srid != self.org_srid:
-                value.transform(
-                    CoordTransform(SpatialReference(value.srid), SpatialReference(self.org_srid))
-                )
-                W, S, E, N = value.extent
-                str_value = f"{N:.2f}, {S:.2f}, {E:.2f}, {W:.2f}"
+        if value.srid != self.map_srid:
+            value.transform(
+                CoordTransform(SpatialReference(value.srid), SpatialReference(self.map_srid))
+            )
 
         context = super().get_context(name, value, attrs)
         geom_type = gdal.OGRGeomType(self.attrs["geom_type"]).name
@@ -63,7 +63,7 @@ class BoundingBoxWidget(widgets.OpenLayersWidget):
                     "name": name,
                     "module": "geodjango_%s" % name.replace("-", "_"),  # JS-safe
                     "serialized": value.geojson,
-                    "extent": str_value,
+                    "extent": extent,
                     "geom_type": "Geometry" if geom_type == "Unknown" else geom_type,
                     "STATIC_URL": settings.STATIC_URL,
                     "LANGUAGE_BIDI": translation.get_language_bidi(),
