@@ -42,11 +42,11 @@ class BoundingBoxWidget(widgets.OpenLayersWidget):
         if not isinstance(value, Polygon):
             str_value = value
             value = GEOSGeometry(self.get_json_representation(value))
-        
+
         W, S, E, N = value.transform(
-                    CoordTransform(SpatialReference(value.srid), SpatialReference(self.org_srid)),
-                    clone = True
-                    ).extent
+            CoordTransform(SpatialReference(value.srid), SpatialReference(self.org_srid)),
+            clone=True,
+        ).extent
         extent = f"{N:.2f}, {S:.2f}, {E:.2f}, {W:.2f}"
 
         if value.srid != self.map_srid:
