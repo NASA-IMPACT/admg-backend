@@ -13,9 +13,10 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Set up Python
-        uses: actions/setup-python@v1
+        uses: actions/setup-python@v4
         with:
-          python-version: 3.8
+          python-version: 3.11.5
+          cache: pip
 
       - name: Install Python dependencies
         run: pip install black flake8
@@ -27,5 +28,5 @@ jobs:
           black: true
           black_auto_fix: true
           flake8: true
-          flake8_auto_fix: false  # flake8 doesn't support auto_fix
+          flake8_auto_fix: false # flake8 doesn't support auto_fix
           flake8_args: "--ignore E1,E2,E3,E5,W1,W2,W3,W5" # black already handles formatting, this prevents conflicts

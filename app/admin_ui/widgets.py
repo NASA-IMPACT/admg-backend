@@ -1,13 +1,13 @@
 import json
 import logging
+from typing import Optional
 
 from django import forms
 from django.conf import settings
 from django.contrib.gis import gdal
 from django.contrib.gis.forms import widgets
 from django.contrib.gis.gdal import CoordTransform, SpatialReference
-from django.contrib.gis.gdal.error import GDALException
-from django.contrib.gis.geos import GEOSException, GEOSGeometry, Polygon
+from django.contrib.gis.geos import GEOSGeometry
 from django.urls import reverse
 from django.utils import translation
 from django.utils.safestring import mark_safe
@@ -22,6 +22,7 @@ logger = logging.getLogger(__name__)
 
 class BoundingBoxWidget(widgets.OpenLayersWidget):
     template_name = "widgets/custommap.html"
+    # This srid is used in the frontend map display
     map_srid = 3857
 
     @staticmethod
@@ -32,17 +33,31 @@ class BoundingBoxWidget(widgets.OpenLayersWidget):
         except json.JSONDecodeError:
             return get_geojson_from_bb(value)
 
-    def get_context(self, name, value, attrs):
-        # this serves the purpose of rendering value saved to models
-        # since the code expects a bounding box (comma separated 4 values)
-        # we just provide the same kind of input to the code if it is a model value
-        if isinstance(value, Polygon):
-            W, S, E, N = value.extent
-            # show as bounding box
-            value = f"{N}, {S}, {E}, {W}"
+    def get_context(self, name, value: Optional[GEOSGeometry | str], attrs):
+        # Handle blank form
+        if not value:
+            extent = ''
+
+        # Handle data
+        else:
+            # Convert string extents (e.g. '39.5, 1.5, -15.0, -50.0') to geometry
+            if isinstance(value, str):
+                value = GEOSGeometry(self.get_json_representation(value))
+
+            # Get string extents in lat/lng
+            W, S, E, N = value.transform(
+                CoordTransform(SpatialReference(value.srid), SpatialReference(4326)),
+                clone=True,
+            ).extent
+            extent = f"{N}, {S}, {E}, {W}"
+
+            # Convert geometry to map SRID
+            if value.srid != self.map_srid:
+                value.transform(
+                    CoordTransform(SpatialReference(value.srid), SpatialReference(self.map_srid))
+                )
 
         context = super().get_context(name, value, attrs)
-
         geom_type = gdal.OGRGeomType(self.attrs["geom_type"]).name
         context.update(
             self.build_attrs(
@@ -50,8 +65,8 @@ class BoundingBoxWidget(widgets.OpenLayersWidget):
                 {
                     "name": name,
                     "module": "geodjango_%s" % name.replace("-", "_"),  # JS-safe
-                    "serialized": self.to_geojson(value),
-                    "extent": value,
+                    "serialized": value.geojson if value else None,
+                    "extent": extent,
                     "geom_type": "Geometry" if geom_type == "Unknown" else geom_type,
                     "STATIC_URL": settings.STATIC_URL,
                     "LANGUAGE_BIDI": translation.get_language_bidi(),
@@ -60,19 +75,6 @@ class BoundingBoxWidget(widgets.OpenLayersWidget):
             )
         )
         return context
-
-    def to_geojson(self, value):
-        """Create a geometry object from string"""
-        try:
-            geom = GEOSGeometry(self.get_json_representation(value))
-            if geom.srid != self.map_srid:
-                geom.transform(
-                    CoordTransform(SpatialReference(geom.srid), SpatialReference(self.map_srid))
-                )
-            return geom.json
-        except (GEOSException, GDALException, ValueError, TypeError) as err:
-            logger.error("Error creating geometry from value '%s' (%s)", value, err)
-        return None
 
 
 class IconBooleanWidget(forms.NullBooleanSelect):
