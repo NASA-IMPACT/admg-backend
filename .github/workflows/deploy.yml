@@ -29,6 +29,7 @@ jobs:
       DOMAIN_NAME: ${{ vars.DOMAIN }}
       ALB_LISTENER_ARN: ${{ vars.ALB_LISTENER_ARN }}
       # Django Settings
+      DB_NAME: ${{ vars.DB_NAME }}
       DJANGO_DEBUG: ${{ vars.DJANGO_DEBUG }}
       DJANGO_ADMIN_URL: ${{ vars.DJANGO_ADMIN_URL }}
       DJANGO_ALLOWED_HOSTS: ${{ vars.DJANGO_ALLOWED_HOSTS }}
