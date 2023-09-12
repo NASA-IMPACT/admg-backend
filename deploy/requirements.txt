@@ -1,0 +1,4 @@
+aws-cdk-lib==2.87.0
+cdk-bootstrapped-db@git+https://github.com/developmentseed/cdk-bootstrapped-db.git#egg=cdk-bootstrapped-db
+constructs>=10.0.0,<11.0.0
+pydantic==1.10.2

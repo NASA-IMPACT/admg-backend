@@ -6,16 +6,14 @@ ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
 # set working directory
-WORKDIR /home/app/web
+WORKDIR /app
 
 # install dependencies
 RUN apt-get update --fix-missing && apt-get install -y gdal-bin libgdal-dev postgis netcat
 
 # install requirements
-COPY requirements/ .
+COPY ./app /app
 RUN pip install --upgrade pip
-RUN pip install -r local.txt
+RUN pip install -r /app/requirements/local.txt
 
-COPY . .
-
-ENTRYPOINT ["/home/app/web/entrypoint.sh"]
+# ENTRYPOINT ["/app/entrypoint.sh"]

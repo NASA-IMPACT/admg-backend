@@ -1,0 +1,77 @@
+name: Deploy
+
+permissions:
+  id-token: write
+  contents: read
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        type: string
+        required: true
+
+    secrets:
+      CASEI_GH_TOKEN:
+        required: true
+      DJANGO_SECRET_KEY:
+        required: true
+      SENTRY_DSN:
+        required: true
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    env:
+      STAGE: ${{ inputs.environment }}
+      VPC_ID: ${{ vars.VPCID }}
+      DOMAIN_NAME: ${{ vars.DOMAIN }}
+      ALB_LISTENER_ARN: ${{ vars.ALB_LISTENER_ARN }}
+      # Django Settings
+      DB_NAME: ${{ vars.DB_NAME }}
+      DJANGO_DEBUG: ${{ vars.DJANGO_DEBUG }}
+      DJANGO_ADMIN_URL: ${{ vars.DJANGO_ADMIN_URL }}
+      DJANGO_ALLOWED_HOSTS: ${{ vars.DJANGO_ALLOWED_HOSTS }}
+      DJANGO_SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY }}
+      DEFAULT_FILE_STORAGE: ${{ vars.DEFAULT_FILE_STORAGE }}
+      STATICFILES_STORAGE: ${{ vars.STATICFILES_STORAGE }}
+      CASEI_GH_TOKEN: ${{ secrets.CASEI_GH_TOKEN }}
+      # Other
+      GCMD_SYNC_RECIPIENTS: ${{ vars.GCMD_SYNC_RECIPIENTS }}
+      GCMD_SYNC_SOURCE_EMAIL: ${{ vars.GCMD_SYNC_SOURCE_EMAIL }}
+      SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          lfs: "true"
+          submodules: "recursive"
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: "14"
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.9"
+          cache: "pip" # caching pip dependencies
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: ${{ vars.ROLETOASSUME }}
+          role-session-name: ${{ github.actor }}
+          aws-region: ${{ vars.AWSREGION }}
+
+      - name: Install dependencies
+        run: |
+          pip install -r deploy/requirements.txt
+
+      - name: CDK Deploy
+        run: |
+          npx cdk deploy \
+            "*-application" \
+            --exclusively \
+            --require-approval never

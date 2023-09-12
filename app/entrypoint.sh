@@ -2,11 +2,9 @@
 echo "Checking for database $DB_NAME"
 if [ ! -z "$DB_NAME" ]
 then
-    echo "Waiting for postgres..."
-    while ! nc -z $DB_HOST $DB_PORT; do
-      sleep 0.1
-    done
-    echo "PostgreSQL started"
+    echo "Waiting for postgres at ${DB_HOST}:${DB_PORT}..."
+    echo $(dig +short $DB_HOST)
+    nc -vz $DB_HOST $DB_PORT
 fi
 
 if [ "$MIGRATE" = "true" ] ; then
