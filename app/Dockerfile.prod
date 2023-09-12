@@ -6,10 +6,10 @@ ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
 # set working directory
-WORKDIR /home/app/web
+WORKDIR /app/home/app/web
 
 # install dependencies
-RUN apt-get update --fix-missing && apt-get install -y gdal-bin libgdal-dev postgis netcat
+RUN apt-get update --fix-missing && apt-get install -y gdal-bin libgdal-dev postgis netcat 
 
 # install requirements
 COPY requirements/ .
@@ -18,4 +18,5 @@ RUN pip install -r production.txt
 
 COPY . .
 
-ENTRYPOINT ["/home/app/web/entrypoint.sh"]
+ENTRYPOINT ["/app/home/app/web/entrypoint.sh"]
+CMD ["gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:80", "-w", "4", "--timeout", "300", "--worker-tmp-dir", "/dev/shm"]

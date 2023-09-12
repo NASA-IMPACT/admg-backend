@@ -42,7 +42,7 @@ LOCALE_PATHS = [ROOT_DIR.path("locale")]
 
 DATABASES = {
     "default": {
-        "ENGINE": env("DB_ENGINE"),
+        "ENGINE": env("DB_ENGINE", default="django.contrib.gis.db.backends.postgis"),
         "NAME": env("DB_NAME"),
         "USER": env("DB_USER"),
         "PASSWORD": env("DB_PASSWORD", default=None),
@@ -305,6 +305,8 @@ CELERY_TASK_SOFT_TIME_LIMIT = 3600
 CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
 # https://docs.celeryproject.org/en/stable/userguide/configuration.html#std-setting-task_track_started
 CELERY_TASK_TRACK_STARTED = True
+CELERY_TASK_DEFAULT_QUEUE = env("CELERY_TASK_DEFAULT_QUEUE", default="celery")
+CELERY_BROKER_TRANSPORT_OPTIONS = {"region": env("AWS_QUEUE_REGION_NAME", default="us-east-1")}
 
 # django-allauth
 # ------------------------------------------------------------------------------

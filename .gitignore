@@ -7,6 +7,9 @@ __pycache__/
 # C extensions
 *.so
 
+# cdk cache files
+cdk.out/
+
 # Distribution / packaging
 .Python
 build/
@@ -273,6 +276,7 @@ admg_env*
 pyvenv.cfg
 pip-selfcheck.json
 .env
+.env.*
 
 
 ### Project template

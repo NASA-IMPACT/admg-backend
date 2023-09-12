@@ -8,11 +8,11 @@
       "pathMappings": [
         {
           "localRoot": "${workspaceFolder}",
-          "remoteRoot": "/home/app/web"
+          "remoteRoot": "/app/home/app/web"
         }
       ],
       "port": 5678,
-      "host": "127.0.0.1",
+      "host": "127.0.0.1"
     }
   ]
 }
