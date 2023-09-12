@@ -8,6 +8,9 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: python:3.9.17
+    defaults:
+      run:
+        working-directory: ./app
 
     env:
       DB_ENGINE: django.contrib.gis.db.backends.postgis
@@ -44,7 +47,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.9.17'
+          python-version: "3.9"
 
       - name: Install GDAL
         run: |
@@ -81,12 +84,15 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: code_coverage
-          path: coverage.json
+          path: app/coverage.json
 
   compare-coverage:
     runs-on: ubuntu-latest
     needs: test
     if: ${{ github.ref_name != 'dev'}}
+    defaults:
+      run:
+        working-directory: ./app
 
     steps:
       - uses: actions/checkout@v2
@@ -108,9 +114,9 @@ jobs:
       - name: Calculate Coverage
         id: calculate_coverage
         run: |
-          new_cov=$(cat ./new_cov/coverage.json)
+          new_cov=$(cat ../new_cov/coverage.json)
           echo "new_cov=${new_cov//'%'/'%25'}" >> $GITHUB_OUTPUT
-          dev_cov=$(cat ./dev_cov/coverage.json)
+          dev_cov=$(cat ../dev_cov/coverage.json)
           echo "dev_cov=${dev_cov//'%'/'%25'}" >> $GITHUB_OUTPUT
 
       - name: Compare Coverage

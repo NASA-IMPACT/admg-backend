@@ -12,7 +12,14 @@ SECRET_KEY = env("DJANGO_SECRET_KEY")
 # https://docs.djangoproject.com/en/dev/ref/settings/#allowed-hosts
 ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS", default=["admg.nasa-impact.net"])
 # list is the same as ALLOWED_HOSTS, except it requires the scheme
-CSRF_TRUSTED_ORIGINS = [f"https://{site}" for site in ALLOWED_HOSTS]
+# CSRF_TRUSTED_ORIGINS = [f"https://{site}" for site in ALLOWED_HOSTS]
+CSRF_TRUSTED_ORIGINS = env.list(
+    "DJANGO_CSRF_TRUSTED_ORIGINS",
+    default=[
+        "https://admg.nasa-impact.net",
+        "https://admgstaging.nasa-impact.net",
+    ],
+)
 
 # DATABASES
 # ------------------------------------------------------------------------------
@@ -124,21 +131,19 @@ LOGGING = {
 
 
 # AWS Configuration
-
 DEFAULT_FILE_STORAGE = env("DEFAULT_FILE_STORAGE")
+STATICFILES_STORAGE = env("STATICFILES_STORAGE")
 
 AWS_STORAGE_BUCKET_NAME = env("AWS_STORAGE_BUCKET_NAME")
 AWS_S3_REGION_NAME = env("AWS_S3_REGION_NAME")
 AWS_ACCESS_KEY_ID = None
 AWS_SECRET_ACCESS_KEY = None
-
 AWS_DEFAULT_ACL = None
-
 
 # Github Configuration (for deployment)
 GITHUB_WORKFLOW = {
     # Name of repo to be deployed
-    "repo": env("CASEI_GH_REPO", default="NASA-IMPACT/admg-inventory"),
+    "repo": env("CASEI_GH_REPO", default="NASA-IMPACT/admg-casei"),
     # Name of workflow file within repo
     "id": env("CASEI_GH_WORKFLOW_ID", default="deploy-to-production.yml"),
     # Token with access to repo
@@ -147,18 +152,7 @@ GITHUB_WORKFLOW = {
     "branch": env("CASEI_GH_BRANCH", default="production"),
 }
 
-ANYMAIL = {
-    "AMAZON_SES_CLIENT_PARAMS": {
-        "aws_access_key_id": env("ANYMAIL_AWS_ACCESS_KEY"),
-        "aws_secret_access_key": env("ANYMAIL_AWS_SECRET_KEY"),
-        "region_name": env("ANYMAIL_AWS_REGION"),
-    },
-}
-
 EMAIL_BACKEND = "anymail.backends.amazon_ses.EmailBackend"
-# EMAIL_BACKEND = env(
-#     "DJANGO_EMAIL_BACKEND", default="django.core.mail.backends.console.EmailBackend"
-# )
 
 SENTRY_DSN = env("SENTRY_DSN")
 
