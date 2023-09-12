@@ -81,6 +81,6 @@ jobs:
         uses: slackapi/slack-github-action@v1.23.0
         with:
           channel-id: "admg"
-          payload: '{"text":"Successfully deployed MI to Production! <https://admgstaging.nasa-impact.net/|Click here> to take a look!"}'
+          payload: '{"text":"Successfully deployed MI to Production! <https://admg.nasa-impact.net/|Click here> to take a look!"}'
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
