@@ -7,7 +7,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     container:
-      image: python:3.9.17
+      image: python:3.11.5
     defaults:
       run:
         working-directory: ./app
@@ -44,15 +44,16 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Setup Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.9"
-
       - name: Install GDAL
         run: |
           apt-get update -y
-          apt-get install -y libgdal-dev
+          apt-get install -y libgdal-dev libc6 glibc-source
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.11.5
+          # cache: pip  # Unable to use caching, https://github.com/actions/setup-python/issues/719
 
       - uses: actions/cache@v2
         id: cache-dependencies
