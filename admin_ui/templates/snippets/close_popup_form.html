@@ -1,7 +1,0 @@
-{% comment %}
-This script is used to call a function on an opening window when a window opens
-popup.
-{% endcomment %}
-<script type="text/javascript">
-    opener.dismissAddAnotherPopup(window, "{{ object.uuid }}", "{% firstof object.update.short_name object.update.title object.update.description object %}");
-</script>

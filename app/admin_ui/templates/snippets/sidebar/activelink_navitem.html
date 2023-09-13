@@ -1,0 +1,8 @@
+{% load active_link_tags %}
+
+<a class="nav-link text-truncate {% active_link view 'active' %}" href="{% url view %}">
+  {{ title }}
+  {% if title == 'Review Changes' %}
+    <span class="sidebar-notification">{{ gcmd_changes_count }}</span>
+  {% endif %}
+</a>

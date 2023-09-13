@@ -7,6 +7,9 @@ __pycache__/
 # C extensions
 *.so
 
+# cdk cache files
+cdk.out/
+
 # Distribution / packaging
 .Python
 build/
@@ -69,6 +72,7 @@ target/
 venv/
 ENV/
 env/
+venv3/
 
 # Rope project settings
 .ropeproject
@@ -157,7 +161,6 @@ typings/
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
-.vscode
 
 
 
@@ -273,6 +276,7 @@ admg_env*
 pyvenv.cfg
 pip-selfcheck.json
 .env
+.env.*
 
 
 ### Project template
@@ -289,3 +293,5 @@ cmr/config.py
 *.sql
 hosts/*
 !hosts/*.sample
+
+.backup

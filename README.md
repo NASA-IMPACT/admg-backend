@@ -89,7 +89,6 @@ axios(config)
 - Run docker-compose with docker-compose.local.yml instead of docker-compose.yml
   - `docker-compose -f docker-compose.local.yml up`
 
-
 ## Running Tests
 
 `docker-compose -f docker-compose.local.yml run web python manage.py test`
@@ -106,8 +105,7 @@ Generate coverage report:
 
 If you want to view coverage in your editor using, for example, VSCode's Coverage Gutters plugin, export the coverage report to a supported format:
 
-`docker-compose -f docker-compose.local.yml run web coverage xml -o coverage.xml`
-
+`docker-compose -f docker-compose.local.yml run web coverage lcov -o coverage.lcov`
 
 ## Sass
 
@@ -154,9 +152,9 @@ python manage.py sass admin_ui/static/scss admin_ui/static/css --watch
 5.  Start postgres
 
     To get a path that you can use to start Postgres:
-    
+
     ```
-    brew info posgresql 
+    brew info posgresql
     ```
 
     (It will probably look something like `pg_ctl -D /usr/local/var postgres start`)
@@ -246,3 +244,11 @@ Install `rabbitmq` (probably using `brew` if you’re on a Mac)
    ```
    CELERY_BROKER_URL=amqp://guest:guest@localhost:5672 celery -A config celery_app worker --beat --scheduler django -l DEBUG`
    ```
+
+### Configuring system to deploy CASEI
+  
+The Maintenance Interface is able to initiate a deployment of [CASEI](https://github.com/NASA-IMPACT/admg-inventory/).  This works by triggering a [workflow dispatch event](https://docs.github.com/en/rest/reference/actions#create-a-workflow-dispatch-event) on CASEI's [`deploy-to-production` workflow](https://github.com/NASA-IMPACT/admg-inventory/actions/workflows/deploy-to-production.yml).  To allow the Maintenance Interface to trigger CASEI, a [Personal Access Token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens) with `actions:write` permissions should be provided via the `CASEI_GH_TOKEN` environment variable.  The following environment variables may optionally be provided to override default configuration: 
+
+  - `CASEI_GH_REPO`, the repo to deploy. Defaults to `NASA-IMPACT/admg-inventory`
+  - `CASEI_GH_WORKFLOW_ID`, the workflow to run. Defaults to `deploy-to-production.yml`
+  - `CASEI_GH_BRANCH`, the branch to deploy. Defaults to `production`

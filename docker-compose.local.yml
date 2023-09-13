@@ -5,18 +5,25 @@ services:
     build:
       context: ./
       dockerfile: Dockerfile.local
-    command: python manage.py runserver 0.0.0.0:8001
+    command: python -m debugpy --listen 0.0.0.0:5678 manage.py runserver 0.0.0.0:8001
+    working_dir: /app
     volumes:
-      - .:/home/app/web
+      - ./app:/app
     ports:
-      - 5678:5678
+      - 5678:5678 # debugger
       - 8001:8001 # mapped to 8001 to prevent clashes with local django instances
     env_file:
       - ./.env
     environment:
+      - DB_NAME=admg_webapp
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USER=user
+      - DB_PASSWORD=password
       - MIGRATE=true
     depends_on:
       - db
+
   db:
     image: postgis/postgis:12-3.3
     volumes:
@@ -41,14 +48,20 @@ services:
       context: ./
       dockerfile: Dockerfile.local
     command: celery -A config worker -l info
+    working_dir: /app
     container_name: celery_worker
     hostname: celery_worker
     volumes:
-      - .:/home/app/web
+      - ./app:/app
     restart: on-failure
     env_file:
       - ./.env
     environment:
+      - DB_NAME=admg_webapp
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USER=user
+      - DB_PASSWORD=password
       - MIGRATE=false
     depends_on:
       - web

@@ -1,0 +1,137 @@
+{% extends "api_app/change_form.html" %}
+{% load static %}
+{% load crispy_forms_tags %}
+{% load model_helpers %}
+{% load humanize %}
+{% load template_extras %}
+
+{% block header %}
+  <div class="col">
+    {% include 'snippets/breadcrumbs.html' with ancestors=ancestors %}
+
+    <a href="{% spaceless %}
+        {% if "back" in request.GET %} {{ request.GET.back }}
+        {% else %}{% url 'change-list' view_model %}
+        {% endif %}
+        {% endspaceless %}">
+      &larr; Back
+    </a>
+    {% if view_model == 'website' %}
+    <h1>{{ object.update.title | default:object.uuid }}</h1>
+    {{ view_model }}
+    {% else %}
+    <h1>{{ object.update.short_name | default:object.uuid }}</h1>
+    {% endif %}
+  </div>
+{% endblock header %}
+
+{% block actions %}
+  {% if object.is_locked %}
+    {% if object.model_instance_uuid %}
+    <div class="px-1">
+      <a 
+        class="btn btn-primary" 
+        href="{% url 'published-detail' pk=object.model_instance_uuid model=view_model %}"
+      >
+        View published version
+      </a>
+    </div>
+    {% endif %}
+
+  {% else %}
+  <div class="px-1">
+    {% include "snippets/approval_dropdown.html" %}
+  </div>
+
+  <div class="px-1">
+    <button 
+      class="btn btn-primary" 
+      form="model-form" 
+      formnovalidate
+    >
+      Save
+    </button>
+    {% if object.action == 'Create' %}
+    <button 
+      class="btn btn-secondary" 
+      form="model-form" 
+      name="_validate"
+    >
+      Validate
+    </button>
+    {% endif %}
+  </div>
+  {% endif %}
+{% endblock actions %}
+
+{% block main %}
+  {% with main_class="col-lg-8" %}
+    {{ block.super }}
+  {% endwith %}
+  
+  {# Sidebar #}
+  <aside class="col col-lg-4">
+    {% if object.update.logo %}
+    <h3>Logo</h3>
+    <a href="{% url 'change-update' object.update.logo %}">
+      {% if object.logo_path %}
+      <img class="img-thumbnail" src="{{ object.logo_path | get_full_url }}" />
+      {% else %}
+      <span class="font-italic">(logo missing image)</span>
+      {% endif %}
+    </a>
+
+    <hr />
+    {% endif %}
+
+    <h3>Activity</h3>
+    {% include 'snippets/related_approval_logs.html' with approval_logs=object.approvallog_set.all show_notes=True%}
+
+    <hr />
+    
+    <h3>Dependent Drafts</h3>
+    
+    {% include 'snippets/dependent_drafts.html' with descendents=descendents %}
+    {% include 'snippets/add_related.html' with object=object %}
+
+    <hr />
+
+    <h3>Related Fields</h3>
+    {% include 'snippets/related_fields.html' with related_fields=related_fields%}
+
+    <hr />
+
+    <details class="small">
+      <summary>Debug Data</summary>
+
+      <pre>{{ object.update | pprint }}</pre>
+    </details>
+
+  </aside>
+{% endblock main%}
+
+{% block form_body %}
+{% if comparison_form %}
+<div class="row">
+    <div class="col-sm-6 lead font-weight-bold">
+      New Version
+    </div>
+    <div class="col-sm-6 lead font-weight-bold">
+      Old Version
+    </div>
+  </div>
+  {% for field1, field2 in model_form|zip:comparison_form %}
+    <div class="row">
+      <div class="col-sm-6">
+        {{ field1 | as_crispy_field }}
+      </div>
+      <div class="col-sm-6">
+        {{ field2 | as_crispy_field }}
+      </div>
+    </div>
+  {% endfor %}
+</div>
+{% else %}
+{{ block.super }}
+{% endif %}
+{% endblock form_body %}

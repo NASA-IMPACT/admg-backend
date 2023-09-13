@@ -1,0 +1,13 @@
+{% extends "admin/change_update.html" %}
+{% load i18n admin_urls %}
+
+{# Load model form's media (CSS, JS) #}
+{% block extrahead %}{{ block.super }}{{ modelform.media }}{% endblock %}
+
+{% block after_field_sets %}
+<hr />
+{# Build custom form for Draft's target model #}
+{% for fieldset in modelform %}
+  {% include "admin/includes/fieldset.html" %}
+{% endfor %}
+{% endblock %}
