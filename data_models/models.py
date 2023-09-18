@@ -581,10 +581,6 @@ class Campaign(DataModel):
         return sum(filter(None, venture_counts))
 
     @property
-    def number_data_products(self):
-        return self.dois.count()
-
-    @property
     def number_deployments(self):
         return self.deployments.count()
 
