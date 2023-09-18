@@ -51,7 +51,7 @@
         </div>
         
         <div class="ml-auto">
-          <a class="btn btn-primary" href="{% url 'change-add' 'deployment' %}?campaign={{ object.uuid }}&back={{ request.path }}">+</a>
+          <a class="btn btn-primary" href="{% url 'change-add' 'deployment' %}?campaign={{ object.canonical_uuid }}&back={{ request.path }}">+</a>
         </div>
       </li>
       {% for deployment in deployments %}
