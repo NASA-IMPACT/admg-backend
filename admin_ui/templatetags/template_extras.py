@@ -47,7 +47,6 @@ def classname(obj):
 
 @register.inclusion_tag('snippets/object_header_tabs.html', takes_context=True)
 def object_header_tabs(context, change: Change, canonical_change: Optional[Change] = None):
-
     """
     Reusable header for canonical object.
     """
