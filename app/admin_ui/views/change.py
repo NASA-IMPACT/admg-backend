@@ -129,13 +129,13 @@ class CampaignDetailView(NotificationSidebar, DetailView):
         published."""
         return (
             change_queryset.annotate(
-                canonical_uuid=Case(
+                canonical_uuid_2=Case(
                     When(model_instance_uuid__isnull=True, then='uuid'),
                     When(model_instance_uuid__isnull=False, then='model_instance_uuid'),
                 )
             )
-            .order_by("canonical_uuid", "-approvallog__date")
-            .distinct("canonical_uuid")
+            .order_by("canonical_uuid_2", "-approvallog__date")
+            .distinct("canonical_uuid_2")
         )
 
     def get_context_data(self, **kwargs):
@@ -150,11 +150,11 @@ class CampaignDetailView(NotificationSidebar, DetailView):
             .prefetch_approvals()
         )
 
+        deployment_uuids = [str(d.model_instance_uuid or d.uuid) for d in deployments]
+
         collection_periods = CampaignDetailView._filter_latest_changes(
             Change.objects.of_type(CollectionPeriod)
-            .filter(
-                update__deployment__in=[str(d.model_instance_uuid or d.uuid) for d in deployments]
-            )
+            .filter(update__deployment__in=deployment_uuids)
             .select_related("content_type")
             .prefetch_approvals()
             .annotate_from_relationship(
