@@ -154,9 +154,7 @@ class CampaignDetailView(NotificationSidebar, DetailView):
 
         collection_periods = CampaignDetailView._filter_latest_changes(
             Change.objects.of_type(CollectionPeriod)
-            .filter(
-                update__deployment__in=deployment_uuids
-            )
+            .filter(update__deployment__in=deployment_uuids)
             .select_related("content_type")
             .prefetch_approvals()
             .annotate_from_relationship(
