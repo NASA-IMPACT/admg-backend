@@ -30,7 +30,7 @@
         <a
           class="btn btn-light btn-sm" 
           {% if view_model %}
-            href="{% url 'change-list' view_model %}"
+            href="{% url 'canonical-list' view_model %}"
           {% else %}
             href="{% url 'gcmd-list' %}"
           {% endif %}
