@@ -562,7 +562,7 @@ class CampaignChangeListTable(LimitedTableBase):
                     "canonical_uuid": record.uuid,
                     # this property is coming from an annotation on the inital query
                     "draft_uuid": record.draft_uuid,
-                    "model": record.model_name.lower(),
+                    "model": camel_to_snake(record.model_name),
                 },
             ),
             label=record.latest_update.get('short_name') or '---',
@@ -592,7 +592,7 @@ class PlatformChangeListTable(LimitedTableBase):
                     "canonical_uuid": record.uuid,
                     # this property is coming from an annotation on the inital query
                     "draft_uuid": record.draft_uuid,
-                    "model": record.model_name.lower(),
+                    "model": camel_to_snake(record.model_name),
                 },
             ),
             label=record.update.get('short_name') or '---',
@@ -614,7 +614,7 @@ class InstrumentChangeListTable(LimitedTableBase):
                     "canonical_uuid": record.uuid,
                     # this property is coming from an annotation on the inital query
                     "draft_uuid": record.draft_uuid,
-                    "model": record.model_name.lower(),
+                    "model": camel_to_snake(record.model_name),
                 },
             ),
             label=record.update.get('short_name') or '---',
@@ -647,7 +647,7 @@ class ChangeSummaryTable(DraftTableBase):
                     "canonical_uuid": record.model_instance_uuid or record.uuid,
                     # TODO this change object has not property draft uuid
                     "draft_uuid": record.uuid,
-                    "model": record.model_name.lower(),
+                    "model": camel_to_snake(record.model_name),
                 },
             ),
             label=record.update.get('short_name') or '---',
@@ -923,7 +923,7 @@ class ImageChangeListTable(DraftTableBase):
                     "canonical_uuid": record.uuid,
                     # this property is coming from an annotation on the inital query
                     "draft_uuid": record.draft_uuid,
-                    "model": record.model_name.lower(),
+                    "model": camel_to_snake(record.model_name),
                 },
             ),
             label=record.update.get('short_name') or '---',
@@ -943,7 +943,7 @@ class DraftHistoryTable(tables.Table):
             lambda record: reverse(
                 "historical-detail",
                 kwargs={
-                    "model": record.model_name.lower(),
+                    "model": camel_to_snake(record.model_name),
                     "draft_uuid": record.uuid,
                     "canonical_uuid": record.model_instance_uuid or record.uuid,
                 },
