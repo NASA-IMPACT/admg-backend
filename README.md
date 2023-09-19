@@ -91,21 +91,21 @@ axios(config)
 
 ## Running Tests
 
-`docker-compose -f docker-compose.local.yml run web python manage.py test`
+`docker-compose -f docker-compose.local.yml run web pytest`
 
 ### Reporting test coverage
 
 Run your tests with coverage:
 
-`docker-compose -f docker-compose.local.yml run web coverage run -m pytest`
+`docker-compose -f docker-compose.local.yml run web python -m coverage run -m pytest`
 
 Generate coverage report:
 
-`docker-compose -f docker-compose.local.yml run web coverage report -m --skip-covered`
+`docker-compose -f docker-compose.local.yml run web python -m  coverage report -m --skip-covered`
 
 If you want to view coverage in your editor using, for example, VSCode's Coverage Gutters plugin, export the coverage report to a supported format:
 
-`docker-compose -f docker-compose.local.yml run web coverage lcov -o coverage.lcov`
+`docker-compose -f docker-compose.local.yml run web python -m coverage lcov -o coverage.lcov`
 
 ## Sass
 
