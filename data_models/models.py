@@ -534,7 +534,6 @@ class Campaign(DataModel):
         verbose_name="Data Repository(ies)",
         help_text="Data repository (assigned archive repository) for the campaign (typically a NASA DAAC)",
     )
-    number_data_products = models.PositiveIntegerField(null=True, blank=True)
     data_volume = models.CharField(
         max_length=256,
         null=True,
