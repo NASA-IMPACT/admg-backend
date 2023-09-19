@@ -10,7 +10,6 @@ from django.db.models import expressions, functions, Subquery
 from django.db.models.fields.json import KeyTextTransform
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from django.utils import timezone
 from rest_framework.response import Response
 from rest_framework.serializers import ValidationError
 
