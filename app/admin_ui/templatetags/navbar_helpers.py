@@ -23,6 +23,7 @@ def model_nav_link(context, title, link_model):
         "links": LINKS,
     }
 
+
 @register.inclusion_tag("snippets/sidebar/activelink_model_navitem.html", takes_context=True)
 def canonical_nav_link(context, title, link_model):
     return {
