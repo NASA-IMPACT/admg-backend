@@ -1,0 +1,74 @@
+{% extends "./change_form.html" %}
+{% load static %}
+{% load crispy_forms_tags %}
+{% load humanize %}
+
+
+{% block header %}
+  <div class="col">
+    <h1>{{ display_name }} Details</h1>
+  </div>
+  <a href="{% spaceless %}
+    {% if "back" in request.GET %} {{ request.GET.back }}
+    {% else %}{% url 'published-list' view_model %}
+    {% endif %}
+    {% endspaceless %}">
+    &larr; Back
+  </a>
+{% endblock header %}
+
+{% block actions %}
+  <div class="px-1">
+    <a href="{% url 'published-edit' view_model object.uuid %}?back={{ request.path }}" class="btn btn-primary ml-3">
+        Create Edit Draft
+    </a>
+    <button class="btn btn-secondary" data-toggle="modal" data-target="#deletePopup">
+      Create Delete Draft
+    </button>
+  </div>
+{% endblock actions %}
+
+{% block main %}
+  {% with main_class="col-lg-8" %}
+    {{ block.super }}
+  {% endwith %}
+  
+  {# Sidebar #}
+  <aside class="col-sm-4">
+    {% if object.logo_url %}
+    <h3>Logo</h3>
+    <a href="{% url 'change-update' object.update.logo %}">
+      <img class="img-thumbnail" src="{% get_media_prefix %}/{{ object.logo_url }}" />
+    </a>
+
+    <hr />
+    {% endif %}
+  </aside>
+
+  <!-- Modal -->
+  <div class="modal fade" id="deletePopup" tabindex="-1" role="dialog" aria-labelledby="deletePopupTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="deletePopupLongTitle">
+            Confirmation
+          </h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          The action you are going to perform will create a delete draft for the object.
+          Only after admin approval will it be deleted.
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <a href="{% url 'published-delete' view_model object.uuid %}?back={{ request.path }}" class="btn btn-danger">
+              Create Delete Draft
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock main%}
+

@@ -1,21 +1,19 @@
 # pull official base image
-FROM --platform=amd64 ubuntu:focal AS builder
+FROM --platform=linux/amd64 python:3.11.1 AS builder
 
 # set environment variables
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
-RUN apt-get update --fix-missing -y && DEBIAN_FRONTEND=noninteractive apt-get install -y python3-pip gdal-bin libgdal-dev postgis netcat
+# set working directory
+WORKDIR /app
 
-WORKDIR /home/app/web
-COPY requirements/ .
+# install dependencies
+RUN apt-get update --fix-missing && apt-get install -y gdal-bin libgdal-dev postgis netcat
+
+# install requirements
+COPY ./app /app
 RUN pip install --upgrade pip
-RUN pip install -r local.txt
+RUN pip install -r /app/requirements/local.txt
 
-COPY . /home/app/web/
-
-RUN playwright install --with-deps
-
-RUN ln -s /usr/bin/python3 /usr/local/bin/python
-
-ENTRYPOINT ["/home/app/web/entrypoint.sh"]
+# ENTRYPOINT ["/app/entrypoint.sh"]

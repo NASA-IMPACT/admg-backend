@@ -1,0 +1,77 @@
+{% load active_link_tags %}
+{% load navbar_helpers %}
+
+<ul class="nav flex-column flex-nowrap overflow-hidden">
+  <li class="nav-item">
+    <a 
+      class="nav-link text-truncate {% active_link 'summary' 'active' strict=True %}" 
+      href="{% url 'summary' %}"
+    >
+      Summary
+    </a>
+  </li>
+  <li class="nav-item">{% canonical_nav_link "Campaigns" "campaign" %}</li>
+  <li class="nav-item">{% canonical_nav_link "Platforms" "platform" %}</li>
+  <li class="nav-item">{% canonical_nav_link "Instruments" "instrument" %}</li>
+  <li class="nav-item">{% canonical_nav_link "Partner Organizations" "partner_org" %}</li>
+
+  {% if request.user.is_admg_admin %}
+  <li class="nav-item">
+    {% notification_menu "Limited Fields" "gcmd-list" "gcmd_project" "gcmd_instrument" "gcmd_platform" "gcmd_phenomenon" "repository" "measurement_region" "measurement_type" "measurement_style" "home_base" "platform_type" "focus_area" "geophysical_concept" "geographical_region" "season" "website_type" %}
+    <!-- <span class="gcmdNotification">{{ gcmd_changes_count }}</span> -->
+    <ul class="nav flex-column ml-3">
+      
+      {# GCMD Items #}
+      <li class="nav-item">
+        {% notification_menu "GCMD Items" "gcmd-list" "gcmd_project" "gcmd_instrument" "gcmd_platform" "gcmd_phenomenon" "repository" %}
+        <ul class="nav flex-column ml-3">
+          <li class="nav-item">{% nav_link "Review Changes" "gcmd-list" %}</li>
+          <li class="nav-item">{% model_nav_link "GCMD Projects" "gcmd_project" %}</li>
+          <li class="nav-item">{% model_nav_link "GCMD Instruments" "gcmd_instrument" %}</li>
+          <li class="nav-item">{% model_nav_link "GCMD Platforms" "gcmd_platform" %}</li>
+          <li class="nav-item">{% model_nav_link "GCMD Earth Science Keywords" "gcmd_phenomenon" %}</li>
+          <li class="nav-item">{% model_nav_link "Repositories" "repository" %}</li>
+        </ul>
+        {% endnotification_menu %}
+      </li>
+
+      {# Measurement and Platform Items #}
+      <li class="nav-item">
+        {% collapsable_menu "Measurement and Platform Items" "measurement_region" "measurement_type" "measurement_style" "home_base" "platform_type" %}
+        <ul class="nav flex-column ml-3">
+          <li class="nav-item">{% model_nav_link "Vertical Measurement Regions" "measurement_region" %}</li>
+          <li class="nav-item">{% model_nav_link "Measurement Types" "measurement_type" %}</li>
+          <li class="nav-item">{% model_nav_link "Measurement Styles" "measurement_style" %}</li>
+          <li class="nav-item">{% model_nav_link "Platform Home Bases" "home_base" %}</li>
+          <li class="nav-item">{% model_nav_link "Platform Types" "platform_type" %}</li>
+        </ul>
+        {% endcollapsable_menu %}
+      </li>
+
+      {# Science Concepts #}
+      <li class="nav-item">
+        {% collapsable_menu "Science Concepts" "focus_area" "geophysical_concept" "geographical_region" "season" %}
+        <ul class="nav flex-column ml-3">
+          <li class="nav-item">{% model_nav_link "Focus Areas" "focus_area" %}</li>
+          <li class="nav-item">{% model_nav_link "Geophysical Concepts" "geophysical_concept" %}</li>
+          <li class="nav-item">{% model_nav_link "Geographical Regions" "geographical_region" %}</li>
+          <li class="nav-item">{% model_nav_link "Seasons" "season" %}</li>
+        </ul>
+        {% endcollapsable_menu %}
+      </li>
+      
+      {# Website Items #}
+      <li class="nav-item">
+        {% collapsable_menu "Website Items" "website_type" %}
+        <ul class="nav flex-column ml-3">
+          <li class="nav-item">{% model_nav_link "Websites" "website" %}</li>
+          <li class="nav-item">{% model_nav_link "Website Types" "website_type" %}</li>
+        </ul>
+        {% endcollapsable_menu %}
+      </li>
+    </ul>
+    {% endnotification_menu %}
+  </li>
+  {% endif %}
+  <li class="nav-item">{% model_nav_link "Images" "image" %}</li>
+</ul>

@@ -1,0 +1,84 @@
+/* Utils */
+a.disabled {
+  pointer-events: none;
+}
+
+.active {
+  font-weight: 700;
+}
+
+.inline-link {
+  text-decoration: underline;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+select.selectmultiple,
+.select2-selection {
+  overflow: auto;
+  resize: auto;
+}
+
+dt {
+  font-size: 80%;
+  text-transform: uppercase;
+  color: #6c757d;
+}
+
+/* Views */
+.campaign-summary li.list-group-item {
+  padding-bottom: 0;
+}
+
+.campaign-summary .list-group-item-primary,
+.campaign-summary .list-group-item-primary:hover {
+  color: inherit;
+}
+
+.campaign-summary .list-group-item-primary .row,
+.campaign-summary .list-group-item-primary .col {
+  border-color: #6c757d !important;
+}
+
+.campaign-summary .list-group-item-primary {
+  padding-left: 15px;
+  /* 21 - border-width */
+  border-left: 6px solid;
+}
+
+.campaign-summary dd {
+  margin-bottom: 1em;
+}
+
+.campaign-summary .caret {
+  display: none;
+}
+
+.campaign-summary .show-caret .caret {
+  display: inline;
+}
+
+.table-doi td {
+  min-width: 12em;
+}
+
+.changed-item {
+  background-color: rgba(170, 170, 0, 0.5);
+}
+
+.changed-item :disabled {
+  background-color: rgba(170, 170, 0, 0.5);
+}
+
+.changed-item + span span.select2-container--default,
+.changed-item + span span.select2-container--disabled,
+.changed-item + span span.select2-selection--single,
+.changed-item + span span.select2-selection--multiple {
+  background-color: rgba(170, 170, 0, 0.5);
+}
+
+.z-1060 {
+  z-index: 1060;
+}

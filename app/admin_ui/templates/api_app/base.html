@@ -1,0 +1,23 @@
+{% extends "base.html" %} {% load static %} {% comment %} This view is
+responsible for building the general layout of the MI. This primarily deciding
+where the sidebar goes and where the main "page" goes. {% endcomment %} {% block
+extrahead %}
+<link href="{% static 'css/admin.css' %}" rel="stylesheet" />
+<link
+  href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css"
+  rel="stylesheet"
+/>
+{% endblock %} {% block content %}
+<div id="sidebar" class="row align-items-start">
+  <div class="col-sm-4 col-lg-2">
+    {% include 'snippets/sidebar/sidebar.html' %}
+  </div>
+  <div class="col-sm-8 col-lg-10">
+    {% block page %}
+    <p>page info</p>
+    {% endblock page %}
+  </div>
+</div>
+{% endblock %} {% block javascript %} {{ block.super }}
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+{% endblock %}

@@ -1,0 +1,30 @@
+<div class="icon-radio">
+  <div id="{{ widget.attrs.id }}">
+    <input 
+      type="radio" 
+      name="{{ widget.name }}" 
+      autocomplete="off" 
+      value="true"
+      id="{{ widget.name }}_true"
+      {% if widget.readonly %}disabled{% endif %}
+      {% if widget.value == 'true' %}checked{% endif %}
+    > 
+    <label class="btn btn-primary mx-1 my-0" for="{{ widget.name }}_true">
+      <i class="bi bi-check2"></i>
+    </label>
+    
+    <input 
+      type="radio" 
+      name="{{ widget.name }}" 
+      autocomplete="off"
+      value="false"
+      id="{{ widget.name }}_false"
+      {% if widget.readonly %}disabled{% endif %}
+      {% if widget.value == 'false' %}checked{% endif %}
+    > 
+    <label class="btn btn-primary mx-1 my-0" for="{{ widget.name }}_false">
+      <i class="bi bi-trash-fill"></i>
+    </label>
+    {{ widget.errors }}
+  </div>
+</div>

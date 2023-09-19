@@ -8,5 +8,3 @@ case $1 in
   coverage-report) docker-compose -f docker-compose.local.yml run web coverage report -m --skip-covered;;
   coverage-report-xml) docker-compose -f docker-compose.local.yml run web coverage xml -o coverage.xml;;
 esac 
-
-

@@ -1,0 +1,13 @@
+{% load crispy_forms_tags %}
+
+<button class="btn btn-secondary dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+{% if not transition_form.fields.transition.choices|length %} disabled="true" {% endif %}>Approval Actions
+</button>
+
+<div class="dropdown-menu z-1060">
+<form action="{% url 'change-transition' object.uuid %}" method="post" class="px-4 py-3">
+    {% csrf_token %}
+    {{ transition_form | crispy }}
+    <button class="btn btn-primary">Submit</button>
+</form>
+</div>

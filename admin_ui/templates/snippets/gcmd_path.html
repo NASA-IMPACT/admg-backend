@@ -1,9 +1,0 @@
-{% load template_extras %}
-
-<p class="{{ preliminary_class }}">
-  {{ preliminary_text }}
-  {% for attribute in gcmd_path.path %}
-    <span class="{% if attribute.has_changed %} gcmd-changed {% endif %} {{ gcmd_path_class }}"> {{attribute|keyvalue:path_attribute}} </span>
-    {% if not forloop.last %} <span style="color: black;"> > </span> {% endif %}
-  {% endfor %}
-</p>
