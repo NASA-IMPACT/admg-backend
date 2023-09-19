@@ -534,7 +534,6 @@ class Campaign(DataModel):
         verbose_name="Data Repository(ies)",
         help_text="Data repository (assigned archive repository) for the campaign (typically a NASA DAAC)",
     )
-    number_data_products = models.PositiveIntegerField(null=True, blank=True)
     data_volume = models.CharField(
         max_length=256,
         null=True,
@@ -579,6 +578,10 @@ class Campaign(DataModel):
             )
         )
         return sum(filter(None, venture_counts))
+
+    @property
+    def number_data_products(self):
+        return self.dois.count()
 
     @property
     def number_deployments(self):
