@@ -8,7 +8,7 @@ import pytest
 from rest_framework.serializers import ValidationError
 
 from admg_webapp.users.models import User
-from admin_ui.tests.factories import UserFactory, ChangeFactory
+from app.admin_ui.tests.factories import UserFactory, ChangeFactory
 from data_models.tests import factories
 
 from ..models import ApprovalLog, Change
