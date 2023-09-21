@@ -86,9 +86,10 @@ jobs:
             -r requirements/base.txt \
             -r requirements/local.txt
 
-      - name: Install Playwright Binary
+      - name: Set path for local dependencies
+        id: local-path
         run: |
-          pip install playwright==1.38.0
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
 
       - name: Install Playwright
         run: |
