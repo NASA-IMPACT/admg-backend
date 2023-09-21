@@ -69,6 +69,11 @@ jobs:
           USER_SITE_PATH=$(python -m site --user-site)
           echo "USER_SITE_PATH=$USER_SITE_PATH" >> $GITHUB_ENV
 
+      - name: Set path for local dependencies
+        id: local-path
+        run: |
+          echo "/github/home/.local/bin" >> $GITHUB_PATH
+
       - uses: actions/cache@v2
         id: cache-dependencies
         with:
