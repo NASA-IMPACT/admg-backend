@@ -15,7 +15,6 @@ mypy==0.910  # https://github.com/python/mypy
 pytest>=5.0.1  # https://github.com/pytest-dev/pytest
 pytest-sugar==0.9.6  # https://github.com/Frozenball/pytest-sugar
 freezegun==1.2.2  # https://github.com/spulec/freezegun
-playwright==1.38.0 
 
 # Code quality
 # ------------------------------------------------------------------------------
