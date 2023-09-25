@@ -86,14 +86,9 @@ jobs:
             -r requirements/base.txt \
             -r requirements/local.txt
 
-      - name: Set path for local dependencies
-        id: local-path
+      - name: Install Playwright Browsers
         run: |
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
-
-      - name: Install Playwright
-        run: |
-          playwright install --with-deps
+          python -m playwright install --with-deps
 
       - name: Check for missing migrations
         run: |
