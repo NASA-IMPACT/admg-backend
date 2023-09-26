@@ -58,7 +58,7 @@ class CuratorWorkflowTests(StaticLiveServerTestCase):
     def setUp(self):
         self.curator_user = UserFactory.create(username="curator", role=User.Roles.ADMIN)
         self.seasons_factory = SeasonsFactory.create(short_name="Summer")
-        self.focus_area_factory = FocusAreaFactory.create(short_name="Weather")
+        self.focus_area_factory = FocusAreaFactory.create(short_name="Stormsystem")
         self.repository_factory = RepositoryFactory.create(short_name="Unpublished")
         self.geophysical_concepts_factory = GeophysicalConceptFactory.create(short_name="Clouds")
         self.platform_type_factory = PlatformTypeFactory.create(short_name="Jet")
@@ -155,7 +155,7 @@ class CuratorWorkflowTests(StaticLiveServerTestCase):
 
             # select dropdowns based on db options
             page.select_option("select#id_model_form-seasons", label="Summer")
-            page.select_option("select#id_model_form-focus_areas", label="Weather")
+            page.select_option("select#id_model_form-focus_areas", label="Stormsystem")
             page.select_option("select#id_model_form-geophysical_concepts", label="Clouds")
             page.select_option("select#id_model_form-platform_types", label="Jet")
             page.select_option("select#id_model_form-repositories", label="Unpublished")
