@@ -57,19 +57,21 @@ class CuratorWorkflowTests(StaticLiveServerTestCase):
 
     def setUp(self):
         self.curator_user = UserFactory.create(username="curator", role=User.Roles.ADMIN)
-        self.seasons_factory = SeasonsFactory.create(short_name="Summer")
-        self.focus_area_factory = FocusAreaFactory.create(short_name="Stormsystem")
-        self.repository_factory = RepositoryFactory.create(short_name="Unpublished")
-        self.geophysical_concepts_factory = GeophysicalConceptFactory.create(short_name="Clouds")
-        self.platform_type_factory = PlatformTypeFactory.create(short_name="Jet")
-        self.instrument_factory = InstrumentFactory.create(short_name="BBR")
+        self.seasons_factory = SeasonsFactory.create(short_name="Test_Summer")
+        self.focus_area_factory = FocusAreaFactory.create(short_name="Test_Stormsystem")
+        self.repository_factory = RepositoryFactory.create(short_name="Test_Unpubished")
+        self.geophysical_concepts_factory = GeophysicalConceptFactory.create(
+            short_name="Test_Clouds"
+        )
+        self.platform_type_factory = PlatformTypeFactory.create(short_name="Test_Jet")
+        self.instrument_factory = InstrumentFactory.create(short_name="Test_BBR")
         self.gcmd_phenomenon_factory = GcmdPhenomenonFactory.create(
-            category="EARTH SCIENCE > AGRICULTURE > ANIMAL COMMODITIES",
+            category="TEST > EARTH SCIENCE > AGRICULTURE > ANIMAL COMMODITIES",
             gcmd_uuid="a943a917-29e0-47e5-a94a-497136f44678",
         )
         self.gcmd_phenomenon_factory = MeasurementRegionFactory.create(
-            example="Ionosphere",
-            short_name="Ionosphere",
+            example="Test Ionosphere",
+            short_name="Test Ionosphere",
             gcmd_uuid="a943a917-29e0-47e5-a94a-497136f44678",
         )
 
@@ -154,11 +156,11 @@ class CuratorWorkflowTests(StaticLiveServerTestCase):
             page.select_option("select#id_model_form-nasa_led", label="Yes")
 
             # select dropdowns based on db options
-            page.select_option("select#id_model_form-seasons", label="Summer")
-            page.select_option("select#id_model_form-focus_areas", label="Stormsystem")
-            page.select_option("select#id_model_form-geophysical_concepts", label="Clouds")
-            page.select_option("select#id_model_form-platform_types", label="Jet")
-            page.select_option("select#id_model_form-repositories", label="Unpublished")
+            page.select_option("select#id_model_form-seasons", label="Test_Summer")
+            page.select_option("select#id_model_form-focus_areas", label="Test_Stormsystem")
+            page.select_option("select#id_model_form-geophysical_concepts", label="Test_Clouds")
+            page.select_option("select#id_model_form-platform_types", label="Test_Jet")
+            page.select_option("select#id_model_form-repositories", label="Test_Unpubished")
 
             # Save new campaign and check successful creation
             page.locator('button:has-text("Save")').click()
@@ -213,8 +215,8 @@ class CuratorWorkflowTests(StaticLiveServerTestCase):
             # page.locator("a", has_text="Add New CDPI +").click()
             # expect(page.locator("h1", has_text="Add new CollectionPeriod draft")).to_be_visible()
 
-            # page.select_option("select#id_model_form-platform", label="Jet")
-            # page.select_option("select#id_model_form-instruments", label="BBR")
+            # page.select_option("select#id_model_form-platform", label="Test_Jet")
+            # page.select_option("select#id_model_form-instruments", label="Test_BBR")
 
             # page.select_option("select#id_model_form-auto_generated", label="No")
 
@@ -245,7 +247,7 @@ class CuratorWorkflowTests(StaticLiveServerTestCase):
             page.fill("[name=model_form-technical_contact]", "A. Vailability")
             page.select_option(
                 "select#id_model_form-gcmd_phenomena",
-                label="EARTH SCIENCE > AGRICULTURE > ANIMAL COMMODITIES",
+                label="TEST > EARTH SCIENCE > AGRICULTURE > ANIMAL COMMODITIES",
             )
             page.fill("[name=model_form-spatial_resolution]", "High")
             page.fill("[name=model_form-temporal_resolution]", "High")
@@ -253,7 +255,7 @@ class CuratorWorkflowTests(StaticLiveServerTestCase):
             page.fill("[name=model_form-radiometric_frequency]", "High")
             page.select_option(
                 "select#id_model_form-measurement_regions",
-                label="Ionosphere",
+                label="Test Ionosphere",
             )
             page.locator('button:has-text("Save")').click()
             expect(page.locator("h1", has_text="Fancy New Instrument")).to_be_visible()
