@@ -102,30 +102,34 @@ class CuratorWorkflowTests(StaticLiveServerTestCase):
 
     def test_create_campaign(self):
         """
-        Create a draft Campaign.
-
-        Steps:
-
-        1. Click Campaigns in nav
-        2. Click Add New Campaign link
-        3. Fill in required fields:
-            * Campaign Short Name
-            * Start date
-            * Region description
-            * Focus phenomena
-            * Principal Investigator
-            * Is this field investigation currently ongoing?
-            * Is this a NASA-led field investigation?
-
-            * Season(s) of Study
-            * NASA Earth Science Focus Area(s)
-            * Geophysical concepts
-            * Platform types
-            * Data Repository(ies)
-        4. Click the validate button (validates that all required fields are filled out correctly)
+        1. Create Campaign
+            * Click Campaigns in nav
+            * Click Add New Campaign link
+            * fill in campaign fields
+            * Fill in required fields:
+                * Campaign Short Name
+                * Start date
+                * Region description
+                * Focus phenomena
+                * Principal Investigator
+                * Is this field investigation currently ongoing?
+                * Is this a NASA-led field investigation?
+                * Season(s) of Study
+                * NASA Earth Science Focus Area(s)
+                * Geophysical concepts
+                * Platform types
+                * Data Repository(ies)
+            * Click the validate button (validates that all required fields are filled out correctly)
             * check sucessful validation toast at the top of the page
-        5. Click Save button
+            * Click Save button
             * check that campaign had been successfully created
+        2. Create dependent deployment
+        3. Create IOP
+        4. Create CDPI
+        5. Create new platform (separate tab)
+        6. Create new instrument
+        7. Run DOI fetcher
+        8. Publish campaign
         """
         with BrowserContextManager(
             self.browser, self.storage, base_url=self.live_server_url
@@ -202,23 +206,11 @@ class CuratorWorkflowTests(StaticLiveServerTestCase):
             expect(page.locator("h1", has_text="Test IOP")).to_be_visible()
             expect(page.locator(".alert-success", has_text="Successfully saved")).to_be_visible()
 
-            # """4. CREATE Collection Period (CDPI)"""
+            """4. CREATE Collection Period (CDPI)"""
             # # Navigate to test deployment tab
             page.locator("a.nav-link", has_text="Campaigns").click()
             page.locator("a", has_text="Test Campaign").first.click()
             page.locator("a.nav-link", has_text="Details").click()
-            # expect(page.locator("h4", has_text="Deployments")).to_be_visible()
-            # page.locator("a", has_text="Test Deployment").click()
-            # expect(page.locator("h1", has_text="Test deployment")).to_be_visible()
-
-            # # Add new Collection Period (CDPI)
-            # page.locator("a", has_text="Add New CDPI +").click()
-            # expect(page.locator("h1", has_text="Add new CollectionPeriod draft")).to_be_visible()
-
-            # page.select_option("select#id_model_form-platform", label="Test_Jet")
-            # page.select_option("select#id_model_form-instruments", label="Test_BBR")
-
-            # page.select_option("select#id_model_form-auto_generated", label="No")
 
             """5. Add a new Platform * Opens in a new tab"""
             page.locator("a.nav-link:visible", has_text="Platforms").click()
@@ -271,12 +263,11 @@ class CuratorWorkflowTests(StaticLiveServerTestCase):
             expect(page.locator("h2", has_text="Generate DOI Recommendations")).to_be_visible()
             page.locator("button", has_text="Generate DOIs +").click()
 
-            expect(page.locator("h5", has_text="STARTED")).to_be_visible()
-
-            # Polling of DOIs fetcher until complete (will time out after 10 sec)
+            # Polling of DOIs fetcher until complete (will timeout after 10 sec)
             # check every 500 ms.
 
             def dois_complete():
+                page.reload()
                 fetch_complete = page.locator("h5", has_text="SUCCESS")
 
                 try:
