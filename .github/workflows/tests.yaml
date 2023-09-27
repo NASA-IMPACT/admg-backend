@@ -106,7 +106,7 @@ jobs:
         if: ${{ failure() }}
         with:
           name: videos
-          path: videos/
+          path: app/videos/
 
       - name: Save Code Coverage
         uses: actions/upload-artifact@v3
