@@ -202,6 +202,8 @@ class CanonicalRecordPublished(ModelObjectView):
                 )
                 .exists()
             ),
+            "canonical_uuid": self.kwargs["canonical_uuid"],
+            "draft_uuid": self.kwargs["draft_uuid"],
         }
 
 

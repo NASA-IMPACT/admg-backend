@@ -129,3 +129,24 @@ class PublishedDeleteView(mixins.DynamicModelMixin, View):
         return redirect(
             reverse("change-list", kwargs={'model': self._model_config['singular_snake_case']})
         )
+
+
+@method_decorator(login_required, name="dispatch")
+class CanonicalPublishedDeleteView(mixins.DynamicModelMixin, View):
+    def dispatch(self, *args, **kwargs):
+        model_to_query = self._model_config["model"]
+        content_type = ContentType.objects.get_for_model(model_to_query)
+        change_object = Change.objects.create(
+            content_type=content_type,
+            status=Change.Statuses.CREATED,
+            action=Change.Actions.DELETE,
+            model_instance_uuid=kwargs.get("draft_uuid"),
+            update={},
+        )
+        change_object.save()
+        return redirect(
+            reverse(
+                "canonical-list",
+                kwargs={'model': self._model_config['singular_snake_case']},
+            )
+        )

@@ -48,7 +48,7 @@
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-        <a href="{% url 'published-delete' view_model object.uuid %}?back={{ request.path }}" class="btn btn-danger">
+        <a href="{% url 'canonical-published-delete' view_model canonical_uuid draft_uuid %}?back={{ request.path }}" class="btn btn-danger">
             Create Delete Draft
         </a>
       </div>
