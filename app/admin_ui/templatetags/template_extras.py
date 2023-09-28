@@ -82,7 +82,9 @@ def object_header_tabs(context, change: Change, canonical_change: Optional[Chang
     )
 
     draft_status = (
-        "Published" if not hasattr(latest_change, "status") else Change.Statuses(latest_change.status).label
+        "Published"
+        if not hasattr(latest_change, "status")
+        else Change.Statuses(latest_change.status).label
     )
 
     draft_status_class = f"draft-status-{draft_status.lower().replace(' ', '-')}"
