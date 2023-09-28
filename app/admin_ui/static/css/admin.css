@@ -82,3 +82,28 @@ dt {
 .z-1060 {
   z-index: 1060;
 }
+
+.draft-status-created { 
+  color: #fff;
+  background-color: #F37500;
+}
+
+.draft-status-in-progress { 
+  color: #fff;
+  background-color: #CF3F02;
+}
+
+.draft-status-awaiting-review, .draft-status-in-review { 
+  color: #fff;
+  background-color: #2E86AB;
+}
+
+.draft-status-awaiting-admin-review, .draft-status-in-admin-review { 
+  color: #fff;
+  background-color: #42bcd7;
+}
+
+.draft-status-published { 
+  color: #fff;
+  background-color: #4da167;
+}
