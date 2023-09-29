@@ -84,18 +84,15 @@ def object_header_tabs(context, change: Change, canonical_change: Optional[Chang
     draft_status = (
         "Published"
         if not hasattr(latest_change, "status")
-        or latest_change.status == latest_change.Statuses.PUBLISHED
-        else "Created"
-        if latest_change.status == latest_change.Statuses.CREATED
-        else "In Progress"
-        if latest_change.status == latest_change.Statuses.IN_PROGRESS
-        else "In Review"
-        if latest_change.status == latest_change.Statuses.IN_REVIEW
-        else "In Admin Review"
+        else Change.Statuses(latest_change.status).label
     )
+
+    draft_status_class = f"draft-status-{draft_status.lower().replace(' ', '-')}"
+
     return {
         "object": change,
         "draft_status": draft_status,
+        "draft_status_class": draft_status_class,
         "canonical_uuid": canonical_uuid,
         "draft_uuid": change.uuid,
         "has_progress_draft": has_progress_draft,
