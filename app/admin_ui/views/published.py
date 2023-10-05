@@ -69,7 +69,7 @@ class PublishedDetailView(ModelObjectView):
     def get_context_data(self, **kwargs):
         return {
             **super().get_context_data(**kwargs),
-            "model_form": self._get_form(instance=kwargs.get("object"), disable_all=True),
+            "model_form": self._get_form(instance=kwargs["object"], disable_all=True),
             "view_model": self._model_name,
             "display_name": self._model_config["display_name"],
             "url_name": self._model_config["singular_snake_case"],
@@ -106,7 +106,7 @@ class PublishedEditView(ModelObjectView):
     def get_context_data(self, **kwargs):
         return {
             **super().get_context_data(**kwargs),
-            "model_form": self._get_form(instance=kwargs.get("object")),
+            "model_form": self._get_form(instance=kwargs["object"]),
             "view_model": self._model_name,
             "display_name": self._model_config["display_name"],
             "url_name": self._model_config["singular_snake_case"],
@@ -122,7 +122,7 @@ class PublishedDeleteView(mixins.DynamicModelMixin, View):
             content_type=content_type,
             status=Change.Statuses.CREATED,
             action=Change.Actions.DELETE,
-            model_instance_uuid=kwargs.get("pk"),
+            model_instance_uuid=kwargs["canonical_uuid"],
             update={},
         )
         change_object.save()

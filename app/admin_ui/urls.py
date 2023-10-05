@@ -41,17 +41,17 @@ urlpatterns = [
     ),
     path("published/<str:model>", views.PublishedListView.as_view(), name="published-list"),
     path(
-        "published/<str:model>/<uuid:pk>",
+        "published/<str:model>/<uuid:canonical_uuid>",
         views.PublishedDetailView.as_view(),
         name="published-detail",
     ),
     path(
-        "published/<str:model>/<uuid:pk>/edit",
+        "published/<str:model>/<uuid:canonical_uuid>/edit",
         views.PublishedEditView.as_view(),
         name="published-edit",
     ),
     path(
-        "published/<str:model>/<uuid:pk>/delete",
+        "published/<str:model>/<uuid:canonical_uuid>/delete",
         views.PublishedDeleteView.as_view(),
         name="published-delete",
     ),
