@@ -1,5 +1,5 @@
 # pull official base image
-FROM python:3.11.1 AS builder
+FROM --platform=linux/amd64 python:3.11.1 AS builder
 
 # set environment variables
 ENV PYTHONDONTWRITEBYTECODE 1
@@ -7,7 +7,6 @@ ENV PYTHONUNBUFFERED 1
 
 # set working directory
 WORKDIR /app
-
 
 # install dependencies
 RUN apt-get update --fix-missing && apt-get install -y gdal-bin libgdal-dev postgis netcat
@@ -17,4 +16,4 @@ COPY ./app /app
 RUN pip install --upgrade pip
 RUN pip install -r /app/requirements/production.txt
 
-# ENTRYPOINT ["/app/entrypoint.sh"]
+ENTRYPOINT ["/app/entrypoint.sh"]
