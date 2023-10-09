@@ -55,7 +55,7 @@ services:
     hostname: rabbitmq
     image: rabbitmq:latest
     ports:
-      - "5672:5672"
+      - "5673:5672"
     restart: on-failure
 
   celery_worker:
