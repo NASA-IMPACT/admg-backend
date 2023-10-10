@@ -28,7 +28,7 @@ class ConditionalValueColumn(tables.Column):
             return many_values
         return value
 
-    def get_backup_value(self, **kwargs):
+    def get_backup_value(self, *, record, value, **kwargs):
         """Update drafts won't always contain the metadata that
         is needed to be displayed in the table columns. Takes the value
         originally in the row, and if the row is for an Change.Actions.UPDATE draft,
@@ -38,20 +38,12 @@ class ConditionalValueColumn(tables.Column):
         Returns:
             value (str): A value which will be displayed in the table
         """
+        if value := self._get_processed_value(value):
+            return value
 
-        record = kwargs.get("record")
-        value = self._get_processed_value(kwargs.get("value"))
-
-        # This is being called from published tables as well. Which doesn't come with a record with action attribute
-        if (
-            not value
-            and self.update_accessor
-            and getattr(record, "action", None) != Change.Actions.CREATE
-        ):
+        if self.update_accessor:
             accessor = A(self.update_accessor)
-            value = self._get_processed_value(accessor.resolve(record))
-
-        return value
+            return self._get_processed_value(accessor.resolve(record))
 
     def render(self, **kwargs):
         """Update drafts won't always contain the metadata that
