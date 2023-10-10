@@ -565,7 +565,15 @@ class CampaignChangeListTable(LimitedTableBase):
         verbose_name="Short Name",
         accessor="latest_update__short_name",
         update_accessor="content_object.short_name",
-        linkify=("change-update", [tables.A("uuid")]),
+        linkify=(
+            "canonical-redirect",
+            {
+                "canonical_uuid": tables.A('uuid'),
+                # this property is coming from an annotation on the inital query
+                "draft_uuid": tables.A('draft_uuid'),
+                "model": 'campaign',
+            },
+        ),
     )
     funding_agency = ConditionalValueColumn(
         verbose_name="Funding Agency",
@@ -575,25 +583,12 @@ class CampaignChangeListTable(LimitedTableBase):
 
     class Meta(LimitedTableBase.Meta):
         all_fields = (
-            LimitedTableBase.initial_fields + ("funding_agency",) + LimitedTableBase.final_fields
+            *LimitedTableBase.initial_fields,
+            "funding_agency",
+            *LimitedTableBase.final_fields,
         )
         fields = all_fields
         sequence = all_fields
-
-    def render_short_name(self, value, record):
-        return format_html(
-            '<a href="{form_url}">{label}</a>',
-            form_url=reverse(
-                'canonical-redirect',
-                kwargs={
-                    "canonical_uuid": record.uuid,
-                    # this property is coming from an annotation on the inital query
-                    "draft_uuid": record.draft_uuid,
-                    "model": camel_to_snake(record.model_name),
-                },
-            ),
-            label=record.latest_update.get('short_name') or '---',
-        )
 
 
 class PlatformChangeListTable(LimitedTableBase):

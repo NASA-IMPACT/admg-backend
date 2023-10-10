@@ -1,4 +1,5 @@
 from typing import Dict
+from functools import lru_cache
 
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
@@ -216,77 +217,15 @@ class CanonicalDraftEdit(NotificationSidebar, mixins.ChangeModelFormMixin, Updat
     prefix = "change"
     template_name = "api_app/canonical/change_update.html"
     pk_url_kwarg = 'canonical_uuid'
+    queryset = Change.objects.all()
 
-    def get_queryset(self):
-        return Change.objects.all()
-
-    def get(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        has_progress_draft = (
-            Change.objects.exclude(status=Change.Statuses.PUBLISHED)
-            .filter(
-                model_instance_uuid=self.canonical_change.uuid,
-                content_type=self.canonical_change.content_type,
-                action=Change.Actions.UPDATE,
-            )
-            .exists()
-        )
-
-        has_published_draft = Change.objects.filter(
-            Q(uuid=self.canonical_change.uuid) | Q(model_instance_uuid=self.canonical_change.uuid),
-            status=Change.Statuses.PUBLISHED,
-        ).exists()
-
-        if not has_progress_draft and has_published_draft:
-            return redirect(
-                reverse(
-                    "canonical-published-detail",
-                    kwargs={
-                        "canonical_uuid": self.kwargs[self.pk_url_kwarg],
-                        "draft_uuid": self.object.pk,
-                        "model": self.kwargs["model"],
-                    },
-                )
-            )
-        return super().get(request, *args, **kwargs)
-
+    @lru_cache
     def get_object(self, queryset=None):
         if not queryset:
             queryset = self.get_queryset()
         self.canonical_change = queryset.get(uuid=self.kwargs["canonical_uuid"])
-        # if the canonical record is not published, return the record itself
-        if self.canonical_change.status != Change.Statuses.PUBLISHED:
-            return self.canonical_change
 
-        # if canonical record is published, return the record where the model_instance_uuid equals our canonical_uuid
-
-        # TODO include url to make this check
-        # if there is no update in progress return most recently published object
-        if (
-            not Change.objects.exclude(status=Change.Statuses.PUBLISHED)
-            .filter(
-                model_instance_uuid=self.canonical_change.uuid,
-                content_type=self.canonical_change.content_type,
-                action=Change.Actions.UPDATE,
-            )
-            .exists()
-        ):
-            return (
-                Change.objects.filter(
-                    status=Change.Statuses.PUBLISHED,
-                    model_instance_uuid=self.kwargs["canonical_uuid"],
-                )
-                .order_by("updated_at")
-                .last()
-            )
-
-        # try:
-        # TODO: include uuid in url
-        return Change.objects.exclude(status=Change.Statuses.PUBLISHED).get(
-            model_instance_uuid=self.canonical_change.uuid,
-            content_type=self.canonical_change.content_type,
-            action=Change.Actions.UPDATE,
-        )
+        return queryset.get(uuid=self.kwargs["draft_uuid"])
 
     def get_success_url(self, **kwargs):
         url = reverse(
