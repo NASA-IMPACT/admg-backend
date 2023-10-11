@@ -1,6 +1,7 @@
 from uuid import UUID
 
 from django.urls import reverse
+from django.utils.safestring import mark_safe
 from django.utils.html import format_html
 from django_tables2 import A
 import django_tables2 as tables
@@ -149,26 +150,6 @@ class ShortNamefromUUIDColumn(ConditionalValueColumn):
 
 
 class DraftTableBase(tables.Table):
-    def get_status_display(status):
-        if status == 0:
-            return "Created"
-        if status == 1:
-            return "In Progress"
-        if status == 2:
-            return "Awaiting Review"
-        if status == 3:
-            return "In Review"
-        if status == 4:
-            return "Awaiting Admin Review"
-        if status == 5:
-            return "In Admin Review"
-        if status == 6:
-            return "Published"
-        if status == 7:
-            return "In Trash"
-        else:
-            return "---"
-
     status = tables.Column(verbose_name="Status", accessor="latest_status")
     last_published = tables.DateTimeColumn(
         verbose_name="Last Published", accessor="latest_published_at"
@@ -188,41 +169,19 @@ class DraftTableBase(tables.Table):
         sequence = ("status", "updated_at")
 
     def render_status(self, value, record):
-        if value == 0:
-            return format_html(
-                '<div  class="badge badge-pill text-white badge-warning">Created</div>',
-            )
-        if value == 1:
-            return format_html(
-                '<div class="badge badge-pill text-white badge-warning">In Progress</div>',
-            )
-        if value == 2:
-            return format_html(
-                '<div class="badge badge-pill text-white badge-warning">Awaiting Review</div>',
-            )
-        if value == 3:
-            return format_html(
-                '<div class="badge badge-pill text-white badge-warning">In Review</div>',
-            )
-        if value == 4:
-            return format_html(
-                '<div class="badge badge-pill text-white badge-warning">Awaiting Admin Review</div>',
-            )
-        if value == 5:
-            return format_html(
-                '<div class="badge badge-pill text-white badge-warning">In Admin Review</div>',
-            )
-        if value == 6:
-            return format_html(
-                '<div class="badge badge-pill text-white badge-success">Published</div>',
-            )
-
-        if value == 7:
-            return format_html(
-                '<div>In Trash</div>',
-            )
-        else:
-            return "---"
+        css_class = [
+            "draft-status-created",
+            "draft-status-in-progress",
+            "draft-status-awaiting-review",
+            "draft-status-in-review",
+            "draft-status-admin-review",
+            "draft-status-in-admin-review",
+            "draft-status-published",
+            "badge-warning",
+        ][value]
+        return mark_safe(
+            f'<div class="badge badge-pill text-white {css_class}">{record.get_status_display()}</div>'
+        )
 
 
 class LimitedTableBase(DraftTableBase):
