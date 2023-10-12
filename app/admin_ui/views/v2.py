@@ -256,11 +256,16 @@ class CanonicalDraftEdit(NotificationSidebar, mixins.ChangeModelFormMixin, Updat
             queryset = self.queryset
 
         canonical_uuid = self.kwargs["canonical_uuid"]
-        return (
+        obj = (
             queryset.filter(Q(uuid=canonical_uuid) | Q(model_instance_uuid=canonical_uuid))
             .order_by('status')
             .first()
         )
+
+        if not obj:
+            raise Http404(f'No in progress draft with Canonical UUID {canonical_uuid!r}')
+
+        return obj
 
     def get_success_url(self, **kwargs):
         url = reverse(
