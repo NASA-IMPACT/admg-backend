@@ -98,11 +98,8 @@ class CanonicalRecordList(mixins.DynamicModelMixin, SingleTableMixin, FilterView
         ).order_by("-updated_at")
 
         queryset = (
-            (
-                Change.objects.filter(action=Change.Actions.CREATE).of_type(
-                    self._model_config['model']
-                )
-            )
+            Change.objects.filter(action=Change.Actions.CREATE)
+            .of_type(self._model_config['model'])
             .annotate(
                 draft_uuid=Subquery(related_drafts.values("uuid")[:1]),
                 latest_status=Subquery(related_drafts.values("status")[:1]),

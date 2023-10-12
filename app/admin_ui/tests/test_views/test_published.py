@@ -27,38 +27,38 @@ class TestPublished:
 class TestShortNameFromUUIDColumn:
     def test_get_names_from_concrete_model(self):
         campaign = CampaignFactory()
-        column = ShortNamefromUUIDColumn(Campaign)
+        column = ShortNamefromUUIDColumn(model=Campaign, backup_accessor='')
         assert column.get_short_names([str(campaign.uuid)])[0] == campaign.short_name
 
     def test_get_name_from_concrete_model(self):
         campaign = CampaignFactory()
-        column = ShortNamefromUUIDColumn(Campaign)
+        column = ShortNamefromUUIDColumn(model=Campaign, backup_accessor='')
         assert column.get_short_name(str(campaign.uuid)) == campaign.short_name
 
     def test_get_names_from_change_model(self):
         change = ChangeFactory.make_create_change_object(
             CampaignFactory, custom_fields={"short_name": "test"}
         )
-        column = ShortNamefromUUIDColumn(Campaign)
+        column = ShortNamefromUUIDColumn(model=Campaign, backup_accessor='')
         assert column.get_short_names([str(change.uuid)])[0] == change.update["short_name"]
 
     def test_get_name_from_change_model(self):
         change = ChangeFactory.make_create_change_object(
             CampaignFactory, custom_fields={"short_name": "test"}
         )
-        column = ShortNamefromUUIDColumn(Campaign)
+        column = ShortNamefromUUIDColumn(model=Campaign, backup_accessor='')
         assert column.get_short_name(str(change.uuid)) == change.update["short_name"]
 
     def test_get_names_from_non_uuid_values(self):
         """
         Should return the provided values intact
         """
-        column = ShortNamefromUUIDColumn(Campaign)
+        column = ShortNamefromUUIDColumn(model=Campaign, backup_accessor='')
         assert column.get_short_names(["test"]) == ["test"]
 
     def test_get_name_from_non_uuid_value(self):
         """
         Should return the provided value intact
         """
-        column = ShortNamefromUUIDColumn(Campaign)
+        column = ShortNamefromUUIDColumn(model=Campaign, backup_accessor='')
         assert column.get_short_name("test") == "test"
