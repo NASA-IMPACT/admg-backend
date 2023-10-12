@@ -68,9 +68,9 @@ urlpatterns = [
         v2.CanonicalRecordPublished.as_view(),
         name="canonical-published-detail",
     ),
-    # Update for latest published draft.
+    # View latest draft for canonical record.
     path(
-        'v2/<str:model>/<uuid:canonical_uuid>/edit/<uuid:draft_uuid>',
+        'v2/<str:model>/<uuid:canonical_uuid>/edit',
         v2.CanonicalDraftEdit.as_view(),
         name="canonical-draft-edit",
     ),

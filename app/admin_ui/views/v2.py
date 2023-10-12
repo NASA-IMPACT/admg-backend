@@ -40,13 +40,12 @@ from ..tables import DraftHistoryTable
 # TODO add login requirement
 def redirect_helper(request, canonical_uuid, draft_uuid, model):
     try:
-        draft = Change.objects.get(uuid=canonical_uuid)
         has_progress_draft = (
             Change.objects.exclude(status=Change.Statuses.PUBLISHED)
-            .filter(Q(uuid=draft.uuid) | Q(model_instance_uuid=draft.uuid))
+            .filter(Q(uuid=canonical_uuid) | Q(model_instance_uuid=canonical_uuid))
             .exists()
         )
-        if draft.status == Change.Statuses.PUBLISHED and not has_progress_draft:
+        if not has_progress_draft:
             return redirect(
                 reverse(
                     "canonical-published-detail",
@@ -57,16 +56,17 @@ def redirect_helper(request, canonical_uuid, draft_uuid, model):
                     },
                 )
             )
-        # TODO return redirect to edit view
-        # return HttpResponse("Todo return redirect")
         return redirect(
             reverse(
                 "canonical-draft-edit",
-                kwargs={"canonical_uuid": canonical_uuid, "model": model, "draft_uuid": draft_uuid},
+                kwargs={
+                    "canonical_uuid": canonical_uuid,
+                    "model": model,
+                },
             )
         )
     except Change.DoesNotExist:
-        raise Http404("Canonial UI does not exist")
+        raise Http404("Canonical UI does not exist")
 
 
 # Lists all the canonical records for a given model type
@@ -216,6 +216,7 @@ class CanonicalDraftEdit(NotificationSidebar, mixins.ChangeModelFormMixin, Updat
     prefix = "change"
     template_name = "api_app/canonical/change_update.html"
     pk_url_kwarg = 'canonical_uuid'
+    queryset = Change.objects.all().exclude(status=Change.Statuses.PUBLISHED)
 
     def get_queryset(self):
         return Change.objects.all()
@@ -252,40 +253,13 @@ class CanonicalDraftEdit(NotificationSidebar, mixins.ChangeModelFormMixin, Updat
 
     def get_object(self, queryset=None):
         if not queryset:
-            queryset = self.get_queryset()
-        self.canonical_change = queryset.get(uuid=self.kwargs["canonical_uuid"])
-        # if the canonical record is not published, return the record itself
-        if self.canonical_change.status != Change.Statuses.PUBLISHED:
-            return self.canonical_change
+            queryset = self.queryset
 
-        # if canonical record is published, return the record where the model_instance_uuid equals our canonical_uuid
-
-        # TODO include url to make this check
-        # if there is no update in progress return most recently published object
-        if (
-            not Change.objects.exclude(status=Change.Statuses.PUBLISHED)
-            .filter(
-                model_instance_uuid=self.canonical_change.uuid,
-                content_type=self.canonical_change.content_type,
-                action=Change.Actions.UPDATE,
-            )
-            .exists()
-        ):
-            return (
-                Change.objects.filter(
-                    status=Change.Statuses.PUBLISHED,
-                    model_instance_uuid=self.kwargs["canonical_uuid"],
-                )
-                .order_by("updated_at")
-                .last()
-            )
-
-        # try:
-        # TODO: include uuid in url
-        return Change.objects.exclude(status=Change.Statuses.PUBLISHED).get(
-            model_instance_uuid=self.canonical_change.uuid,
-            content_type=self.canonical_change.content_type,
-            action=Change.Actions.UPDATE,
+        canonical_uuid = self.kwargs["canonical_uuid"]
+        return (
+            queryset.filter(Q(uuid=canonical_uuid) | Q(model_instance_uuid=canonical_uuid))
+            .order_by('status')
+            .first()
         )
 
     def get_success_url(self, **kwargs):
@@ -314,7 +288,6 @@ class CanonicalDraftEdit(NotificationSidebar, mixins.ChangeModelFormMixin, Updat
             "ancestors": context["object"].get_ancestors().select_related("content_type"),
             "descendents": context["object"].get_descendents().select_related("content_type"),
             "comparison_form": self._get_comparison_form(context['model_form']),
-            "canonical_object": self.canonical_change,
             "canonical_uuid": self.kwargs[self.pk_url_kwarg],
             "draft_uuid": self.object.pk,
         }
@@ -416,7 +389,6 @@ class CreateNewView(mixins.DynamicModelMixin, mixins.ChangeModelFormMixin, Creat
             kwargs={
                 "canonical_uuid": self.object.pk,
                 "model": self._model_name,
-                "draft_uuid": self.object.pk,
             },
         )
 
@@ -480,8 +452,6 @@ class CreateUpdateView(mixins.DynamicModelMixin, mixins.ChangeModelFormMixin, Cr
             kwargs={
                 "model": self._model_name,
                 "canonical_uuid": self.kwargs["canonical_uuid"],
-                # TODO: Check if this is really the right draft_UUID
-                "draft_uuid": self.object.pk,
             },
         )
 
