@@ -16,6 +16,7 @@ ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS", default=["admg.nasa-impact.net"
 CSRF_TRUSTED_ORIGINS = env.list(
     "DJANGO_CSRF_TRUSTED_ORIGINS",
     default=[
+        "https://admgdev.nasa-impact.net",
         "https://admg.nasa-impact.net",
         "https://admgstaging.nasa-impact.net",
     ],
