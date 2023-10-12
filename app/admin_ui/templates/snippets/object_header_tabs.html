@@ -7,7 +7,7 @@
     <li class="nav-item">
       <a
       class="nav-link {% if url_name == 'canonical-published-detail' %}active{% endif %} {% if not has_published_draft %}disabled{% endif %}" 
-      href="{% url 'canonical-published-detail' model=view_model canonical_uuid=canonical_uuid draft_uuid=draft_uuid%}"
+      href="{% url 'canonical-published-detail' model=view_model canonical_uuid=canonical_uuid %}"
       >
         Published
       </a>

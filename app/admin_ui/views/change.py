@@ -90,7 +90,6 @@ class SummaryView(NotificationSidebar, django_tables2.SingleTableView):
             Change.objects.of_type(*self.models)
             .filter(action=Change.Actions.CREATE)
             .annotate(
-                draft_uuid=Subquery(related_drafts.values("uuid")[:1]),
                 latest_status=Subquery(related_drafts.values("status")[:1]),
                 latest_action=Subquery(related_drafts.values("action")[:1]),
                 latest_updated_at=Subquery(related_drafts.values("updated_at")[:1]),

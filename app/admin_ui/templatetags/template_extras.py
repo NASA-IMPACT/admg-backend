@@ -94,7 +94,6 @@ def object_header_tabs(context, change: Change, canonical_change: Optional[Chang
         "draft_status": draft_status,
         "draft_status_class": draft_status_class,
         "canonical_uuid": canonical_uuid,
-        "draft_uuid": change.uuid,
         "has_progress_draft": has_progress_draft,
         "has_published_draft": has_published_draft,
         "request": context.get("request"),

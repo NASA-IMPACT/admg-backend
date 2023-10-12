@@ -505,8 +505,6 @@ class PartnerOrgChangeListTable(LimitedTableBase):
                 'canonical-redirect',
                 kwargs={
                     "canonical_uuid": record.uuid,
-                    # this property is coming from an annotation on the inital query
-                    "draft_uuid": record.draft_uuid,
                     "model": camel_to_snake(record.model_name),
                 },
             ),
@@ -526,7 +524,13 @@ class CampaignChangeListTable(LimitedTableBase):
         verbose_name="Short Name",
         accessor="latest_update__short_name",
         update_accessor="content_object.short_name",
-        linkify=("change-update", [tables.A("uuid")]),
+        linkify=(
+            "canonical-redirect",
+            {
+                "canonical_uuid": tables.A('uuid'),
+                "model": 'campaign',
+            },
+        ),
     )
     funding_agency = ConditionalValueColumn(
         verbose_name="Funding Agency",
@@ -548,8 +552,6 @@ class CampaignChangeListTable(LimitedTableBase):
                 'canonical-redirect',
                 kwargs={
                     "canonical_uuid": record.uuid,
-                    # this property is coming from an annotation on the inital query
-                    "draft_uuid": record.draft_uuid,
                     "model": camel_to_snake(record.model_name),
                 },
             ),
@@ -578,8 +580,6 @@ class PlatformChangeListTable(LimitedTableBase):
                 'canonical-redirect',
                 kwargs={
                     "canonical_uuid": record.uuid,
-                    # this property is coming from an annotation on the inital query
-                    "draft_uuid": record.draft_uuid,
                     "model": camel_to_snake(record.model_name),
                 },
             ),
@@ -600,8 +600,6 @@ class InstrumentChangeListTable(LimitedTableBase):
                 'canonical-redirect',
                 kwargs={
                     "canonical_uuid": record.uuid,
-                    # this property is coming from an annotation on the inital query
-                    "draft_uuid": record.draft_uuid,
                     "model": camel_to_snake(record.model_name),
                 },
             ),
@@ -633,8 +631,6 @@ class ChangeSummaryTable(DraftTableBase):
                 'canonical-redirect',
                 kwargs={
                     "canonical_uuid": record.model_instance_uuid or record.uuid,
-                    # TODO this change object has not property draft uuid
-                    "draft_uuid": record.uuid,
                     "model": camel_to_snake(record.model_name),
                 },
             ),
@@ -909,8 +905,6 @@ class ImageChangeListTable(DraftTableBase):
                 'canonical-redirect',
                 kwargs={
                     "canonical_uuid": record.uuid,
-                    # this property is coming from an annotation on the inital query
-                    "draft_uuid": record.draft_uuid,
                     "model": camel_to_snake(record.model_name),
                 },
             ),

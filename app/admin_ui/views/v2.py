@@ -38,7 +38,7 @@ from ..tables import DraftHistoryTable
 
 
 # TODO add login requirement
-def redirect_helper(request, canonical_uuid, draft_uuid, model):
+def redirect_helper(request, canonical_uuid, model):
     try:
         has_progress_draft = (
             Change.objects.exclude(status=Change.Statuses.PUBLISHED)
@@ -52,7 +52,6 @@ def redirect_helper(request, canonical_uuid, draft_uuid, model):
                     kwargs={
                         "canonical_uuid": canonical_uuid,
                         "model": model,
-                        "draft_uuid": draft_uuid,
                     },
                 )
             )
@@ -103,7 +102,6 @@ class CanonicalRecordList(mixins.DynamicModelMixin, SingleTableMixin, FilterView
                 )
             )
             .annotate(
-                draft_uuid=Subquery(related_drafts.values("uuid")[:1]),
                 latest_status=Subquery(related_drafts.values("status")[:1]),
                 latest_action=Subquery(related_drafts.values("action")[:1]),
                 latest_updated_at=Subquery(related_drafts.values("updated_at")[:1]),
@@ -272,7 +270,6 @@ class CanonicalDraftEdit(NotificationSidebar, mixins.ChangeModelFormMixin, Updat
             "canonical-redirect",
             kwargs={
                 "canonical_uuid": self.kwargs[self.pk_url_kwarg],
-                "draft_uuid": self.object.pk,
                 "model": self.kwargs["model"],
             },
         )
@@ -294,7 +291,6 @@ class CanonicalDraftEdit(NotificationSidebar, mixins.ChangeModelFormMixin, Updat
             "descendents": context["object"].get_descendents().select_related("content_type"),
             "comparison_form": self._get_comparison_form(context['model_form']),
             "canonical_uuid": self.kwargs[self.pk_url_kwarg],
-            "draft_uuid": self.object.pk,
         }
 
     def _get_comparison_form(self, model_form):
@@ -448,7 +444,6 @@ class CreateUpdateView(mixins.DynamicModelMixin, mixins.ChangeModelFormMixin, Cr
                 Change.objects.get(uuid=self.kwargs[self.pk_url_kwarg]).model_name.lower()
             ),
             "display_name": Change.objects.get(uuid=self.kwargs[self.pk_url_kwarg]).model_name,
-            "draft_uuid": self.object.pk,
         }
 
     def get_success_url(self):
