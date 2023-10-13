@@ -4,9 +4,8 @@ from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.views.generic.detail import DetailView
 from django_filters.views import FilterView
-from django_tables2.views import SingleTableMixin
+from django_tables2.views import SingleTableMixin, SingleTableView
 from django.forms import modelform_factory
-import django_tables2 as tables
 from django.http import Http404, HttpResponseBadRequest
 from django.shortcuts import redirect
 from django.urls import reverse
@@ -129,7 +128,7 @@ class CanonicalRecordList(mixins.DynamicModelMixin, SingleTableMixin, FilterView
 
 
 @method_decorator(login_required, name="dispatch")
-class ChangeHistoryList(mixins.DynamicModelMixin, tables.SingleTableView):
+class ChangeHistoryList(SingleTableView):
     model = Change
     table_class = DraftHistoryTable
     pk_url_kwarg = 'canonical_uuid'
@@ -143,12 +142,12 @@ class ChangeHistoryList(mixins.DynamicModelMixin, tables.SingleTableView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        view_model = Change.objects.get(uuid=self.kwargs[self.pk_url_kwarg]).model_name.lower()
+        canonical_uuid = self.kwargs[self.pk_url_kwarg]
         return {
             **context,
-            "view_model": view_model,
-            "object": Change.objects.get(uuid=self.kwargs[self.pk_url_kwarg]),
-            "canonical_uuid": self.kwargs[self.pk_url_kwarg],
+            "view_model": self.kwargs['model'],
+            "canonical_uuid": canonical_uuid,
+            "object": Change.objects.select_related('content_object').get(uuid=canonical_uuid),
         }
 
 
