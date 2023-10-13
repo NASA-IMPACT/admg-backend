@@ -479,19 +479,25 @@ class ChangeTransition(NotificationSidebar, FormMixin, ProcessFormView, DetailVi
                 mark_safe(f"<b>Unable to transition draft.</b> {format_validation_error(err)}"),
             )
         else:
-            obj = self.get_object()
             messages.success(
                 self.request,
                 (
-                    f"Transitioned \"{obj.model_name}: {obj.update.get('short_name', obj.uuid)}\" "
-                    f"to \"{obj.get_status_display()}\"."
+                    f"Transitioned {form.change.model_name}:"
+                    + f" {form.change.update.get('short_name', form.change.uuid)!r}"
+                    + f" to {form.change.get_status_display()!r}."
                 ),
             )
 
         return super().form_valid(form)
 
     def get_success_url(self):
-        return self.request.META.get("HTTP_REFERER") or super().get_success_url()
+        return reverse(
+            "canonical-redirect",
+            kwargs={
+                "canonical_uuid": self.kwargs[self.pk_url_kwarg],
+                "model": self.get_form().change.content_type.model,
+            },
+        )
 
 
 def format_validation_error(err: ValidationError) -> str:
