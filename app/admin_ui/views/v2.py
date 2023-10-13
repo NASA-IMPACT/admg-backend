@@ -3,10 +3,7 @@ from typing import Dict
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.views.generic.detail import DetailView
-from django_filters.views import FilterView
-from django_tables2.views import SingleTableMixin
 from django.forms import modelform_factory
-import django_tables2 as tables
 from django.http import Http404, HttpResponseBadRequest
 from django.shortcuts import redirect
 from django.urls import reverse
@@ -14,8 +11,10 @@ from django.contrib.contenttypes.models import ContentType
 from django.views.generic.edit import UpdateView
 from django.db.models import OuterRef, Subquery
 from django.views.generic.edit import CreateView
-from admin_ui.config import MODEL_CONFIG_MAP
+from django_filters.views import FilterView
+from django_tables2 import SingleTableView, SingleTableMixin
 
+from admin_ui.config import MODEL_CONFIG_MAP
 from admin_ui.views.published import ModelObjectView
 
 from api_app.models import Change
@@ -37,8 +36,12 @@ from api_app.urls import camel_to_snake
 from ..tables import DraftHistoryTable
 
 
-# TODO add login requirement
+@login_required
 def redirect_helper(request, canonical_uuid, model):
+    """
+    Redirect to the latest draft edit if non-publishd edit exist. Otherwise, send to
+    published detail view.
+    """
     return (
         redirect(
             reverse(
@@ -121,7 +124,7 @@ class CanonicalRecordList(mixins.DynamicModelMixin, SingleTableMixin, FilterView
 
 
 @method_decorator(login_required, name="dispatch")
-class ChangeHistoryList(mixins.DynamicModelMixin, tables.SingleTableView):
+class ChangeHistoryList(mixins.DynamicModelMixin, SingleTableView):
     model = Change
     table_class = DraftHistoryTable
     pk_url_kwarg = 'canonical_uuid'
@@ -166,13 +169,21 @@ class HistoryDetailView(ModelObjectView):
 
 @method_decorator(login_required, name="dispatch")
 class CanonicalRecordPublished(ModelObjectView):
+    """
+    Render a read-only form displaying the latest published draft.
+    """
+
     model = Change
     pk_url_kwarg = 'canonical_uuid'
     template_name = "api_app/canonical/published_detail.html"
     fields = ["content_type", "model_instance_uuid", "action", "update"]
 
     def get_model_form_content_type(self) -> ContentType:
-        return Change.objects.get(uuid=self.kwargs[self.pk_url_kwarg]).content_type
+        return (
+            Change.objects.prefetch_related('content_type')
+            .get(uuid=self.kwargs[self.pk_url_kwarg])
+            .content_type
+        )
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -191,7 +202,10 @@ class CanonicalRecordPublished(ModelObjectView):
 
 @method_decorator(login_required, name="dispatch")
 class CanonicalDraftEdit(NotificationSidebar, mixins.ChangeModelFormMixin, UpdateView):
-    """This view is in charge of editing existing drafts.
+    """
+    This view is in charge of editing the latest in-progress drafts. If no in-progress
+    drafts are available, a 404 is returned.
+
     If the draft has a related published record, a diff view is returned to the user.
     Otherwise a single form view is returned.
     """
