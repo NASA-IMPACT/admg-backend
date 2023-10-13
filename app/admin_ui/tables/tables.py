@@ -160,7 +160,9 @@ class DraftTableBase(tables.Table):
             "badge-warning",
         ][value]
         return mark_safe(
-            f'<div class="badge badge-pill text-white {css_class}">{record.get_status_display()}</div>'
+            f'<div class="badge badge-pill text-white {css_class}">'
+            + record.__class__(status=value).get_status_display()
+            + '</div>'
         )
 
 
