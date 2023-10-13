@@ -945,11 +945,8 @@ class DraftHistoryTable(tables.Table):
         fields = ("uuid", "submitted_by")
         orderable = False
 
-    def render_draft_action(self, record):
-        if approval := record.approvallog_set.first():
-            return approval.get_action_display()
-        else:
-            return "-"
+    def render_draft_action(self, record: Change):
+        return record.get_action_display()
 
     def render_submitted_by(self, record):
         if approval := record.approvallog_set.filter(action=ApprovalLog.Actions.PUBLISH).first():
