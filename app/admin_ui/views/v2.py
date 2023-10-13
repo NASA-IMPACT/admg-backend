@@ -12,7 +12,7 @@ from django.shortcuts import redirect
 from django.urls import reverse
 from django.contrib.contenttypes.models import ContentType
 from django.views.generic.edit import UpdateView
-from django.db.models import Q, OuterRef, Subquery
+from django.db.models import OuterRef, Subquery
 from django.views.generic.edit import CreateView
 from admin_ui.config import MODEL_CONFIG_MAP
 
@@ -39,23 +39,8 @@ from ..tables import DraftHistoryTable
 
 # TODO add login requirement
 def redirect_helper(request, canonical_uuid, model):
-    try:
-        has_progress_draft = (
-            Change.objects.exclude(status=Change.Statuses.PUBLISHED)
-            .filter(Q(uuid=canonical_uuid) | Q(model_instance_uuid=canonical_uuid))
-            .exists()
-        )
-        if not has_progress_draft:
-            return redirect(
-                reverse(
-                    "canonical-published-detail",
-                    kwargs={
-                        "canonical_uuid": canonical_uuid,
-                        "model": model,
-                    },
-                )
-            )
-        return redirect(
+    return (
+        redirect(
             reverse(
                 "canonical-draft-edit",
                 kwargs={
@@ -64,8 +49,17 @@ def redirect_helper(request, canonical_uuid, model):
                 },
             )
         )
-    except Change.DoesNotExist:
-        raise Http404("Canonical UI does not exist")
+        if Change.objects.related_in_progress_drafts(uuid=canonical_uuid).exists()
+        else redirect(
+            reverse(
+                "canonical-published-detail",
+                kwargs={
+                    "canonical_uuid": canonical_uuid,
+                    "model": model,
+                },
+            )
+        )
+    )
 
 
 # Lists all the canonical records for a given model type
@@ -86,9 +80,9 @@ class CanonicalRecordList(mixins.DynamicModelMixin, SingleTableMixin, FilterView
         However, we want to display the most recent related draft in the table.
         """
         # find the most recent drafts for each canonical CREATED draft
-        related_drafts = Change.objects.filter(
-            Q(model_instance_uuid=OuterRef("uuid")) | Q(uuid=OuterRef("uuid"))
-        ).order_by("status", "-updated_at")
+        related_drafts = Change.objects.related_drafts(OuterRef("uuid")).order_by(
+            "status", "-updated_at"
+        )
 
         latest_published_draft = Change.objects.filter(
             status=Change.Statuses.PUBLISHED,
@@ -134,10 +128,7 @@ class ChangeHistoryList(mixins.DynamicModelMixin, tables.SingleTableView):
     template_name = "api_app/canonical/change_history.html"
 
     def get_queryset(self):
-        return Change.objects.filter(
-            Q(model_instance_uuid=self.kwargs[self.pk_url_kwarg])
-            | Q(uuid=self.kwargs[self.pk_url_kwarg])
-        )
+        return Change.objects.related_drafts(self.kwargs[self.pk_url_kwarg])
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -192,14 +183,9 @@ class CanonicalRecordPublished(ModelObjectView):
                 Change.objects.get(uuid=self.kwargs[self.pk_url_kwarg]).model_name.lower()
             ),
             "display_name": Change.objects.get(uuid=self.kwargs[self.pk_url_kwarg]).model_name,
-            "has_progress_draft": (
-                Change.objects.exclude(status=Change.Statuses.PUBLISHED)
-                .filter(
-                    Q(uuid=self.kwargs[self.pk_url_kwarg])
-                    | Q(model_instance_uuid=self.kwargs[self.pk_url_kwarg])
-                )
-                .exists()
-            ),
+            "has_progress_draft": Change.objects.related_in_progress_drafts(
+                self.kwargs[self.pk_url_kwarg]
+            ).exists(),
         }
 
 
@@ -221,22 +207,15 @@ class CanonicalDraftEdit(NotificationSidebar, mixins.ChangeModelFormMixin, Updat
 
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()
-        has_progress_draft = (
-            Change.objects.exclude(status=Change.Statuses.PUBLISHED)
-            .filter(
-                model_instance_uuid=self.canonical_change.uuid,
-                content_type=self.canonical_change.content_type,
-                action=Change.Actions.UPDATE,
-            )
-            .exists()
+        in_progress_drafts = Change.objects.related_in_progress_drafts(
+            self.kwargs["canonical_uuid"]
         )
 
-        has_published_draft = Change.objects.filter(
-            Q(uuid=self.canonical_change.uuid) | Q(model_instance_uuid=self.canonical_change.uuid),
-            status=Change.Statuses.PUBLISHED,
-        ).exists()
+        published_drafts = Change.objects.related_drafts(self.kwargs["canonical_uuid"]).filter(
+            status=Change.Statuses.PUBLISHED
+        )
 
-        if not has_progress_draft and has_published_draft:
+        if not in_progress_drafts.exists() and published_drafts.exists():
             return redirect(
                 reverse(
                     "canonical-published-detail",
@@ -254,16 +233,10 @@ class CanonicalDraftEdit(NotificationSidebar, mixins.ChangeModelFormMixin, Updat
             queryset = self.queryset
 
         canonical_uuid = self.kwargs["canonical_uuid"]
-        obj = (
-            queryset.filter(Q(uuid=canonical_uuid) | Q(model_instance_uuid=canonical_uuid))
-            .order_by('status')
-            .first()
-        )
 
-        if not obj:
-            raise Http404(f'No in progress draft with Canonical UUID {canonical_uuid!r}')
-
-        return obj
+        if obj := queryset.related_drafts(canonical_uuid).order_by('status').first():
+            return obj
+        raise Http404(f'No in progress draft with Canonical UUID {canonical_uuid!r}')
 
     def get_success_url(self, **kwargs):
         url = reverse(
