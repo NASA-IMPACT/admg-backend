@@ -122,7 +122,7 @@ class AddAnotherChoiceFieldWidget(forms.Select):
                 published_url = reverse(
                     "published-detail",
                     kwargs={
-                        "pk": published.pk,
+                        "canonical_uuid": published.pk,
                         "model": camel_to_snake(self.model._meta.object_name),
                     },
                 )
