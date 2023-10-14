@@ -130,6 +130,10 @@ class ShortNamefromUUIDColumn(ConditionalValueColumn):
 
 
 class DraftTableBase(tables.Table):
+    """
+    Helpers for rendering any Draft.
+    """
+
     status = tables.Column(verbose_name="Status", accessor="latest_status")
     last_published = tables.DateTimeColumn(
         verbose_name="Last Published", accessor="latest_published_at"
@@ -175,7 +179,7 @@ class LimitedTableBase(DraftTableBase):
     )
     long_name = ConditionalValueColumn(
         verbose_name="Long Name",
-        accessor="latest_update__long_name",
+        accessor="update__long_name",
         update_accessor="content_object.long_name",
     )
 
@@ -187,12 +191,7 @@ class LimitedTableBase(DraftTableBase):
 
 
 class IOPChangeListTable(DraftTableBase):
-    short_name = ConditionalValueColumn(
-        verbose_name="Short Name",
-        accessor="update__short_name",
-        update_accessor="content_object.short_name",
-        linkify=("change-update", [tables.A("uuid")]),
-    )
+    short_name = LimitedTableBase.base_columns['short_name']
     deployment = ShortNamefromUUIDColumn(
         verbose_name="Deployment",
         model=Deployment,
@@ -216,18 +215,14 @@ class IOPChangeListTable(DraftTableBase):
             "deployment",
             "start_date",
             "end_date",
-        ) + DraftTableBase.final_fields
-        fields = list(all_fields)
+            *DraftTableBase.final_fields,
+        )
+        fields = all_fields
         sequence = all_fields
 
 
 class SignificantEventChangeListTable(DraftTableBase):
-    short_name = ConditionalValueColumn(
-        verbose_name="Short Name",
-        accessor="update__short_name",
-        update_accessor="content_object.short_name",
-        linkify=("change-update", [tables.A("uuid")]),
-    )
+    short_name = LimitedTableBase.base_columns['short_name']
     deployment = ShortNamefromUUIDColumn(
         verbose_name="Deployment",
         model=Deployment,
@@ -251,13 +246,13 @@ class SignificantEventChangeListTable(DraftTableBase):
             "deployment",
             "start_date",
             "end_date",
-        ) + DraftTableBase.final_fields
-        fields = list(all_fields)
+            *DraftTableBase.final_fields,
+        )
+        fields = all_fields
         sequence = all_fields
 
 
 class CollectionPeriodChangeListTable(DraftTableBase):
-    # TODO: have a calculated short_name field?
     deployment = ShortNamefromUUIDColumn(
         linkify=("change-update", [A('uuid')]),
         model=Deployment,
@@ -280,8 +275,13 @@ class CollectionPeriodChangeListTable(DraftTableBase):
     )
 
     class Meta(DraftTableBase.Meta):
-        all_fields = ("deployment", "platform", "instruments") + DraftTableBase.final_fields
-        fields = list(all_fields)
+        all_fields = (
+            "deployment",
+            "platform",
+            "instruments",
+            *DraftTableBase.final_fields,
+        )
+        fields = all_fields
         sequence = all_fields
 
 
@@ -323,8 +323,9 @@ class DOIChangeListTable(DraftTableBase):
             "campaigns",
             "platforms",
             "instruments",
-        ) + DraftTableBase.final_fields
-        fields = list(all_fields)
+            *DraftTableBase.final_fields,
+        )
+        fields = all_fields
         sequence = all_fields
 
 
@@ -348,43 +349,63 @@ class DeploymentChangeListTable(LimitedTableBase):
 
     class Meta(LimitedTableBase.Meta):
         all_fields = (
-            LimitedTableBase.initial_fields
-            + ("campaign", "start_date", "end_date")
-            + LimitedTableBase.final_fields
+            *LimitedTableBase.initial_fields,
+            "campaign",
+            "start_date",
+            "end_date",
+            *LimitedTableBase.final_fields,
         )
-        fields = list(all_fields)
+        fields = all_fields
         sequence = all_fields
 
 
 class PlatformTypeChangeListTable(LimitedTableBase):
     parent = ConditionalValueColumn(
-        verbose_name="Parent", accessor="update__parent", update_accessor="content_object.parent"
+        verbose_name="Parent",
+        accessor="update__parent",
+        update_accessor="content_object.parent",
     )
 
     class Meta(LimitedTableBase.Meta):
-        all_fields = LimitedTableBase.initial_fields + ("parent",) + LimitedTableBase.final_fields
-        fields = list(all_fields)
+        all_fields = (
+            *LimitedTableBase.initial_fields,
+            "parent",
+            *LimitedTableBase.final_fields,
+        )
+        fields = all_fields
         sequence = all_fields
 
 
 class MeasurementTypeChangeListTable(LimitedTableBase):
     parent = ConditionalValueColumn(
-        verbose_name="Parent", accessor="update__parent", update_accessor="content_object.parent"
+        verbose_name="Parent",
+        accessor="update__parent",
+        update_accessor="content_object.parent",
     )
 
     class Meta(LimitedTableBase.Meta):
-        all_fields = LimitedTableBase.initial_fields + ("parent",) + LimitedTableBase.final_fields
+        all_fields = (
+            *LimitedTableBase.initial_fields,
+            "parent",
+            *LimitedTableBase.final_fields,
+        )
         fields = all_fields
         sequence = all_fields
 
 
 class MeasurementStyleChangeListTable(LimitedTableBase):
     parent = ConditionalValueColumn(
-        verbose_name="Parent", accessor="update__parent", update_accessor="content_object.parent"
+        verbose_name="Parent",
+        accessor="update__parent",
+        update_accessor="content_object.parent",
     )
 
     class Meta(LimitedTableBase.Meta):
-        all_fields = LimitedTableBase.initial_fields + ("parent",) + LimitedTableBase.final_fields
+        all_fields = (
+            *LimitedTableBase.initial_fields,
+            "parent",
+            *LimitedTableBase.final_fields,
+        )
         fields = all_fields
         sequence = all_fields
 
@@ -397,25 +418,38 @@ class HomeBaseChangeListTable(LimitedTableBase):
     )
 
     class Meta(LimitedTableBase.Meta):
-        all_fields = LimitedTableBase.initial_fields + ("location",) + LimitedTableBase.final_fields
+        all_fields = (
+            *LimitedTableBase.initial_fields,
+            "location",
+            *LimitedTableBase.final_fields,
+        )
         fields = all_fields
         sequence = all_fields
 
 
 class FocusAreaChangeListTable(LimitedTableBase):
     url = ConditionalValueColumn(
-        verbose_name="Url", accessor="update__url", update_accessor="content_object.url"
+        verbose_name="Url",
+        accessor="update__url",
+        update_accessor="content_object.url",
     )
 
     class Meta(LimitedTableBase.Meta):
-        all_fields = LimitedTableBase.initial_fields + ("url",) + LimitedTableBase.final_fields
+        all_fields = (
+            *LimitedTableBase.initial_fields,
+            "url",
+            *LimitedTableBase.final_fields,
+        )
         fields = all_fields
         sequence = all_fields
 
 
 class SeasonChangeListTable(LimitedTableBase):
     class Meta(LimitedTableBase.Meta):
-        all_fields = LimitedTableBase.initial_fields + LimitedTableBase.final_fields
+        all_fields = (
+            *LimitedTableBase.initial_fields,
+            *LimitedTableBase.final_fields,
+        )
         fields = all_fields
         sequence = all_fields
 
@@ -429,7 +463,9 @@ class RepositoryChangeListTable(LimitedTableBase):
 
     class Meta(LimitedTableBase.Meta):
         all_fields = (
-            LimitedTableBase.initial_fields + ("gcmd_uuid",) + LimitedTableBase.final_fields
+            *LimitedTableBase.initial_fields,
+            "gcmd_uuid",
+            *LimitedTableBase.final_fields,
         )
         fields = all_fields
         sequence = all_fields
@@ -437,61 +473,70 @@ class RepositoryChangeListTable(LimitedTableBase):
 
 class MeasurementRegionChangeListTable(LimitedTableBase):
     example = ConditionalValueColumn(
-        verbose_name="Example", accessor="update__example", update_accessor="content_object.example"
+        verbose_name="Example",
+        accessor="update__example",
+        update_accessor="content_object.example",
     )
 
     class Meta(LimitedTableBase.Meta):
-        all_fields = LimitedTableBase.initial_fields + ("example",) + LimitedTableBase.final_fields
+        all_fields = (
+            *LimitedTableBase.initial_fields,
+            "example",
+            *LimitedTableBase.final_fields,
+        )
         fields = all_fields
         sequence = all_fields
 
 
 class GeographicalRegionChangeListTable(LimitedTableBase):
     example = ConditionalValueColumn(
-        verbose_name="Example", accessor="update__example", update_accessor="content_object.example"
+        verbose_name="Example",
+        accessor="update__example",
+        update_accessor="content_object.example",
     )
 
     class Meta(LimitedTableBase.Meta):
-        all_fields = LimitedTableBase.initial_fields + ("example",) + LimitedTableBase.final_fields
+        all_fields = (
+            *LimitedTableBase.initial_fields,
+            "example",
+            *LimitedTableBase.final_fields,
+        )
         fields = all_fields
         sequence = all_fields
 
 
 class GeophysicalConceptChangeListTable(LimitedTableBase):
     example = ConditionalValueColumn(
-        verbose_name="Example", accessor="update__example", update_accessor="content_object.example"
+        verbose_name="Example",
+        accessor="update__example",
+        update_accessor="content_object.example",
     )
 
     class Meta(LimitedTableBase.Meta):
-        all_fields = LimitedTableBase.initial_fields + ("example",) + LimitedTableBase.final_fields
+        all_fields = (
+            *LimitedTableBase.initial_fields,
+            "example",
+            *LimitedTableBase.final_fields,
+        )
         fields = all_fields
         sequence = all_fields
 
 
 class PartnerOrgChangeListTable(LimitedTableBase):
     website = ConditionalValueColumn(
-        verbose_name="Website", accessor="update__website", update_accessor="content_object.website"
+        verbose_name="Website",
+        accessor="update__website",
+        update_accessor="content_object.website",
     )
 
     class Meta(LimitedTableBase.Meta):
-        all_fields = LimitedTableBase.initial_fields + ("website",) + LimitedTableBase.final_fields
+        all_fields = (
+            *LimitedTableBase.initial_fields,
+            "website",
+            *LimitedTableBase.final_fields,
+        )
         fields = all_fields
         sequence = all_fields
-
-    def render_short_name(self, value, record):
-        return format_html(
-            '<a href="{form_url}">{label}</a>',
-            form_url=reverse(
-                'canonical-redirect',
-                kwargs={
-                    "canonical_uuid": record.uuid,
-                    # this property is coming from an annotation on the inital query
-                    "draft_uuid": record.draft_uuid,
-                    "model": camel_to_snake(record.model_name),
-                },
-            ),
-            label=record.update.get('short_name') or '---',
-        )
 
 
 class WebsiteTypeChangeListTable(LimitedTableBase):
@@ -541,47 +586,22 @@ class PlatformChangeListTable(LimitedTableBase):
 
     class Meta(LimitedTableBase.Meta):
         all_fields = (
-            LimitedTableBase.initial_fields + ("platform_type",) + LimitedTableBase.final_fields
+            *LimitedTableBase.initial_fields,
+            "platform_type",
+            *LimitedTableBase.final_fields,
         )
         fields = all_fields
         sequence = all_fields
-
-    def render_short_name(self, value, record):
-        return format_html(
-            '<a href="{form_url}">{label}</a>',
-            form_url=reverse(
-                'canonical-redirect',
-                kwargs={
-                    "canonical_uuid": record.uuid,
-                    # this property is coming from an annotation on the inital query
-                    "draft_uuid": record.draft_uuid,
-                    "model": camel_to_snake(record.model_name),
-                },
-            ),
-            label=record.update.get('short_name') or '---',
-        )
 
 
 class InstrumentChangeListTable(LimitedTableBase):
     class Meta(LimitedTableBase.Meta):
-        all_fields = LimitedTableBase.initial_fields + LimitedTableBase.final_fields
+        all_fields = (
+            *LimitedTableBase.initial_fields,
+            *LimitedTableBase.final_fields,
+        )
         fields = all_fields
         sequence = all_fields
-
-    def render_short_name(self, value, record):
-        return format_html(
-            '<a href="{form_url}">{label}</a>',
-            form_url=reverse(
-                'canonical-redirect',
-                kwargs={
-                    "canonical_uuid": record.uuid,
-                    # this property is coming from an annotation on the inital query
-                    "draft_uuid": record.draft_uuid,
-                    "model": camel_to_snake(record.model_name),
-                },
-            ),
-            label=record.update.get('short_name') or '---',
-        )
 
 
 # TODO: does this actually need to link to the campaign detail page?
@@ -600,21 +620,6 @@ class ChangeSummaryTable(DraftTableBase):
     last_published = tables.DateTimeColumn(
         verbose_name="Last Published", accessor="latest_published_at"
     )
-
-    def render_short_name(self, value, record):
-        return format_html(
-            '<a href="{form_url}" class="draft-link">{label}</a>',
-            form_url=reverse(
-                'canonical-redirect',
-                kwargs={
-                    "canonical_uuid": record.model_instance_uuid or record.uuid,
-                    # TODO this change object has not property draft uuid
-                    "draft_uuid": record.uuid,
-                    "model": camel_to_snake(record.model_name),
-                },
-            ),
-            label=record.update.get('short_name') or '---',
-        )
 
     class Meta:
         model = Change
@@ -640,8 +645,13 @@ class WebsiteChangeListTable(DraftTableBase):
     )
 
     class Meta(DraftTableBase.Meta):
-        all_fields = ("title", "url", "website_type") + DraftTableBase.final_fields
-        fields = list(all_fields)
+        all_fields = (
+            "title",
+            "url",
+            "website_type",
+            *DraftTableBase.final_fields,
+        )
+        fields = all_fields
         sequence = all_fields
 
 
@@ -660,8 +670,12 @@ class AliasChangeListTable(DraftTableBase):
     )
 
     class Meta(DraftTableBase.Meta):
-        all_fields = ("short_name", "model_type") + DraftTableBase.final_fields
-        fields = list(all_fields)
+        all_fields = (
+            "short_name",
+            "model_type",
+            *DraftTableBase.final_fields,
+        )
+        fields = all_fields
         sequence = all_fields
 
 
@@ -678,12 +692,19 @@ class GcmdProjectChangeListTable(DraftTableBase):
         update_accessor="content_object.long_name",
     )
     bucket = ConditionalValueColumn(
-        verbose_name="Bucket", accessor="update__bucket", update_accessor="content_object.bucket"
+        verbose_name="Bucket",
+        accessor="update__bucket",
+        update_accessor="content_object.bucket",
     )
 
     class Meta(DraftTableBase.Meta):
-        all_fields = ("short_name", "long_name", "bucket") + DraftTableBase.final_fields
-        fields = list(all_fields)
+        all_fields = (
+            "short_name",
+            "long_name",
+            "bucket",
+            *DraftTableBase.final_fields,
+        )
+        fields = all_fields
         sequence = all_fields
 
 
@@ -728,8 +749,9 @@ class GcmdInstrumentChangeListTable(DraftTableBase):
             "instrument_class",
             "instrument_type",
             "instrument_subtype",
-        ) + DraftTableBase.final_fields
-        fields = list(all_fields)
+            *DraftTableBase.final_fields,
+        )
+        fields = all_fields
         sequence = all_fields
 
 
@@ -752,8 +774,13 @@ class GcmdPlatformChangeListTable(DraftTableBase):
     )
 
     class Meta(DraftTableBase.Meta):
-        all_fields = ("short_name", "long_name", "category") + DraftTableBase.final_fields
-        fields = list(all_fields)
+        all_fields = (
+            "short_name",
+            "long_name",
+            "category",
+            *DraftTableBase.final_fields,
+        )
+        fields = all_fields
         sequence = all_fields
 
 
@@ -775,10 +802,14 @@ class GcmdPhenomenonChangeListTable(DraftTableBase):
         update_accessor="content_object.variable_1",
     )
     term = ConditionalValueColumn(
-        verbose_name="Term", accessor="update__term", update_accessor="content_object.term"
+        verbose_name="Term",
+        accessor="update__term",
+        update_accessor="content_object.term",
     )
     topic = ConditionalValueColumn(
-        verbose_name="Topic", accessor="update__topic", update_accessor="content_object.topic"
+        verbose_name="Topic",
+        accessor="update__topic",
+        update_accessor="content_object.topic",
     )
     category = ConditionalValueColumn(
         verbose_name="Category",
@@ -794,8 +825,9 @@ class GcmdPhenomenonChangeListTable(DraftTableBase):
             "term",
             "topic",
             "category",
-        ) + DraftTableBase.final_fields
-        fields = list(all_fields)
+            *DraftTableBase.final_fields,
+        )
+        fields = all_fields
         sequence = all_fields
 
 
@@ -860,7 +892,7 @@ class GcmdSyncListTable(DraftTableBase):
             "status",
             "affected_records",
         )
-        fields = list(all_fields)
+        fields = all_fields
         sequence = all_fields
 
 
@@ -873,24 +905,12 @@ class ImageChangeListTable(DraftTableBase):
     )
 
     class Meta(DraftTableBase.Meta):
-        all_fields = ("title",) + DraftTableBase.final_fields
-        fields = list(all_fields)
-        sequence = all_fields
-
-    def render_short_name(self, value, record):
-        return format_html(
-            '<a href="{form_url}">{label}</a>',
-            form_url=reverse(
-                'canonical-redirect',
-                kwargs={
-                    "canonical_uuid": record.uuid,
-                    # this property is coming from an annotation on the inital query
-                    "draft_uuid": record.draft_uuid,
-                    "model": camel_to_snake(record.model_name),
-                },
-            ),
-            label=record.update.get('short_name') or '---',
+        all_fields = (
+            "title",
+            *DraftTableBase.final_fields,
         )
+        fields = all_fields
+        sequence = all_fields
 
 
 # This table renders a list of historical drafts
