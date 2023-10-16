@@ -523,7 +523,7 @@ class CampaignChangeListTable(LimitedTableBase):
     short_name = BackupValueColumn(
         verbose_name="Short Name",
         accessor="latest_update__short_name",
-        update_accessor="content_object.short_name",
+        backup_accessor="content_object.short_name",
         linkify=(
             "canonical-redirect",
             {
