@@ -914,13 +914,14 @@ class ImageChangeListTable(DraftTableBase):
 
 # This table renders a list of historical drafts
 class DraftHistoryTable(tables.Table):
-    draft_action = tables.Column(empty_values=())
+    draft_action = tables.Column(accessor=tables.A('action'))
     submitted_by = tables.Column(empty_values=())
     reviewed_by = tables.Column(empty_values=())
     published_by = tables.Column(empty_values=())
     published_date = tables.Column(empty_values=())
 
     uuid = tables.Column(
+        verbose_name="UUID",
         linkify=(
             lambda record: reverse(
                 "historical-detail",
@@ -938,12 +939,6 @@ class DraftHistoryTable(tables.Table):
         template_name = "django_tables2/bootstrap.html"
         fields = ("uuid", "submitted_by")
         orderable = False
-
-    def render_draft_action(self, record):
-        if approval := record.approvallog_set.first():
-            return approval.get_action_display()
-        else:
-            return "-"
 
     def render_submitted_by(self, record):
         if approval := record.approvallog_set.filter(action=ApprovalLog.Actions.PUBLISH).first():
