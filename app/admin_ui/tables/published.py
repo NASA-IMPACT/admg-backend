@@ -29,7 +29,7 @@ from data_models.models import (
     WebsiteType,
 )
 
-from .tables import ConditionalValueColumn, ShortNamefromUUIDColumn
+from .tables import BackupValueColumn, ShortNamefromUUIDColumn
 
 
 class LimitedTableBase(tables.Table):
@@ -46,7 +46,7 @@ class LimitedTableBase(tables.Table):
 
 
 class IOPPublishedTable(tables.Table):
-    short_name = ConditionalValueColumn(
+    short_name = BackupValueColumn(
         linkify=(
             "published-detail",
             dict(canonical_uuid=tables.A("uuid"), model=camel_to_snake('IOP')),
@@ -70,7 +70,7 @@ class IOPPublishedTable(tables.Table):
 
 
 class SignificantEventPublishedTable(tables.Table):
-    short_name = ConditionalValueColumn(
+    short_name = BackupValueColumn(
         linkify=(
             "published-detail",
             dict(canonical_uuid=tables.A("uuid"), model=camel_to_snake('SignificantEvent')),
@@ -123,7 +123,7 @@ class CollectionPeriodPublishedTable(tables.Table):
 
 
 class DOIPublishedTable(tables.Table):
-    concept_id = ConditionalValueColumn(
+    concept_id = BackupValueColumn(
         linkify=(
             "published-detail",
             dict(canonical_uuid=tables.A("uuid"), model=camel_to_snake('DOI')),
@@ -154,7 +154,7 @@ class DOIPublishedTable(tables.Table):
 
 
 class DeploymentPublishedTable(LimitedTableBase):
-    short_name = ConditionalValueColumn(
+    short_name = BackupValueColumn(
         linkify=(
             "published-detail",
             dict(canonical_uuid=tables.A("uuid"), model=camel_to_snake('Deployment')),
@@ -176,7 +176,7 @@ class DeploymentPublishedTable(LimitedTableBase):
 
 
 class PlatformTypePublishedTable(LimitedTableBase):
-    short_name = ConditionalValueColumn(
+    short_name = BackupValueColumn(
         linkify=(
             "published-detail",
             dict(canonical_uuid=tables.A("uuid"), model=camel_to_snake('PlatformType')),
@@ -193,7 +193,7 @@ class PlatformTypePublishedTable(LimitedTableBase):
 
 
 class MeasurementTypePublishedTable(LimitedTableBase):
-    short_name = ConditionalValueColumn(
+    short_name = BackupValueColumn(
         linkify=(
             "published-detail",
             dict(canonical_uuid=tables.A("uuid"), model=camel_to_snake('MeasurementType')),
@@ -210,7 +210,7 @@ class MeasurementTypePublishedTable(LimitedTableBase):
 
 
 class MeasurementStylePublishedTable(LimitedTableBase):
-    short_name = ConditionalValueColumn(
+    short_name = BackupValueColumn(
         linkify=(
             "published-detail",
             dict(canonical_uuid=tables.A("uuid"), model=camel_to_snake('MeasurementStyle')),
@@ -227,7 +227,7 @@ class MeasurementStylePublishedTable(LimitedTableBase):
 
 
 class HomeBasePublishedTable(LimitedTableBase):
-    short_name = ConditionalValueColumn(
+    short_name = BackupValueColumn(
         linkify=(
             "published-detail",
             dict(canonical_uuid=tables.A("uuid"), model=camel_to_snake('HomeBase')),
@@ -244,7 +244,7 @@ class HomeBasePublishedTable(LimitedTableBase):
 
 
 class FocusAreaPublishedTable(LimitedTableBase):
-    short_name = ConditionalValueColumn(
+    short_name = BackupValueColumn(
         linkify=(
             "published-detail",
             dict(canonical_uuid=tables.A("uuid"), model=camel_to_snake('FocusArea')),
@@ -261,7 +261,7 @@ class FocusAreaPublishedTable(LimitedTableBase):
 
 
 class SeasonPublishedTable(LimitedTableBase):
-    short_name = ConditionalValueColumn(
+    short_name = BackupValueColumn(
         linkify=(
             "published-detail",
             dict(canonical_uuid=tables.A("uuid"), model=camel_to_snake('Season')),
@@ -278,7 +278,7 @@ class SeasonPublishedTable(LimitedTableBase):
 
 
 class RepositoryPublishedTable(LimitedTableBase):
-    short_name = ConditionalValueColumn(
+    short_name = BackupValueColumn(
         linkify=(
             "published-detail",
             dict(canonical_uuid=tables.A("uuid"), model=camel_to_snake('Repository')),
@@ -295,7 +295,7 @@ class RepositoryPublishedTable(LimitedTableBase):
 
 
 class MeasurementRegionPublishedTable(LimitedTableBase):
-    short_name = ConditionalValueColumn(
+    short_name = BackupValueColumn(
         linkify=(
             "published-detail",
             dict(canonical_uuid=tables.A("uuid"), model=camel_to_snake('MeasurementRegion')),
@@ -315,7 +315,7 @@ class MeasurementRegionPublishedTable(LimitedTableBase):
 
 
 class GeographicalRegionPublishedTable(LimitedTableBase):
-    short_name = ConditionalValueColumn(
+    short_name = BackupValueColumn(
         linkify=(
             "published-detail",
             dict(canonical_uuid=tables.A("uuid"), model=camel_to_snake('GeographicalRegion')),
@@ -332,7 +332,7 @@ class GeographicalRegionPublishedTable(LimitedTableBase):
 
 
 class GeophysicalConceptPublishedTable(LimitedTableBase):
-    short_name = ConditionalValueColumn(
+    short_name = BackupValueColumn(
         linkify=(
             "published-detail",
             dict(canonical_uuid=tables.A("uuid"), model=camel_to_snake('GeophysicalConcept')),
@@ -349,7 +349,7 @@ class GeophysicalConceptPublishedTable(LimitedTableBase):
 
 
 class PartnerOrgPublishedTable(LimitedTableBase):
-    short_name = ConditionalValueColumn(
+    short_name = BackupValueColumn(
         linkify=(
             "published-detail",
             dict(canonical_uuid=tables.A("uuid"), model=camel_to_snake('PartnerOrg')),
@@ -366,7 +366,7 @@ class PartnerOrgPublishedTable(LimitedTableBase):
 
 
 class WebsiteTypePublishedTable(LimitedTableBase):
-    short_name = ConditionalValueColumn(
+    short_name = BackupValueColumn(
         linkify=(
             "published-detail",
             dict(canonical_uuid=tables.A("uuid"), model=camel_to_snake('WebsiteType')),
@@ -383,7 +383,7 @@ class WebsiteTypePublishedTable(LimitedTableBase):
 
 
 class CampaignPublishedTable(LimitedTableBase):
-    short_name = ConditionalValueColumn(
+    short_name = BackupValueColumn(
         linkify=(
             "published-detail",
             dict(canonical_uuid=tables.A("uuid"), model=camel_to_snake('Campaign')),
@@ -400,7 +400,7 @@ class CampaignPublishedTable(LimitedTableBase):
 
 
 class PlatformPublishedTable(LimitedTableBase):
-    short_name = ConditionalValueColumn(
+    short_name = BackupValueColumn(
         linkify=(
             "published-detail",
             dict(canonical_uuid=tables.A("uuid"), model=camel_to_snake('Platform')),
@@ -417,7 +417,7 @@ class PlatformPublishedTable(LimitedTableBase):
 
 
 class InstrumentPublishedTable(LimitedTableBase):
-    short_name = ConditionalValueColumn(
+    short_name = BackupValueColumn(
         linkify=(
             "published-detail",
             dict(canonical_uuid=tables.A("uuid"), model=camel_to_snake('Instrument')),
@@ -434,7 +434,7 @@ class InstrumentPublishedTable(LimitedTableBase):
 
 
 class WebsitePublishedTable(tables.Table):
-    title = ConditionalValueColumn(
+    title = BackupValueColumn(
         linkify=(
             "published-detail",
             dict(canonical_uuid=tables.A("uuid"), model=camel_to_snake('Website')),
@@ -452,7 +452,7 @@ class WebsitePublishedTable(tables.Table):
 
 
 class AliasPublishedTable(LimitedTableBase):
-    short_name = ConditionalValueColumn(
+    short_name = BackupValueColumn(
         linkify=(
             "published-detail",
             dict(canonical_uuid=tables.A("uuid"), model=camel_to_snake('Alias')),
@@ -470,7 +470,7 @@ class AliasPublishedTable(LimitedTableBase):
 
 
 class GcmdProjectPublishedTable(LimitedTableBase):
-    short_name = ConditionalValueColumn(
+    short_name = BackupValueColumn(
         linkify=(
             "published-detail",
             dict(canonical_uuid=tables.A("uuid"), model=camel_to_snake('GcmdProject')),
@@ -487,7 +487,7 @@ class GcmdProjectPublishedTable(LimitedTableBase):
 
 
 class GcmdInstrumentPublishedTable(LimitedTableBase):
-    short_name = ConditionalValueColumn(
+    short_name = BackupValueColumn(
         linkify=(
             "published-detail",
             dict(canonical_uuid=tables.A("uuid"), model=camel_to_snake('GcmdInstrument')),
@@ -518,7 +518,7 @@ class GcmdInstrumentPublishedTable(LimitedTableBase):
 
 
 class GcmdPlatformPublishedTable(LimitedTableBase):
-    short_name = ConditionalValueColumn(
+    short_name = BackupValueColumn(
         linkify=(
             "published-detail",
             dict(canonical_uuid=tables.A("uuid"), model=camel_to_snake('GcmdPlatform')),
@@ -535,7 +535,7 @@ class GcmdPlatformPublishedTable(LimitedTableBase):
 
 
 class GcmdPhenomenonPublishedTable(tables.Table):
-    variable_3 = ConditionalValueColumn(
+    variable_3 = BackupValueColumn(
         linkify=(
             "published-detail",
             dict(canonical_uuid=tables.A("uuid"), model=camel_to_snake('GcmdPhenomenon')),
@@ -556,7 +556,7 @@ class GcmdPhenomenonPublishedTable(tables.Table):
 
 
 class ImagePublishedTable(tables.Table):
-    title = ConditionalValueColumn(
+    title = BackupValueColumn(
         linkify=(
             "published-detail",
             dict(canonical_uuid=tables.A("uuid"), model=camel_to_snake('Image')),
