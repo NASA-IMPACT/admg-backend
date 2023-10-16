@@ -18,15 +18,15 @@ from data_models.models import (
 from api_app.models import ApprovalLog
 
 
-class ConditionalValueColumn(tables.Column):
+class BackupValueColumn(tables.Column):
     """
     Attempt to retrieve a value from a record. If that value is not available (ie is None),
     attempt to retrieve the value from a backup location.
     """
 
-    def __init__(self, update_accessor=None, **kwargs):
+    def __init__(self, backup_accessor=None, **kwargs):
         super().__init__(**kwargs, empty_values=())
-        self.update_accessor = update_accessor
+        self.backup_accessor = backup_accessor
 
     def _get_processed_value(self, value):
         if value.__class__.__name__ == "ManyRelatedManager":
@@ -49,7 +49,7 @@ class ConditionalValueColumn(tables.Column):
         return self._get_processed_value(value) or "---"
 
 
-class ShortNamefromUUIDColumn(ConditionalValueColumn):
+class ShortNamefromUUIDColumn(BackupValueColumn):
     def __init__(self, model=None, **kwargs):
         super().__init__(**kwargs)
         self.model = model
@@ -167,16 +167,16 @@ class DraftTableBase(tables.Table):
 
 
 class LimitedTableBase(DraftTableBase):
-    short_name = ConditionalValueColumn(
+    short_name = BackupValueColumn(
         verbose_name="Short Name",
         accessor="update__short_name",
-        update_accessor="content_object.short_name",
+        backup_accessor="content_object.short_name",
         linkify=("change-update", [tables.A("uuid")]),
     )
-    long_name = ConditionalValueColumn(
+    long_name = BackupValueColumn(
         verbose_name="Long Name",
         accessor="latest_update__long_name",
-        update_accessor="content_object.long_name",
+        backup_accessor="content_object.long_name",
     )
 
     initial_fields = ("short_name", "long_name")
@@ -187,27 +187,27 @@ class LimitedTableBase(DraftTableBase):
 
 
 class IOPChangeListTable(DraftTableBase):
-    short_name = ConditionalValueColumn(
+    short_name = BackupValueColumn(
         verbose_name="Short Name",
         accessor="update__short_name",
-        update_accessor="content_object.short_name",
+        backup_accessor="content_object.short_name",
         linkify=("change-update", [tables.A("uuid")]),
     )
     deployment = ShortNamefromUUIDColumn(
         verbose_name="Deployment",
         model=Deployment,
         accessor="update__deployment",
-        update_accessor="content_object.deployment",
+        backup_accessor="content_object.deployment",
     )
-    start_date = ConditionalValueColumn(
+    start_date = BackupValueColumn(
         verbose_name="Start Date",
         accessor="update__start_date",
-        update_accessor="content_object.start_date",
+        backup_accessor="content_object.start_date",
     )
-    end_date = ConditionalValueColumn(
+    end_date = BackupValueColumn(
         verbose_name="End Date",
         accessor="update__end_date",
-        update_accessor="content_object.end_date",
+        backup_accessor="content_object.end_date",
     )
 
     class Meta(DraftTableBase.Meta):
@@ -222,27 +222,27 @@ class IOPChangeListTable(DraftTableBase):
 
 
 class SignificantEventChangeListTable(DraftTableBase):
-    short_name = ConditionalValueColumn(
+    short_name = BackupValueColumn(
         verbose_name="Short Name",
         accessor="update__short_name",
-        update_accessor="content_object.short_name",
+        backup_accessor="content_object.short_name",
         linkify=("change-update", [tables.A("uuid")]),
     )
     deployment = ShortNamefromUUIDColumn(
         verbose_name="Deployment",
         model=Deployment,
         accessor="update__deployment",
-        update_accessor="content_object.deployment",
+        backup_accessor="content_object.deployment",
     )
-    start_date = ConditionalValueColumn(
+    start_date = BackupValueColumn(
         verbose_name="Start Date",
         accessor="update__start_date",
-        update_accessor="content_object.start_date",
+        backup_accessor="content_object.start_date",
     )
-    end_date = ConditionalValueColumn(
+    end_date = BackupValueColumn(
         verbose_name="End Date",
         accessor="update__end_date",
-        update_accessor="content_object.end_date",
+        backup_accessor="content_object.end_date",
     )
 
     class Meta(DraftTableBase.Meta):
@@ -263,20 +263,20 @@ class CollectionPeriodChangeListTable(DraftTableBase):
         model=Deployment,
         verbose_name="Deployment",
         accessor="update__deployment",
-        update_accessor="content_object.deployment",
+        backup_accessor="content_object.deployment",
     )
 
     platform = ShortNamefromUUIDColumn(
         verbose_name="Platform",
         model=Platform,
         accessor="update__platform",
-        update_accessor="content_object.platform",
+        backup_accessor="content_object.platform",
     )
     instruments = ShortNamefromUUIDColumn(
         verbose_name="Instruments",
         model=Instrument,
         accessor="update__instruments",
-        update_accessor="content_object.instruments",
+        backup_accessor="content_object.instruments",
     )
 
     class Meta(DraftTableBase.Meta):
@@ -286,34 +286,34 @@ class CollectionPeriodChangeListTable(DraftTableBase):
 
 
 class DOIChangeListTable(DraftTableBase):
-    concept_id = ConditionalValueColumn(
+    concept_id = BackupValueColumn(
         verbose_name="Concept ID",
         accessor="update__concept_id",
-        update_accessor="content_object.concept_id",
+        backup_accessor="content_object.concept_id",
         linkify=("change-update", [tables.A("uuid")]),
     )
-    long_name = ConditionalValueColumn(
+    long_name = BackupValueColumn(
         verbose_name="Long Name",
         accessor="update__long_name",
-        update_accessor="content_object.long_name",
+        backup_accessor="content_object.long_name",
     )
     campaigns = ShortNamefromUUIDColumn(
         verbose_name="Campaigns",
         model=Campaign,
         accessor="update__campaigns",
-        update_accessor="content_object.campaigns",
+        backup_accessor="content_object.campaigns",
     )
     platforms = ShortNamefromUUIDColumn(
         verbose_name="Platforms",
         model=Platform,
         accessor="update__platforms",
-        update_accessor="content_object.platforms",
+        backup_accessor="content_object.platforms",
     )
     instruments = ShortNamefromUUIDColumn(
         verbose_name="Instruments",
         model=Instrument,
         accessor="update__instruments",
-        update_accessor="content_object.instruments",
+        backup_accessor="content_object.instruments",
     )
 
     class Meta(DraftTableBase.Meta):
@@ -333,17 +333,17 @@ class DeploymentChangeListTable(LimitedTableBase):
         verbose_name="Campaign",
         model=Campaign,
         accessor="update__campaign",
-        update_accessor="content_object.campaign",
+        backup_accessor="content_object.campaign",
     )
-    start_date = ConditionalValueColumn(
+    start_date = BackupValueColumn(
         verbose_name="Start Date",
         accessor="update__start_date",
-        update_accessor="content_object.start_date",
+        backup_accessor="content_object.start_date",
     )
-    end_date = ConditionalValueColumn(
+    end_date = BackupValueColumn(
         verbose_name="End Date",
         accessor="update__end_date",
-        update_accessor="content_object.end_date",
+        backup_accessor="content_object.end_date",
     )
 
     class Meta(LimitedTableBase.Meta):
@@ -357,8 +357,8 @@ class DeploymentChangeListTable(LimitedTableBase):
 
 
 class PlatformTypeChangeListTable(LimitedTableBase):
-    parent = ConditionalValueColumn(
-        verbose_name="Parent", accessor="update__parent", update_accessor="content_object.parent"
+    parent = BackupValueColumn(
+        verbose_name="Parent", accessor="update__parent", backup_accessor="content_object.parent"
     )
 
     class Meta(LimitedTableBase.Meta):
@@ -368,8 +368,8 @@ class PlatformTypeChangeListTable(LimitedTableBase):
 
 
 class MeasurementTypeChangeListTable(LimitedTableBase):
-    parent = ConditionalValueColumn(
-        verbose_name="Parent", accessor="update__parent", update_accessor="content_object.parent"
+    parent = BackupValueColumn(
+        verbose_name="Parent", accessor="update__parent", backup_accessor="content_object.parent"
     )
 
     class Meta(LimitedTableBase.Meta):
@@ -379,8 +379,8 @@ class MeasurementTypeChangeListTable(LimitedTableBase):
 
 
 class MeasurementStyleChangeListTable(LimitedTableBase):
-    parent = ConditionalValueColumn(
-        verbose_name="Parent", accessor="update__parent", update_accessor="content_object.parent"
+    parent = BackupValueColumn(
+        verbose_name="Parent", accessor="update__parent", backup_accessor="content_object.parent"
     )
 
     class Meta(LimitedTableBase.Meta):
@@ -390,10 +390,10 @@ class MeasurementStyleChangeListTable(LimitedTableBase):
 
 
 class HomeBaseChangeListTable(LimitedTableBase):
-    location = ConditionalValueColumn(
+    location = BackupValueColumn(
         verbose_name="Location",
         accessor="update__location",
-        update_accessor="content_object.location",
+        backup_accessor="content_object.location",
     )
 
     class Meta(LimitedTableBase.Meta):
@@ -403,8 +403,8 @@ class HomeBaseChangeListTable(LimitedTableBase):
 
 
 class FocusAreaChangeListTable(LimitedTableBase):
-    url = ConditionalValueColumn(
-        verbose_name="Url", accessor="update__url", update_accessor="content_object.url"
+    url = BackupValueColumn(
+        verbose_name="Url", accessor="update__url", backup_accessor="content_object.url"
     )
 
     class Meta(LimitedTableBase.Meta):
@@ -421,10 +421,10 @@ class SeasonChangeListTable(LimitedTableBase):
 
 
 class RepositoryChangeListTable(LimitedTableBase):
-    gcmd_uuid = ConditionalValueColumn(
+    gcmd_uuid = BackupValueColumn(
         verbose_name="GCMD UUID",
         accessor="update__gcmd_uuid",
-        update_accessor="content_object.gcmd_uuid",
+        backup_accessor="content_object.gcmd_uuid",
     )
 
     class Meta(LimitedTableBase.Meta):
@@ -436,8 +436,8 @@ class RepositoryChangeListTable(LimitedTableBase):
 
 
 class MeasurementRegionChangeListTable(LimitedTableBase):
-    example = ConditionalValueColumn(
-        verbose_name="Example", accessor="update__example", update_accessor="content_object.example"
+    example = BackupValueColumn(
+        verbose_name="Example", accessor="update__example", backup_accessor="content_object.example"
     )
 
     class Meta(LimitedTableBase.Meta):
@@ -447,8 +447,8 @@ class MeasurementRegionChangeListTable(LimitedTableBase):
 
 
 class GeographicalRegionChangeListTable(LimitedTableBase):
-    example = ConditionalValueColumn(
-        verbose_name="Example", accessor="update__example", update_accessor="content_object.example"
+    example = BackupValueColumn(
+        verbose_name="Example", accessor="update__example", backup_accessor="content_object.example"
     )
 
     class Meta(LimitedTableBase.Meta):
@@ -458,8 +458,8 @@ class GeographicalRegionChangeListTable(LimitedTableBase):
 
 
 class GeophysicalConceptChangeListTable(LimitedTableBase):
-    example = ConditionalValueColumn(
-        verbose_name="Example", accessor="update__example", update_accessor="content_object.example"
+    example = BackupValueColumn(
+        verbose_name="Example", accessor="update__example", backup_accessor="content_object.example"
     )
 
     class Meta(LimitedTableBase.Meta):
@@ -469,8 +469,8 @@ class GeophysicalConceptChangeListTable(LimitedTableBase):
 
 
 class PartnerOrgChangeListTable(LimitedTableBase):
-    website = ConditionalValueColumn(
-        verbose_name="Website", accessor="update__website", update_accessor="content_object.website"
+    website = BackupValueColumn(
+        verbose_name="Website", accessor="update__website", backup_accessor="content_object.website"
     )
 
     class Meta(LimitedTableBase.Meta):
@@ -487,8 +487,6 @@ class PartnerOrgChangeListTable(LimitedTableBase):
                 'canonical-redirect',
                 kwargs={
                     "canonical_uuid": record.uuid,
-                    # this property is coming from an annotation on the inital query
-                    "draft_uuid": record.draft_uuid,
                     "model": camel_to_snake(record.model_name),
                 },
             ),
@@ -504,24 +502,22 @@ class WebsiteTypeChangeListTable(LimitedTableBase):
 
 
 class CampaignChangeListTable(LimitedTableBase):
-    short_name = ConditionalValueColumn(
+    short_name = BackupValueColumn(
         verbose_name="Short Name",
         accessor="latest_update__short_name",
-        update_accessor="content_object.short_name",
+        backup_accessor="content_object.short_name",
         linkify=(
             "canonical-redirect",
             {
                 "canonical_uuid": tables.A('uuid'),
-                # this property is coming from an annotation on the inital query
-                "draft_uuid": tables.A('draft_uuid'),
                 "model": 'campaign',
             },
         ),
     )
-    funding_agency = ConditionalValueColumn(
+    funding_agency = BackupValueColumn(
         verbose_name="Funding Agency",
         accessor="latest_update__funding_agency",
-        update_accessor="content_object.funding_agency",
+        backup_accessor="content_object.funding_agency",
     )
 
     class Meta(LimitedTableBase.Meta):
@@ -535,10 +531,10 @@ class CampaignChangeListTable(LimitedTableBase):
 
 
 class PlatformChangeListTable(LimitedTableBase):
-    platform_type = ConditionalValueColumn(
+    platform_type = BackupValueColumn(
         verbose_name="Platform Type",
         accessor="platform_type_name",
-        update_accessor="content_object.platform_type",
+        backup_accessor="content_object.platform_type",
     )
 
     class Meta(LimitedTableBase.Meta):
@@ -557,8 +553,6 @@ class PlatformChangeListTable(LimitedTableBase):
                 'canonical-redirect',
                 kwargs={
                     "canonical_uuid": record.uuid,
-                    # this property is coming from an annotation on the inital query
-                    "draft_uuid": record.draft_uuid,
                     "model": camel_to_snake(record.model_name),
                 },
             ),
@@ -581,8 +575,6 @@ class InstrumentChangeListTable(LimitedTableBase):
                 'canonical-redirect',
                 kwargs={
                     "canonical_uuid": record.uuid,
-                    # this property is coming from an annotation on the inital query
-                    "draft_uuid": record.draft_uuid,
                     "model": camel_to_snake(record.model_name),
                 },
             ),
@@ -592,10 +584,10 @@ class InstrumentChangeListTable(LimitedTableBase):
 
 # TODO: does this actually need to link to the campaign detail page?
 class ChangeSummaryTable(DraftTableBase):
-    short_name = ConditionalValueColumn(
+    short_name = BackupValueColumn(
         verbose_name="Short Name",
         accessor="update__short_name",
-        update_accessor="content_object.short_name",
+        backup_accessor="content_object.short_name",
         linkify=("change-update", [tables.A("uuid")]),
     )
     content_type__model = tables.Column(
@@ -616,8 +608,6 @@ class ChangeSummaryTable(DraftTableBase):
                 'canonical-redirect',
                 kwargs={
                     "canonical_uuid": record.model_instance_uuid or record.uuid,
-                    # TODO this change object has not property draft uuid
-                    "draft_uuid": record.uuid,
                     "model": camel_to_snake(record.model_name),
                 },
             ),
@@ -631,20 +621,20 @@ class ChangeSummaryTable(DraftTableBase):
 
 
 class WebsiteChangeListTable(DraftTableBase):
-    title = ConditionalValueColumn(
+    title = BackupValueColumn(
         verbose_name="Title",
         accessor="update__title",
-        update_accessor="content_object.title",
+        backup_accessor="content_object.title",
         linkify=("change-update", [tables.A("uuid")]),
     )
-    url = ConditionalValueColumn(
-        verbose_name="URL", accessor="update__url", update_accessor="content_object.url"
+    url = BackupValueColumn(
+        verbose_name="URL", accessor="update__url", backup_accessor="content_object.url"
     )
     website_type = ShortNamefromUUIDColumn(
         verbose_name="Website Type",
         model=WebsiteType,
         accessor="update__website_type",
-        update_accessor="content_object.website_type",
+        backup_accessor="content_object.website_type",
     )
 
     class Meta(DraftTableBase.Meta):
@@ -654,17 +644,17 @@ class WebsiteChangeListTable(DraftTableBase):
 
 
 class AliasChangeListTable(DraftTableBase):
-    short_name = ConditionalValueColumn(
+    short_name = BackupValueColumn(
         verbose_name="Short Name",
         accessor="update__short_name",
-        update_accessor="content_object.short_name",
+        backup_accessor="content_object.short_name",
         linkify=("change-update", [tables.A("uuid")]),
     )
     # TODO replace model_type which short_name of related object
-    model_type = ConditionalValueColumn(
+    model_type = BackupValueColumn(
         verbose_name="Item Type",
         accessor="update__model_name",
-        update_accessor="content_object.model_name",
+        backup_accessor="content_object.model_name",
     )
 
     class Meta(DraftTableBase.Meta):
@@ -674,19 +664,19 @@ class AliasChangeListTable(DraftTableBase):
 
 
 class GcmdProjectChangeListTable(DraftTableBase):
-    short_name = ConditionalValueColumn(
+    short_name = BackupValueColumn(
         verbose_name="Short Name",
         accessor="update__short_name",
-        update_accessor="content_object.short_name",
+        backup_accessor="content_object.short_name",
         linkify=("change-update", [tables.A("uuid")]),
     )
-    long_name = ConditionalValueColumn(
+    long_name = BackupValueColumn(
         verbose_name="Long Name",
         accessor="update__long_name",
-        update_accessor="content_object.long_name",
+        backup_accessor="content_object.long_name",
     )
-    bucket = ConditionalValueColumn(
-        verbose_name="Bucket", accessor="update__bucket", update_accessor="content_object.bucket"
+    bucket = BackupValueColumn(
+        verbose_name="Bucket", accessor="update__bucket", backup_accessor="content_object.bucket"
     )
 
     class Meta(DraftTableBase.Meta):
@@ -696,36 +686,36 @@ class GcmdProjectChangeListTable(DraftTableBase):
 
 
 class GcmdInstrumentChangeListTable(DraftTableBase):
-    short_name = ConditionalValueColumn(
+    short_name = BackupValueColumn(
         verbose_name="Short Name",
         accessor="update__short_name",
-        update_accessor="content_object.short_name",
+        backup_accessor="content_object.short_name",
         linkify=("change-update", [tables.A("uuid")]),
     )
-    long_name = ConditionalValueColumn(
+    long_name = BackupValueColumn(
         verbose_name="Long Name",
         accessor="update__long_name",
-        update_accessor="content_object.long_name",
+        backup_accessor="content_object.long_name",
     )
-    instrument_category = ConditionalValueColumn(
+    instrument_category = BackupValueColumn(
         verbose_name="Instrument Category",
         accessor="update__instrument_category",
-        update_accessor="content_object.instrument_category",
+        backup_accessor="content_object.instrument_category",
     )
-    instrument_class = ConditionalValueColumn(
+    instrument_class = BackupValueColumn(
         verbose_name="Instrument Class",
         accessor="update__instrument_class",
-        update_accessor="content_object.instrument_class",
+        backup_accessor="content_object.instrument_class",
     )
-    instrument_type = ConditionalValueColumn(
+    instrument_type = BackupValueColumn(
         verbose_name="Instrument Type",
         accessor="update__instrument_type",
-        update_accessor="content_object.instrument_type",
+        backup_accessor="content_object.instrument_type",
     )
-    instrument_subtype = ConditionalValueColumn(
+    instrument_subtype = BackupValueColumn(
         verbose_name="Instrument Subtype",
         accessor="update__instrument_subtype",
-        update_accessor="content_object.instrument_subtype",
+        backup_accessor="content_object.instrument_subtype",
     )
 
     class Meta(DraftTableBase.Meta):
@@ -742,21 +732,21 @@ class GcmdInstrumentChangeListTable(DraftTableBase):
 
 
 class GcmdPlatformChangeListTable(DraftTableBase):
-    short_name = ConditionalValueColumn(
+    short_name = BackupValueColumn(
         verbose_name="Short Name",
         accessor="update__short_name",
-        update_accessor="content_object.short_name",
+        backup_accessor="content_object.short_name",
         linkify=("change-update", [tables.A("uuid")]),
     )
-    long_name = ConditionalValueColumn(
+    long_name = BackupValueColumn(
         verbose_name="Long Name",
         accessor="update__long_name",
-        update_accessor="content_object.long_name",
+        backup_accessor="content_object.long_name",
     )
-    category = ConditionalValueColumn(
+    category = BackupValueColumn(
         verbose_name="Category",
         accessor="update__category",
-        update_accessor="content_object.category",
+        backup_accessor="content_object.category",
     )
 
     class Meta(DraftTableBase.Meta):
@@ -766,32 +756,32 @@ class GcmdPlatformChangeListTable(DraftTableBase):
 
 
 class GcmdPhenomenonChangeListTable(DraftTableBase):
-    variable_3 = ConditionalValueColumn(
+    variable_3 = BackupValueColumn(
         verbose_name="Variable 3",
         accessor="update__variable_3",
-        update_accessor="content_object.variable_3",
+        backup_accessor="content_object.variable_3",
         linkify=("change-update", [tables.A("uuid")]),
     )
-    variable_2 = ConditionalValueColumn(
+    variable_2 = BackupValueColumn(
         verbose_name="Variable 2",
         accessor="update__variable_2",
-        update_accessor="content_object.variable_2",
+        backup_accessor="content_object.variable_2",
     )
-    variable_1 = ConditionalValueColumn(
+    variable_1 = BackupValueColumn(
         verbose_name="Variable 1",
         accessor="update__variable_1",
-        update_accessor="content_object.variable_1",
+        backup_accessor="content_object.variable_1",
     )
-    term = ConditionalValueColumn(
-        verbose_name="Term", accessor="update__term", update_accessor="content_object.term"
+    term = BackupValueColumn(
+        verbose_name="Term", accessor="update__term", backup_accessor="content_object.term"
     )
-    topic = ConditionalValueColumn(
-        verbose_name="Topic", accessor="update__topic", update_accessor="content_object.topic"
+    topic = BackupValueColumn(
+        verbose_name="Topic", accessor="update__topic", backup_accessor="content_object.topic"
     )
-    category = ConditionalValueColumn(
+    category = BackupValueColumn(
         verbose_name="Category",
         accessor="update__category",
-        update_accessor="content_object.category",
+        backup_accessor="content_object.category",
     )
 
     class Meta(DraftTableBase.Meta):
@@ -823,26 +813,26 @@ class GcmdSyncListTable(DraftTableBase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    short_name = ConditionalValueColumn(
+    short_name = BackupValueColumn(
         verbose_name="GCMD Keyword",
         accessor="short_name",
-        update_accessor="content_object.short_name",
+        backup_accessor="content_object.short_name",
         linkify=("change-gcmd", [tables.A("uuid")]),
     )
-    category = ConditionalValueColumn(
+    category = BackupValueColumn(
         verbose_name="Category",
         accessor="content_type__model",
-        update_accessor="content_type__model",
+        backup_accessor="content_type__model",
     )
-    draft_action = ConditionalValueColumn(
+    draft_action = BackupValueColumn(
         verbose_name="Type of Change",
         accessor="action",
-        update_accessor="action",
+        backup_accessor="action",
     )
-    status = ConditionalValueColumn(
+    status = BackupValueColumn(
         verbose_name="Status",
         accessor="status",
-        update_accessor="status",
+        backup_accessor="status",
     )
     affected_records = AffectedRecordValueColumn(
         verbose_name="Affected Records",
@@ -873,10 +863,10 @@ class GcmdSyncListTable(DraftTableBase):
 
 
 class ImageChangeListTable(DraftTableBase):
-    title = ConditionalValueColumn(
+    title = BackupValueColumn(
         verbose_name="Title",
         accessor="update__title",
-        update_accessor="content_object.title",
+        backup_accessor="content_object.title",
         linkify=("change-update", [tables.A("uuid")]),
     )
 
@@ -894,8 +884,6 @@ class ImageChangeListTable(DraftTableBase):
                 'canonical-redirect',
                 kwargs={
                     "canonical_uuid": record.uuid,
-                    # this property is coming from an annotation on the inital query
-                    "draft_uuid": record.draft_uuid,
                     "model": camel_to_snake(record.model_name),
                 },
             ),
@@ -905,13 +893,14 @@ class ImageChangeListTable(DraftTableBase):
 
 # This table renders a list of historical drafts
 class DraftHistoryTable(tables.Table):
-    draft_action = tables.Column(empty_values=())
+    draft_action = tables.Column(accessor=tables.A('action'))
     submitted_by = tables.Column(empty_values=())
     reviewed_by = tables.Column(empty_values=())
     published_by = tables.Column(empty_values=())
     published_date = tables.Column(empty_values=())
 
     uuid = tables.Column(
+        verbose_name="UUID",
         linkify=(
             lambda record: reverse(
                 "historical-detail",
@@ -929,12 +918,6 @@ class DraftHistoryTable(tables.Table):
         template_name = "django_tables2/bootstrap.html"
         fields = ("uuid", "submitted_by")
         orderable = False
-
-    def render_draft_action(self, record):
-        if approval := record.approvallog_set.first():
-            return approval.get_action_display()
-        else:
-            return "-"
 
     def render_submitted_by(self, record):
         if approval := record.approvallog_set.filter(action=ApprovalLog.Actions.PUBLISH).first():
