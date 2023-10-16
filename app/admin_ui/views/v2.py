@@ -140,7 +140,7 @@ class ChangeHistoryList(SingleTableView):
             **context,
             "view_model": self.kwargs['model'],
             "canonical_uuid": canonical_uuid,
-            "object": Change.objects.select_related('content_object').get(uuid=canonical_uuid),
+            "object": Change.objects.select_related('content_type').get(uuid=canonical_uuid),
         }
 
 
