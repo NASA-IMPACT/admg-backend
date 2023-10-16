@@ -154,7 +154,7 @@ class DraftTableBase(tables.Table):
             "draft-status-in-progress",
             "draft-status-awaiting-review",
             "draft-status-in-review",
-            "draft-status-admin-review",
+            "draft-status-awaiting-admin-review",
             "draft-status-in-admin-review",
             "draft-status-published",
             "badge-warning",
