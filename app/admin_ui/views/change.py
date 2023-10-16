@@ -90,7 +90,6 @@ class SummaryView(NotificationSidebar, django_tables2.SingleTableView):
             Change.objects.of_type(*self.models)
             .filter(action=Change.Actions.CREATE)
             .annotate(
-                draft_uuid=Subquery(related_drafts.values("uuid")[:1]),
                 latest_status=Subquery(related_drafts.values("status")[:1]),
                 latest_action=Subquery(related_drafts.values("action")[:1]),
                 latest_updated_at=Subquery(related_drafts.values("updated_at")[:1]),
@@ -292,7 +291,7 @@ class ChangeCreateView(
                 raise Http404(f'Unsupported model type: {self._model_name}') from e
         return self.model_form_content_type
 
-    def get_model_form_intial(self):
+    def get_model_form_initial(self):
         # TODO: Not currently possible to handle reverse relationships such as adding
         # models to a CollectionPeriod where the FK is on the Collection Period
         return {k: v for k, v in self.request.GET.dict().items() if k != "uuid"}
@@ -394,7 +393,7 @@ class ChangeUpdateView(NotificationSidebar, mixins.ChangeModelFormMixin, UpdateV
             )
         return related_fields
 
-    def get_model_form_intial(self):
+    def get_model_form_initial(self):
         return self.object.update
 
     def post(self, *args, **kwargs):
@@ -480,19 +479,25 @@ class ChangeTransition(NotificationSidebar, FormMixin, ProcessFormView, DetailVi
                 mark_safe(f"<b>Unable to transition draft.</b> {format_validation_error(err)}"),
             )
         else:
-            obj = self.get_object()
             messages.success(
                 self.request,
                 (
-                    f"Transitioned \"{obj.model_name}: {obj.update.get('short_name', obj.uuid)}\" "
-                    f"to \"{obj.get_status_display()}\"."
+                    f"Transitioned {form.change.model_name}:"
+                    + f" {form.change.update.get('short_name', form.change.uuid)!r}"
+                    + f" to {form.change.get_status_display()!r}."
                 ),
             )
 
         return super().form_valid(form)
 
     def get_success_url(self):
-        return self.request.META.get("HTTP_REFERER") or super().get_success_url()
+        return reverse(
+            "canonical-redirect",
+            kwargs={
+                "canonical_uuid": self.kwargs[self.pk_url_kwarg],
+                "model": self.get_form().change.content_type.model,
+            },
+        )
 
 
 def format_validation_error(err: ValidationError) -> str:

@@ -6,7 +6,7 @@ from django.apps import apps
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
-from django.db.models import expressions, functions, Subquery
+from django.db.models import expressions, functions, Subquery, Q
 from django.db.models.fields.json import KeyTextTransform
 from django.db.models.signals import post_save
 from django.dispatch import receiver
@@ -117,6 +117,12 @@ class ApprovalLog(models.Model):
 
 
 class ChangeQuerySet(models.QuerySet):
+    def related_drafts(self, uuid: str):
+        return self.filter(Q(uuid=uuid) | Q(model_instance_uuid=uuid))
+
+    def related_in_progress_drafts(self, uuid: str):
+        return self.related_drafts(uuid=uuid).exclude(status=Change.Statuses.PUBLISHED)
+
     def of_type(self, *models):
         """
         Limit changes to only those targeted to provided models
