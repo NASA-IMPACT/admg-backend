@@ -3,18 +3,18 @@ from typing import Dict
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.views.generic.detail import DetailView
-from django_filters.views import FilterView
-from django_tables2.views import SingleTableMixin, SingleTableView
 from django.forms import modelform_factory
 from django.http import Http404, HttpResponseBadRequest
 from django.shortcuts import redirect
 from django.urls import reverse
 from django.contrib.contenttypes.models import ContentType
 from django.views.generic.edit import UpdateView
-from django.db.models import Q, OuterRef, Subquery
+from django.db.models import OuterRef, Subquery
 from django.views.generic.edit import CreateView
-from admin_ui.config import MODEL_CONFIG_MAP
+from django_filters.views import FilterView
+from django_tables2 import SingleTableView, SingleTableMixin
 
+from admin_ui.config import MODEL_CONFIG_MAP
 from admin_ui.views.published import ModelObjectView
 
 from api_app.models import Change
@@ -36,36 +36,33 @@ from api_app.urls import camel_to_snake
 from ..tables import DraftHistoryTable
 
 
-# TODO add login requirement
-def redirect_helper(request, canonical_uuid, draft_uuid, model):
-    try:
-        draft = Change.objects.get(uuid=canonical_uuid)
-        has_progress_draft = (
-            Change.objects.exclude(status=Change.Statuses.PUBLISHED)
-            .filter(Q(uuid=draft.uuid) | Q(model_instance_uuid=draft.uuid))
-            .exists()
-        )
-        if draft.status == Change.Statuses.PUBLISHED and not has_progress_draft:
-            return redirect(
-                reverse(
-                    "canonical-published-detail",
-                    kwargs={
-                        "canonical_uuid": canonical_uuid,
-                        "model": model,
-                        "draft_uuid": draft_uuid,
-                    },
-                )
-            )
-        # TODO return redirect to edit view
-        # return HttpResponse("Todo return redirect")
-        return redirect(
+@login_required
+def redirect_helper(request, canonical_uuid, model):
+    """
+    Redirect to the latest draft edit if non-publishd edit exist. Otherwise, send to
+    published detail view.
+    """
+    return (
+        redirect(
             reverse(
                 "canonical-draft-edit",
-                kwargs={"canonical_uuid": canonical_uuid, "model": model, "draft_uuid": draft_uuid},
+                kwargs={
+                    "canonical_uuid": canonical_uuid,
+                    "model": model,
+                },
             )
         )
-    except Change.DoesNotExist:
-        raise Http404("Canonial UI does not exist")
+        if Change.objects.related_in_progress_drafts(uuid=canonical_uuid).exists()
+        else redirect(
+            reverse(
+                "canonical-published-detail",
+                kwargs={
+                    "canonical_uuid": canonical_uuid,
+                    "model": model,
+                },
+            )
+        )
+    )
 
 
 # Lists all the canonical records for a given model type
@@ -86,9 +83,9 @@ class CanonicalRecordList(mixins.DynamicModelMixin, SingleTableMixin, FilterView
         However, we want to display the most recent related draft in the table.
         """
         # find the most recent drafts for each canonical CREATED draft
-        related_drafts = Change.objects.filter(
-            Q(model_instance_uuid=OuterRef("uuid")) | Q(uuid=OuterRef("uuid"))
-        ).order_by("status", "-updated_at")
+        related_drafts = Change.objects.related_drafts(OuterRef("uuid")).order_by(
+            "status", "-updated_at"
+        )
 
         latest_published_draft = Change.objects.filter(
             status=Change.Statuses.PUBLISHED,
@@ -102,7 +99,6 @@ class CanonicalRecordList(mixins.DynamicModelMixin, SingleTableMixin, FilterView
                 )
             )
             .annotate(
-                draft_uuid=Subquery(related_drafts.values("uuid")[:1]),
                 latest_status=Subquery(related_drafts.values("status")[:1]),
                 latest_action=Subquery(related_drafts.values("action")[:1]),
                 latest_updated_at=Subquery(related_drafts.values("updated_at")[:1]),
@@ -135,10 +131,7 @@ class ChangeHistoryList(SingleTableView):
     template_name = "api_app/canonical/change_history.html"
 
     def get_queryset(self):
-        return Change.objects.filter(
-            Q(model_instance_uuid=self.kwargs[self.pk_url_kwarg])
-            | Q(uuid=self.kwargs[self.pk_url_kwarg])
-        )
+        return Change.objects.related_drafts(self.kwargs[self.pk_url_kwarg])
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -176,13 +169,21 @@ class HistoryDetailView(ModelObjectView):
 
 @method_decorator(login_required, name="dispatch")
 class CanonicalRecordPublished(ModelObjectView):
+    """
+    Render a read-only form displaying the latest published draft.
+    """
+
     model = Change
     pk_url_kwarg = 'canonical_uuid'
     template_name = "api_app/canonical/published_detail.html"
     fields = ["content_type", "model_instance_uuid", "action", "update"]
 
     def get_model_form_content_type(self) -> ContentType:
-        return Change.objects.get(uuid=self.kwargs[self.pk_url_kwarg]).content_type
+        return (
+            Change.objects.prefetch_related('content_type')
+            .get(uuid=self.kwargs[self.pk_url_kwarg])
+            .content_type
+        )
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -193,20 +194,18 @@ class CanonicalRecordPublished(ModelObjectView):
                 Change.objects.get(uuid=self.kwargs[self.pk_url_kwarg]).model_name.lower()
             ),
             "display_name": Change.objects.get(uuid=self.kwargs[self.pk_url_kwarg]).model_name,
-            "has_progress_draft": (
-                Change.objects.exclude(status=Change.Statuses.PUBLISHED)
-                .filter(
-                    Q(uuid=self.kwargs[self.pk_url_kwarg])
-                    | Q(model_instance_uuid=self.kwargs[self.pk_url_kwarg])
-                )
-                .exists()
-            ),
+            "has_progress_draft": Change.objects.related_in_progress_drafts(
+                self.kwargs[self.pk_url_kwarg]
+            ).exists(),
         }
 
 
 @method_decorator(login_required, name="dispatch")
 class CanonicalDraftEdit(NotificationSidebar, mixins.ChangeModelFormMixin, UpdateView):
-    """This view is in charge of editing existing drafts.
+    """
+    This view is in charge of editing the latest in-progress drafts. If no in-progress
+    drafts are available, a 404 is returned.
+
     If the draft has a related published record, a diff view is returned to the user.
     Otherwise a single form view is returned.
     """
@@ -215,28 +214,22 @@ class CanonicalDraftEdit(NotificationSidebar, mixins.ChangeModelFormMixin, Updat
     prefix = "change"
     template_name = "api_app/canonical/change_update.html"
     pk_url_kwarg = 'canonical_uuid'
+    queryset = Change.objects.all().exclude(status=Change.Statuses.PUBLISHED)
 
     def get_queryset(self):
         return Change.objects.all()
 
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()
-        has_progress_draft = (
-            Change.objects.exclude(status=Change.Statuses.PUBLISHED)
-            .filter(
-                model_instance_uuid=self.canonical_change.uuid,
-                content_type=self.canonical_change.content_type,
-                action=Change.Actions.UPDATE,
-            )
-            .exists()
+        in_progress_drafts = Change.objects.related_in_progress_drafts(
+            self.kwargs["canonical_uuid"]
         )
 
-        has_published_draft = Change.objects.filter(
-            Q(uuid=self.canonical_change.uuid) | Q(model_instance_uuid=self.canonical_change.uuid),
-            status=Change.Statuses.PUBLISHED,
-        ).exists()
+        published_drafts = Change.objects.related_drafts(self.kwargs["canonical_uuid"]).filter(
+            status=Change.Statuses.PUBLISHED
+        )
 
-        if not has_progress_draft and has_published_draft:
+        if not in_progress_drafts.exists() and published_drafts.exists():
             return redirect(
                 reverse(
                     "canonical-published-detail",
@@ -251,48 +244,19 @@ class CanonicalDraftEdit(NotificationSidebar, mixins.ChangeModelFormMixin, Updat
 
     def get_object(self, queryset=None):
         if not queryset:
-            queryset = self.get_queryset()
-        self.canonical_change = queryset.get(uuid=self.kwargs["canonical_uuid"])
-        # if the canonical record is not published, return the record itself
-        if self.canonical_change.status != Change.Statuses.PUBLISHED:
-            return self.canonical_change
+            queryset = self.queryset
 
-        # if canonical record is published, return the record where the model_instance_uuid equals our canonical_uuid
+        canonical_uuid = self.kwargs["canonical_uuid"]
 
-        # TODO include url to make this check
-        # if there is no update in progress return most recently published object
-        if (
-            not Change.objects.exclude(status=Change.Statuses.PUBLISHED)
-            .filter(
-                model_instance_uuid=self.canonical_change.uuid,
-                content_type=self.canonical_change.content_type,
-                action=Change.Actions.UPDATE,
-            )
-            .exists()
-        ):
-            return (
-                Change.objects.filter(
-                    status=Change.Statuses.PUBLISHED,
-                    model_instance_uuid=self.kwargs["canonical_uuid"],
-                )
-                .order_by("updated_at")
-                .last()
-            )
-
-        # try:
-        # TODO: include uuid in url
-        return Change.objects.exclude(status=Change.Statuses.PUBLISHED).get(
-            model_instance_uuid=self.canonical_change.uuid,
-            content_type=self.canonical_change.content_type,
-            action=Change.Actions.UPDATE,
-        )
+        if obj := queryset.related_drafts(canonical_uuid).order_by('status').first():
+            return obj
+        raise Http404(f'No in progress draft with Canonical UUID {canonical_uuid!r}')
 
     def get_success_url(self, **kwargs):
         url = reverse(
             "canonical-redirect",
             kwargs={
                 "canonical_uuid": self.kwargs[self.pk_url_kwarg],
-                "draft_uuid": self.object.pk,
                 "model": self.kwargs["model"],
             },
         )
@@ -313,9 +277,7 @@ class CanonicalDraftEdit(NotificationSidebar, mixins.ChangeModelFormMixin, Updat
             "ancestors": context["object"].get_ancestors().select_related("content_type"),
             "descendents": context["object"].get_descendents().select_related("content_type"),
             "comparison_form": self._get_comparison_form(context['model_form']),
-            "canonical_object": self.canonical_change,
             "canonical_uuid": self.kwargs[self.pk_url_kwarg],
-            "draft_uuid": self.object.pk,
         }
 
     def _get_comparison_form(self, model_form):
@@ -415,7 +377,6 @@ class CreateNewView(mixins.DynamicModelMixin, mixins.ChangeModelFormMixin, Creat
             kwargs={
                 "canonical_uuid": self.object.pk,
                 "model": self._model_name,
-                "draft_uuid": self.object.pk,
             },
         )
 
@@ -470,7 +431,6 @@ class CreateUpdateView(mixins.DynamicModelMixin, mixins.ChangeModelFormMixin, Cr
                 Change.objects.get(uuid=self.kwargs[self.pk_url_kwarg]).model_name.lower()
             ),
             "display_name": Change.objects.get(uuid=self.kwargs[self.pk_url_kwarg]).model_name,
-            "draft_uuid": self.object.pk,
         }
 
     def get_success_url(self):
@@ -479,8 +439,6 @@ class CreateUpdateView(mixins.DynamicModelMixin, mixins.ChangeModelFormMixin, Cr
             kwargs={
                 "model": self._model_name,
                 "canonical_uuid": self.kwargs["canonical_uuid"],
-                # TODO: Check if this is really the right draft_UUID
-                "draft_uuid": self.object.pk,
             },
         )
 
