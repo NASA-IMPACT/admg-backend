@@ -124,7 +124,7 @@ class CanonicalRecordList(mixins.DynamicModelMixin, SingleTableMixin, FilterView
 
 
 @method_decorator(login_required, name="dispatch")
-class ChangeHistoryList(mixins.DynamicModelMixin, SingleTableView):
+class ChangeHistoryList(SingleTableView):
     model = Change
     table_class = DraftHistoryTable
     pk_url_kwarg = 'canonical_uuid'
@@ -135,12 +135,12 @@ class ChangeHistoryList(mixins.DynamicModelMixin, SingleTableView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        view_model = Change.objects.get(uuid=self.kwargs[self.pk_url_kwarg]).model_name.lower()
+        canonical_uuid = self.kwargs[self.pk_url_kwarg]
         return {
             **context,
-            "view_model": view_model,
-            "object": Change.objects.get(uuid=self.kwargs[self.pk_url_kwarg]),
-            "canonical_uuid": self.kwargs[self.pk_url_kwarg],
+            "view_model": self.kwargs['model'],
+            "canonical_uuid": canonical_uuid,
+            "object": Change.objects.select_related('content_object').get(uuid=canonical_uuid),
         }
 
 
@@ -330,7 +330,7 @@ class CanonicalDraftEdit(NotificationSidebar, mixins.ChangeModelFormMixin, Updat
             )
         return related_fields
 
-    def get_model_form_intial(self):
+    def get_model_form_initial(self):
         return self.object.update
 
     def post(self, *args, **kwargs):
@@ -390,7 +390,7 @@ class CreateNewView(mixins.DynamicModelMixin, mixins.ChangeModelFormMixin, Creat
                 raise Http404(f'Unsupported model type: {self._model_name}') from e
         return self.model_form_content_type
 
-    def get_model_form_intial(self):
+    def get_model_form_initial(self):
         # TODO: Not currently possible to handle reverse relationships such as adding
         # models to a CollectionPeriod where the FK is on the Collection Period
         return {k: v for k, v in self.request.GET.dict().items() if k != "uuid"}
@@ -452,7 +452,7 @@ class CreateUpdateView(mixins.DynamicModelMixin, mixins.ChangeModelFormMixin, Cr
                 raise Http404(f'Unsupported model type: {self._model_name}') from e
         return self.model_form_content_type
 
-    def get_model_form_intial(self):
+    def get_model_form_initial(self):
         # TODO: Not currently possible to handle reverse relationships such as adding
         # models to a CollectionPeriod where the FK is on the Collection Period
         # return {k: v for k, v in self.request.GET.dict().items() if k != "uuid"}
