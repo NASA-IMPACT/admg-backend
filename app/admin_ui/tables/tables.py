@@ -44,7 +44,7 @@ class BackupValueColumn(tables.Column):
             value (str): A value which will be displayed in the table
         """
         if value is None or value == '':
-            value = A(self.update_accessor).resolve(record)
+            value = A(self.backup_accessor).resolve(record)
 
         return self._get_processed_value(value) or "---"
 
