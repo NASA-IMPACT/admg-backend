@@ -369,7 +369,7 @@ class CanonicalDraftEdit(NotificationSidebar, mixins.ChangeModelFormMixin, Updat
             )
         return related_fields
 
-    def get_model_form_intial(self):
+    def get_model_form_initial(self):
         return self.object.update
 
     def post(self, *args, **kwargs):
@@ -430,7 +430,7 @@ class CreateNewView(mixins.DynamicModelMixin, mixins.ChangeModelFormMixin, Creat
                 raise Http404(f'Unsupported model type: {self._model_name}') from e
         return self.model_form_content_type
 
-    def get_model_form_intial(self):
+    def get_model_form_initial(self):
         # TODO: Not currently possible to handle reverse relationships such as adding
         # models to a CollectionPeriod where the FK is on the Collection Period
         return {k: v for k, v in self.request.GET.dict().items() if k != "uuid"}
@@ -495,7 +495,7 @@ class CreateUpdateView(mixins.DynamicModelMixin, mixins.ChangeModelFormMixin, Cr
                 raise Http404(f'Unsupported model type: {self._model_name}') from e
         return self.model_form_content_type
 
-    def get_model_form_intial(self):
+    def get_model_form_initial(self):
         # TODO: Not currently possible to handle reverse relationships such as adding
         # models to a CollectionPeriod where the FK is on the Collection Period
         # return {k: v for k, v in self.request.GET.dict().items() if k != "uuid"}

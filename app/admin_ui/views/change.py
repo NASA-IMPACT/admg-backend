@@ -292,7 +292,7 @@ class ChangeCreateView(
                 raise Http404(f'Unsupported model type: {self._model_name}') from e
         return self.model_form_content_type
 
-    def get_model_form_intial(self):
+    def get_model_form_initial(self):
         # TODO: Not currently possible to handle reverse relationships such as adding
         # models to a CollectionPeriod where the FK is on the Collection Period
         return {k: v for k, v in self.request.GET.dict().items() if k != "uuid"}
@@ -394,7 +394,7 @@ class ChangeUpdateView(NotificationSidebar, mixins.ChangeModelFormMixin, UpdateV
             )
         return related_fields
 
-    def get_model_form_intial(self):
+    def get_model_form_initial(self):
         return self.object.update
 
     def post(self, *args, **kwargs):
