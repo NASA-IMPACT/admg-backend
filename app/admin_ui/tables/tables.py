@@ -19,6 +19,11 @@ from api_app.models import ApprovalLog
 
 
 class BackupValueColumn(tables.Column):
+    """
+    Attempt to retrieve a value from a record. If that value is not available (ie is None),
+    attempt to retrieve the value from a backup location.
+    """
+
     def __init__(self, backup_accessor=None, **kwargs):
         super().__init__(**kwargs, empty_values=())
         self.backup_accessor = backup_accessor
@@ -29,44 +34,19 @@ class BackupValueColumn(tables.Column):
             return many_values
         return value
 
-    def get_backup_value(self, **kwargs):
-        """Update drafts won't always contain the metadata that
-        is needed to be displayed in the table columns. Takes the value
-        originally in the row, and if the row is for an Change.Actions.UPDATE draft,
-        and the value is missing will check the published item to see
-        if a value exists.
-
-        Returns:
-            value (str): A value which will be displayed in the table
-        """
-
-        record = kwargs.get("record")
-        value = self._get_processed_value(kwargs.get("value"))
-
-        # This is being called from published tables as well. Which doesn't come with a record with action attribute
-        if (
-            not value
-            and self.backup_accessor
-            and getattr(record, "action", None) != Change.Actions.CREATE
-        ):
-            accessor = A(self.backup_accessor)
-            value = self._get_processed_value(accessor.resolve(record))
-
-        return value
-
-    def render(self, **kwargs):
+    def render(self, *, record, value, **kwargs):
         """Update drafts won't always contain the metadata that
         is needed to be displayed in the table columns. This function
-        preferentially displays the draft metadata, and alternately shows
-        metadata from the published item if the update draft is empty.
+        preferentially displays the accessor metadata, and alternately shows
+        metadata from the backup location if the value at the primary accessor is empty.
 
         Returns:
             value (str): A value which will be displayed in the table
         """
+        if value is None or value == '':
+            value = A(self.backup_accessor).resolve(record)
 
-        value = self.get_backup_value(**kwargs)
-
-        return value or "---"
+        return self._get_processed_value(value) or "---"
 
 
 class ShortNamefromUUIDColumn(BackupValueColumn):
@@ -142,7 +122,7 @@ class ShortNamefromUUIDColumn(BackupValueColumn):
         return [short_names[str(potential_uuid)] for potential_uuid in potential_uuids]
 
     def render(self, **kwargs):
-        value = self.get_backup_value(**kwargs)
+        value = super().render(**kwargs)
         if isinstance(value, list):
             return ", ".join(self.get_short_names(value))
         else:
@@ -540,23 +520,12 @@ class CampaignChangeListTable(LimitedTableBase):
 
     class Meta(LimitedTableBase.Meta):
         all_fields = (
-            LimitedTableBase.initial_fields + ("funding_agency",) + LimitedTableBase.final_fields
+            *LimitedTableBase.initial_fields,
+            "funding_agency",
+            *LimitedTableBase.final_fields,
         )
         fields = all_fields
         sequence = all_fields
-
-    def render_short_name(self, value, record):
-        return format_html(
-            '<a href="{form_url}">{label}</a>',
-            form_url=reverse(
-                'canonical-redirect',
-                kwargs={
-                    "canonical_uuid": record.uuid,
-                    "model": camel_to_snake(record.model_name),
-                },
-            ),
-            label=record.latest_update.get('short_name') or '---',
-        )
 
 
 class PlatformChangeListTable(LimitedTableBase):
