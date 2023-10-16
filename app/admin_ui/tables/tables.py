@@ -478,8 +478,6 @@ class PartnerOrgChangeListTable(LimitedTableBase):
         fields = all_fields
         sequence = all_fields
 
-    # TODO: Can this be rendered with a common column?
-    # linkify=('canonical-redirect', {'canonical_uuid': tables.A('uuid'), 'model': tables.A('content_type.model')})
     def render_short_name(self, value, record):
         return format_html(
             '<a href="{form_url}">{label}</a>',
@@ -544,8 +542,6 @@ class PlatformChangeListTable(LimitedTableBase):
         fields = all_fields
         sequence = all_fields
 
-    # TODO: Can this be rendered with a common column?
-    # linkify=('canonical-redirect', {'canonical_uuid': tables.A('uuid'), 'model': tables.A('content_type.model')})
     def render_short_name(self, value, record):
         return format_html(
             '<a href="{form_url}">{label}</a>',
@@ -566,8 +562,6 @@ class InstrumentChangeListTable(LimitedTableBase):
         fields = all_fields
         sequence = all_fields
 
-    # TODO: Can this be rendered with a common column?
-    # linkify=('canonical-redirect', {'canonical_uuid': tables.A('uuid'), 'model': tables.A('content_type.model')})
     def render_short_name(self, value, record):
         return format_html(
             '<a href="{form_url}">{label}</a>',
@@ -599,8 +593,6 @@ class ChangeSummaryTable(DraftTableBase):
         verbose_name="Last Published", accessor="latest_published_at"
     )
 
-    # TODO: Can this be rendered with a common column?
-    # linkify=('canonical-redirect', {'canonical_uuid': tables.A('uuid'), 'model': tables.A('content_type.model')})
     def render_short_name(self, value, record):
         return format_html(
             '<a href="{form_url}" class="draft-link">{label}</a>',
@@ -875,8 +867,6 @@ class ImageChangeListTable(DraftTableBase):
         fields = list(all_fields)
         sequence = all_fields
 
-    # TODO: Can this be rendered with a common column?
-    # linkify=('canonical-redirect', {'canonical_uuid': tables.A('uuid'), 'model': tables.A('content_type.model')})
     def render_short_name(self, value, record):
         return format_html(
             '<a href="{form_url}">{label}</a>',
