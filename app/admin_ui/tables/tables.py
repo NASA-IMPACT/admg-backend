@@ -16,6 +16,7 @@ from data_models.models import (
     WebsiteType,
 )
 from api_app.models import ApprovalLog
+from admin_ui.utils import get_draft_status_class
 
 
 class BackupValueColumn(tables.Column):
@@ -149,16 +150,7 @@ class DraftTableBase(tables.Table):
         sequence = ("status", "updated_at")
 
     def render_status(self, value, record):
-        css_class = [
-            "draft-status-created",
-            "draft-status-in-progress",
-            "draft-status-awaiting-review",
-            "draft-status-in-review",
-            "draft-status-awaiting-admin-review",
-            "draft-status-in-admin-review",
-            "draft-status-published",
-            "badge-warning",
-        ][value]
+        css_class = get_draft_status_class(value)
         return mark_safe(
             f'<div class="badge badge-pill text-white {css_class}">'
             + record.__class__(status=value).get_status_display()

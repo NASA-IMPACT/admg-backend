@@ -190,6 +190,7 @@ class CanonicalRecordPublished(ModelObjectView):
         return {
             **context,
             "model_form": self._get_form(instance=kwargs.get("object"), disable_all=True),
+            "canonical_uuid": self.kwargs[self.pk_url_kwarg],
             "view_model": (
                 Change.objects.get(uuid=self.kwargs[self.pk_url_kwarg]).model_name.lower()
             ),
@@ -613,7 +614,7 @@ class CampaignDetailView(NotificationSidebar, DetailView):
             **context,
             # By setting the view model, our nav sidebar knows to highlight the link for campaigns
             'view_model': 'campaign',
-            'canonical_object': self.canonical_draft,
+            'canonical_uuid': self.kwargs["canonical_uuid"],
             "deployments": deployments,
             "transition_form": forms.TransitionForm(
                 change=context["object"], user=self.request.user

@@ -16,10 +16,16 @@ urlpatterns = [
         v2.CampaignDetailView.as_view(),
         name="campaign-detail",
     ),
-    path("campaigns/<uuid:pk>/doi-fetch", views.DoiFetchView.as_view(), name="doi-fetch"),
-    path("campaigns/<uuid:pk>/doi-approval", views.DoiApprovalView.as_view(), name="doi-approval"),
     path(
-        "v2/<str:model>/<uuid:pk>/doi-approval",
+        "campaigns/<uuid:canonical_uuid>/doi-fetch", views.DoiFetchView.as_view(), name="doi-fetch"
+    ),
+    path(
+        "campaigns/<uuid:canonical_uuid>/doi-approval",
+        views.DoiApprovalView.as_view(),
+        name="doi-approval",
+    ),
+    path(
+        "v2/campaigns/<uuid:canonical_uuid>/doi-approval",
         views.DoiApprovalView.as_view(),
         name="doi-approval",
     ),

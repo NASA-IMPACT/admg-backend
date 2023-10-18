@@ -1,8 +1,7 @@
 from django import template
-from django.db.models import Q
-from typing import Optional
 
 from api_app.models import Change
+from admin_ui.utils import get_draft_status_class
 
 register = template.Library()
 
@@ -46,55 +45,26 @@ def classname(obj):
 
 
 @register.inclusion_tag('snippets/object_header_tabs.html', takes_context=True)
-def object_header_tabs(context, change: Change, canonical_change: Optional[Change] = None):
+def object_header_tabs(context, canonical_uuid: str):
     """
     Reusable header for canonical object.
     """
 
-    # fetch latest change object
-    latest_change = (
-        change
-        if canonical_change
-        else (
-            Change.objects.filter(Q(uuid=change.uuid) | Q(model_instance_uuid=change.uuid))
-            .order_by("-updated_at")
-            .first()
-        )
-    )
-    # use canonical change if present otherwise fall back to change
-    change = canonical_change if canonical_change else change
-    has_progress_draft = (
-        Change.objects.exclude(status=Change.Statuses.PUBLISHED)
-        .filter(Q(uuid=change.uuid) | Q(model_instance_uuid=change.uuid))
+    has_published_draft = (
+        Change.objects.related_drafts(canonical_uuid)
+        .filter(status=Change.Statuses.PUBLISHED)
         .exists()
     )
 
-    has_published_draft = Change.objects.filter(
-        Q(uuid=change.uuid) | Q(model_instance_uuid=change.uuid), status=Change.Statuses.PUBLISHED
-    ).exists()
-    # print(f"\n\n*********************\n\n\n{has_published_draft=} {has_progress_draft=}")
-
-    # TODO handle the case where we don't have a model_instance_uuid
-    canonical_uuid = (
-        change.model_instance_uuid
-        if hasattr(change, "model_instance_uuid") and change.model_instance_uuid
-        else change.uuid
-    )
-
-    draft_status = (
-        "Published"
-        if not hasattr(latest_change, "status")
-        else Change.Statuses(latest_change.status).label
-    )
-
-    draft_status_class = f"draft-status-{draft_status.lower().replace(' ', '-')}"
+    latest_draft = Change.objects.related_drafts(canonical_uuid).order_by("status").first()
 
     return {
-        "object": change,
-        "draft_status": draft_status,
-        "draft_status_class": draft_status_class,
+        "draft_status": latest_draft.get_status_display(),
+        "draft_status_class": get_draft_status_class(latest_draft.status),
         "canonical_uuid": canonical_uuid,
-        "has_progress_draft": has_progress_draft,
+        "has_progress_draft": Change.objects.related_in_progress_drafts(
+            uuid=canonical_uuid
+        ).exists(),
         "has_published_draft": has_published_draft,
         "request": context.get("request"),
         "view_model": context.get("view_model"),

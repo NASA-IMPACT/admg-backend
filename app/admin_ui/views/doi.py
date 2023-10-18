@@ -93,7 +93,7 @@ class DoiFetchView(NotificationSidebar, View):
 
     def get_object(self):
         try:
-            return self.queryset.get(uuid=self.kwargs["pk"])
+            return self.queryset.get(uuid=self.kwargs["canonical_uuid"])
         except self.queryset.model.DoesNotExist as e:
             raise Http404("Campaign does not exist") from e
 
@@ -101,7 +101,7 @@ class DoiFetchView(NotificationSidebar, View):
         campaign = self.get_object()
         task = tasks.match_dois.delay(campaign.content_type.model, campaign.uuid)
         past_doi_fetches = request.session.get("doi_task_ids", {})
-        uuid = str(self.kwargs["pk"])
+        uuid = str(self.kwargs["canonical_uuid"])
         request.session["doi_task_ids"] = {
             **past_doi_fetches,
             uuid: [task.id, *past_doi_fetches.get(uuid, [])],
@@ -111,7 +111,7 @@ class DoiFetchView(NotificationSidebar, View):
             messages.INFO,
             f"Fetching DOIs for {campaign.update.get('short_name', uuid)}...",
         )
-        return HttpResponseRedirect(reverse("doi-approval", args=[campaign.uuid]))
+        return HttpResponseRedirect(reverse("doi-approval", args=[self.kwargs["canonical_uuid"]]))
 
 
 @method_decorator(login_required, name="dispatch")
@@ -125,19 +125,30 @@ class DoiApprovalView(NotificationSidebar, SingleObjectMixin, MultipleObjectMixi
         self.object = self.get_object(queryset=self.campaign_queryset)
         return super().get(request, *args, **kwargs)
 
+    def get_object(self, queryset=None):
+        if not queryset:
+            queryset = self.queryset
+
+        canonical_uuid = self.kwargs["canonical_uuid"]
+
+        if obj := queryset.related_drafts(canonical_uuid).order_by('status').first():
+            return obj
+        raise Http404(f'No in progress draft with Canonical UUID {canonical_uuid!r}')
+
     def get_queryset(self):
         return (
-            Change.objects.of_type(DOI).filter(update__campaigns__contains=str(self.kwargs["pk"]))
+            Change.objects.of_type(DOI).filter(
+                update__campaigns__contains=str(self.kwargs["canonical_uuid"])
+            )
             # Order the DOIs by review status so that unreviewed DOIs are shown first
             .order_by("status", "update__concept_id")
         )
 
     def get_context_data(self, **kwargs):
-        uuid = str(self.kwargs["pk"])
         all_past_doi_fetches = self.request.session.get("doi_task_ids", {})
         if not isinstance(all_past_doi_fetches, dict):
             all_past_doi_fetches = {}
-        relevant_doi_fetches = all_past_doi_fetches.get(uuid, [])
+        relevant_doi_fetches = all_past_doi_fetches.get(self.kwargs["canonical_uuid"], [])
         doi_tasks = {task_id: None for task_id in relevant_doi_fetches}
         if relevant_doi_fetches:
             doi_tasks.update(TaskResult.objects.in_bulk(relevant_doi_fetches, field_name="task_id"))
@@ -145,6 +156,7 @@ class DoiApprovalView(NotificationSidebar, SingleObjectMixin, MultipleObjectMixi
             **{
                 # By setting the view model, our nav sidebar knows to highlight the link for campaigns
                 'view_model': 'campaign',
+                "canonical_uuid": self.kwargs["canonical_uuid"],
                 "object_list": self.get_queryset(),
                 "form": None,
                 "formset": self.get_form(),
@@ -208,4 +220,4 @@ class DoiApprovalView(NotificationSidebar, SingleObjectMixin, MultipleObjectMixi
         return super().form_valid(formset)
 
     def get_success_url(self):
-        return reverse("doi-approval", args=[self.kwargs["pk"]])
+        return reverse("doi-approval", args=[self.kwargs["canonical_uuid"]])
