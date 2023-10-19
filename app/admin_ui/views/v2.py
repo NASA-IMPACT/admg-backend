@@ -227,7 +227,7 @@ class CanonicalDraftEdit(NotificationSidebar, mixins.ChangeModelFormMixin, Updat
 
         if obj := queryset.related_drafts(canonical_uuid).order_by('status').first():
             return obj
-        
+
         raise Http404(f'No in progress draft with Canonical UUID {canonical_uuid!r}')
 
     def get_success_url(self, **kwargs):
