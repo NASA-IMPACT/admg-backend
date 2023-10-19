@@ -1,6 +1,7 @@
 from typing import Dict
 
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 from django.utils.decorators import method_decorator
 from django.views.generic.detail import DetailView
 from django.forms import modelform_factory
@@ -198,6 +199,11 @@ class CanonicalRecordPublished(ModelObjectView):
             "has_progress_draft": Change.objects.related_in_progress_drafts(
                 self.kwargs[self.pk_url_kwarg]
             ).exists(),
+            "is_delete_in_progress": Change.objects.related_in_progress_drafts(
+                self.kwargs[self.pk_url_kwarg]
+            )
+            .filter(action=Change.Actions.DELETE)
+            .exists(),
         }
 
 
@@ -221,6 +227,11 @@ class CanonicalDraftEdit(NotificationSidebar, mixins.ChangeModelFormMixin, Updat
         return Change.objects.all()
 
     def get(self, request, *args, **kwargs):
+        messages.add_message(
+            request,
+            messages.WARNING,
+            "Deletion in progress. Only after admin approval will the published version be removed.",
+        )
         self.object = self.get_object()
         in_progress_drafts = Change.objects.related_in_progress_drafts(
             self.kwargs["canonical_uuid"]

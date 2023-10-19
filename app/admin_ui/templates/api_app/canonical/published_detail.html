@@ -18,9 +18,11 @@
       Edit
       </a>
     {% endif %}
-    <button class="btn btn-secondary" data-toggle="modal" data-target="#deletePopup">
-      Delete
-    </button>
+    {% if not is_delete_in_progress %}
+      <button class="btn btn-secondary" data-toggle="modal" data-target="#deletePopup">
+        Delete
+      </button>
+    {% endif %}
   </div>
 {% endblock actions %}
 
