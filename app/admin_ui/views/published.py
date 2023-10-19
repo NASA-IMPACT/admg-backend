@@ -127,5 +127,11 @@ class PublishedDeleteView(mixins.DynamicModelMixin, View):
         )
         change_object.save()
         return redirect(
-            reverse("change-list", kwargs={'model': self._model_config['singular_snake_case']})
+            reverse(
+                "canonical-draft-edit",
+                kwargs={
+                    'model': self._model_config['singular_snake_case'],
+                    'canonical_uuid': kwargs["canonical_uuid"],
+                },
+            )
         )

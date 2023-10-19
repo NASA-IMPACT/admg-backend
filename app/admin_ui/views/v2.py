@@ -227,16 +227,18 @@ class CanonicalDraftEdit(NotificationSidebar, mixins.ChangeModelFormMixin, Updat
         return Change.objects.all()
 
     def get(self, request, *args, **kwargs):
-        messages.add_message(
-            request,
-            messages.WARNING,
-            "Deletion in progress. Only after admin approval will the published version be removed.",
-        )
         self.object = self.get_object()
         in_progress_drafts = Change.objects.related_in_progress_drafts(
             self.kwargs["canonical_uuid"]
         )
 
+        # Show a warning message if this is a delete draft that is staged for publication
+        if in_progress_drafts.filter(action=Change.Actions.DELETE).exists():
+            messages.add_message(
+                request,
+                messages.WARNING,
+                "Deletion in progress. Only after admin approval will the published version be removed.",
+            )
         published_drafts = Change.objects.related_drafts(self.kwargs["canonical_uuid"]).filter(
             status=Change.Statuses.PUBLISHED
         )
