@@ -5,9 +5,9 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     container:
-      image: python:3.11.5
+      image: python:3.11.6
     defaults:
       run:
         working-directory: ./app
