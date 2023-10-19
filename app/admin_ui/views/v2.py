@@ -216,9 +216,6 @@ class CanonicalDraftEdit(NotificationSidebar, mixins.ChangeModelFormMixin, Updat
     pk_url_kwarg = 'canonical_uuid'
     queryset = Change.objects.all().exclude(status=Change.Statuses.PUBLISHED)
 
-    def get_queryset(self):
-        return Change.objects.all()
-
     def get_object(self, queryset=None):
         if not queryset:
             queryset = self.queryset
