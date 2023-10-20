@@ -60,7 +60,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
-          python-version: 3.11.5
+          python-version: 3.11.6
           # cache: pip  # Unable to use caching, https://github.com/actions/setup-python/issues/719
 
       - name: Set user-site-path
