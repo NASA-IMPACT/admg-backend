@@ -13,7 +13,7 @@
 
 {% block actions %}
   <div class="px-1 m-2">
-    {% if not has_progress_draft %}
+    {% if not has_draft_in_progress %}
     <a href="{% url 'create-update' view_model object.uuid %}?back={{ request.path }}" class="btn btn-primary mx-2">
       Edit
       </a>

@@ -49,23 +49,18 @@ def object_header_tabs(context, canonical_uuid: str):
     """
     Reusable header for canonical object.
     """
-
-    has_published_draft = (
-        Change.objects.related_drafts(canonical_uuid)
-        .filter(status=Change.Statuses.PUBLISHED)
-        .exists()
-    )
-
     latest_draft = Change.objects.related_drafts(canonical_uuid).order_by("status").first()
 
     return {
         "draft_status": latest_draft.get_status_display(),
         "draft_status_class": get_draft_status_class(latest_draft.status),
         "canonical_uuid": canonical_uuid,
-        "has_progress_draft": Change.objects.related_in_progress_drafts(
+        "has_draft_in_progress": Change.objects.related_in_progress_drafts(
             uuid=canonical_uuid
         ).exists(),
-        "has_published_draft": has_published_draft,
+        "has_published_draft": Change.objects.related_drafts(canonical_uuid)
+        .filter(status=Change.Statuses.PUBLISHED)
+        .exists(),
         "request": context.get("request"),
         "view_model": context.get("view_model"),
     }

@@ -195,7 +195,7 @@ class CanonicalRecordPublished(ModelObjectView):
                 Change.objects.get(uuid=self.kwargs[self.pk_url_kwarg]).model_name.lower()
             ),
             "display_name": Change.objects.get(uuid=self.kwargs[self.pk_url_kwarg]).model_name,
-            "has_progress_draft": Change.objects.related_in_progress_drafts(
+            "has_draft_in_progress": Change.objects.related_in_progress_drafts(
                 self.kwargs[self.pk_url_kwarg]
             ).exists(),
         }
