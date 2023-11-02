@@ -42,6 +42,12 @@ def redirect_helper(request, canonical_uuid, model):
     Redirect to the latest draft edit if non-publishd edit exist. Otherwise, send to
     published detail view.
     """
+    # check if there is a related create draft and that the most recent draft is not a delete draft
+    has_active_progress_draft = (
+        Change.objects.related_in_progress_drafts(uuid=canonical_uuid).exists()
+        and not Change.objects.related_drafts(canonical_uuid).order_by("-updated_at").first().action
+        == Change.Actions.DELETE
+    )
     return (
         redirect(
             reverse(
@@ -52,7 +58,7 @@ def redirect_helper(request, canonical_uuid, model):
                 },
             )
         )
-        if Change.objects.related_in_progress_drafts(uuid=canonical_uuid).exists()
+        if has_active_progress_draft
         else redirect(
             reverse(
                 "canonical-published-detail",
