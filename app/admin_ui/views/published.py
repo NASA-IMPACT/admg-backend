@@ -7,11 +7,14 @@ from django.views import View
 from django.views.generic import DetailView
 from django_filters.views import FilterView
 from django_tables2.views import SingleTableMixin
+from django.contrib.auth import get_user_model
 
 from api_app.views.generic_views import NotificationSidebar
 from api_app.models import Change
 
 from .. import utils, forms, mixins
+
+User = get_user_model()
 
 
 class PublishedListView(
@@ -115,7 +118,7 @@ class PublishedEditView(ModelObjectView):
 
 @method_decorator(login_required, name="dispatch")
 class PublishedDeleteView(mixins.DynamicModelMixin, View):
-    def dispatch(self, *args, **kwargs):
+    def dispatch(self, request, *args, **kwargs):
         model_to_query = self._model_config["model"]
         content_type = ContentType.objects.get_for_model(model_to_query)
         change_object = Change.objects.create(
@@ -126,6 +129,9 @@ class PublishedDeleteView(mixins.DynamicModelMixin, View):
             update={},
         )
         change_object.save()
+
+        # directly publish delete draft without going through approval process
+        change_object.publish(user=User)
         return redirect(
             reverse("canonical-list", kwargs={'model': self._model_config['singular_snake_case']})
         )
