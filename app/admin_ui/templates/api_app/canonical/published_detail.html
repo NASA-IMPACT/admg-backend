@@ -43,13 +43,13 @@
         </button>
       </div>
       <div class="modal-body">
-        The action you are going to perform will create a delete draft for the object.
-        Only after admin approval will it be deleted.
+        The action you are going to perform will delete the published draft for this object
+        and remove it from the CASEI UI.
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
         <a href="{% url 'published-delete' view_model object.uuid %}?back={{ request.path }}" class="btn btn-danger">
-            Create Delete Draft
+            Delete This {{ display_name }}
         </a>
       </div>
     </div>
