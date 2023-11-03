@@ -120,20 +120,11 @@ class DoiApprovalView(NotificationSidebar, SingleObjectMixin, MultipleObjectMixi
     template_name = "api_app/campaign_dois.html"
     paginate_by = 10
     campaign_queryset = Change.objects.of_type(Campaign)
+    pk_url_kwarg = "canonical_uuid"
 
     def get(self, request, *args, **kwargs):
         self.object = self.get_object(queryset=self.campaign_queryset)
         return super().get(request, *args, **kwargs)
-
-    def get_object(self, queryset=None):
-        if not queryset:
-            queryset = self.queryset
-
-        canonical_uuid = self.kwargs["canonical_uuid"]
-
-        if obj := queryset.related_drafts(canonical_uuid).order_by('status').first():
-            return obj
-        raise Http404(f'No in progress draft with Canonical UUID {canonical_uuid!r}')
 
     def get_queryset(self):
         return (
