@@ -10,7 +10,7 @@ from django_tables2.views import SingleTableMixin
 from django.contrib.auth import get_user_model
 
 from api_app.views.generic_views import NotificationSidebar
-from api_app.models import Change
+from api_app.models import Change, ApprovalLog
 
 from .. import utils, forms, mixins
 
@@ -130,6 +130,12 @@ class PublishedDeleteView(mixins.DynamicModelMixin, View):
         )
         # directly publish delete draft without going through approval process
         change_object.status = Change.Statuses.PUBLISHED
+        ApprovalLog.objects.create(
+            change=change_object,
+            user=request.user,
+            action=ApprovalLog.Actions.PUBLISH,
+            notes="",
+        )
         change_object.save(post_save=True)
 
         return redirect(

@@ -55,10 +55,8 @@ def object_header_tabs(context, canonical_uuid: str):
         "draft_status": latest_draft.get_status_display(),
         # check if the most recent related draft is a delete draft
         "is_deleted": Change.objects.related_drafts(canonical_uuid)
-        .order_by("-updated_at")
-        .first()
-        .action
-        == Change.Actions.DELETE,
+        .filter(status=Change.Statuses.PUBLISHED, action=Change.Actions.DELETE)
+        .exists(),
         "draft_status_class": get_draft_status_class(latest_draft.status),
         "canonical_uuid": canonical_uuid,
         "has_draft_in_progress": Change.objects.related_in_progress_drafts(

@@ -204,6 +204,9 @@ class CanonicalRecordPublished(ModelObjectView):
             "has_draft_in_progress": Change.objects.related_in_progress_drafts(
                 self.kwargs[self.pk_url_kwarg]
             ).exists(),
+            "is_deleted": Change.objects.related_drafts(self.kwargs[self.pk_url_kwarg])
+            .filter(status=Change.Statuses.PUBLISHED, action=Change.Actions.DELETE)
+            .exists(),
         }
 
 
