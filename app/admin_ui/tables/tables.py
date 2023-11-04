@@ -151,6 +151,10 @@ class DraftTableBase(tables.Table):
 
     def render_status(self, value, record):
         css_class = get_draft_status_class(value)
+        # overwrite draft status if we have a published delete draft
+        if record.latest_action == "Delete" and record.latest_status == Change.Statuses.PUBLISHED:
+            value = "DELETED"
+
         return mark_safe(
             f'<div class="badge badge-pill text-white {css_class}">'
             + record.__class__(status=value).get_status_display()
@@ -579,7 +583,7 @@ class ChangeSummaryTable(DraftTableBase):
     content_type__model = tables.Column(
         verbose_name="Model Type", accessor="model_name", order_by="content_type__model"
     )
-    status = tables.Column(verbose_name="Status", accessor="latest_status")
+    status = tables.Column(verbose_name="Status", accessor="action")
     updated_at = tables.DateTimeColumn(verbose_name="Last Edit Date", accessor="updated_at")
     last_published = tables.DateTimeColumn(
         verbose_name="Last Published", accessor="latest_published_at"

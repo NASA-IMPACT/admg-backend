@@ -128,10 +128,10 @@ class PublishedDeleteView(mixins.DynamicModelMixin, View):
             model_instance_uuid=kwargs["canonical_uuid"],
             update={},
         )
-        change_object.save()
-
         # directly publish delete draft without going through approval process
-        change_object.publish(user=User)
+        change_object.status = Change.Statuses.PUBLISHED
+        change_object.save(post_save=True)
+
         return redirect(
             reverse("canonical-list", kwargs={'model': self._model_config['singular_snake_case']})
         )

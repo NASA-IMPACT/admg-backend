@@ -62,7 +62,9 @@ urlpatterns = [
         name="published-delete",
     ),
     path('v2/<str:model>', v2.CanonicalRecordList.as_view(), name="canonical-list"),
-    # Helper route to redirect user to appropriate view without prior knowledge of record's status (ie if it's been published). If published, return redirect to `/<uuid:canonical_uuid>/published`. Otherwise, redirect to `/<uuid:canonical_uuid>/edit`.
+    # Helper route to redirect user to appropriate view without prior knowledge of record's status
+    # (ie if it's been published). If published, return redirect to `/<uuid:canonical_uuid>/published`.
+    # Otherwise, redirect to `/<uuid:canonical_uuid>/edit`.
     path(
         'v2/<str:model>/<uuid:canonical_uuid>',
         v2.redirect_helper,
