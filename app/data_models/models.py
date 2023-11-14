@@ -839,7 +839,21 @@ class Deployment(DataModel):
         return select_related_distinct_data(self.collection_periods, "platform__uuid")
 
 
-class IopSe(BaseModel):
+class DeploymentChildMixin(models.Model):
+    """
+    A mixin class to help access Campaign objects via
+    related Deployment objects.
+    """
+
+    @property
+    def campaign(self):
+        return self.deployment.campaign
+
+    class Meta:
+        abstract = True
+
+
+class IopSe(BaseModel, DeploymentChildMixin):
     deployment = models.ForeignKey(
         Deployment,
         on_delete=models.CASCADE,
@@ -887,7 +901,7 @@ class IopSe(BaseModel):
         abstract = True
 
 
-class IOP(IopSe):
+class IOP(IopSe, DeploymentChildMixin):
     deployment = models.ForeignKey(
         Deployment,
         on_delete=models.CASCADE,
@@ -896,7 +910,7 @@ class IOP(IopSe):
     )
 
 
-class SignificantEvent(IopSe):
+class SignificantEvent(IopSe, DeploymentChildMixin):
     deployment = models.ForeignKey(
         Deployment,
         on_delete=models.CASCADE,
@@ -920,7 +934,7 @@ class SignificantEvent(IopSe):
     )
 
 
-class CollectionPeriod(BaseModel):
+class CollectionPeriod(BaseModel, DeploymentChildMixin):
     deployment = models.ForeignKey(
         Deployment, on_delete=models.CASCADE, related_name="collection_periods"
     )

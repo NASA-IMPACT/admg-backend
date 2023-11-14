@@ -59,7 +59,8 @@ class ModelObjectView(NotificationSidebar, mixins.DynamicModelMixin, DetailView)
         return self._model_config['model'].objects.all()
 
     def get_context_data(self, **kwargs):
-        return {**super().get_context_data(**kwargs), "request": self.request}
+        context = {**super().get_context_data(**kwargs), "request": self.request}
+        return context
 
 
 @method_decorator(login_required, name="dispatch")
