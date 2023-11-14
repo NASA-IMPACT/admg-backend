@@ -46,7 +46,7 @@
 
     <div class="col align-self-center">
         <a href="{% url 'canonical-redirect' model=change.model_name_for_url canonical_uuid=change.canonical_uuid %}" class="btn btn-sm btn-outline-secondary btn-block">
-            Edit
+            {% if change.is_locked %}View{% else %}Edit{% endif %}
         </a>
     </div>
     {% endblock %}
