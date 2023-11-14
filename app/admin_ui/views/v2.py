@@ -1,6 +1,7 @@
 from typing import Dict
 
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 from django.utils.decorators import method_decorator
 from django.views.generic.detail import DetailView
 from django.forms import modelform_factory
@@ -150,6 +151,17 @@ class ChangeHistoryList(SingleTableView):
     table_class = DraftHistoryTable
     pk_url_kwarg = 'canonical_uuid'
     template_name = "api_app/canonical/change_history.html"
+
+    def get(self, request, *args, **kwargs):
+        messages.error(
+            self.request,
+            (
+                f"""The published version of this {self.kwargs['model']} has been deleted and is no longer viewable on
+                  the CASEI UI. You can only view the past version in the {self.kwargs['model']} history."""
+            ),
+        )
+
+        return super().get(request, *args, **kwargs)
 
     def get_queryset(self):
         return Change.objects.related_drafts(self.kwargs[self.pk_url_kwarg]).order_by("-updated_at")
