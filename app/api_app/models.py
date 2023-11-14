@@ -878,7 +878,7 @@ def set_change_updated_at(sender, instance, **kwargs):
         try:
             if instance.change:  # Check if the 'change' field exists
                 instance.change.updated_at = instance.date
-                instance.change.save(check_status=False)
+                instance.change.save(check_status=False, post_save=post_save)
         except Change.DoesNotExist:
             pass
 

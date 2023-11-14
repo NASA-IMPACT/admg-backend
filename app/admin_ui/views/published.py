@@ -10,7 +10,7 @@ from django_tables2.views import SingleTableMixin
 from django.contrib.auth import get_user_model
 
 from api_app.views.generic_views import NotificationSidebar
-from api_app.models import Change, ApprovalLog
+from api_app.models import Change
 
 from .. import utils, forms, mixins
 
@@ -121,7 +121,7 @@ class PublishedDeleteView(mixins.DynamicModelMixin, View):
     def dispatch(self, request, *args, **kwargs):
         model_to_query = self._model_config["model"]
         content_type = ContentType.objects.get_for_model(model_to_query)
-        change_object = Change.objects.create(
+        change_object = Change(
             content_type=content_type,
             status=Change.Statuses.CREATED,
             action=Change.Actions.DELETE,
@@ -129,15 +129,7 @@ class PublishedDeleteView(mixins.DynamicModelMixin, View):
             update={},
         )
         # directly publish delete draft without going through approval process
-        change_object.status = Change.Statuses.PUBLISHED
-        ApprovalLog.objects.create(
-            change=change_object,
-            user=request.user,
-            action=ApprovalLog.Actions.PUBLISH,
-            notes="",
-        )
-        change_object.save(post_save=True)
-
+        change_object.publish(request.user)
         return redirect(
             reverse("canonical-list", kwargs={'model': self._model_config['singular_snake_case']})
         )

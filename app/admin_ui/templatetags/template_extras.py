@@ -63,7 +63,7 @@ def object_header_tabs(context, canonical_uuid: str):
             uuid=canonical_uuid
         ).exists(),
         "has_published_draft": Change.objects.related_drafts(canonical_uuid)
-        .filter(status=Change.Statuses.PUBLISHED)
+        .filter(action=Change.Statuses.CREATED, status=Change.Statuses.PUBLISHED)
         .exists(),
         "request": context.get("request"),
         "view_model": context.get("view_model"),

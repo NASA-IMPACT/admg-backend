@@ -50,7 +50,7 @@
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-        <a href="{% url 'published-delete' view_model object.uuid %}?back={{ request.path }}" class="btn btn-danger">
+        <a href="{% url 'published-delete' model=view_model canonical_uuid=object.uuid %}" class="btn btn-danger">
             Delete This {{ display_name }}
         </a>
       </div>

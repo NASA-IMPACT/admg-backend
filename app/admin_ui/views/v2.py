@@ -48,8 +48,24 @@ def redirect_helper(request, canonical_uuid, model):
         and not Change.objects.related_drafts(canonical_uuid).order_by("-updated_at").first().action
         == Change.Actions.DELETE
     )
-    return (
-        redirect(
+    is_deleted = (
+        Change.objects.related_drafts(canonical_uuid)
+        .filter(status=Change.Statuses.PUBLISHED, action=Change.Actions.DELETE)
+        .exists()
+    )
+
+    if is_deleted:
+        return redirect(
+            reverse(
+                "change-history",
+                kwargs={
+                    "canonical_uuid": canonical_uuid,
+                    "model": model,
+                },
+            )
+        )
+    elif has_active_progress_draft:
+        return redirect(
             reverse(
                 "canonical-draft-edit",
                 kwargs={
@@ -58,8 +74,8 @@ def redirect_helper(request, canonical_uuid, model):
                 },
             )
         )
-        if has_active_progress_draft
-        else redirect(
+    else:
+        return redirect(
             reverse(
                 "canonical-published-detail",
                 kwargs={
@@ -68,7 +84,6 @@ def redirect_helper(request, canonical_uuid, model):
                 },
             )
         )
-    )
 
 
 # Lists all the canonical records for a given model type
@@ -137,7 +152,7 @@ class ChangeHistoryList(SingleTableView):
     template_name = "api_app/canonical/change_history.html"
 
     def get_queryset(self):
-        return Change.objects.related_drafts(self.kwargs[self.pk_url_kwarg])
+        return Change.objects.related_drafts(self.kwargs[self.pk_url_kwarg]).order_by("-updated_at")
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
