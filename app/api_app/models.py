@@ -350,6 +350,7 @@ class Change(models.Model):
     @property
     def model_name_for_url(self):
         from api_app.urls import camel_to_snake
+
         return camel_to_snake(self.model_name)
 
     @property

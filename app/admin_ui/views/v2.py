@@ -221,7 +221,9 @@ class CanonicalRecordPublished(ModelObjectView, CampaignRelatedView):
 
 
 @method_decorator(login_required, name="dispatch")
-class CanonicalDraftEdit(NotificationSidebar, mixins.ChangeModelFormMixin, UpdateView, CampaignRelatedView):
+class CanonicalDraftEdit(
+    NotificationSidebar, mixins.ChangeModelFormMixin, UpdateView, CampaignRelatedView
+):
     """
     This view is in charge of editing the latest in-progress drafts. If no in-progress
     drafts are available, a 404 is returned.
@@ -425,7 +427,9 @@ class CreateNewView(mixins.DynamicModelMixin, mixins.ChangeModelFormMixin, Creat
 
 
 @method_decorator(login_required, name="dispatch")
-class CreateUpdateView(mixins.DynamicModelMixin, mixins.ChangeModelFormMixin, CreateView, CampaignRelatedView):
+class CreateUpdateView(
+    mixins.DynamicModelMixin, mixins.ChangeModelFormMixin, CreateView, CampaignRelatedView
+):
     model = Change
     fields = ["content_type", "model_instance_uuid", "action", "update"]
     template_name = "api_app/canonical/change_update.html"
