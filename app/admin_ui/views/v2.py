@@ -157,7 +157,7 @@ class ChangeHistoryList(SingleTableView):
             self.request,
             (
                 f"""The published version of this {self.kwargs['model']} has been deleted and is no longer viewable on
-                  the CASEI UI. You can only view the past version in the {self.kwargs['model']} history."""
+                  the CASEI UI. You can only view the past versions in the {self.kwargs['model']} history."""
             ),
         )
 
