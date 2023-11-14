@@ -207,12 +207,12 @@ class CanonicalRecordPublished(ModelObjectView, CampaignRelatedView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        change = Change.objects.get(uuid=self.kwargs[self.pk_url_kwarg])
+        view_model = change.content_type.model_class()
         return {
             **context,
             "model_form": self._get_form(instance=kwargs.get("object"), disable_all=True),
-            "view_model": (
-                Change.objects.get(uuid=self.kwargs[self.pk_url_kwarg]).model_name.lower()
-            ),
+            "view_model": (camel_to_snake(view_model.__name__)),
             "display_name": Change.objects.get(uuid=self.kwargs[self.pk_url_kwarg]).model_name,
             "has_progress_draft": Change.objects.related_in_progress_drafts(
                 self.kwargs[self.pk_url_kwarg]
