@@ -85,7 +85,9 @@ class CampaignRelatedView(ContextMixin):
             model_instance = self.object
 
         # if we have a change object with no published record
-        if model_class and (issubclass(model_class, DeploymentChildMixin) or model_class is Deployment):
+        if model_class and (
+            issubclass(model_class, DeploymentChildMixin) or model_class is Deployment
+        ):
             # check if Campaign exists otherwise look up Change object of type Campaign
             try:
                 context["parent"] = Campaign.objects.get(uuid=change_object.update["campaign"])
