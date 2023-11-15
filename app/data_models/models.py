@@ -8,6 +8,7 @@ from django.contrib.gis.db import models as geomodels
 from django.contrib.postgres.search import SearchQuery, SearchVector
 from django.db import models
 
+
 # TODO: Mv to config
 FRONTEND_URL = "https://airborne-inventory.surge.sh/"
 NOTES_INTERNAL_HELP_TEXT = "Free text notes for ADMG staff, this is NOT visible to the public."
@@ -68,6 +69,11 @@ class BaseModel(models.Model):
             )
 
         return queryset.filter(**params)
+
+    @property
+    def model_name_for_url(self):
+        from api_app.urls import camel_to_snake
+        return camel_to_snake(self.__class__.__name__)
 
     def __str__(self):
         return self.short_name

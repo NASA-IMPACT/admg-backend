@@ -1,9 +1,9 @@
 from django import template
 from django.db.models import Q
-from typing import Optional
+from typing import Optional, Union
 
 from api_app.models import Change
-from api_app.urls import camel_to_snake
+from data_models.models import BaseModel
 
 register = template.Library()
 
@@ -47,7 +47,7 @@ def classname(obj):
 
 
 @register.inclusion_tag('snippets/object_header_tabs.html', takes_context=True)
-def object_header_tabs(context, change: Change, canonical_change: Optional[Change] = None):
+def object_header_tabs(context, change: Union[Change, BaseModel], canonical_change: Optional[Change] = None):
     """
     Reusable header for canonical object.
     """
@@ -89,13 +89,7 @@ def object_header_tabs(context, change: Change, canonical_change: Optional[Chang
     )
 
     draft_status_class = f"draft-status-{draft_status.lower().replace(' ', '-')}"
-
-    view_model = (
-        change.model_name_for_url
-        if isinstance(change, Change)
-        else camel_to_snake(change.__class__.__name__)
-    )
-
+    
     return {
         "object": change,
         "draft_status": draft_status,
@@ -104,5 +98,5 @@ def object_header_tabs(context, change: Change, canonical_change: Optional[Chang
         "has_progress_draft": has_progress_draft,
         "has_published_draft": has_published_draft,
         "request": context.get("request"),
-        "view_model": view_model,
+        "view_model": change.model_name_for_url,
     }
