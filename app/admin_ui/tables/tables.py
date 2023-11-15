@@ -154,7 +154,7 @@ class DraftTableBase(tables.Table):
         # overwrite draft status and display for published delete drafts
         if record.latest_action == "Delete" and record.latest_status == Change.Statuses.PUBLISHED:
             return mark_safe(
-                f'<div class="badge badge-pill text-white badge-danger">'
+                '<div class="badge badge-pill text-white badge-danger">'
                 + record.__class__(status="Deleted").get_status_display()
                 + '</div>'
             )
