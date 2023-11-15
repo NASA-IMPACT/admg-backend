@@ -1,6 +1,7 @@
 from typing import Any, Dict
 
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import ObjectDoesNotExist
 from django.utils.decorators import method_decorator
 from django.views.generic.detail import DetailView
 from django.views.generic.base import ContextMixin
@@ -70,14 +71,30 @@ def redirect_helper(request, canonical_uuid, model):
 class CampaignRelatedView(ContextMixin):
     def get_context_data(self, **kwargs) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
+        model_class = None
 
         if self.model is Change or isinstance(self.object, Change):
             canonical_uuid = self.kwargs[self.pk_url_kwarg]
             change_object = Change.objects.select_related('content_type').get(uuid=canonical_uuid)
-            model_instance = change_object._get_model_instance()
+            try:
+                model_instance = change_object._get_model_instance()
+            except ObjectDoesNotExist:
+                model_instance = None
+                model_class = change_object.content_type.model_class()
         else:
             model_instance = self.object
-        if isinstance(model_instance, DeploymentChildMixin) or isinstance(
+
+        # if we have a change object with no published record
+        if issubclass(model_class, DeploymentChildMixin) or model_class is Deployment:
+            print("Change object")
+            # check if Campaign exists otherwise look up Change object of type Campaign
+            try:
+                context["campaign"] = Campaign.objects.get(uuid=change_object.update["campaign"])
+            except Campaign.DoesNotExist:
+                context["campaign"] = Change.objects.of_type(Campaign).get(
+                    uuid=change_object.update["campaign"]
+                )
+        elif isinstance(model_instance, DeploymentChildMixin) or isinstance(
             model_instance, Deployment
         ):
             context["campaign"] = model_instance.campaign
