@@ -47,7 +47,9 @@ def classname(obj):
 
 
 @register.inclusion_tag('snippets/object_header_tabs.html', takes_context=True)
-def object_header_tabs(context, change: Union[Change, BaseModel], canonical_change: Optional[Change] = None):
+def object_header_tabs(
+    context, change: Union[Change, BaseModel], canonical_change: Optional[Change] = None
+):
     """
     Reusable header for canonical object.
     """
@@ -89,7 +91,7 @@ def object_header_tabs(context, change: Union[Change, BaseModel], canonical_chan
     )
 
     draft_status_class = f"draft-status-{draft_status.lower().replace(' ', '-')}"
-    
+
     return {
         "object": change,
         "draft_status": draft_status,
