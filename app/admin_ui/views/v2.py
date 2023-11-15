@@ -187,14 +187,17 @@ class HistoryDetailView(ModelObjectView):
     def get_model_form_content_type(self) -> ContentType:
         return Change.objects.get(uuid=self.kwargs[self.pk_url_kwarg]).content_type
 
+    def get_object(self):
+        return Change.objects.get(uuid=self.kwargs['draft_uuid'])
+
     def get_context_data(self, **kwargs):
         return {
             **super().get_context_data(**kwargs),
-            "model_form": self._get_form(instance=kwargs.get("object"), disable_all=True),
+            "model_form": self._get_form(initial=kwargs.get("object").update, disable_all=True),
             "view_model": (
                 Change.objects.get(uuid=self.kwargs[self.pk_url_kwarg]).model_name.lower()
             ),
-            "object": Change.objects.get(uuid=self.kwargs[self.pk_url_kwarg]),
+            "object": kwargs.get("object"),
             "display_name": Change.objects.get(uuid=self.kwargs[self.pk_url_kwarg]).model_name,
             "canonical_uuid": self.kwargs[self.pk_url_kwarg],
         }
