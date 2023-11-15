@@ -153,13 +153,21 @@ class ChangeHistoryList(SingleTableView):
     template_name = "api_app/canonical/change_history.html"
 
     def get(self, request, *args, **kwargs):
-        messages.error(
-            self.request,
-            (
-                f"""The published version of this {self.kwargs['model']} has been deleted and is no longer viewable on
-                  the CASEI UI. You can only view the past versions in the {self.kwargs['model']} history."""
-            ),
+        # display message for deleted models
+        is_deleted = (
+            Change.objects.related_drafts(self.kwargs[self.pk_url_kwarg])
+            .filter(status=Change.Statuses.PUBLISHED, action=Change.Actions.DELETE)
+            .exists()
         )
+        if is_deleted:
+            messages.error(
+                self.request,
+                (
+                    f"""The published version of this {self.kwargs['model']} has been deleted
+                    and is no longer viewable on the CASEI UI. You can only view the past versions
+                    in the {self.kwargs['model']} history."""
+                ),
+            )
 
         return super().get(request, *args, **kwargs)
 
