@@ -1,9 +1,7 @@
 from django import template
-from typing import Optional, Union
 
 from admin_ui.utils import get_draft_status_class
 from api_app.models import Change
-from data_models.models import BaseModel
 
 register = template.Library()
 
@@ -47,13 +45,10 @@ def classname(obj):
 
 
 @register.inclusion_tag('snippets/object_header_tabs.html', takes_context=True)
-def object_header_tabs(
-    context, change: Union[Change, BaseModel], canonical_change: Optional[Change] = None
-):
+def object_header_tabs(context, canonical_uuid: str):
     """
     Reusable header for canonical object.
     """
-    canonical_uuid = canonical_change.uuid
     latest_draft = Change.objects.related_drafts(canonical_uuid).order_by("status").first()
 
     return {
@@ -66,8 +61,8 @@ def object_header_tabs(
             uuid=canonical_uuid
         ).exists(),
         "has_published_draft": Change.objects.related_drafts(canonical_uuid)
-        .filter(action=Change.Statuses.CREATED, status=Change.Statuses.PUBLISHED)
+        .filter(status=Change.Statuses.PUBLISHED, action=Change.Actions.CREATE)
         .exists(),
         "request": context.get("request"),
-        "view_model": change.model_name_for_url,
+        "view_model": latest_draft.model_name_for_url,
     }
