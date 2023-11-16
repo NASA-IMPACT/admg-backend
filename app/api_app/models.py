@@ -355,6 +355,12 @@ class Change(models.Model):
         return cls.__name__ if cls else "UNKNOWN"
 
     @property
+    def model_name_for_url(self):
+        from api_app.urls import camel_to_snake
+
+        return camel_to_snake(self.model_name)
+
+    @property
     def is_locked(self):
         """
         Helper to specify when an object should be locked (ie no longer can be edited)
