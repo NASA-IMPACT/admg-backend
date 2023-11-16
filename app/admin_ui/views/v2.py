@@ -254,32 +254,6 @@ class CanonicalDraftEdit(NotificationSidebar, mixins.ChangeModelFormMixin, Updat
     pk_url_kwarg = 'canonical_uuid'
     queryset = Change.objects.all().exclude(status=Change.Statuses.PUBLISHED)
 
-    def get_queryset(self):
-        return Change.objects.all()
-
-    def get(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        in_progress_drafts = Change.objects.related_in_progress_drafts(
-            self.kwargs["canonical_uuid"]
-        )
-
-        published_drafts = Change.objects.related_drafts(self.kwargs["canonical_uuid"]).filter(
-            status=Change.Statuses.PUBLISHED
-        )
-
-        if not in_progress_drafts.exists() and published_drafts.exists():
-            return redirect(
-                reverse(
-                    "canonical-published-detail",
-                    kwargs={
-                        "canonical_uuid": self.kwargs[self.pk_url_kwarg],
-                        "draft_uuid": self.object.pk,
-                        "model": self.kwargs["model"],
-                    },
-                )
-            )
-        return super().get(request, *args, **kwargs)
-
     def get_object(self, queryset=None):
         if not queryset:
             queryset = self.queryset
@@ -288,6 +262,7 @@ class CanonicalDraftEdit(NotificationSidebar, mixins.ChangeModelFormMixin, Updat
 
         if obj := queryset.related_drafts(canonical_uuid).order_by('status').first():
             return obj
+
         raise Http404(f'No in progress draft with Canonical UUID {canonical_uuid!r}')
 
     def get_success_url(self, **kwargs):
