@@ -17,15 +17,15 @@ urlpatterns = [
         name="campaign-detail",
     ),
     path(
-        "campaigns/<uuid:canonical_uuid>/doi-fetch", views.DoiFetchView.as_view(), name="doi-fetch"
+        "campaign/<uuid:canonical_uuid>/doi-fetch", views.DoiFetchView.as_view(), name="doi-fetch"
     ),
     path(
-        "campaigns/<uuid:canonical_uuid>/doi-approval",
+        "campaign/<uuid:canonical_uuid>/doi-approval",
         views.DoiApprovalView.as_view(),
         name="doi-approval",
     ),
     path(
-        "v2/campaigns/<uuid:canonical_uuid>/doi-approval",
+        "v2/campaign/<uuid:canonical_uuid>/doi-approval",
         views.DoiApprovalView.as_view(),
         name="doi-approval",
     ),

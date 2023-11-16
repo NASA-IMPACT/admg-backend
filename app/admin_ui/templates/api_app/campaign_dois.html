@@ -22,7 +22,7 @@
 
         Please refresh the page a few minutes after clicking "Generate DOIs".
       </p>
-      <form action="{% url 'doi-fetch' canonical_uuid %}" method="post">
+      <form action="{% url 'doi-fetch' object.uuid %}" method="post">
         {% csrf_token %}
         <button class="btn btn-primary">Generate DOIs &plus;</button>
       </form>

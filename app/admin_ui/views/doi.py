@@ -111,7 +111,7 @@ class DoiFetchView(NotificationSidebar, View):
             messages.INFO,
             f"Fetching DOIs for {campaign.update.get('short_name', uuid)}...",
         )
-        return HttpResponseRedirect(reverse("doi-approval", args=[self.kwargs["canonical_uuid"]]))
+        return HttpResponseRedirect(reverse("doi-approval", args=[campaign.uuid]))
 
 
 @method_decorator(login_required, name="dispatch")
