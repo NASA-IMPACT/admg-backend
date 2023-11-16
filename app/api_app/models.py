@@ -120,6 +120,13 @@ class ChangeQuerySet(models.QuerySet):
     def related_drafts(self, uuid: str):
         return self.filter(Q(uuid=uuid) | Q(model_instance_uuid=uuid))
 
+    def is_deleted(self, uuid: str):
+        return (
+            self.filter(Q(uuid=uuid) | Q(model_instance_uuid=uuid))
+            .filter(status=Change.Statuses.PUBLISHED, action=Change.Actions.DELETE)
+            .exists()
+        )
+
     def related_in_progress_drafts(self, uuid: str):
         return self.related_drafts(uuid=uuid).exclude(status=Change.Statuses.PUBLISHED)
 

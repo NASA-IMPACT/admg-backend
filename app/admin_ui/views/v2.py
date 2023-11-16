@@ -49,11 +49,7 @@ def redirect_helper(request, canonical_uuid, model):
         and not Change.objects.related_drafts(canonical_uuid).order_by("-updated_at").first().action
         == Change.Actions.DELETE
     )
-    is_deleted = (
-        Change.objects.related_drafts(canonical_uuid)
-        .filter(status=Change.Statuses.PUBLISHED, action=Change.Actions.DELETE)
-        .exists()
-    )
+    is_deleted = Change.objects.is_deleted(canonical_uuid)
 
     if is_deleted:
         return redirect(
@@ -154,11 +150,7 @@ class ChangeHistoryList(SingleTableView):
 
     def get(self, request, *args, **kwargs):
         # display message for deleted models
-        is_deleted = (
-            Change.objects.related_drafts(self.kwargs[self.pk_url_kwarg])
-            .filter(status=Change.Statuses.PUBLISHED, action=Change.Actions.DELETE)
-            .exists()
-        )
+        is_deleted = Change.objects.is_deleted(self.kwargs[self.pk_url_kwarg])
         if is_deleted:
             messages.error(
                 self.request,
@@ -242,9 +234,7 @@ class CanonicalRecordPublished(ModelObjectView):
             "has_draft_in_progress": Change.objects.related_in_progress_drafts(
                 self.kwargs[self.pk_url_kwarg]
             ).exists(),
-            "is_deleted": Change.objects.related_drafts(self.kwargs[self.pk_url_kwarg])
-            .filter(status=Change.Statuses.PUBLISHED, action=Change.Actions.DELETE)
-            .exists(),
+            "is_deleted": Change.objects.is_deleted(self.kwargs[self.pk_url_kwarg]),
         }
 
 

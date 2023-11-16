@@ -77,13 +77,9 @@ class SummaryView(NotificationSidebar, django_tables2.SingleTableView):
         We're getting a list of all created records (so we can link to them) for all models.
         However, we want to display the most recent related draft in the table.
         """
-        # related_drafts = Change.objects.filter(
-        #     Q(model_instance_uuid=OuterRef("uuid")) | Q(uuid=OuterRef("uuid"))
-        # ).order_by("status", "-updated_at")
-
-        related_drafts = Change.objects.related_drafts(OuterRef("uuid")).order_by(
-            "status", "-updated_at"
-        )
+        related_drafts = Change.objects.filter(
+            Q(model_instance_uuid=OuterRef("uuid")) | Q(uuid=OuterRef("uuid"))
+        ).order_by("status", "-updated_at")
 
         latest_published_draft = Change.objects.filter(
             status=Change.Statuses.PUBLISHED,
