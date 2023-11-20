@@ -1,8 +1,10 @@
-from typing import Dict
+from typing import Any, Dict
 
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import ObjectDoesNotExist
 from django.utils.decorators import method_decorator
 from django.views.generic.detail import DetailView
+from django.views.generic.base import ContextMixin
 from django.forms import modelform_factory
 from django.http import Http404, HttpResponseBadRequest
 from django.shortcuts import redirect
@@ -24,6 +26,7 @@ from data_models.models import (
     Campaign,
     CollectionPeriod,
     Deployment,
+    DeploymentChildMixin,
     Instrument,
     Platform,
     PlatformType,
@@ -63,6 +66,40 @@ def redirect_helper(request, canonical_uuid, model):
             )
         )
     )
+
+
+class CampaignRelatedView(ContextMixin):
+    def get_context_data(self, **kwargs) -> dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+        model_class = None
+
+        if self.model is Change or isinstance(self.object, Change):
+            canonical_uuid = self.kwargs[self.pk_url_kwarg]
+            change_object = Change.objects.select_related('content_type').get(uuid=canonical_uuid)
+            try:
+                model_instance = change_object._get_model_instance()
+            except ObjectDoesNotExist:
+                model_instance = None
+                model_class = change_object.content_type.model_class()
+        else:
+            model_instance = self.object
+
+        # if we have a change object with no published record
+        if model_class and (
+            issubclass(model_class, DeploymentChildMixin) or model_class is Deployment
+        ):
+            # check if Campaign exists otherwise look up Change object of type Campaign
+            try:
+                context["parent"] = Campaign.objects.get(uuid=change_object.update["campaign"])
+            except Campaign.DoesNotExist:
+                context["parent"] = Change.objects.of_type(Campaign).get(
+                    uuid=change_object.update["campaign"]
+                )
+        elif isinstance(model_instance, DeploymentChildMixin) or isinstance(
+            model_instance, Deployment
+        ):
+            context["parent"] = model_instance.campaign
+        return context
 
 
 # Lists all the canonical records for a given model type
@@ -124,7 +161,7 @@ class CanonicalRecordList(mixins.DynamicModelMixin, SingleTableMixin, FilterView
 
 
 @method_decorator(login_required, name="dispatch")
-class ChangeHistoryList(SingleTableView):
+class ChangeHistoryList(SingleTableView, CampaignRelatedView):
     model = Change
     table_class = DraftHistoryTable
     pk_url_kwarg = 'canonical_uuid'
@@ -136,17 +173,18 @@ class ChangeHistoryList(SingleTableView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         canonical_uuid = self.kwargs[self.pk_url_kwarg]
+
+        change_object = Change.objects.select_related('content_type').get(uuid=canonical_uuid)
         return {
             **context,
             "view_model": self.kwargs['model'],
             "canonical_uuid": canonical_uuid,
-            "object": Change.objects.select_related('content_type').get(uuid=canonical_uuid),
+            "object": change_object,
         }
 
 
-class HistoryDetailView(ModelObjectView):
+class HistoryDetailView(ModelObjectView, CampaignRelatedView):
     model = Change
-    pk_url_kwarg = 'draft_uuid'
     template_name = "api_app/canonical/historical_detail.html"
     pk_url_kwarg = 'canonical_uuid'
     fields = ["content_type", "model_instance_uuid", "action", "update"]
@@ -168,7 +206,7 @@ class HistoryDetailView(ModelObjectView):
 
 
 @method_decorator(login_required, name="dispatch")
-class CanonicalRecordPublished(ModelObjectView):
+class CanonicalRecordPublished(ModelObjectView, CampaignRelatedView):
     """
     Render a read-only form displaying the latest published draft.
     """
@@ -187,12 +225,12 @@ class CanonicalRecordPublished(ModelObjectView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        change = Change.objects.get(uuid=self.kwargs[self.pk_url_kwarg])
+        view_model = change.content_type.model_class()
         return {
             **context,
             "model_form": self._get_form(instance=kwargs.get("object"), disable_all=True),
-            "view_model": (
-                Change.objects.get(uuid=self.kwargs[self.pk_url_kwarg]).model_name.lower()
-            ),
+            "view_model": (camel_to_snake(view_model.__name__)),
             "display_name": Change.objects.get(uuid=self.kwargs[self.pk_url_kwarg]).model_name,
             "has_progress_draft": Change.objects.related_in_progress_drafts(
                 self.kwargs[self.pk_url_kwarg]
@@ -201,7 +239,9 @@ class CanonicalRecordPublished(ModelObjectView):
 
 
 @method_decorator(login_required, name="dispatch")
-class CanonicalDraftEdit(NotificationSidebar, mixins.ChangeModelFormMixin, UpdateView):
+class CanonicalDraftEdit(
+    NotificationSidebar, mixins.ChangeModelFormMixin, UpdateView, CampaignRelatedView
+):
     """
     This view is in charge of editing the latest in-progress drafts. If no in-progress
     drafts are available, a 404 is returned.
@@ -380,7 +420,9 @@ class CreateNewView(mixins.DynamicModelMixin, mixins.ChangeModelFormMixin, Creat
 
 
 @method_decorator(login_required, name="dispatch")
-class CreateUpdateView(mixins.DynamicModelMixin, mixins.ChangeModelFormMixin, CreateView):
+class CreateUpdateView(
+    mixins.DynamicModelMixin, mixins.ChangeModelFormMixin, CreateView, CampaignRelatedView
+):
     model = Change
     fields = ["content_type", "model_instance_uuid", "action", "update"]
     template_name = "api_app/canonical/change_update.html"

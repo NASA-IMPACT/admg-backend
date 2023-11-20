@@ -6,7 +6,11 @@
 
 {% block header %}
   <div class="col">
+    {% if parent %}
+    <a href="{% url 'campaign-detail' 'campaign' parent.uuid %}">&lt; Back to {% firstof parent.short_name parent.update.short_name %}</a>
+    {% else %}
     <a href="{% url 'canonical-list' view_model %}">&lt; Back to {{ display_name }}</a>
+    {% endif %}
     <h1 class="my-5">{{ object.short_name }}</h1>
   </div>
 {% endblock header %}
