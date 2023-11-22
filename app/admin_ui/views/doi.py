@@ -139,7 +139,7 @@ class DoiApprovalView(NotificationSidebar, SingleObjectMixin, MultipleObjectMixi
         all_past_doi_fetches = self.request.session.get("doi_task_ids", {})
         if not isinstance(all_past_doi_fetches, dict):
             all_past_doi_fetches = {}
-        relevant_doi_fetches = all_past_doi_fetches.get(self.kwargs["canonical_uuid"], [])
+        relevant_doi_fetches = all_past_doi_fetches.get(str(self.kwargs["canonical_uuid"]), [])
         doi_tasks = {task_id: None for task_id in relevant_doi_fetches}
         if relevant_doi_fetches:
             doi_tasks.update(TaskResult.objects.in_bulk(relevant_doi_fetches, field_name="task_id"))

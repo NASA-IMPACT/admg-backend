@@ -20,11 +20,6 @@ urlpatterns = [
         "campaign/<uuid:canonical_uuid>/doi-fetch", views.DoiFetchView.as_view(), name="doi-fetch"
     ),
     path(
-        "campaign/<uuid:canonical_uuid>/doi-approval",
-        views.DoiApprovalView.as_view(),
-        name="doi-approval",
-    ),
-    path(
         "v2/campaign/<uuid:canonical_uuid>/doi-approval",
         views.DoiApprovalView.as_view(),
         name="doi-approval",
