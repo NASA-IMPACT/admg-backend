@@ -120,6 +120,13 @@ class ChangeQuerySet(models.QuerySet):
     def related_drafts(self, uuid: str):
         return self.filter(Q(uuid=uuid) | Q(model_instance_uuid=uuid))
 
+    def is_deleted(self, uuid: str):
+        return (
+            self.filter(Q(uuid=uuid) | Q(model_instance_uuid=uuid))
+            .filter(status=Change.Statuses.PUBLISHED, action=Change.Actions.DELETE)
+            .exists()
+        )
+
     def related_in_progress_drafts(self, uuid: str):
         return self.related_drafts(uuid=uuid).exclude(status=Change.Statuses.PUBLISHED)
 
@@ -884,7 +891,7 @@ def set_change_updated_at(sender, instance, **kwargs):
         try:
             if instance.change:  # Check if the 'change' field exists
                 instance.change.updated_at = instance.date
-                instance.change.save(check_status=False)
+                instance.change.save(check_status=False, post_save=post_save)
         except Change.DoesNotExist:
             pass
 

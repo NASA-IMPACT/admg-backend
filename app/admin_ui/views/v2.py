@@ -1,6 +1,7 @@
 from typing import Any, Dict
 
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils.decorators import method_decorator
 from django.views.generic.detail import DetailView
@@ -45,8 +46,26 @@ def redirect_helper(request, canonical_uuid, model):
     Redirect to the latest draft edit if non-publishd edit exist. Otherwise, send to
     published detail view.
     """
-    return (
-        redirect(
+    # check if there is a related create draft and that the most recent draft is not a delete draft
+    has_active_progress_draft = (
+        Change.objects.related_in_progress_drafts(uuid=canonical_uuid).exists()
+        and not Change.objects.related_drafts(canonical_uuid).order_by("-updated_at").first().action
+        == Change.Actions.DELETE
+    )
+    is_deleted = Change.objects.is_deleted(canonical_uuid)
+
+    if is_deleted:
+        return redirect(
+            reverse(
+                "change-history",
+                kwargs={
+                    "canonical_uuid": canonical_uuid,
+                    "model": model,
+                },
+            )
+        )
+    elif has_active_progress_draft:
+        return redirect(
             reverse(
                 "canonical-draft-edit",
                 kwargs={
@@ -55,8 +74,8 @@ def redirect_helper(request, canonical_uuid, model):
                 },
             )
         )
-        if Change.objects.related_in_progress_drafts(uuid=canonical_uuid).exists()
-        else redirect(
+    else:
+        return redirect(
             reverse(
                 "canonical-published-detail",
                 kwargs={
@@ -65,7 +84,6 @@ def redirect_helper(request, canonical_uuid, model):
                 },
             )
         )
-    )
 
 
 class CampaignRelatedView(ContextMixin):
@@ -167,8 +185,23 @@ class ChangeHistoryList(SingleTableView, CampaignRelatedView):
     pk_url_kwarg = 'canonical_uuid'
     template_name = "api_app/canonical/change_history.html"
 
+    def get(self, request, *args, **kwargs):
+        # display message for deleted models
+        is_deleted = Change.objects.is_deleted(self.kwargs[self.pk_url_kwarg])
+        if is_deleted:
+            messages.error(
+                self.request,
+                (
+                    f"""The published version of this {self.kwargs['model']} has been deleted
+                    and is no longer viewable on the CASEI UI. You can only view the past versions
+                    in the {self.kwargs['model']} history."""
+                ),
+            )
+
+        return super().get(request, *args, **kwargs)
+
     def get_queryset(self):
-        return Change.objects.related_drafts(self.kwargs[self.pk_url_kwarg])
+        return Change.objects.related_drafts(self.kwargs[self.pk_url_kwarg]).order_by("-updated_at")
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -192,14 +225,17 @@ class HistoryDetailView(ModelObjectView, CampaignRelatedView):
     def get_model_form_content_type(self) -> ContentType:
         return Change.objects.get(uuid=self.kwargs[self.pk_url_kwarg]).content_type
 
+    def get_object(self):
+        return Change.objects.get(uuid=self.kwargs['draft_uuid'])
+
     def get_context_data(self, **kwargs):
         return {
             **super().get_context_data(**kwargs),
-            "model_form": self._get_form(instance=kwargs.get("object"), disable_all=True),
+            "model_form": self._get_form(initial=kwargs.get("object").update, disable_all=True),
             "view_model": (
                 Change.objects.get(uuid=self.kwargs[self.pk_url_kwarg]).model_name.lower()
             ),
-            "object": Change.objects.get(uuid=self.kwargs[self.pk_url_kwarg]),
+            "object": kwargs.get("object"),
             "display_name": Change.objects.get(uuid=self.kwargs[self.pk_url_kwarg]).model_name,
             "canonical_uuid": self.kwargs[self.pk_url_kwarg],
         }
@@ -230,11 +266,13 @@ class CanonicalRecordPublished(ModelObjectView, CampaignRelatedView):
         return {
             **context,
             "model_form": self._get_form(instance=kwargs.get("object"), disable_all=True),
+            "canonical_uuid": self.kwargs[self.pk_url_kwarg],
             "view_model": (camel_to_snake(view_model.__name__)),
             "display_name": Change.objects.get(uuid=self.kwargs[self.pk_url_kwarg]).model_name,
-            "has_progress_draft": Change.objects.related_in_progress_drafts(
+            "has_draft_in_progress": Change.objects.related_in_progress_drafts(
                 self.kwargs[self.pk_url_kwarg]
             ).exists(),
+            "is_deleted": Change.objects.is_deleted(self.kwargs[self.pk_url_kwarg]),
         }
 
 
@@ -630,7 +668,7 @@ class CampaignDetailView(NotificationSidebar, DetailView):
             **context,
             # By setting the view model, our nav sidebar knows to highlight the link for campaigns
             'view_model': 'campaign',
-            'canonical_object': self.canonical_draft,
+            'canonical_uuid': self.kwargs["canonical_uuid"],
             "deployments": deployments,
             "transition_form": forms.TransitionForm(
                 change=context["object"], user=self.request.user

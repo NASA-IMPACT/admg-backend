@@ -16,10 +16,11 @@ urlpatterns = [
         v2.CampaignDetailView.as_view(),
         name="campaign-detail",
     ),
-    path("campaigns/<uuid:pk>/doi-fetch", views.DoiFetchView.as_view(), name="doi-fetch"),
-    path("campaigns/<uuid:pk>/doi-approval", views.DoiApprovalView.as_view(), name="doi-approval"),
     path(
-        "v2/<str:model>/<uuid:pk>/doi-approval",
+        "campaign/<uuid:canonical_uuid>/doi-fetch", views.DoiFetchView.as_view(), name="doi-fetch"
+    ),
+    path(
+        "v2/campaign/<uuid:canonical_uuid>/doi-approval",
         views.DoiApprovalView.as_view(),
         name="doi-approval",
     ),
@@ -56,7 +57,9 @@ urlpatterns = [
         name="published-delete",
     ),
     path('v2/<str:model>', v2.CanonicalRecordList.as_view(), name="canonical-list"),
-    # Helper route to redirect user to appropriate view without prior knowledge of record's status (ie if it's been published). If published, return redirect to `/<uuid:canonical_uuid>/published`. Otherwise, redirect to `/<uuid:canonical_uuid>/edit`.
+    # Helper route to redirect user to appropriate view without prior knowledge of record's status
+    # (ie if it's been published). If published, return redirect to `/<uuid:canonical_uuid>/published`.
+    # Otherwise, redirect to `/<uuid:canonical_uuid>/edit`.
     path(
         'v2/<str:model>/<uuid:canonical_uuid>',
         v2.redirect_helper,

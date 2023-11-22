@@ -337,6 +337,7 @@ class ChangeUpdateView(NotificationSidebar, mixins.ChangeModelFormMixin, UpdateV
             "ancestors": context["object"].get_ancestors().select_related("content_type"),
             "descendents": context["object"].get_descendents().select_related("content_type"),
             "comparison_form": self._get_comparison_form(context['model_form']),
+            "canonical_uuid": self.object.pk,
         }
 
     def _get_comparison_form(self, model_form):

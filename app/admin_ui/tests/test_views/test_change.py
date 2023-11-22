@@ -12,7 +12,13 @@ class TestChangeUpdateView(TestCase):
     def setUp(self):
         self.change = factories.ChangeFactory.make_create_change_object(CampaignFactory)
         self.user = factories.UserFactory.create()
-        self.url = reverse("change-update", args=(self.change.uuid,))
+        self.url = reverse(
+            "create-update",
+            args=(
+                self.change.model_name_for_url,
+                self.change.uuid,
+            ),
+        )
 
     def test_requires_auth(self):
         response = self.client.get(self.url)
@@ -33,7 +39,7 @@ class TestCreateView(TestCase):
     def setUp(self):
         self.user = factories.UserFactory.create()
         self.content_type = ContentType.objects.get_for_model(Season)
-        self.url = reverse("change-add", args=(self.content_type.name,))
+        self.url = reverse("create-initial", args=(self.content_type.name,))
 
     def test_create_creates_change_instance(self):
         self.assertEqual(Change.objects.filter(content_type=self.content_type).count(), 0)
