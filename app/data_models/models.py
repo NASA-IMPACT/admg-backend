@@ -8,6 +8,7 @@ from django.contrib.gis.db import models as geomodels
 from django.contrib.postgres.search import SearchQuery, SearchVector
 from django.db import models
 
+
 # TODO: Mv to config
 FRONTEND_URL = "https://airborne-inventory.surge.sh/"
 NOTES_INTERNAL_HELP_TEXT = "Free text notes for ADMG staff, this is NOT visible to the public."
@@ -68,6 +69,12 @@ class BaseModel(models.Model):
             )
 
         return queryset.filter(**params)
+
+    @property
+    def model_name_for_url(self):
+        from api_app.urls import camel_to_snake
+
+        return camel_to_snake(self.__class__.__name__)
 
     def __str__(self):
         return self.short_name
@@ -839,7 +846,21 @@ class Deployment(DataModel):
         return select_related_distinct_data(self.collection_periods, "platform__uuid")
 
 
-class IopSe(BaseModel):
+class DeploymentChildMixin(models.Model):
+    """
+    A mixin class to help access Campaign objects via
+    related Deployment objects.
+    """
+
+    @property
+    def campaign(self):
+        return self.deployment.campaign
+
+    class Meta:
+        abstract = True
+
+
+class IopSe(BaseModel, DeploymentChildMixin):
     deployment = models.ForeignKey(
         Deployment,
         on_delete=models.CASCADE,
@@ -887,7 +908,7 @@ class IopSe(BaseModel):
         abstract = True
 
 
-class IOP(IopSe):
+class IOP(IopSe, DeploymentChildMixin):
     deployment = models.ForeignKey(
         Deployment,
         on_delete=models.CASCADE,
@@ -896,7 +917,7 @@ class IOP(IopSe):
     )
 
 
-class SignificantEvent(IopSe):
+class SignificantEvent(IopSe, DeploymentChildMixin):
     deployment = models.ForeignKey(
         Deployment,
         on_delete=models.CASCADE,
@@ -920,7 +941,7 @@ class SignificantEvent(IopSe):
     )
 
 
-class CollectionPeriod(BaseModel):
+class CollectionPeriod(BaseModel, DeploymentChildMixin):
     deployment = models.ForeignKey(
         Deployment, on_delete=models.CASCADE, related_name="collection_periods"
     )

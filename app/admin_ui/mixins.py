@@ -115,14 +115,14 @@ class ChangeModelFormMixin(ModelFormMixin):
     def get_model_form_content_type(self) -> ContentType:
         raise NotImplementedError("Subclass must implement this property")
 
-    def get_model_form_intial(self):
+    def get_model_form_initial(self):
         return {}
 
     def get_context_data(self, **kwargs):
         if "model_form" not in kwargs:
             # Ensure that the model_form is available in context for template
             kwargs["model_form"] = self.destination_model_form(
-                initial=self.get_model_form_intial(), prefix=self.destination_model_prefix
+                initial=self.get_model_form_initial(), prefix=self.destination_model_prefix
             )
 
         # Disable save on published or trashed

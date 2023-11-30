@@ -1,29 +1,9 @@
-{% extends "api_app/change_form.html" %}
+{% extends "./change_form.html" %}
 {% load static %}
 {% load crispy_forms_tags %}
 {% load model_helpers %}
 {% load humanize %}
 {% load template_extras %}
-
-{% block header %}
-  <div class="col">
-    {% include 'snippets/breadcrumbs.html' with ancestors=ancestors %}
-
-    <a href="{% spaceless %}
-        {% if "back" in request.GET %} {{ request.GET.back }}
-        {% else %}{% url 'change-list' view_model %}
-        {% endif %}
-        {% endspaceless %}">
-      &larr; Back
-    </a>
-    {% if view_model == 'website' %}
-    <h1>{{ object.update.title | default:object.uuid }}</h1>
-    {{ view_model }}
-    {% else %}
-    <h1>{{ object.update.short_name | default:object.uuid }}</h1>
-    {% endif %}
-  </div>
-{% endblock header %}
 
 {% block actions %}
   {% if object.is_locked %}
@@ -31,7 +11,7 @@
     <div class="px-1">
       <a 
         class="btn btn-primary" 
-        href="{% url 'published-detail' pk=object.model_instance_uuid model=view_model %}"
+        href="{% url 'published-detail' canonical_uuid=object.model_instance_uuid model=view_model %}"
       >
         View published version
       </a>

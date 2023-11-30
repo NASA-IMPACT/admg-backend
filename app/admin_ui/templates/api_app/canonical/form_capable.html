@@ -1,0 +1,41 @@
+{% extends "./layout-header_body.html" %}
+{% load crispy_forms_tags %}
+{% load humanize %}
+{% load template_extras %}
+
+{% comment %}
+This template prepares a view for form rendering
+{% endcomment %}
+
+{% block header %}
+  <div class="col">
+    {% if parent %}
+    <a href="{% url 'campaign-detail' 'campaign' parent.uuid %}">&lt; Back to {% firstof parent.short_name parent.update.short_name %}</a>
+    {% else %}
+    <a href="{% url 'canonical-list' view_model %}">&lt; Back to {{ object.content_type.model_class | verbose_name_plural | title }}</a>
+    {% endif %}
+    <h1 class="my-5">{% firstof object.update.short_name object.update.uuid %}</h1>
+  </div>
+{% endblock header %}
+
+{% block header_tabs %}
+  {% if object %}
+      {% object_header_tabs canonical_uuid %}
+  {% endif %}
+{% endblock header_tabs %}
+
+{% block extrahead %}
+{{ block.super }}
+{{ form.media.css }}
+{{ model_form.media.css }}
+{% endblock %}
+
+{% block javascript %}
+  {{ block.super }}
+  <script>
+    // Make dropdown more resistant to accidental closes (https://stackoverflow.com/a/32922725/728583)
+    $(document).on('click', '.dropdown-menu', function (e) {
+      e.stopPropagation();
+    });
+  </script>
+{% endblock %}

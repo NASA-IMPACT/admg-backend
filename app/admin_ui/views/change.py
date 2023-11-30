@@ -5,7 +5,18 @@ import django_tables2
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.contenttypes.models import ContentType
-from django.db.models import Case, CharField, Count, OuterRef, Q, Value, When, aggregates, functions
+from django.db.models import (
+    Case,
+    CharField,
+    Count,
+    OuterRef,
+    Q,
+    Value,
+    When,
+    aggregates,
+    functions,
+    Subquery,
+)
 from django.db.models.fields.json import KeyTextTransform
 from django.http import Http404, HttpResponseBadRequest, HttpResponseRedirect
 from django.urls import reverse
@@ -54,11 +65,40 @@ class SummaryView(NotificationSidebar, django_tables2.SingleTableView):
     paginate_by = 10
     template_name = "api_app/summary.html"
 
+    # def get_queryset(self):
+    #     return (
+    #         Change.objects.of_type(*self.models)
+    #         # Prefetch related ContentType (used when displaying output model type)
+    #         .select_related("content_type").order_by("-updated_at")
+    #     )
+
     def get_queryset(self):
+        """
+        We're getting a list of all created records (so we can link to them) for all models.
+        However, we want to display the most recent related draft in the table.
+        """
+        related_drafts = Change.objects.filter(
+            Q(model_instance_uuid=OuterRef("uuid")) | Q(uuid=OuterRef("uuid"))
+        ).order_by("status", "-updated_at")
+
+        latest_published_draft = Change.objects.filter(
+            status=Change.Statuses.PUBLISHED,
+            model_instance_uuid=OuterRef("uuid"),
+        ).order_by("-updated_at")
+
         return (
             Change.objects.of_type(*self.models)
+            .filter(action=Change.Actions.CREATE)
+            .annotate(
+                latest_status=Subquery(related_drafts.values("status")[:1]),
+                latest_action=Subquery(related_drafts.values("action")[:1]),
+                latest_updated_at=Subquery(related_drafts.values("updated_at")[:1]),
+                latest_published_at=Subquery(latest_published_draft.values("updated_at")[:1]),
+                latest_update=Subquery(related_drafts.values("update")[:1]),
+            )
             # Prefetch related ContentType (used when displaying output model type)
-            .select_related("content_type").order_by("-updated_at")
+            .select_related("content_type")
+            .order_by("-latest_updated_at")
         )
 
     def get_total_counts(self):
@@ -119,7 +159,7 @@ class SummaryView(NotificationSidebar, django_tables2.SingleTableView):
 
 class CampaignDetailView(NotificationSidebar, DetailView):
     model = Change
-    template_name = "api_app/campaign_detail.html"
+    template_name = "api_app/campaign_details.html"
     queryset = Change.objects.of_type(Campaign)
 
     @staticmethod
@@ -181,8 +221,8 @@ class CampaignDetailView(NotificationSidebar, DetailView):
 
         return {
             **context,
-            # By setting the model name, our nav sidebar knows to highlight the link for campaigns
-            'model_name': 'campaign',
+            # By setting the view model, our nav sidebar knows to highlight the link for campaigns
+            'view_model': 'campaign',
             "deployments": deployments,
             "transition_form": forms.TransitionForm(
                 change=context["object"], user=self.request.user
@@ -217,7 +257,7 @@ class ChangeCreateView(
 ):
     model = Change
     fields = ["content_type", "model_instance_uuid", "action", "update"]
-    template_name = "api_app/change_create.html"
+    template_name = "api_app/canonical/change_create.html"
 
     def get_initial(self):
         # Get initial form values from URL
@@ -251,7 +291,7 @@ class ChangeCreateView(
                 raise Http404(f'Unsupported model type: {self._model_name}') from e
         return self.model_form_content_type
 
-    def get_model_form_intial(self):
+    def get_model_form_initial(self):
         # TODO: Not currently possible to handle reverse relationships such as adding
         # models to a CollectionPeriod where the FK is on the Collection Period
         return {k: v for k, v in self.request.GET.dict().items() if k != "uuid"}
@@ -297,6 +337,7 @@ class ChangeUpdateView(NotificationSidebar, mixins.ChangeModelFormMixin, UpdateV
             "ancestors": context["object"].get_ancestors().select_related("content_type"),
             "descendents": context["object"].get_descendents().select_related("content_type"),
             "comparison_form": self._get_comparison_form(context['model_form']),
+            "canonical_uuid": self.object.pk,
         }
 
     def _get_comparison_form(self, model_form):
@@ -353,7 +394,7 @@ class ChangeUpdateView(NotificationSidebar, mixins.ChangeModelFormMixin, UpdateV
             )
         return related_fields
 
-    def get_model_form_intial(self):
+    def get_model_form_initial(self):
         return self.object.update
 
     def post(self, *args, **kwargs):
@@ -439,19 +480,25 @@ class ChangeTransition(NotificationSidebar, FormMixin, ProcessFormView, DetailVi
                 mark_safe(f"<b>Unable to transition draft.</b> {format_validation_error(err)}"),
             )
         else:
-            obj = self.get_object()
             messages.success(
                 self.request,
                 (
-                    f"Transitioned \"{obj.model_name}: {obj.update.get('short_name', obj.uuid)}\" "
-                    f"to \"{obj.get_status_display()}\"."
+                    f"Transitioned {form.change.model_name}:"
+                    + f" {form.change.update.get('short_name', form.change.uuid)!r}"
+                    + f" to {form.change.get_status_display()!r}."
                 ),
             )
 
         return super().form_valid(form)
 
     def get_success_url(self):
-        return self.request.META.get("HTTP_REFERER") or super().get_success_url()
+        return reverse(
+            "canonical-redirect",
+            kwargs={
+                "canonical_uuid": self.kwargs[self.pk_url_kwarg],
+                "model": self.get_form().change.content_type.model,
+            },
+        )
 
 
 def format_validation_error(err: ValidationError) -> str:

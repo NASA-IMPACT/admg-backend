@@ -58,3 +58,16 @@ def serialize_model_form(model_form: ModelForm):
                 model_form.data, model_form.files, model_form.add_prefix(name)
             )
     return update
+
+
+def get_draft_status_class(value: int) -> str:
+    return [
+        "draft-status-created",
+        "draft-status-in-progress",
+        "draft-status-awaiting-review",
+        "draft-status-in-review",
+        "draft-status-awaiting-admin-review",
+        "draft-status-in-admin-review",
+        "draft-status-published",
+        "badge-warning",
+    ][value]

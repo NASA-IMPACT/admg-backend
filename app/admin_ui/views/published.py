@@ -7,11 +7,14 @@ from django.views import View
 from django.views.generic import DetailView
 from django_filters.views import FilterView
 from django_tables2.views import SingleTableMixin
+from django.contrib.auth import get_user_model
 
 from api_app.views.generic_views import NotificationSidebar
 from api_app.models import Change
 
 from .. import utils, forms, mixins
+
+User = get_user_model()
 
 
 class PublishedListView(
@@ -53,13 +56,14 @@ class ModelObjectView(NotificationSidebar, mixins.DynamicModelMixin, DetailView)
         return self._initialize_form(form_class, disable_all, **kwargs)
 
     def get_object(self):
-        return self._model_config['model'].objects.get(uuid=self.kwargs['pk'])
+        return self._model_config['model'].objects.get(uuid=self.kwargs['canonical_uuid'])
 
     def get_queryset(self):
         return self._model_config['model'].objects.all()
 
     def get_context_data(self, **kwargs):
-        return {**super().get_context_data(**kwargs), "request": self.request}
+        context = {**super().get_context_data(**kwargs), "request": self.request}
+        return context
 
 
 @method_decorator(login_required, name="dispatch")
@@ -69,7 +73,7 @@ class PublishedDetailView(ModelObjectView):
     def get_context_data(self, **kwargs):
         return {
             **super().get_context_data(**kwargs),
-            "model_form": self._get_form(instance=kwargs.get("object"), disable_all=True),
+            "model_form": self._get_form(instance=kwargs["object"], disable_all=True),
             "view_model": self._model_name,
             "display_name": self._model_config["display_name"],
             "url_name": self._model_config["singular_snake_case"],
@@ -106,7 +110,7 @@ class PublishedEditView(ModelObjectView):
     def get_context_data(self, **kwargs):
         return {
             **super().get_context_data(**kwargs),
-            "model_form": self._get_form(instance=kwargs.get("object")),
+            "model_form": self._get_form(instance=kwargs["object"]),
             "view_model": self._model_name,
             "display_name": self._model_config["display_name"],
             "url_name": self._model_config["singular_snake_case"],
@@ -115,17 +119,18 @@ class PublishedEditView(ModelObjectView):
 
 @method_decorator(login_required, name="dispatch")
 class PublishedDeleteView(mixins.DynamicModelMixin, View):
-    def dispatch(self, *args, **kwargs):
+    def dispatch(self, request, *args, **kwargs):
         model_to_query = self._model_config["model"]
         content_type = ContentType.objects.get_for_model(model_to_query)
-        change_object = Change.objects.create(
+        change_object = Change(
             content_type=content_type,
             status=Change.Statuses.CREATED,
             action=Change.Actions.DELETE,
-            model_instance_uuid=kwargs.get("pk"),
+            model_instance_uuid=kwargs["canonical_uuid"],
             update={},
         )
-        change_object.save()
+        # directly publish delete draft without going through approval process
+        change_object.publish(request.user)
         return redirect(
-            reverse("change-list", kwargs={'model': self._model_config['singular_snake_case']})
+            reverse("canonical-list", kwargs={'model': self._model_config['singular_snake_case']})
         )

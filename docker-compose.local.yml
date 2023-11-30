@@ -12,6 +12,7 @@ services:
     ports:
       - 5678:5678 # debugger
       - 8001:8001 # mapped to 8001 to prevent clashes with local django instances
+      - 8890:8888 # allows use of django shell notebooks during local development
     env_file:
       - ./.env
     environment:
@@ -23,6 +24,7 @@ services:
       - MIGRATE=true
     depends_on:
       - db
+      - rabbitmq
 
   db:
     image: postgis/postgis:12-3.3
@@ -33,14 +35,14 @@ services:
       - POSTGRES_PASSWORD=password
       - POSTGRES_DB=admg_webapp
     ports:
-      - 5432:5439
+      - "5439:5432"
 
   rabbitmq:
     container_name: rabbitmq
     hostname: rabbitmq
     image: rabbitmq:latest
     ports:
-      - "5672:5672"
+      - "5673:5672"
     restart: on-failure
 
   celery_worker:
