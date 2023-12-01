@@ -105,7 +105,9 @@ class CampaignRelatedView(ContextMixin):
         # if we have a change object with no published record
         if model_class:
             if issubclass(model_class, DeploymentChildMixin):
-                deployment = Change.objects.of_type(Deployment).get(uuid=change_object.update["deployment"])
+                deployment = Change.objects.of_type(Deployment).get(
+                    uuid=change_object.update["deployment"]
+                )
             elif model_class is Deployment:
                 deployment = change_object
 
