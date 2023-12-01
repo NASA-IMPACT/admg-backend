@@ -103,15 +103,18 @@ class CampaignRelatedView(ContextMixin):
             model_instance = self.object
 
         # if we have a change object with no published record
-        if model_class and (
-            issubclass(model_class, DeploymentChildMixin) or model_class is Deployment
-        ):
+        if model_class:
+            if issubclass(model_class, DeploymentChildMixin):
+                deployment = Change.objects.of_type(Deployment).get(uuid=change_object.update["deployment"])
+            elif model_class is Deployment:
+                deployment = change_object
+
             # check if Campaign exists otherwise look up Change object of type Campaign
             try:
-                context["parent"] = Campaign.objects.get(uuid=change_object.update["campaign"])
+                context["parent"] = Campaign.objects.get(uuid=deployment.update["campaign"])
             except Campaign.DoesNotExist:
                 context["parent"] = Change.objects.of_type(Campaign).get(
-                    uuid=change_object.update["campaign"]
+                    uuid=deployment.update["campaign"]
                 )
         elif isinstance(model_instance, DeploymentChildMixin) or isinstance(
             model_instance, Deployment
@@ -639,7 +642,7 @@ class CampaignDetailView(NotificationSidebar, DetailView):
 
         collection_periods = CampaignDetailView._filter_latest_changes(
             Change.objects.of_type(CollectionPeriod)
-            .filter(update__deployment__in=[str(d.model_instance_uuid) for d in deployments])
+            .filter(update__deployment__in=[str(d.canonical_uuid) for d in deployments])
             .select_related("content_type")
             .prefetch_approvals()
             .annotate_from_relationship(
@@ -675,13 +678,13 @@ class CampaignDetailView(NotificationSidebar, DetailView):
             ),
             "significant_events": CampaignDetailView._filter_latest_changes(
                 Change.objects.of_type(SignificantEvent)
-                .filter(update__deployment__in=[str(d.model_instance_uuid) for d in deployments])
+                .filter(update__deployment__in=[str(d.canonical_uuid) for d in deployments])
                 .select_related("content_type")
                 .prefetch_approvals()
             ),
             "iops": CampaignDetailView._filter_latest_changes(
                 Change.objects.of_type(IOP)
-                .filter(update__deployment__in=[str(d.model_instance_uuid) for d in deployments])
+                .filter(update__deployment__in=[str(d.canonical_uuid) for d in deployments])
                 .select_related("content_type")
                 .prefetch_approvals()
             ),
