@@ -72,9 +72,9 @@ class BaseModel(models.Model):
 
     @property
     def model_name_for_url(self):
-        from api_app.urls import camel_to_snake
+        from api_app.utils import model_name_for_url
 
-        return camel_to_snake(self.__class__.__name__)
+        return model_name_for_url(self.__class__.__name__)
 
     def __str__(self):
         return self.short_name
