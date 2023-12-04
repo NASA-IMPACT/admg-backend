@@ -1,8 +1,7 @@
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.core.exceptions import ObjectDoesNotExist
 from django.utils.decorators import method_decorator
 from django.views.generic.detail import DetailView
 from django.views.generic.base import ContextMixin
@@ -27,7 +26,6 @@ from data_models.models import (
     Campaign,
     CollectionPeriod,
     Deployment,
-    DeploymentChildMixin,
     Instrument,
     Platform,
     PlatformType,
@@ -87,42 +85,64 @@ def redirect_helper(request, canonical_uuid, model):
 
 
 class CampaignRelatedView(ContextMixin):
+    """
+    Mixin to inject information about the parent Campaign into the context data to be
+    used when rendering templates (e.g. generating back links).
+    """
+
+    @staticmethod
+    def get_campaign(model_instance) -> Optional[Campaign | Change]:
+        """
+        Attempt to retrieve the Published Campaign or Draft Campaign (if nothing is yet
+        published) related to a published or draft model instance.
+        """
+        if isinstance(model_instance, Website):
+            return None
+
+        if hasattr(model_instance, 'campaign'):
+            return model_instance.campaign
+
+        if hasattr(model_instance, 'deployment'):
+            return model_instance.deployment.campaign
+
+        if isinstance(model_instance, Change):
+            try:
+                # Try to fetch published campaign...
+                if 'campaign' in model_instance.update:
+                    return Campaign.objects.get(uuid=model_instance.update['campaign'])
+                if 'deployment' in model_instance.update:
+                    return Deployment.objects.get(uuid=model_instance.update['deployment']).campaign
+            except (Campaign.DoesNotExist, Deployment.DoesNotExist):
+                # Try for unpublished campaign...
+                if 'campaign' in model_instance.update:
+                    return Change.objects.of_type(Campaign).get(
+                        uuid=model_instance.update['campaign']
+                    )
+                if 'deployment' in model_instance.update:
+                    deployment = Change.objects.of_type(Deployment).get(
+                        uuid=model_instance.update['deployment']
+                    )
+                    return Change.objects.of_type(Campaign).get(uuid=deployment.update['campaign'])
+
     def get_context_data(self, **kwargs) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
-        model_class = None
 
-        if self.model is Change or isinstance(self.object, Change):
-            canonical_uuid = self.kwargs[self.pk_url_kwarg]
-            change_object = Change.objects.select_related('content_type').get(uuid=canonical_uuid)
-            try:
-                model_instance = change_object._get_model_instance()
-            except ObjectDoesNotExist:
-                model_instance = None
-                model_class = change_object.content_type.model_class()
-        else:
-            model_instance = self.object
+        campaign = self.get_campaign(self.object)
 
-        # if we have a change object with no published record
-        if model_class:
-            if issubclass(model_class, DeploymentChildMixin):
-                deployment = Change.objects.of_type(Deployment).get(
-                    uuid=change_object.update["deployment"]
-                )
-            elif model_class is Deployment:
-                deployment = change_object
+        if not campaign:
+            return context
 
-            # check if Campaign exists otherwise look up Change object of type Campaign
-            try:
-                context["parent"] = Campaign.objects.get(uuid=deployment.update["campaign"])
-            except Campaign.DoesNotExist:
-                context["parent"] = Change.objects.of_type(Campaign).get(
-                    uuid=deployment.update["campaign"]
-                )
-        elif isinstance(model_instance, DeploymentChildMixin) or isinstance(
-            model_instance, Deployment
-        ):
-            context["parent"] = model_instance.campaign
-        return context
+        return {
+            **context,
+            "campaign_canonical_uuid": (
+                campaign.uuid if isinstance(campaign, Campaign) else campaign.canonical_uuid
+            ),
+            "campaign_short_name": (
+                campaign.short_name
+                if isinstance(campaign, Campaign)
+                else campaign.update['short_name']
+            ),
+        }
 
 
 # Lists all the canonical records for a given model type
