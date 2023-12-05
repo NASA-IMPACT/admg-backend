@@ -279,10 +279,10 @@ class ChangeCreateView(
     def get_success_url(self):
         url = reverse(
             "canonical-draft-edit",
-            args=[
-                model_name_for_url(self.get_model_form_content_type().model_class().__name__),
-                self.object.pk,
-            ],
+            kwargs={
+               "model":  model_name_for_url(self.get_model_form_content_type().model_class().__name__),
+                "canonical_uuid": self.object.canonical_uuid,
+            },
         )
         if self.request.GET.get("back"):
             return f'{url}?back={self.request.GET["back"]}'
@@ -328,10 +328,10 @@ class ChangeUpdateView(NotificationSidebar, mixins.ChangeModelFormMixin, UpdateV
     def get_success_url(self):
         url = reverse(
             "canonical-draft-edit",
-            args=[
-                model_name_for_url(self.get_model_form_content_type().model_class().__name__),
-                self.object.pk,
-            ],
+            kwargs={
+               "model":  model_name_for_url(self.get_model_form_content_type().model_class().__name__),
+                "canonical_uuid": self.object.canonical_uuid,
+            },
         )
         # url = reverse("change-update", args=[self.object.pk])
         if self.request.GET.get("back"):
