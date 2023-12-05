@@ -127,7 +127,12 @@ class CampaignRelatedView(ContextMixin):
     def get_context_data(self, **kwargs) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
 
-        campaign = self.get_campaign(self.object)
+        model_instance = (
+            self.object
+            if hasattr(self, "object")
+            else Change.objects.get(uuid=self.kwargs['canonical_uuid'])
+        )
+        campaign = self.get_campaign(model_instance)
 
         if not campaign:
             return context
