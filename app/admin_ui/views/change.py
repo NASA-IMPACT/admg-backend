@@ -280,7 +280,9 @@ class ChangeCreateView(
         url = reverse(
             "canonical-draft-edit",
             kwargs={
-               "model":  model_name_for_url(self.get_model_form_content_type().model_class().__name__),
+                "model": model_name_for_url(
+                    self.get_model_form_content_type().model_class().__name__
+                ),
                 "canonical_uuid": self.object.canonical_uuid,
             },
         )
@@ -329,7 +331,9 @@ class ChangeUpdateView(NotificationSidebar, mixins.ChangeModelFormMixin, UpdateV
         url = reverse(
             "canonical-draft-edit",
             kwargs={
-               "model":  model_name_for_url(self.get_model_form_content_type().model_class().__name__),
+                "model": model_name_for_url(
+                    self.get_model_form_content_type().model_class().__name__
+                ),
                 "canonical_uuid": self.object.canonical_uuid,
             },
         )
