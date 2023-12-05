@@ -51,7 +51,7 @@ platform, instrument).
             </button>
             <span id="iops-badge" class="badge badge-primary badge-pill"></span>
           </h5>
-          <a class="add-deployment-child btn btn-primary" href="{% url 'change-add' 'iop' %}?deployment={{deployment.canonical_uuid}}&back={{ request.path }}">+</a>
+          <a class="add-deployment-child btn btn-primary" href="{% url 'change-add' 'iop' %}?deployment={{ deployment.canonical_uuid }}&back={{ request.path }}">+</a>
         </div>
         <div id="iops" class="collapse" aria-labelledby="iops-header" data-parent="#accordion">
           <ul class="list-group">
@@ -74,7 +74,7 @@ platform, instrument).
             </button>
             <span id="significant-events-badge" class="badge badge-primary badge-pill"></span>
           </h5>
-          <a class="add-deployment-child btn btn-primary" href="{% url 'change-add' 'significant_event' %}?deployment={{deployment.canonical_uuid}}&back={{ request.path }}">+</a>
+          <a class="add-deployment-child btn btn-primary" href="{% url 'change-add' 'significant_event' %}?deployment={{ deployment.canonical_uuid }}&back={{ request.path }}">+</a>
         </div>
         <div id="significant-events" class="collapse" aria-labelledby="significant-events-header" data-parent="#accordion">
           <ul class="list-group">
@@ -96,7 +96,7 @@ platform, instrument).
             </button>
             <span id="collection-periods-badge" class="badge badge-primary badge-pill"></span>
           </h5>
-          <a class="add-deployment-child btn btn-primary" href="{% url 'change-add' 'collection_period' %}?deployment={{deployment.canonical_uuid}}&back={{ request.path }}">+</a>
+          <a class="add-deployment-child btn btn-primary" href="{% url 'change-add' 'collection_period' %}?deployment={{ deployment.canonical_uuid }}&back={{ request.path }}">+</a>
         </div>
         <div id="collection-periods" class="collapse show" aria-labelledby="collection-periods-header" data-parent="#accordion">
           <ul class="list-group">
