@@ -333,7 +333,6 @@ class ChangeUpdateView(NotificationSidebar, mixins.ChangeModelFormMixin, UpdateV
                 "canonical_uuid": self.object.canonical_uuid,
             },
         )
-        # url = reverse("change-update", args=[self.object.pk])
         if self.request.GET.get("back"):
             return f'{url}?back={self.request.GET["back"]}'
         return url
