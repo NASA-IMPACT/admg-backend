@@ -215,7 +215,9 @@ class ChangeModelFormMixin(ModelFormMixin):
 
         model_form = self.destination_model_form(
             initial=self.get_model_form_initial(),
-            data=request.POST, prefix=self.destination_model_prefix, files=request.FILES
+            data=request.POST,
+            prefix=self.destination_model_prefix,
+            files=request.FILES,
         )
         model_form.full_clean()
 
