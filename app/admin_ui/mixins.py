@@ -66,7 +66,15 @@ def formfield_callback(f, disabled_fields=[], **kwargs):
                     )
                 }
             )
-    return f.formfield(disabled=f.name in disabled_fields, **kwargs)
+
+    field = f.formfield(**kwargs)
+
+    if f.name in disabled_fields:
+        if "disabled" in field.widget.attrs:
+            del field.widget.attrs["disabled"]
+        field.widget.attrs["readonly"] = "readonly"
+        field.disabled = False
+    return field
 
 
 class ChangeModelFormMixin(ModelFormMixin):
