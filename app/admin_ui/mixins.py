@@ -67,8 +67,7 @@ def formfield_callback(f, disabled_fields=[], **kwargs):
                 }
             )
 
-    if f.name in disabled_fields:
-        kwargs["disabled"] = True
+    kwargs["disabled"] = f.name in disabled_fields
     return f.formfield(**kwargs)
 
 
