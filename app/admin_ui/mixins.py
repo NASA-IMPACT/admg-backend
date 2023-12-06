@@ -67,14 +67,9 @@ def formfield_callback(f, disabled_fields=[], **kwargs):
                 }
             )
 
-    field = f.formfield(**kwargs)
-
     if f.name in disabled_fields:
-        if "disabled" in field.widget.attrs:
-            del field.widget.attrs["disabled"]
-        field.widget.attrs["readonly"] = "readonly"
-        field.disabled = False
-    return field
+        kwargs["disabled"] = True
+    return f.formfield(**kwargs)
 
 
 class ChangeModelFormMixin(ModelFormMixin):
@@ -219,6 +214,7 @@ class ChangeModelFormMixin(ModelFormMixin):
         form.full_clean()
 
         model_form = self.destination_model_form(
+            initial=self.get_model_form_initial(),
             data=request.POST, prefix=self.destination_model_prefix, files=request.FILES
         )
         model_form.full_clean()
@@ -241,15 +237,16 @@ class ChangeModelFormMixin(ModelFormMixin):
                 {k: v for k, v in request.GET.items() if k in model_form.fields}
             )
 
-        form.instance.update.update(
-            {
-                # Only update fields that can be altered by the form. Otherwise, retain
-                # original values from form.instance.update
-                k: v
-                for k, v in utils.serialize_model_form(model_form).items()
-                if not model_form.fields[k].disabled
-            }
-        )
+        model_form_dict = utils.serialize_model_form(model_form)
+        form.instance.update.update(model_form_dict)
+        #     {
+        #         # Only update fields that can be altered by the form. Otherwise, retain
+        #         # original values from form.instance.update
+        #         k: v
+        #         for k, v in utils.serialize_model_form(model_form).items()
+        #         if not model_form.fields[k].disabled
+        #     }
+        # )
         return self.form_valid(form, model_form)
 
     def form_valid(self, form, model_form):
