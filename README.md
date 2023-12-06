@@ -84,28 +84,34 @@ axios(config)
 
 ## Local Setup
 
-- Install docker and docker-compose
+- Install docker
 - Copy `.env.sample_local` to `.env`
-- Run docker-compose with docker-compose.local.yml instead of docker-compose.yml
-  - `docker-compose -f docker-compose.local.yml up`
+- Run docker compose
+  - `docker compose up`
+
+## Shell Access
+
+Utilize Django's shell for experimentation with queries & other Django functionality:
+
+`docker compose run --rm -it web python manage.py shell_plus`
 
 ## Running Tests
 
-`docker-compose -f docker-compose.local.yml run web pytest`
+`docker compose run --rm -it web pytest`
 
 ### Reporting test coverage
 
 Run your tests with coverage:
 
-`docker-compose -f docker-compose.local.yml run web python -m coverage run -m pytest`
+`docker compose run --rm -it web python -m coverage run -m pytest`
 
 Generate coverage report:
 
-`docker-compose -f docker-compose.local.yml run web python -m  coverage report -m --skip-covered`
+`docker compose run --rm -it web python -m  coverage report -m --skip-covered`
 
 If you want to view coverage in your editor using, for example, VSCode's Coverage Gutters plugin, export the coverage report to a supported format:
 
-`docker-compose -f docker-compose.local.yml run web python -m coverage lcov -o coverage.lcov`
+`docker compose run --rm -it web python -m coverage lcov -o coverage.lcov`
 
 ## Sass
 
@@ -246,9 +252,9 @@ Install `rabbitmq` (probably using `brew` if you’re on a Mac)
    ```
 
 ### Configuring system to deploy CASEI
-  
-The Maintenance Interface is able to initiate a deployment of [CASEI](https://github.com/NASA-IMPACT/admg-inventory/).  This works by triggering a [workflow dispatch event](https://docs.github.com/en/rest/reference/actions#create-a-workflow-dispatch-event) on CASEI's [`deploy-to-production` workflow](https://github.com/NASA-IMPACT/admg-inventory/actions/workflows/deploy-to-production.yml).  To allow the Maintenance Interface to trigger CASEI, a [Personal Access Token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens) with `actions:write` permissions should be provided via the `CASEI_GH_TOKEN` environment variable.  The following environment variables may optionally be provided to override default configuration: 
 
-  - `CASEI_GH_REPO`, the repo to deploy. Defaults to `NASA-IMPACT/admg-inventory`
-  - `CASEI_GH_WORKFLOW_ID`, the workflow to run. Defaults to `deploy-to-production.yml`
-  - `CASEI_GH_BRANCH`, the branch to deploy. Defaults to `production`
+The Maintenance Interface is able to initiate a deployment of [CASEI](https://github.com/NASA-IMPACT/admg-inventory/). This works by triggering a [workflow dispatch event](https://docs.github.com/en/rest/reference/actions#create-a-workflow-dispatch-event) on CASEI's [`deploy-to-production` workflow](https://github.com/NASA-IMPACT/admg-inventory/actions/workflows/deploy-to-production.yml). To allow the Maintenance Interface to trigger CASEI, a [Personal Access Token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens) with `actions:write` permissions should be provided via the `CASEI_GH_TOKEN` environment variable. The following environment variables may optionally be provided to override default configuration:
+
+- `CASEI_GH_REPO`, the repo to deploy. Defaults to `NASA-IMPACT/admg-inventory`
+- `CASEI_GH_WORKFLOW_ID`, the workflow to run. Defaults to `deploy-to-production.yml`
+- `CASEI_GH_BRANCH`, the branch to deploy. Defaults to `production`
