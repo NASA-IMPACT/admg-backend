@@ -13,6 +13,12 @@ from oauth2_provider.views.base import TokenView
 ALL_STATUS_CODE = ["200", "201", "202", "203", "204"]
 
 
+def model_name_for_url(model_name) -> str:
+    from api_app.urls import camel_to_snake
+
+    return camel_to_snake(model_name)
+
+
 class XcodeAutoSchema(SwaggerAutoSchema):
     def __init__(self, view, path, method, components, request, overrides, operation_keys=None):
         super().__init__(view, path, method, components, request, overrides)

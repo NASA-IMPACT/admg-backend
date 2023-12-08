@@ -7,7 +7,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     container:
-      image: python:3.11.6
+      image: python:3.11.7
     defaults:
       run:
         working-directory: ./app
@@ -60,7 +60,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
-          python-version: 3.11.6
+          python-version: 3.11.7
           # cache: pip  # Unable to use caching, https://github.com/actions/setup-python/issues/719
 
       - name: Set user-site-path

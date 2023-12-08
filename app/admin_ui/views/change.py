@@ -32,6 +32,7 @@ from admin_ui.config import MODEL_CONFIG_MAP
 from api_app.models import ApprovalLog, Change, Recommendation, SubqueryCount
 from api_app.urls import camel_to_snake
 from api_app.views.generic_views import NotificationSidebar
+from api_app.utils import model_name_for_url
 from data_models.models import (
     IOP,
     Alias,
@@ -276,7 +277,15 @@ class ChangeCreateView(
         }
 
     def get_success_url(self):
-        url = reverse("change-update", args=[self.object.pk])
+        url = reverse(
+            "canonical-draft-edit",
+            kwargs={
+                "model": model_name_for_url(
+                    self.get_model_form_content_type().model_class().__name__
+                ),
+                "canonical_uuid": self.object.canonical_uuid,
+            },
+        )
         if self.request.GET.get("back"):
             return f'{url}?back={self.request.GET["back"]}'
         return url
@@ -319,7 +328,15 @@ class ChangeUpdateView(NotificationSidebar, mixins.ChangeModelFormMixin, UpdateV
     )
 
     def get_success_url(self):
-        url = reverse("change-update", args=[self.object.pk])
+        url = reverse(
+            "canonical-draft-edit",
+            kwargs={
+                "model": model_name_for_url(
+                    self.get_model_form_content_type().model_class().__name__
+                ),
+                "canonical_uuid": self.object.canonical_uuid,
+            },
+        )
         if self.request.GET.get("back"):
             return f'{url}?back={self.request.GET["back"]}'
         return url

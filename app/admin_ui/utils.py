@@ -48,6 +48,10 @@ def serialize_model_form(model_form: ModelForm):
             update[name] = model_field.name
         elif isinstance(field, JSONField):
             update[name] = model_form.cleaned_data[name]
+        elif field.disabled:
+            # Disabled fields aren't present on model_form.data, but we pass
+            # the existing value in on the initial data for the form.
+            update[name] = model_form.initial[name]
         else:
             # Populate Change's form with values from destination model's form.
             # We're not saving the cleaned_data because we want the raw text, not

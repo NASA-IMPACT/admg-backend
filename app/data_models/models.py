@@ -72,9 +72,9 @@ class BaseModel(models.Model):
 
     @property
     def model_name_for_url(self):
-        from api_app.urls import camel_to_snake
+        from api_app.utils import model_name_for_url
 
-        return camel_to_snake(self.__class__.__name__)
+        return model_name_for_url(self.__class__.__name__)
 
     def __str__(self):
         return self.short_name
@@ -846,21 +846,7 @@ class Deployment(DataModel):
         return select_related_distinct_data(self.collection_periods, "platform__uuid")
 
 
-class DeploymentChildMixin(models.Model):
-    """
-    A mixin class to help access Campaign objects via
-    related Deployment objects.
-    """
-
-    @property
-    def campaign(self):
-        return self.deployment.campaign
-
-    class Meta:
-        abstract = True
-
-
-class IopSe(BaseModel, DeploymentChildMixin):
+class IopSe(BaseModel):
     deployment = models.ForeignKey(
         Deployment,
         on_delete=models.CASCADE,
@@ -908,7 +894,7 @@ class IopSe(BaseModel, DeploymentChildMixin):
         abstract = True
 
 
-class IOP(IopSe, DeploymentChildMixin):
+class IOP(IopSe):
     deployment = models.ForeignKey(
         Deployment,
         on_delete=models.CASCADE,
@@ -917,7 +903,7 @@ class IOP(IopSe, DeploymentChildMixin):
     )
 
 
-class SignificantEvent(IopSe, DeploymentChildMixin):
+class SignificantEvent(IopSe):
     deployment = models.ForeignKey(
         Deployment,
         on_delete=models.CASCADE,
@@ -941,7 +927,7 @@ class SignificantEvent(IopSe, DeploymentChildMixin):
     )
 
 
-class CollectionPeriod(BaseModel, DeploymentChildMixin):
+class CollectionPeriod(BaseModel):
     deployment = models.ForeignKey(
         Deployment, on_delete=models.CASCADE, related_name="collection_periods"
     )

@@ -5,6 +5,7 @@ from crum import get_current_user
 from django.apps import apps
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
+from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
 from django.db.models import expressions, functions, Subquery, Q
 from django.db.models.fields.json import KeyTextTransform
@@ -278,7 +279,7 @@ class Change(models.Model):
     content_object = GenericForeignKey("content_type", "model_instance_uuid")
 
     status = models.IntegerField(choices=Statuses.choices, default=Statuses.IN_PROGRESS)
-    update = models.JSONField(default=dict, blank=True)
+    update = models.JSONField(default=dict, blank=True, encoder=DjangoJSONEncoder)
     updated_at = models.DateTimeField(blank=True, null=True, db_index=True)
     field_status_tracking = models.JSONField(default=dict, blank=True)
     previous = models.JSONField(default=dict)
