@@ -512,7 +512,7 @@ class ChangeTransition(NotificationSidebar, FormMixin, ProcessFormView, DetailVi
         return reverse(
             "canonical-redirect",
             kwargs={
-                "canonical_uuid": self.kwargs[self.pk_url_kwarg],
+                "canonical_uuid": self.get_object().canonical_uuid,
                 "model": self.get_form().change.content_type.model,
             },
         )
