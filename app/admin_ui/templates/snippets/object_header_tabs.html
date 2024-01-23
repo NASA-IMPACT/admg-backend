@@ -1,0 +1,58 @@
+{% load template_extras %}
+{% load active_link_tags %}
+
+<div class="col">
+  <ul class="nav nav-tabs">
+    {% with request.resolver_match.url_name as url_name %}
+    <li class="nav-item">
+      <a
+      class="nav-link {% if url_name == 'canonical-published-detail' %}active{% endif %} {% if not has_published_draft %}disabled{% endif %}" 
+      href="{% url 'canonical-published-detail' model=view_model canonical_uuid=canonical_uuid %}"
+      >
+      Published
+      </a>
+    </li>
+    <li class="nav-item">
+      <a 
+        class="nav-link {% if not has_draft_in_progress or is_deleted %} disabled {% endif %} {% if url_name == 'canonical-draft-edit' or url_name == 'create-update' %}active{% endif %}" 
+        href="{% url 'canonical-draft-edit' model=view_model canonical_uuid=canonical_uuid %}"
+      >
+        Edits
+        {% if draft_status == 'Published' and url_name == 'create-update' %}
+        <span class="badge badge-pill text-white badge-danger ml-1">Unsaved</span>
+        {% elif is_deleted %}
+        <span class="badge badge-pill text-white badge-danger">Deleted</span>
+        {% elif draft_status != 'Published' %}
+        <span class="badge badge-pill text-white {{ draft_status_class}}">{{ draft_status }}</span>
+        {% endif %}
+      </a>
+    </li>
+    {% if view_model == 'campaign' %}
+    <li class="nav-item">
+      <a 
+        class="nav-link {% if url_name == 'campaign-detail' %}active{% endif %}" 
+        href="{% url 'campaign-detail' view_model canonical_uuid %}"
+      >
+        Details
+      </a>
+    </li>
+    <li class="nav-item">
+      <a 
+        class="nav-link  {% if url_name == 'doi-approval' %}active{% endif %}" 
+        href="{% url 'doi-approval' canonical_uuid=canonical_uuid %}"
+      >
+        DOIs
+      </a>
+    </li>
+    {% endif %}
+    <li class="nav-item">
+      <a 
+      class="nav-link  {% if url_name == 'change-history' or url_name == 'historical-detail' %}active{% endif %}" 
+      href="{% url 'change-history' view_model canonical_uuid %}"
+      >
+        History 
+      </a>
+    </li>
+  </ul>
+  {% endwith %}
+</div>

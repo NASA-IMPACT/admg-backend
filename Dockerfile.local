@@ -15,5 +15,6 @@ RUN apt-get update --fix-missing && apt-get install -y gdal-bin libgdal-dev post
 COPY ./app /app
 RUN pip install --upgrade pip
 RUN pip install -r /app/requirements/local.txt
+RUN playwright install --with-deps
 
 # ENTRYPOINT ["/app/entrypoint.sh"]

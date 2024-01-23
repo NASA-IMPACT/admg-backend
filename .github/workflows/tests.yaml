@@ -7,7 +7,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     container:
-      image: python:3.11.5
+      image: python:3.11.7
     defaults:
       run:
         working-directory: ./app
@@ -25,6 +25,7 @@ jobs:
       GH_TOKEN: faketokenhere
       GCMD_SYNC_SOURCE_EMAIL: gcmdadmg@localhost
       GCMD_SYNC_RECIPIENTS: gcmd@localhost
+      CELERY_BROKER_URL: amqp://guest:guest@rabbitmq:5672/
 
     services:
       postgres:
@@ -40,6 +41,13 @@ jobs:
           --health-retries 5
         ports:
           - 5432:5432
+      rabbitmq:
+        image: rabbitmq:latest
+        env:
+          RABBITMQ_DEFAULT_USER: guest
+          RABBITMQ_DEFAULT_PASS: guest
+        ports:
+          - 5672:5672
 
     steps:
       - uses: actions/checkout@v2
@@ -52,7 +60,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
-          python-version: 3.11.5
+          python-version: 3.11.7
           # cache: pip  # Unable to use caching, https://github.com/actions/setup-python/issues/719
 
       - name: Set user-site-path
@@ -61,6 +69,7 @@ jobs:
           USER_SITE_PATH=$(python -m site --user-site)
           echo "USER_SITE_PATH=$USER_SITE_PATH" >> $GITHUB_ENV
 
+      # NOTE: The cache does not seem to detect changes in the requirements files reliably
       - uses: actions/cache@v2
         id: cache-dependencies
         with:
@@ -78,6 +87,10 @@ jobs:
             -r requirements/base.txt \
             -r requirements/local.txt
 
+      - name: Install Playwright Browsers
+        run: |
+          python -m playwright install --with-deps
+
       - name: Check for missing migrations
         run: |
           python manage.py makemigrations --check --dry-run
@@ -88,8 +101,15 @@ jobs:
           python -m coverage report -m --skip-covered
           python -m coverage json -o coverage.json
 
+      - name: Save Test Videos
+        uses: actions/upload-artifact@v3
+        if: ${{ failure() }}
+        with:
+          name: videos
+          path: app/videos/
+
       - name: Save Code Coverage
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: code_coverage
           path: app/coverage.json

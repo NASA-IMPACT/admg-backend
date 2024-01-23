@@ -10,21 +10,10 @@
       Summary
     </a>
   </li>
-  <li class="nav-item">{% model_nav_link "Campaigns" "campaign" %}</li>
-  <li class="nav-item">
-    {% collapsable_menu "Campaign Items" "deployment" "iop" "significant_event" "collection_period" "doi" %}
-    <ul class="nav flex-column ml-3">
-      <li class="nav-item">{% model_nav_link "Deployments" "deployment" %}</li>
-      <li class="nav-item">{% model_nav_link "IOPs" "iop" %}</li>
-      <li class="nav-item">{% model_nav_link "Significant Events" "significant_event" %}</li>
-      <li class="nav-item">{% model_nav_link "CDPIs" "collection_period" %}</li>
-      <li class="nav-item">{% model_nav_link "DOIs" "doi" %}</li>
-    </ul>
-    {% endcollapsable_menu %}
-  </li>
-  <li class="nav-item">{% model_nav_link "Platforms" "platform" %}</li>
-  <li class="nav-item">{% model_nav_link "Instruments" "instrument" %}</li>
-  <li class="nav-item">{% model_nav_link "Partner Organizations" "partner_org" %}</li>
+  <li class="nav-item">{% canonical_nav_link "Campaigns" "campaign" %}</li>
+  <li class="nav-item">{% canonical_nav_link "Platforms" "platform" %}</li>
+  <li class="nav-item">{% canonical_nav_link "Instruments" "instrument" %}</li>
+  <li class="nav-item">{% canonical_nav_link "Partner Organizations" "partner_org" %}</li>
 
   {% if request.user.is_admg_admin %}
   <li class="nav-item">

@@ -7,8 +7,8 @@
       "request": "attach",
       "pathMappings": [
         {
-          "localRoot": "${workspaceFolder}",
-          "remoteRoot": "/app/home/app/web"
+          "localRoot": "${workspaceFolder}/app",
+          "remoteRoot": "/app"
         }
       ],
       "port": 5678,

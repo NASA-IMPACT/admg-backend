@@ -48,6 +48,10 @@ def serialize_model_form(model_form: ModelForm):
             update[name] = model_field.name
         elif isinstance(field, JSONField):
             update[name] = model_form.cleaned_data[name]
+        elif field.disabled:
+            # Disabled fields aren't present on model_form.data, but we pass
+            # the existing value in on the initial data for the form.
+            update[name] = model_form.initial[name]
         else:
             # Populate Change's form with values from destination model's form.
             # We're not saving the cleaned_data because we want the raw text, not
@@ -58,3 +62,16 @@ def serialize_model_form(model_form: ModelForm):
                 model_form.data, model_form.files, model_form.add_prefix(name)
             )
     return update
+
+
+def get_draft_status_class(value: int) -> str:
+    return [
+        "draft-status-created",
+        "draft-status-in-progress",
+        "draft-status-awaiting-review",
+        "draft-status-in-review",
+        "draft-status-awaiting-admin-review",
+        "draft-status-in-admin-review",
+        "draft-status-published",
+        "badge-warning",
+    ][value]

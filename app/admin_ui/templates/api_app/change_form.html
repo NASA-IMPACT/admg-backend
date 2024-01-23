@@ -1,5 +1,9 @@
-{% extends "api_app/base_read.html" %}
+{% extends "./form_capable.html" %}
 {% load crispy_forms_tags %}
+
+{% comment %}
+Base for rendering forms to edit Change objects.
+{% endcomment %}
 
 {% block form %}
 {{ form.errors }}

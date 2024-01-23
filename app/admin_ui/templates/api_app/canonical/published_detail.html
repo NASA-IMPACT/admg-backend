@@ -1,0 +1,65 @@
+{% extends "./change_form.html" %}
+{% load static %}
+{% load crispy_forms_tags %}
+{% load humanize %}
+{% load template_extras %}
+
+{% block header %}
+  <div class="col">
+    {% if campaign_canonical_uuid %}
+    <a href="{% url 'campaign-detail' 'campaign' campaign_canonical_uuid %}">&lt; Back to {{ campaign_short_name }}</a>
+    {% else %}
+    <a href="{% url 'canonical-list' view_model %}">&lt; Back to {{ display_name }}</a>
+    {% endif %}
+    <h1 class="my-5">{{ object.short_name }}</h1>
+  </div>
+{% endblock header %}
+
+{% block actions %}
+  <div class="px-1 m-2">
+    {% if not has_draft_in_progress and not is_deleted %}
+    <a href="{% url 'create-update' view_model object.uuid %}?back={{ request.path }}" class="btn btn-primary mx-2">
+      Edit
+      </a>
+    {% endif %}
+    {% if not is_deleted %}
+    <button class="btn btn-secondary" data-toggle="modal" data-target="#deletePopup">
+      Delete
+    </button>
+    {% endif %}
+  </div>
+{% endblock actions %}
+
+{% block main %}
+  {% with main_class="col-lg-8" %}
+    {{ block.super }}
+  {% endwith %}
+{# Sidebar #}
+
+<!-- Modal -->
+<div class="modal fade" id="deletePopup" tabindex="-1" role="dialog" aria-labelledby="deletePopupTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="deletePopupLongTitle">
+          Confirmation
+        </h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        The action you are going to perform will delete the published draft for this object
+        and remove it from the CASEI UI.
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <a href="{% url 'published-delete' model=view_model canonical_uuid=object.uuid %}" class="btn btn-danger">
+            Delete This {{ display_name }}
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock main%}
+

@@ -5,12 +5,17 @@ ipdb==0.13.11  # https://github.com/gotcha/ipdb
 Sphinx==6.1.3  # https://github.com/sphinx-doc/sphinx
 psycopg2-binary==2.9.5  # https://github.com/psycopg/psycopg2
 
+# Debugging
+# ------------------------------------------------------------------------------
+debugpy==1.6.7
+
 # Testing
 # ------------------------------------------------------------------------------
-mypy==0.991  # https://github.com/python/mypy
-pytest==7.2.0  # https://github.com/pytest-dev/pytest
+mypy==0.910  # https://github.com/python/mypy
+pytest>=5.0.1  # https://github.com/pytest-dev/pytest
 pytest-sugar==0.9.6  # https://github.com/Frozenball/pytest-sugar
 freezegun==1.2.2  # https://github.com/spulec/freezegun
+playwright==1.38.0 
 
 # Code quality
 # ------------------------------------------------------------------------------
@@ -26,6 +31,3 @@ factory-boy==3.2.1  # https://github.com/FactoryBoy/factory_boy
 django-debug-toolbar==4.1.0  # https://github.com/jazzband/django-debug-toolbar
 django-extensions==3.2.1  # https://github.com/django-extensions/django-extensions
 pytest-django==4.5.2  # https://github.com/pytest-dev/pytest-django
-
-# Debugging
-debugpy==1.6.7

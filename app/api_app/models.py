@@ -5,8 +5,9 @@ from crum import get_current_user
 from django.apps import apps
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
+from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
-from django.db.models import expressions, functions, Subquery
+from django.db.models import expressions, functions, Subquery, Q
 from django.db.models.fields.json import KeyTextTransform
 from django.db.models.signals import post_save
 from django.dispatch import receiver
@@ -117,6 +118,19 @@ class ApprovalLog(models.Model):
 
 
 class ChangeQuerySet(models.QuerySet):
+    def related_drafts(self, uuid: str):
+        return self.filter(Q(uuid=uuid) | Q(model_instance_uuid=uuid))
+
+    def is_deleted(self, uuid: str):
+        return (
+            self.filter(Q(uuid=uuid) | Q(model_instance_uuid=uuid))
+            .filter(status=Change.Statuses.PUBLISHED, action=Change.Actions.DELETE)
+            .exists()
+        )
+
+    def related_in_progress_drafts(self, uuid: str):
+        return self.related_drafts(uuid=uuid).exclude(status=Change.Statuses.PUBLISHED)
+
     def of_type(self, *models):
         """
         Limit changes to only those targeted to provided models
@@ -265,7 +279,7 @@ class Change(models.Model):
     content_object = GenericForeignKey("content_type", "model_instance_uuid")
 
     status = models.IntegerField(choices=Statuses.choices, default=Statuses.IN_PROGRESS)
-    update = models.JSONField(default=dict, blank=True)
+    update = models.JSONField(default=dict, blank=True, encoder=DjangoJSONEncoder)
     updated_at = models.DateTimeField(blank=True, null=True, db_index=True)
     field_status_tracking = models.JSONField(default=dict, blank=True)
     previous = models.JSONField(default=dict)
@@ -340,6 +354,12 @@ class Change(models.Model):
         # TODO: Verify that this works with API
         cls = self.content_type.model_class()
         return cls.__name__ if cls else "UNKNOWN"
+
+    @property
+    def model_name_for_url(self):
+        from api_app.urls import camel_to_snake
+
+        return camel_to_snake(self.model_name)
 
     @property
     def is_locked(self):
@@ -872,7 +892,7 @@ def set_change_updated_at(sender, instance, **kwargs):
         try:
             if instance.change:  # Check if the 'change' field exists
                 instance.change.updated_at = instance.date
-                instance.change.save(check_status=False)
+                instance.change.save(check_status=False, post_save=post_save)
         except Change.DoesNotExist:
             pass
 

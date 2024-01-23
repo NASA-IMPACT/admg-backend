@@ -15,7 +15,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: 3.11.5
+          python-version: 3.11.7
           cache: pip
 
       - name: Install Python dependencies
@@ -56,15 +56,6 @@ jobs:
         env:
           COMMIT_MSG: ${{ github.event.head_commit.message }}
         run: echo "::set-output name=first-line::${COMMIT_MSG%%$'\n*'}"
-
-      - name: Post to a Slack channel
-        id: slack
-        uses: slackapi/slack-github-action@v1.23.0
-        with:
-          channel-id: "admg"
-          payload: '{"text":"Successfully deployed MI to Staging! <https://admgstaging.nasa-impact.net/|Click here> to take a look!"}'
-        env:
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
 
   notify-slack-production:
     needs: deploy-to-production

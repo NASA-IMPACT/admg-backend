@@ -66,7 +66,9 @@ def formfield_callback(f, disabled_fields=[], **kwargs):
                     )
                 }
             )
-    return f.formfield(disabled=f.name in disabled_fields, **kwargs)
+
+    kwargs["disabled"] = f.name in disabled_fields
+    return f.formfield(**kwargs)
 
 
 class ChangeModelFormMixin(ModelFormMixin):
@@ -115,14 +117,14 @@ class ChangeModelFormMixin(ModelFormMixin):
     def get_model_form_content_type(self) -> ContentType:
         raise NotImplementedError("Subclass must implement this property")
 
-    def get_model_form_intial(self):
+    def get_model_form_initial(self):
         return {}
 
     def get_context_data(self, **kwargs):
         if "model_form" not in kwargs:
             # Ensure that the model_form is available in context for template
             kwargs["model_form"] = self.destination_model_form(
-                initial=self.get_model_form_intial(), prefix=self.destination_model_prefix
+                initial=self.get_model_form_initial(), prefix=self.destination_model_prefix
             )
 
         # Disable save on published or trashed
@@ -211,7 +213,10 @@ class ChangeModelFormMixin(ModelFormMixin):
         form.full_clean()
 
         model_form = self.destination_model_form(
-            data=request.POST, prefix=self.destination_model_prefix, files=request.FILES
+            initial=self.get_model_form_initial(),
+            data=request.POST,
+            prefix=self.destination_model_prefix,
+            files=request.FILES,
         )
         model_form.full_clean()
 
@@ -233,15 +238,8 @@ class ChangeModelFormMixin(ModelFormMixin):
                 {k: v for k, v in request.GET.items() if k in model_form.fields}
             )
 
-        form.instance.update.update(
-            {
-                # Only update fields that can be altered by the form. Otherwise, retain
-                # original values from form.instance.update
-                k: v
-                for k, v in utils.serialize_model_form(model_form).items()
-                if not model_form.fields[k].disabled
-            }
-        )
+        model_form_dict = utils.serialize_model_form(model_form)
+        form.instance.update.update(model_form_dict)
         return self.form_valid(form, model_form)
 
     def form_valid(self, form, model_form):
