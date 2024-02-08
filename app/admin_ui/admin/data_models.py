@@ -30,7 +30,7 @@ CHANGABLE_INLINES = (InProgressInline, InReviewInline, InAdminReviewInline)
 @admin.register(models.GcmdPhenomenon)
 @admin.register(models.WebsiteType)
 @admin.register(models.Website)
-class BasicAdmin(admin.ModelAdmin, EnforcedPermissionsMixin): ...
+class BasicAdmin(admin.ModelAdmin, EnforcedPermissionsMixin): ...  # noqa: E701
 
 
 @admin.register(models.CollectionPeriod)

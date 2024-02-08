@@ -123,8 +123,8 @@ class ApplicationStack(Stack):
             path="/accounts/login/",
             healthy_threshold_count=2,
             unhealthy_threshold_count=2,
-            timeout=Duration.seconds(30),
-            interval=Duration.seconds(10),
+            timeout=Duration.seconds(15),
+            interval=Duration.seconds(20),
         )
 
         # Create a Fargate service that runs the Celery worker
