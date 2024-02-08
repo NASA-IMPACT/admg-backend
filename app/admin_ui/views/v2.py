@@ -12,6 +12,7 @@ from django.urls import reverse
 from django.contrib.contenttypes.models import ContentType
 from django.views.generic.edit import UpdateView
 from django.db.models import OuterRef, Subquery
+from django.db.models.functions import Coalesce
 from django.views.generic.edit import CreateView
 from django_filters.views import FilterView
 from django_tables2 import SingleTableView, SingleTableMixin
@@ -651,8 +652,13 @@ class CampaignDetailView(NotificationSidebar, DetailView):
     def _filter_latest_changes(change_queryset):
         """Returns the single latest Change draft for each model_instance_uuid in the
         provided queryset."""
-        return change_queryset.order_by('model_instance_uuid', '-approvallog__date').distinct(
-            'model_instance_uuid'
+        # Using Coalesce to handle the case where model_instance_uuid is None,
+        # since distinct will treat NULLs as equal.
+        # Using `cid` rather than `canonical_uuid` to avoid a name conflict on the model
+        return (
+            change_queryset.annotate(cid=Coalesce("model_instance_uuid", "uuid"))
+            .order_by('cid', '-approvallog__date')
+            .distinct('cid')
         )
 
     def get_context_data(self, **kwargs):
