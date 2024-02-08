@@ -122,9 +122,9 @@ class ApplicationStack(Stack):
         app_service.target_group.configure_health_check(
             path="/accounts/login/",
             healthy_threshold_count=2,
-            unhealthy_threshold_count=2,
-            timeout=Duration.seconds(15),
-            interval=Duration.seconds(20),
+            unhealthy_threshold_count=4,
+            timeout=Duration.seconds(20),
+            interval=Duration.seconds(25),
         )
 
         # Create a Fargate service that runs the Celery worker
