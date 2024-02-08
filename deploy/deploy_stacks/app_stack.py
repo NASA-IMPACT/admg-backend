@@ -10,6 +10,7 @@ from aws_cdk import (
     aws_s3 as s3,
     Stack,
     App,
+    Duration,
     aws_ecs_patterns as patterns,
 )
 import pydantic
@@ -118,7 +119,13 @@ class ApplicationStack(Stack):
             ),
         )
 
-        app_service.target_group.configure_health_check(path="/accounts/login/")
+        app_service.target_group.configure_health_check(
+            path="/accounts/login/",
+            healthy_threshold_count=2,
+            unhealthy_threshold_count=2,
+            timeout=Duration.seconds(30),
+            interval=Duration.seconds(10),
+        )
 
         # Create a Fargate service that runs the Celery worker
         worker_service = patterns.QueueProcessingFargateService(
