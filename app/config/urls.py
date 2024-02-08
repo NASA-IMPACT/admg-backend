@@ -14,7 +14,7 @@ urlpatterns = [
     path("accounts/", include("allauth.urls")),
     path("api/", include("api_app.urls")),
     path("authenticate/token/", CustomTokenView.as_view(), name="token"),
-    path("authenticate/", include("oauth2_provider.urls"), name="oauth2_provider")
+    path("authenticate/", include("oauth2_provider.urls"), name="oauth2_provider"),
     # Your stuff: custom urls includes go here
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
