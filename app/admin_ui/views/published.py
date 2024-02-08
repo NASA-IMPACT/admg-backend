@@ -1,5 +1,6 @@
 from django.contrib.auth.decorators import login_required
 from django.contrib.contenttypes.models import ContentType
+from django.http import Http404
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils.decorators import method_decorator
@@ -56,7 +57,10 @@ class ModelObjectView(NotificationSidebar, mixins.DynamicModelMixin, DetailView)
         return self._initialize_form(form_class, disable_all, **kwargs)
 
     def get_object(self):
-        return self._model_config['model'].objects.get(uuid=self.kwargs['canonical_uuid'])
+        try:
+            return self._model_config['model'].objects.get(uuid=self.kwargs['canonical_uuid'])
+        except self._model_config['model'].DoesNotExist:
+            raise Http404(f"{self._model_config['display_name']} not found")
 
     def get_queryset(self):
         return self._model_config['model'].objects.all()
