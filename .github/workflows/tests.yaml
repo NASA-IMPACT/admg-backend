@@ -50,7 +50,7 @@ jobs:
           - 5672:5672
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name: Install GDAL
         run: |
@@ -58,7 +58,7 @@ jobs:
           apt-get install -y libgdal-dev
 
       - name: Setup Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: 3.11.7
           # cache: pip  # Unable to use caching, https://github.com/actions/setup-python/issues/719
