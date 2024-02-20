@@ -61,7 +61,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: 3.11.7
-          # cache: pip  # Unable to use caching, https://github.com/actions/setup-python/issues/719
+          cache: pip # Unable to use caching, https://github.com/actions/setup-python/issues/719
 
       - name: Set user-site-path
         id: user-site
