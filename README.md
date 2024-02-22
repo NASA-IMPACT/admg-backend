@@ -5,10 +5,6 @@
 
 # `admg_webapp` backend documentation
 
-## ER Diagrams
-
-Entity Relationship Diagrams can be found at this [link](https://drive.google.com/drive/folders/1_Zr_ZP97Tz8hBk5wxEpLmZ8Es2umJvjh)
-
 ## How to use the interactive Query
 
 ```
