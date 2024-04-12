@@ -258,3 +258,5 @@ The Maintenance Interface is able to initiate a deployment of [CASEI](https://gi
 - `CASEI_GH_REPO`, the repo to deploy. Defaults to `NASA-IMPACT/admg-inventory`
 - `CASEI_GH_WORKFLOW_ID`, the workflow to run. Defaults to `deploy-to-production.yml`
 - `CASEI_GH_BRANCH`, the branch to deploy. Defaults to `production`
+
+NOTE: We are considering OIDC for deployment if this backend needs to be maintained more long term
