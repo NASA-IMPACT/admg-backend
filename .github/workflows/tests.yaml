@@ -7,7 +7,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     container:
-      image: python:3.11.7
+      image: python:3.11.8
     defaults:
       run:
         working-directory: ./app
