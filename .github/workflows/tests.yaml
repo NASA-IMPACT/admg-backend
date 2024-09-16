@@ -6,8 +6,10 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    container:
-      image: python:3.11.8
+    strategy:
+      max-parallel: 4
+      matrix:
+        python-version: ['3.11']
     defaults:
       run:
         working-directory: ./app
