@@ -13,7 +13,13 @@ class UnpublishedChangesView(GetPermissionsMixin, ListAPIView):
     """
 
     queryset = Change.objects.filter(
-        status=Change.Statuses.IN_ADMIN_REVIEW, action=Change.Actions.CREATE
+        status__in=[
+            Change.Statuses.AWAITING_REVIEW,
+            Change.Statuses.IN_REVIEW,
+            Change.Statuses.AWAITING_ADMIN_REVIEW,
+            Change.Statuses.IN_ADMIN_REVIEW,
+        ],
+        action=Change.Actions.CREATE,
     )
     serializer_class = UnpublishedSerializer
 
