@@ -56,14 +56,13 @@ jobs:
 
       - name: Install GDAL
         run: |
-          apt-get update -y
-          apt-get install -y libgdal-dev
+          sudo apt-get update -y
+          sudo apt-get install -y libgdal-dev
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
         with:
-          python-version: 3.11.8
-          # cache: pip # Unable to use caching, https://github.com/actions/setup-python/issues/719
+          python-version: ${{ matrix.python-version }}
 
       - name: Set user-site-path
         id: user-site
