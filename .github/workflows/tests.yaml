@@ -18,7 +18,7 @@ jobs:
       DB_NAME: admg
       DB_USER: admg
       DB_PASSWORD: admg
-      DB_HOST: postgres # 127.0.0.1
+      DB_HOST: 127.0.0.1
       DB_PORT: 5432
       DJANGO_SETTINGS_MODULE: config.settings.local
       DJANGO_SECRET_KEY: "secret key here"
@@ -29,19 +29,6 @@ jobs:
       CELERY_BROKER_URL: amqp://guest:guest@rabbitmq:5672/
 
     services:
-      postgres:
-        image: postgis/postgis:13-3.2
-        env:
-          POSTGRES_DB: admg
-          POSTGRES_USER: admg
-          POSTGRES_PASSWORD: admg
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
       rabbitmq:
         image: rabbitmq:latest
         env:
@@ -56,6 +43,13 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
+      - name: Setup PostgreSQL with Postgis
+        uses: huaxk/postgis-action@v1.0.0
+        with:
+          postgresql version: latest
+          postgresql db: admg
+          postgresql user: admg
+          postgresql password: admg
 
       - name: Install GDAL
         run: |
