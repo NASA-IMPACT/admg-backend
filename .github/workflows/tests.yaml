@@ -88,7 +88,6 @@ jobs:
 
       - name: Run Tests
         run: |
-          pytest
           python -m coverage run -m pytest
           python -m coverage report -m --skip-covered
           python -m coverage json -o coverage.json
