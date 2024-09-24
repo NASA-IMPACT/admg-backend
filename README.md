@@ -1,215 +1,53 @@
-# Contents of this readme
+# ADMG Project Repo
+Welcome to the ADMG project repository. This repository contains the code for the ADMG web application, which is a Django web application that provides a user interface for the ADMG database. The application is built using the Django web framework and is designed to be deployed using Docker.
 
-1. `admg_webapp` backend documentation
-2. `admin_ui` frontend setup
 
-# `admg_webapp` backend documentation
+## README Contents
+- Project Structure
+- Local Development
+- Additional Dev Tools
+- Automated Deployment
+- Configuring system to deploy CASEI
 
-## ER Diagrams
 
-Entity Relationship Diagrams can be found at this [link](https://drive.google.com/drive/folders/1_Zr_ZP97Tz8hBk5wxEpLmZ8Es2umJvjh)
+## Project Structure
+- frontend: `/app/admin_ui`
+- backend: `/app/admg_webapp`
 
-## How to use the interactive Query
+## Local Development
 
-```
-pip install notebook<br>
-pip install django-extensions
-```
+### Project Setup
 
-Add django_extensions to installed apps unless using cookiecutter<br>
+1. Install docker
+2. Copy `.env.sample_local` to `.env`
+3. Run docker compose <br />
+  `docker compose up`
 
-```
-python manage.py shell_plus --notebook
-```
-
-in the notebook, import your models file
-
-## How to get the token
-
-- go to /authenticate/applications/register/
-- create a user and verify the email address by clicking on the link that shows up in the terminal where you've done `python manage.py runserver`
-- register the app
-- Use Client Type: confidential, Authorization Grant Type: Resource owner password-based
-- get the `client_id` and `client_secret`
-- `curl -X POST -d "grant_type=password&username=<user_name>&password=<password>" -u"<client_id>:<client_secret>" http://domain/authenticate/token/`
-- You will get something like:
-
-  ```javascript
-  {
-      "access_token": "access_token",
-      "expires_in": 36000,
-      "token_type": "Bearer",
-      "scope": "read write",
-      "refresh_token": "refresh_token"
-  }
-  ```
-
-- Use this `access_token` to hit on APIs
-  - `curl -H "Authorization: Bearer <your_access_token>" http://localhost:8000/your_end_point_here`
-- To refresh your token
-  - `curl -X POST -d "grant_type=refresh_token&refresh_token=<your_refresh_token>&client_id=<your_client_id>&client_secret=<your_client_secret>" http://localhost:8000/authenticate/token`
-
-Example JavaScript code
-
-```
-const url = 'http[s]://www.domain.com/authenticate/token/';
-const cId = '<application client id>'
-const cSecret = '<application sectret key>'
-const data = new FormData();
-data.append('username', '<username>');
-data.append('password', '<password>');
-data.append('grant_type', 'password');
-const config = {
-   method: 'post',
-   url,
-   data,
-   auth: {
-      username: cId,
-      password: cSecret,
-   }
-};
-axios(config)
-.then(function (response) {
-   // response.access_token will have the token
-})
-```
-
-## Automatic deployment
-
-- Update the webserver IP in the hosts/<environment> file. If no hosts file exists, create one [see hosts/<environment>.sample file]
-- Run the command `ansible-playbook --private-key private_key_file.pem -i hosts/<environment> playbook.yml -v [-e 'branch=<your_branch_here>']`
-  - `private_key_file.pem` is the private key for the webserver
-  - `environment` a choice of staging or production
-  - `[-e 'branch=<your_branch_here>']` part is optional and can be used in case some another branch is desired
-
-## Local Setup
-
-- Install docker
-- Copy `.env.sample_local` to `.env`
-- Run docker compose
-  - `docker compose up`
-
-## Shell Access
-
-Utilize Django's shell for experimentation with queries & other Django functionality:
-
-`docker compose run --rm -it web python manage.py shell_plus`
-
-## Running Tests
-
-`docker compose run --rm -it web pytest`
-
-### Reporting test coverage
-
-Run your tests with coverage:
-
-`docker compose run --rm -it web python -m coverage run -m pytest`
-
-Generate coverage report:
-
-`docker compose run --rm -it web python -m  coverage report -m --skip-covered`
-
-If you want to view coverage in your editor using, for example, VSCode's Coverage Gutters plugin, export the coverage report to a supported format:
-
-`docker compose run --rm -it web python -m coverage lcov -o coverage.lcov`
-
-## Sass
-
-To build Sass files for the project:
-
+#### If this is your first time setting up & running the application, you will also need to:
+**Run migrations** to create the database schema:
 ```sh
-python manage.py sass admin_ui/static/scss admin_ui/static/css --watch
+docker compose run --rm web sh -c "python manage.py migrate"
+```
+**Create a superuser** to access the admin interface:
+``` sh
+docker compose run --rm web sh -c "python manage.py createsuperuser"
+```
+**Load a dump** of the database to view the application with some data:
+Download the latest zip file of example data (or get this from one of the database maintainers) & load into the database. The following command will load the data into the database:
+```sh
+cat ./production_dump-2020.01.28.sql | psql admg_webapp
 ```
 
-# `admin_ui` setup
+> ^ These commands should be run in a new terminal window, while the application is running.
 
-## Installation
+## Additional Dev Tools
 
-1.  Install prerequisite technologies (for example, using `brew` on a mac): postgres, postgis
-
-2.  Create a virtual environment
-
-    Set up the env (only need to do once)
-
-    ```
-    python3 -m venv .venv
-    ```
-
-3.  Activate the virtual environment (do this every time you start the project)
-
-    ```
-    source .venv/bin/activate
-    ```
-
-4.  Install requirements
-
-    1. general requirements
-
-       ```
-       pip install -r requirements/base.txt
-       ```
-
-    2. local requirements
-
-       ```
-       pip install -r local.txt
-       ```
-
-5.  Start postgres
-
-    To get a path that you can use to start Postgres:
-
-    ```
-    brew info posgresql
-    ```
-
-    (It will probably look something like `pg_ctl -D /usr/local/var postgres start`)
-
-6.  Check that postgres is working
-    If `psql -l` gives you a list of tables then all is well.
-
-7.  Create a database
-
-    ```
-    createdb admg_prod
-    ```
-
-8.  Load a dump of the database
-
-    Download the latest zip file of example data (get this from one of the database maintainers) & load into the database. For example:
-
-    ```
-    cat ./production_dump-2020.01.28.sql | psql admg_prod
-    ```
-
-9.  Run migrations
-
-    ```
-    python manage.py migrate
-    ```
-
-10. Create yourself a user
-
-    ```
-    python manage.py creatersuperuser
-    ```
-
-## Running the application
-
-1. With the virual environment activated, run the server
-
-   ```
-   python manage.py runserver_plus
-   ```
-
-2. Open the website
-   http://localhost:8000/
 
 ### Understanding `python manage.py`
 
 `python manage.py <command>`
 
-- `manage.py` is your entry point into the django app. It has several commands, including:
+`manage.py` is your entry point into the django app. It has several commands, including:
   - `test`
   - `migrate`
   - `makemigrations`
@@ -217,43 +55,66 @@ python manage.py sass admin_ui/static/scss admin_ui/static/css --watch
   - `shell_plus`
   - django extensions — third party modules
 
-### Optional additional tools
+To run python manage.py commands using docker compose, use the following command structure:
+  ```
+  docker compose run --rm -it web python manage.py <command>
+  ```
 
-interactive way to interact with the database and the database models.
+### Shell Access
 
-`python manage.py shell_plus`
+Utilize Django's shell for experimentation with queries & other Django functionality:
 
-### Running the infrastructure for DOI fetching
+```sh
+docker compose run --rm -it web python manage.py shell_plus
+```
+### Project URLs
 
-DOI fetching uses rabbitmq and celery.
+List all of the URL patterns for the project:
+```sh
+docker compose run --rm it web python manage.py show_urls
+```
+### Running Tests
 
-#### Installation
+Run your tests:
+```sh
+docker compose run --rm -it web pytest
+```
 
-Install `rabbitmq` (probably using `brew` if you’re on a Mac)
+### Reporting test coverage
 
-#### Starting the service
+Run your tests with coverage:
+```sh
+docker compose run --rm -it web python -m coverage run -m pytest
+```
 
-1. start rabbitmq:
+Generate coverage report:
+```sh
+docker compose run --rm -it web python -m  coverage report -m --skip-covered
+```
 
-   ```
-   rabbitmq-server
-   ```
+If you want to view coverage in your editor using, for example, VSCode's Coverage Gutters plugin, export the coverage report to a supported format:
 
-2. start the celery worker:
+```sh
+docker compose run --rm -it web python -m coverage lcov -o coverage.lcov
+```
 
-   ```
-   celery -A config.celery_app worker --beat --scheduler django -l DEBUG
-   ```
+### Sass
 
-   _Note: If running locally (ie not in Docker), you may need to overwrite the `CELERY_BROKER_URL` setting:_
+To build Sass files for the project:
 
-   ```
-   CELERY_BROKER_URL=amqp://guest:guest@localhost:5672 celery -A config celery_app worker --beat --scheduler django -l DEBUG`
-   ```
+```sh
+python manage.py sass admin_ui/static/scss admin_ui/static/css --watch
+```
 
-### Configuring system to deploy CASEI
 
-The Maintenance Interface is able to initiate a deployment of [CASEI](https://github.com/NASA-IMPACT/admg-inventory/). This works by triggering a [workflow dispatch event](https://docs.github.com/en/rest/reference/actions#create-a-workflow-dispatch-event) on CASEI's [`deploy-to-production` workflow](https://github.com/NASA-IMPACT/admg-inventory/actions/workflows/deploy-to-production.yml). To allow the Maintenance Interface to trigger CASEI, a [Personal Access Token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens) with `actions:write` permissions should be provided via the `CASEI_GH_TOKEN` environment variable. The following environment variables may optionally be provided to override default configuration:
+## Automated deployment
+
+Several automated workflows are already configured. These can be found within the .github/workflows directory. 
+
+
+## Configuring system to deploy CASEI
+
+The Maintenance Interface is able to initiate a deployment of [CASEI](https://github.com/NASA-IMPACT/admg-inventory/). This works by triggering a [workflow dispatch event](https://docs.github.com/en/rest/reference/actions#create-a-workflow-dispatch-event) on CASEI's [`deploy-to-production` workflow](https://github.com/NASA-IMPACT/admg-inventory/actions/workflows/deploy-to-production.yml). To allow the Maintenance Interface to trigger CASEI, a [Personal Access Token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens) with `actions:write` permissions should be provided via the `CASEI_GH_TOKEN` environment secret. The following environment variables may optionally be provided to override default configuration:
 
 - `CASEI_GH_REPO`, the repo to deploy. Defaults to `NASA-IMPACT/admg-inventory`
 - `CASEI_GH_WORKFLOW_ID`, the workflow to run. Defaults to `deploy-to-production.yml`
