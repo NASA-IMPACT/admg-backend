@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>API documentation &mdash; CASEI 0.1 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/sphinx-toolbox-code.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Curation Interface" href="curation_interface.html" />
+    <link rel="prev" title="Catalog of Archived Suborbital Earth Science Investigations" href="casei_overview.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            CASEI
+          </a>
+              <div class="version">
+                0.1
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">What is CASEI?</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="casei_overview.html">Catalog of Archived Suborbital Earth Science Investigations</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Usage</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">API documentation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#introduction">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#uuids-and-related-objects">UUIDs and Related Objects</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#string-match-queries">String Match Queries</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#querying-an-entire-table">Querying an entire table</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#query-by-uuid">Query by UUID</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#query-by-default-search-fields">Query by default search fields</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#query-by-specific-field">Query by specific field</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#query-by-specific-field-list">Query by specific field list</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#link-to-api">Link to API</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Curation Process</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="curation_interface.html">Curation Interface</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Understanding Application</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="data_models.html">Data Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="change_objects.html">Understanding the Change Objects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cmr_recommender.html">CMR Recommender</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gcmd_sync.html">GCMD Sync</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Installation and Tests</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="project_installation.html">Docker Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="running_tests.html">Running Tests</a></li>
+</ul>
+
+<p class="caption" role="heading"><span class="caption-text">User Guides</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="user_guides.html">User Guides</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">CASEI</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">API documentation</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/documentation/api_doc.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="api-documentation">
+<h1>API documentation<a class="headerlink" href="#api-documentation" title="Permalink to this heading"></a></h1>
+<section id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this heading"></a></h2>
+<p>CASEI is built on top of a PostgreSQL database with multiple tables that each contain fields and foreign keys. Each endpoint in the API will point to a corresponding table. All the available models and fields can be seen at the bottom of this page.</p>
+<p>Requesting a bare table endpoint, such as <a class="reference external" href="https://admg.nasa-impact.net/api/campaign">https://admg.nasa-impact.net/api/campaign</a> will return a list of all the metadata items in the table, in this case, for every campaign in the inventory. Specific objects can be retrieved by adding a known UUID after the table name, and if you don’t know the UUID, string match searching is available for most fields. Further details on all search types as well as example queries can be found below.</p>
+<p># Running Full Table Queries
+As mentioned above, the most basic query returns the full data from a table. For example <a class="reference external" href="https://admg.nasa-impact.net/api/campaign">https://admg.nasa-impact.net/api/campaign</a> will return a list of all published campaign items in the database.</p>
+<p>Below is a contrived example of the results from a campaign query, with … indicating the continuation of additional metadata and additional campaigns. Here you can see abbreviated metadata for two campaigns, OLYMPEX and ACES.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="s2">&quot;,</span>
+    <span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="p">[</span>
+    <span class="p">{</span>
+        <span class="s2">&quot;uuid&quot;</span><span class="p">:</span> <span class="s2">&quot;2552174b-213c-4bfc-b36a-632fb16c5ec2&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;short_name&quot;</span><span class="p">:</span> <span class="s2">&quot;OLYMPEX&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;long_name&quot;</span><span class="p">:</span> <span class="s2">&quot;Olympic Mountains Experiment&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;start_date&quot;</span><span class="p">:</span> <span class="s2">&quot;2015-11-01&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;partner_orgs&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="s2">&quot;d6ffd2fa-1230-4971-a0a4-832b27b3a6c1&quot;</span>
+        <span class="p">],</span>
+        <span class="o">...</span>
+    <span class="p">},</span>
+    <span class="p">{</span>
+        <span class="s2">&quot;uuid&quot;</span><span class="p">:</span> <span class="s2">&quot;30ba471c-0844-447a-91fd-b63a2f42b715&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;short_name&quot;</span><span class="p">:</span> <span class="s2">&quot;ACES&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;long_name&quot;</span><span class="p">:</span> <span class="s2">&quot;Altus Cumulus Electrification Study&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;start_date&quot;</span><span class="p">:</span> <span class="s2">&quot;2002-08-02&quot;</span>
+        <span class="s2">&quot;partner_orgs&quot;</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="o">...</span>
+    <span class="p">},</span>
+    <span class="o">...</span>
+    <span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="uuids-and-related-objects">
+<h2>UUIDs and Related Objects<a class="headerlink" href="#uuids-and-related-objects" title="Permalink to this heading"></a></h2>
+<p>In the example results from the Campaign table, we saw several UUIDs listed: one uuid that identifies each campaign, and on OLYMPEX a UUID in the partner_orgs list.</p>
+<p>This is because every item has its own identifying UUID, and related objects linked from other tables are always specified using a UUID. For example, each Campaign might have been conducted in conjunction with a Partner Org. However, Partner Org is not a simple string value. It is an independent object with its own table and additional metadata. So the Campaign API response will list Partner Org as a UUID to the relevant object.</p>
+<p>If you would like to see the details on that Partner Org, you must query the partner_org endpoint with the given UUID. Using the metadata shown above, we would make the following query:</p>
+<p><a class="reference external" href="https://admg.nasa-impact.net/api/partner_org/d6ffd2fa-1230-4971-a0a4-832b27b3a6c1">https://admg.nasa-impact.net/api/partner_org/d6ffd2fa-1230-4971-a0a4-832b27b3a6c1</a>.</p>
+<p>This would return the metadata for the related Partner Org, in this case, ECCC.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="n">true</span><span class="p">,</span>
+<span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+<span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="p">{</span>
+    <span class="s2">&quot;uuid&quot;</span><span class="p">:</span> <span class="s2">&quot;d6ffd2fa-1230-4971-a0a4-832b27b3a6c1&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;aliases&quot;</span><span class="p">:</span> <span class="p">[</span>
+    <span class="s2">&quot;14aa21a2-de5a-4987-af11-d2c7c7a0c20f&quot;</span>
+    <span class="p">],</span>
+    <span class="s2">&quot;campaigns&quot;</span><span class="p">:</span> <span class="p">[</span>
+    <span class="s2">&quot;1d26f72f-d9d5-45cc-b5ac-1c91ed05b76f&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;118d9d82-5e90-466b-8b82-530276b76ecc&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;2552174b-213c-4bfc-b36a-632fb16c5ec2&quot;</span>
+    <span class="p">],</span>
+    <span class="s2">&quot;short_name&quot;</span><span class="p">:</span> <span class="s2">&quot;ECCC&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;long_name&quot;</span><span class="p">:</span> <span class="s2">&quot;Environment and Climate Change Canada&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;website&quot;</span><span class="p">:</span> <span class="s2">&quot;https://www.canada.ca/en/environment-climate-change.html&quot;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>As you can see, the Partner Org has its own useful metadata such as a long name, aliases, a website, and even a handy list of all the campaigns it appears on.</p>
+<p>Observant readers will have noticed that campaign had a plural field called partner_orgs but the table name was the singular partner_org. Table names are always singular, but related fields can be a singular or plural version of the table name depending on whether only one or many items are linked.</p>
+<p>But what if you don’t know the UUID of the item you want to query?</p>
+</section>
+<section id="string-match-queries">
+<h2>String Match Queries<a class="headerlink" href="#string-match-queries" title="Permalink to this heading"></a></h2>
+<p>In practice, it is unlikely that you will know the UUID of the Campaign or Partner Org you are interested in. Instead you will probably know the short name, long name, or maybe a keyword from the description.</p>
+<p>Because all datatypes are serialized into strings, most fields can be searched using basic string matching. A native datetype becomes the searchable string 2022-01-15.</p>
+<p>By default, searches are not case sensitive and use a contain logic. For example, the field value of the yellow clouds will match to the search string cloud.</p>
+<p>The following parameters are used when constructing a query.</p>
+<p>search_term
+Contains the actual search string, for example: aces, cloud, 2022-01-05
+search_type
+Optional, default=plain
+plain: terms are treated as separate keywords
+phrase: terms are treated as a single phrase
+raw: formatted search query with terms and operators
+websearch: formatted search query, similar to the one used by web search engines.
+Refer to the PostgreSQL docs for more details on differences and syntax
+search_fields
+Optional, defaults to predefined fields in each model
+Specifies the exact field to be searched: short_name, description, start_date
+Example Queries
+We’ve seen a few examples already above, but in this section we will demonstrate all the common use cases.</p>
+</section>
+<section id="querying-an-entire-table">
+<h2>Querying an entire table<a class="headerlink" href="#querying-an-entire-table" title="Permalink to this heading"></a></h2>
+<p>This query will return metadata for all the campaigns.</p>
+<p><a class="reference external" href="https://admg.nasa-impact.net/api/campaign">https://admg.nasa-impact.net/api/campaign</a></p>
+</section>
+<section id="query-by-uuid">
+<h2>Query by UUID<a class="headerlink" href="#query-by-uuid" title="Permalink to this heading"></a></h2>
+<p>This query will return metadata for the exact campaign specified by UUID.</p>
+<p><a class="reference external" href="https://admg.nasa-impact.net/api/campaign/30ba471c-0844-447a-91fd-b63a2f42b715">https://admg.nasa-impact.net/api/campaign/30ba471c-0844-447a-91fd-b63a2f42b715</a></p>
+</section>
+<section id="query-by-default-search-fields">
+<h2>Query by default search fields<a class="headerlink" href="#query-by-default-search-fields" title="Permalink to this heading"></a></h2>
+<p>Each table has a list of default search fields, usually short_name, long_name, description, and any other text fields. This query will search all of those fields for the listed term.</p>
+<p><a class="reference external" href="https://admg.nasa-impact.net/api/campaign/search_term=ACES">https://admg.nasa-impact.net/api/campaign/search_term=ACES</a></p>
+</section>
+<section id="query-by-specific-field">
+<h2>Query by specific field<a class="headerlink" href="#query-by-specific-field" title="Permalink to this heading"></a></h2>
+<p>If you know the exact field and want to search it specifically, use the search_fields parameter. Here we are looking for the term ACES in the short_name field of any campaign.</p>
+<p><a class="reference external" href="https://admg.nasa-impact.net/api/campaign/search_term=ACES&amp;search_fields=short_name">https://admg.nasa-impact.net/api/campaign/search_term=ACES&amp;search_fields=short_name</a></p>
+</section>
+<section id="query-by-specific-field-list">
+<h2>Query by specific field list<a class="headerlink" href="#query-by-specific-field-list" title="Permalink to this heading"></a></h2>
+<p>You can also search by a specific list of fields, just join them with a comma. In this example we are searching for the term ice anywhere in the short_name or description field of any campaign.</p>
+<p><a class="reference external" href="https://admg.nasa-impact.net/api/campaign/search_term=ice&amp;search_fields=short_name,description">https://admg.nasa-impact.net/api/campaign/search_term=ice&amp;search_fields=short_name,description</a></p>
+</section>
+<section id="link-to-api">
+<h2>Link to API<a class="headerlink" href="#link-to-api" title="Permalink to this heading"></a></h2>
+<p><a class="reference external" href="admgstaging.nasa-impact.net/api">Base URL:</a>
+<a class="reference external" href="https://admgstaging.nasa-impact.net/api/docs/?format=openapi">https://admgstaging.nasa-impact.net/api/docs/?format=openapi</a></p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="casei_overview.html" class="btn btn-neutral float-left" title="Catalog of Archived Suborbital Earth Science Investigations" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="curation_interface.html" class="btn btn-neutral float-right" title="Curation Interface" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019, Carson Davis.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

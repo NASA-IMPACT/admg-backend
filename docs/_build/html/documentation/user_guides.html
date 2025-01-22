@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+    <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>User Guides &mdash; CASEI 0.1 documentation</title>
+        <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+        <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+        <link rel="stylesheet" href="../_static/sphinx-toolbox-code.css" type="text/css" />
+    <!--[if lt IE 9]>
+      <script src="../_static/js/html5shiv.min.js"></script>
+    <![endif]-->
+    
+          <script src="../_static/jquery.js"></script>
+          <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+          <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+          <script src="../_static/doctools.js"></script>
+          <script src="../_static/sphinx_highlight.js"></script>
+      <script src="../_static/js/theme.js"></script>
+      <link rel="index" title="Index" href="../genindex.html" />
+      <link rel="search" title="Search" href="../search.html" />
+      <link rel="prev" title="Running Tests" href="running_tests.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+    <div class="wy-grid-for-nav">
+      <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+        <div class="wy-side-scroll">
+          <div class="wy-side-nav-search" >
+  
+            
+            
+            <a href="../index.html" class="icon icon-home">
+              CASEI
+            </a>
+                <div class="version">
+                  0.1
+                </div>
+  <div role="search">
+    <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+  </div>
+          </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+                <p class="caption" role="heading"><span class="caption-text">What is CASEI?</span></p>
+  <ul>
+  <li class="toctree-l1"><a class="reference internal" href="casei_overview.html">Catalog of Archived Suborbital Earth Science Investigations</a></li>
+  </ul>
+  <p class="caption" role="heading"><span class="caption-text">API Usage</span></p>
+  <ul>
+  <li class="toctree-l1"><a class="reference internal" href="api_doc.html">API documentation</a></li>
+  </ul>
+  <p class="caption" role="heading"><span class="caption-text">Curation Process</span></p>
+  <ul>
+  <li class="toctree-l1"><a class="reference internal" href="curation_interface.html">Curation Interface</a></li>
+  </ul>
+  <p class="caption" role="heading"><span class="caption-text">Understanding Application</span></p>
+  <ul>
+  <li class="toctree-l1"><a class="reference internal" href="data_models.html">Data Models</a></li>
+  <li class="toctree-l1"><a class="reference internal" href="change_objects.html">Understanding the Change Objects</a></li>
+  <li class="toctree-l1"><a class="reference internal" href="cmr_recommender.html">CMR Recommender</a></li>
+  <li class="toctree-l1"><a class="reference internal" href="gcmd_sync.html">GCMD Sync</a></li>
+  </ul>
+  <p class="caption" role="heading"><span class="caption-text">Installation and Tests</span></p>
+  <ul class="current">
+  <li class="toctree-l1"><a class="reference internal" href="project_installation.html">Docker Installation</a></li>
+  <li class="toctree-l1"><a class="reference internal" href="running_tests.html">Running Tests</a></li>
+  </ul>
+  
+  <p class="caption" role="heading"><span class="caption-text">User Guides</span></p>
+  <ul class="current">
+  <li class="toctree-l1 current"><a class="current reference internal" href="#">User Guides</a></li>
+  </ul>
+  
+          </div>
+        </div>
+      </nav>
+  
+      <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+            <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+            <a href="../index.html">CASEI</a>
+        </nav>
+  
+        <div class="wy-nav-content">
+          <div class="rst-content">
+            <div role="navigation" aria-label="Page navigation">
+    <ul class="wy-breadcrumbs">
+        <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+        <li class="breadcrumb-item active">User Guides</li>
+        <li class="wy-breadcrumbs-aside">
+              <a href="../_sources/documentation/running_tests.rst.txt" rel="nofollow"> View page source</a>
+        </li>
+    </ul>
+    <hr/>
+  </div>
+            <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+             <div itemprop="articleBody">
+               
+    <section id="user-guides">
+  <h1>User Guides<a class="headerlink" href="#user-guides" title="Permalink to this heading"></a></h1>
+  <h2>Introduction</h2>
+  <p>The Catalog of Archived Suborbital Earth science Investigations (CASEI) is a searchable inventory catalog that provides contextual metadata for NASA campaigns, platforms, and instruments conducted to collect airborne and field data. It also features access to data products for NASA’s airborne and field campaigns and corresponding detailed information. This section will guide users through conducting searches and accessing the various features within the CASEI user interface (UI). Additional details about API searches, CASEI data models, curation process, and other resources can be found in other sections.</p>
+  
+  <h2>Conducting a Search</h2>
+  <p>To begin a search on CASEI, click on the “Explore CASEI” button on the home page (<a href=https://impact.earthdata.nasa.gov/casei>CASEI Website</a>) or click “Explore” in the top right menu.</p>
+
+        <a class="reference internal image-reference" href="../_images/search.gif"><img alt="" src="../_images/search.gif" style="width: 600px;padding: 10px" /></a>
+
+  <p>This action will take you to the “Explore” page where you can select various search criteria for campaigns, platforms, instruments, or data products.</p>
+  
+  <h3>Explore Page Search</h3>
+
+  <p>On the “Explore” page, users can filter search results by specific metadata elements using dropdown menus. They can search by campaign, platform, instrument, or all of the data products associated with the CASEI inventory.</p>  
+  
+  <h3>Campaign Search</h3>
+  
+  <p>For campaigns, users can filter by date range, NASA focus area, geophysical concept, season, geographical region, platforms, and funding agency. Users can also directly type the name of a campaign.</p>
+  
+  <p>Using the following scenario, this guide will explain how to conduct a basic campaign search within CASEI.</p>
+  
+  <p style="font-weight: bold; font-style: italic;">A student wants to know more about NASA campaigns that quantified air quality over the last ten years.</p>
+  
+  <p>To discover which campaigns meet these criteria, use the dropdown menus to filter the results by selecting relevant search parameters.</p>
+
+  
+  <p>How to filter search results:</p>
+    <ol>
+    <li><i>Click the dropdown menu for “Date Range” and select “10 years ago” to set the date range for the last 10 years.</i> (Note: can also enter manually using the calendar option)</li>
+    <li><i>Click the dropdown menu for “Focus Area” and select “Atmospheric Composition”</i></li>
+    <li><i>Click the dropdown menu for “Geophysical Concept” and select “Air Qual”</i></li>
+    </ol>
+  </list>
+  <a class="reference internal image-reference" href="../_images/filter.gif"><img alt="" src="../_images/filter.gif" style="width: 600px;padding: 10px" /></a>
+  
+  <p>After making the selections, the campaigns that meet the criteria will be displayed. Active filters will be displayed at the top of the list and can be removed by clicking them. Note, CASEI allows users to add multiple filters for the same metadata elements. Select “Aerosols” as an additional filter for the “Geophysical Concepts”.</p> 
+
+  <p>To access more detailed information about a campaign, click on the campaign card to navigate to its landing page. For example, click on the Fire Influence on Regional to Global Environments and Air Quality (FIREX-AQ) campaign card.</p> 
+
+  <p>Continuing with the search scenario, let’s assume the student is only interested in air quality campaigns that occurred over the contiguous United States. CASEI provides the ability to filter results by region when using the “Show Map” feature.</p>
+
+  <p>Click “Show Map” to display a map with all the bounding boxes of the campaigns that meet the search criteria. These bounding boxes represent the spatial extent of the campaign.</p> 
+
+  <p>Users can also create bounding boxes on the map by using the “Draw Polygon” tool in the top right corner. Drawing a polygon will filter results to that spatial extent.</p>
+
+  <p>How to create a polygon:</p>
+  <ol>
+  <li><i>Click the “Draw Polygon” button</i></li>
+  <li><i>Draw a polygon around the contiguous United States by clicking on the map to add a vertex</i></li>
+  <li><i>Double-click to complete the polygon once done drawing</i></li>
+  <li><i>Click “Save” to filter results to the bounding box, or click “Cancel” to draw a new polygon</i></li>
+  </ol>
+
+<a class="reference internal image-reference" href="../_images/polygon.gif"><img alt="" src="../_images/polygon.gif" style="width: 600px;padding: 10px" /></a>
+  
+<p>After drawing the polygon, scroll down, and only campaigns that are within the spatial extent of the bounding box will be displayed. Note, only one polygon at a time can be applied.</p>
+
+<h3>Platform & Instrument Search</h3>
+
+<p>Users can also search by platform or instrument on the “Explore” page by clicking on the “Platforms” and “Instruments” tabs at the top of the page. The search process for platforms and instruments is the same as for campaigns, but with different metadata filtering options.</p>
+
+<p>Platforms can be filtered by the instruments used or the platform type (e.g., Air-based, Water-based). For instruments, you can filter by measurement type, measurement style, vertical measurement region, and/or the platforms the instrument has operated on. To access information and data products for the desired platform or instrument, click on the card for that item to go to the landing page.</p>
+
+<a class="reference internal image-reference" href="../_images/search2.gif"><img alt="" src="../_images/search2.gif" style="width: 600px;padding: 10px" /></a>
+
+<h3>Data Products Search</h3>
+
+<p>Users can also search for data products on the “Explore” page by clicking on the “Data Products” tab at the top of the page. Users can search across all the data products within CASEI instead of exploring the individual landing pages for the campaigns, instruments, and platforms to locate data products. Searching directly for data products has the same functionality as searching for campaigns, platforms, and instruments except that the filter options are modified.</p>
+
+<p>For data products, users can filter by measurement variable, geophysical concept, date range, measurement styles, measurement types, vertical measurement region, and/or related campaigns, platforms, or instruments. The measurement variables come from the Earth Science keywords from the Global Change Master Directory (GCMD). You can access the GCMD keywords <a href="https://gcmd.earthdata.nasa.gov/KeywordViewer/scheme/all/e9f67a66-e9fc-435c-b720-ae32a2c3d8f5/?gtm_keyword=EARTH%20SCIENCE&gtm_scheme=Earth%20Science">here</href></a>. Users can also filter by study region by using the “Show Map” feature on the campaign search bar.</p>
+
+<p>Using the following scenario, this guide will explain how to conduct a basic data product search within CASEI.</p>
+
+<p style="font-weight: bold; font-style: italic;">A researcher wants to locate in situ carbon dioxide measurements from atmospheric chemistry field campaigns.</p>
+
+<p>How to conduct a data product search:</p>
+<ol>
+  <li><i>Go to the “Explore” page and click on the “Data Products” tab</i></li>
+  <li><i>Click the dropdown menu for “Geophysical Concept” and select “Atm Chem”</i></li>
+  <li><i>Click the dropdown menu for “Measurement Style” and select “In Situ”</i></li>
+  <li><i>Type carbon dioxide in the “Measurement Variables” search bar and select the “Atmospheric Carbon Dioxide” keyword</i></li>
+</ol>
+
+<p>After selecting all search criteria, data products that fit these criteria will appear. Click on the links to go to the DAAC landing pages for the data products to access the data files and documentation. For example, click on the data product with the short name “ABoVE_ASCENDS_XCO2_2050” to go to the ORNL DAAC landing page.</p>
+
+<a class="reference internal image-reference" href="../_images/data_products.gif"><img alt="" src="../_images/data_products.gif" style="width: 600px;padding: 10px" /></a>
+
+<p>Only data products from airborne and field campaigns within the CASEI inventory are listed. To access additional data products from NASA missions or projects, see <a href="https://search.earthdata.nasa.gov/search">Earthdata Search</a></p>
+
+<h3>Direct Home Page Search</h3>
+
+<p>Users who have come to CASEI with a specific campaign, platform, or instrument in mind can quickly locate information with the “Data Shortcut” search bar on the home page. Here, users can type the campaign, platform, or instrument name that they are looking for, and relevant options will automatically populate. Click  on an item to go directly to its landing page.</p>
+
+<p>Using the following scenario, this guide will explain how to conduct a direct search within CASEI.</p>
+
+<p style="font-weight: bold; font-style: italic;">A researcher wants to know more about the NASA FIREX-AQ field campaign and access its data products.</p>
+
+<p>How to conduct a direct search:</p>
+<ol>
+  <li><i>Go to CASEI home page</i></li>
+  <li><i>Type FIREX-AQ in the "Data Shortcut" search bar</i></li>
+  <li><i>Click on the FIREX-AQ card to navigate to its landing page</i></li>
+</ol>
+
+<a class="reference internal image-reference" href="../_images/data_search.gif"><img alt="" src="../_images/data_search.gif" style="width: 600px;padding: 10px" /></a>
+
+<h2>Navigating the Landing Pages</h2>
+
+<p>Each campaign, platform, or instrument has its own landing page in CASEI. The landing pages provide detailed information and resources, as well as a list of associated data products.</p>
+
+<h3>Campaign Landing Page</h3>
+
+<p sytle="font-style: italic">This guide will use the landing page for the Investigation of Microphysics and Precipitation for Atlantic Coast-Threatening Snowstorms (<a href="https://impact.earthdata.nasa.gov/casei/campaign/IMPACTS/">IMPACTS</a>) campaign as an example</p>
+
+<p>Campaign landing pages are organized into six sections: Overview, Focus, Platforms & Instruments, Deployments & Events, Data, and Program Info. Users can access each section by clicking on the tabs near the top of the landing page.</p>
+
+<h3>Overview</h3>
+
+<p>The “Overview” section includes a short description of the campaign with the study dates, season of study, region, and spatial bounds. It also provides additional resources such as the project website, data repository, and publications for the campaign on the right side of the page. Users can quickly access the entire data for a campaign by clicking the “Campaign DOI” link on the top right of this section. (Note: every campaign may not have a DOI). This links to the campaign landing page for the DAAC where the data is archived and can be downloaded.</p>
+
+<a class="reference internal image-reference" href="../_images/overview.gif"><img alt="" src="../_images/overview.gif" style="width: 600px;padding: 10px" /></a>
+
+<h3>Focus</h3>
+
+<p>The “Focus” section provides users with details about which NASA focus area the campaign falls under, the geophysical concepts and phenomena that were studied, and NASA missions that were supported by the campaign.</p>
+
+<a class="reference internal image-reference" href="../_images/focus.png"><img alt="" src="../_images/focus.png" style="width: 600px;padding: 10px" /></a>
+
+<h3>Platforms & Instruments</h3>
+
+<p>The “Platforms & Instruments” section lists all the platforms that were used in the campaign and their instrument payloads. Users can click through each platform by clicking on the platform tabs at the top or by clicking through the white arrows. Additional details about each platform can be accessed by clicking on the platform card to view the associated landing page. Clicking on each instrument will reveal a short description and the instrument measurements. Users can access more information by clicking the “Learn More” link to go to the instrument landing page.</p>
+
+<a class="reference internal image-reference" href="../_images/platforms_instruments.gif"><img alt="" src="../_images/platforms_instruments.gif" style="width: 600px;padding: 10px" /></a>
+
+<h3>Deployments & Events</h3>
+
+<p>The “Deployments & Events” section has an interactive map and timeline where users can see details about platform locations and deployments. The map displays platform tracks and locations for the entire campaign. Users can select a specific platform(s) to display using the legend on the top right. If a campaign has multiple deployments, platform tracks for individual deployments can be displayed by clicking on the green bars on the timeline below. </p>
+
+<a class="reference internal image-reference" href="../_images/deployments_events.gif"><img alt="" src="../_images/deployments_events.gif" style="width: 600px;padding: 10px" /></a>
+
+<p>The timeline allows users to break down each deployment into a detailed view of intensive operational periods (IOPs) as well as significant events, which are dates where a notable specific phenomenon was observed that relates to campaign science objectives. Details can be viewed by clicking on the green (deployments), orange (IOPs), and purple (significant events) bars on the timeline.</p>
+
+<a class="reference internal image-reference" href="../_images/iop.gif"><img alt="" src="../_images/iop.gif" style="width: 600px;padding: 10px" /></a>
+
+<h3>Data Products</h3>
+
+<p>The “Data Products” section provides users with a list of data products associated with the campaign. Each data product in the list includes the long name, platforms, instruments, and DOI link to the DAAC landing page where users can access the data. Users can filter the data products by platforms and/or instruments using the dropdown menus at the top of the list.</p>
+
+<a class="reference internal image-reference" href="../_images/data_products2.gif"><img alt="" src="../_images/data_products2.gif" style="width: 600px;padding: 10px" /></a>
+
+<h3>Program Info</h3>
+
+<p>The “Program Info” section provides details about the program that funded the campaign, the principal investigator, the data manager, and any partner organizations that participated in the campaign.</p> 
+
+<a class="reference internal image-reference" href="../_images/program_info.png"><img alt="" src="../_images/program_info.png" style="width: 600px;padding: 10px" /></a>
+
+<h3>Platforms & Instrument Landing Pages</h3>
+
+<p>Platform and instrument landing pages have a similar layout and functionality as campaign landing pages except the information is more condensed.</p>
+
+<p>Platform landing pages are divided into three sections: Overview, Related Campaigns & Instruments, and Data. The “Overview” section provides a short description of the platform and any additional resources. The “Related Campaigns & Instruments” section reviews the instruments that operated on the platform for each of these field campaigns. Users can click on the campaign card and “Learn More” link for the instruments to go to their respective landing pages. The “Data” section provides a list of data products associated with the platform and can be filtered by campaign, instrument, and/or data format.</p>
+
+<a class="reference internal image-reference" href="../_images/landing_pages.gif"><img alt="" src="../_images/landing_pages.gif" style="width: 600px;padding: 10px" /></a>
+
+<p>Instrument landing pages are also divided into three sections: Instrument Details, Instrument Operation, and Data. The “Instrument Details” section provides metadata about the instrument such as measurement type, measurement variables, temporal resolution, spatial resolution, measurement frequency, calibration details, and any additional resources. The “Instrument Operation” describes which platforms the instrument operated on and in what campaigns. Users can click on individual platform or campaign cards to go to their respective landing pages. The “Data” section provides a list of data products associated with the instrument and can be filtered by campaign, platform, and/or data format.</p>
+
+<a class="reference internal image-reference" href="../_images/landing_pages2.gif"><img alt="" src="../_images/landing_pages2.gif" style="width: 600px;padding: 10px" /></a>
+
+</section>
+  
+  
+             </div>
+            </div>
+            <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+          <a href="project_installation.html" class="btn btn-neutral float-left" title="Docker Installation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+      </div>
+  
+    <hr/>
+  
+    <div role="contentinfo">
+      <p>&#169; Copyright 2019, Carson Davis.</p>
+    </div>
+  
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+      <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+      provided by <a href="https://readthedocs.org">Read the Docs</a>.
+     
+  
+  </footer>
+          </div>
+        </div>
+      </section>
+    </div>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script> 
+  
+  </body>
+  </html>
