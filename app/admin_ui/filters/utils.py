@@ -5,7 +5,6 @@ from api_app.models import Change
 from data_models import models
 from data_models.models import Campaign, Deployment
 
-
 default_filter_configs = [{"field_name": "short_name", "label": "Short Name"}]
 
 

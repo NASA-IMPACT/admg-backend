@@ -16,7 +16,6 @@ from .inlines.doi import (
     DoiCollectionPeriodInline,
 )
 
-
 LIMITED_INFO_LIST_FIELDS = ("short_name", "long_name")
 
 CHANGABLE_INLINES = (InProgressInline, InReviewInline, InAdminReviewInline)

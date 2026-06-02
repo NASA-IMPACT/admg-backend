@@ -4,7 +4,6 @@ from .base import env
 import sentry_sdk
 from sentry_sdk.integrations.django import DjangoIntegration
 
-
 # GENERAL
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#secret-key

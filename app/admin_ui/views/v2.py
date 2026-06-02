@@ -222,11 +222,9 @@ class ChangeHistoryList(SingleTableView, CampaignRelatedView):
         if is_deleted:
             messages.error(
                 self.request,
-                (
-                    f"""The published version of this {self.kwargs['model']} has been deleted
+                (f"""The published version of this {self.kwargs['model']} has been deleted
                     and is no longer viewable on the CASEI UI. You can only view the past versions
-                    in the {self.kwargs['model']} history."""
-                ),
+                    in the {self.kwargs['model']} history."""),
             )
 
         return super().get(request, *args, **kwargs)
