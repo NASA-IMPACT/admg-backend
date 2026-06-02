@@ -29,10 +29,10 @@ jobs:
       CELERY_BROKER_URL: amqp://guest:guest@localhost:5672/
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -61,7 +61,7 @@ jobs:
           echo "USER_SITE_PATH=$USER_SITE_PATH" >> $GITHUB_ENV
 
       # NOTE: The cache does not seem to detect changes in the requirements files reliably
-      - uses: actions/cache@v2
+      - uses: actions/cache@v5
         id: cache-dependencies
         with:
           path: ${{ env.USER_SITE_PATH }}
@@ -93,15 +93,14 @@ jobs:
           python -m coverage json -o coverage.json
 
       - name: Save Test Videos
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: ${{ failure() }}
         with:
           name: videos
           path: app/videos/
 
       - name: Save Code Coverage
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: code_coverage
           path: app/coverage.json
-
