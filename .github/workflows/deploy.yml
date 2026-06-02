@@ -54,7 +54,7 @@ jobs:
           node-version: "14"
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: 3.11.8
           cache: pip
