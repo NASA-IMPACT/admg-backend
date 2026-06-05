@@ -80,7 +80,7 @@ jobs:
 
       - name: Install Playwright Browsers
         run: |
-          python -m playwright install --with-deps
+          python -m playwright install --with-deps chromium
 
       - name: Check for missing migrations
         run: |

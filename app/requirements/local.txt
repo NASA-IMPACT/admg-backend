@@ -15,13 +15,13 @@ mypy==0.910  # https://github.com/python/mypy
 pytest>=5.0.1  # https://github.com/pytest-dev/pytest
 pytest-sugar==0.9.6  # https://github.com/Frozenball/pytest-sugar
 freezegun==1.2.2  # https://github.com/spulec/freezegun
-playwright==1.38.0 
+playwright==1.38.0
 
 # Code quality
 # ------------------------------------------------------------------------------
 flake8==6.0.0  # https://github.com/PyCQA/flake8
 coverage==7.0.5  # https://github.com/nedbat/coveragepy
-black==22.12.0  # https://github.com/ambv/black
+black==26.5.1  # https://github.com/ambv/black
 pylint-django==2.5.3  # https://github.com/PyCQA/pylint-django
 
 # Django
