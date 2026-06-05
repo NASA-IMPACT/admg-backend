@@ -4,7 +4,6 @@ from data_models import models
 from . import tables
 from .filters import filters, published as published_filters
 
-
 # any custom values for each model are added to this dictionary
 # all models must be defined at a minimum with an empty dictionary
 

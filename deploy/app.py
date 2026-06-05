@@ -7,7 +7,6 @@ from deploy_stacks.utils import generate_name
 from deploy_stacks.app_stack import ApplicationStack
 from deploy_stacks.infra_stack import InfraStack
 
-
 CDK_DEFAULT_REGION = os.environ.get("CDK_DEFAULT_REGION")
 CDK_DEFAULT_ACCOUNT = os.environ.get("CDK_DEFAULT_ACCOUNT")
 STAGE = os.environ.get("STAGE", default="dev")

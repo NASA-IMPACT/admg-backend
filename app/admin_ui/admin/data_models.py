@@ -1,21 +1,20 @@
-from admin_ui.admin.actions.doi import fetch_dois
+from data_models import models
 from django.contrib import admin
 
-from data_models import models
+from admin_ui.admin.actions.doi import fetch_dois
 
-from .permissions import EnforcedPermissionsMixin
-from .inlines.change import InProgressInline, InReviewInline, InAdminReviewInline
+from .inlines.change import InAdminReviewInline, InProgressInline, InReviewInline
 from .inlines.doi import (
     CampaignDoiInline,
-    DoiCampaignInline,
-    InstrumentDoiInline,
-    DoiInstrumentInline,
-    PlatformDoiInline,
-    DoiPlatformInline,
     CollectionPeriodDoiInline,
+    DoiCampaignInline,
     DoiCollectionPeriodInline,
+    DoiInstrumentInline,
+    DoiPlatformInline,
+    InstrumentDoiInline,
+    PlatformDoiInline,
 )
-
+from .permissions import EnforcedPermissionsMixin
 
 LIMITED_INFO_LIST_FIELDS = ("short_name", "long_name")
 
@@ -40,7 +39,12 @@ class CollectionPeriodAdmin(BasicAdmin):
 
 @admin.register(models.DOI)
 class DoiAdmin(BasicAdmin):
-    inlines = [DoiCampaignInline, DoiInstrumentInline, DoiPlatformInline, DoiCollectionPeriodInline]
+    inlines = [
+        DoiCampaignInline,
+        DoiInstrumentInline,
+        DoiPlatformInline,
+        DoiCollectionPeriodInline,
+    ]
 
 
 @admin.register(models.PlatformType)
