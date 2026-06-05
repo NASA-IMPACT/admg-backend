@@ -49,10 +49,10 @@ jobs:
         with:
           rabbitmq version: latest
 
-      - name: Install GDAL
+      - name: Install GDAL and libasound2
         run: |
           sudo apt-get update -y
-          sudo apt-get install -y libgdal-dev
+          sudo apt-get install -y libgdal-dev liboss4-salsa-asound2
 
       - name: Set user-site-path
         id: user-site
