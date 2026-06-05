@@ -5,7 +5,7 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
         python-version: ['3.11']
@@ -49,10 +49,10 @@ jobs:
         with:
           rabbitmq version: latest
 
-      - name: Install GDAL and libasound2
+      - name: Install GDAL
         run: |
           sudo apt-get update -y
-          sudo apt-get install -y libgdal-dev liboss4-salsa-asound2
+          sudo apt-get install -y libgdal-dev
 
       - name: Set user-site-path
         id: user-site
@@ -80,7 +80,7 @@ jobs:
 
       - name: Install Playwright Browsers
         run: |
-          python -m playwright install --with-deps chromium
+          python -m playwright install --with-deps
 
       - name: Check for missing migrations
         run: |
